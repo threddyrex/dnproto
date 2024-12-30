@@ -11,6 +11,11 @@ namespace dnproto.commands
         /// <returns>A dictionary where the key is the argument name and the value is the argument value.</returns>
         public static Dictionary<string, string> ParseArguments(string[] args)
         {
+            if(args == null)
+            {
+                throw new Exception("Arguments cannot be null.");
+            }
+            
             string formatError = "Command line arguments must be in the format '/name1 value1 /name2 value2'";
 
             // Check that there are an even number of arguments
