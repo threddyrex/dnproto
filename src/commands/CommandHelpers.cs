@@ -5,6 +5,50 @@ namespace dnproto.commands
     public static class CommandHelpers
     {
         /// <summary>
+        /// Runs console program.
+        /// </summary>
+        /// <param name="arguments"></param>
+        /// <exception cref="Exception"></exception>
+        public static void Run(string[] args)
+        {
+            // Parse args
+            PrintLineSeparator();
+            var arguments = dnproto.commands.CommandHelpers.ParseArguments(args);
+            Console.WriteLine("Parsed arguments:");
+            foreach (var kvp in arguments)
+            {
+                Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
+            }
+
+
+            // Create command instance
+            if (arguments.ContainsKey("command") == false)
+            {
+                throw new Exception("Missing required argument: command");
+            }
+
+            ICommand? commandInstance = CommandHelpers.TryCreateCommandInstance(arguments["command"]);
+
+            if (commandInstance == null)
+            {
+                throw new Exception($"Command '{arguments["command"]}' not found.");
+            }
+
+
+            // Assert arguments. This will throw if the arguments specified by the command aren't matched.
+            CommandHelpers.AssertArguments(commandInstance, arguments);
+
+ 
+            // Do command
+            Console.WriteLine($"Running command...");
+            PrintLineSeparator();
+            commandInstance.DoCommand(arguments);
+            PrintLineSeparator();
+
+        }
+
+
+        /// <summary>
         /// Parses command line arguments into a dictionary.
         /// </summary>
         /// <param name="args">Array of command line arguments.</param>
@@ -32,7 +76,7 @@ namespace dnproto.commands
                 {
                     if (args[i].StartsWith("/"))
                     {
-                        arguments[args[i].Substring(1)] = args[i + 1];
+                        arguments[args[i].Substring(1).ToLower()] = args[i + 1];
                     }
                     else
                     {
@@ -48,13 +92,26 @@ namespace dnproto.commands
             return arguments;
         }
 
+
+
+        /// <summary>
+        /// Tries to create an instance of a command by its name.
+        /// </summary>
+        /// <param name="commandName"></param>
+        /// <returns></returns>
+        public static ICommand? TryCreateCommandInstance(string commandName)
+        {
+            var commandType = TryFindCommandType(commandName);
+            return (commandType is not null ? Activator.CreateInstance(commandType) as ICommand : null);
+        }
+
         /// <summary>
         /// Finds a class in the given assembly by its namespace and case-insensitive name.
         /// </summary>
         /// <param name="assembly">The assembly to search.</param>
         /// <param name="className">The case-insensitive name of the class to find.</param>
         /// <returns>The Type of the class if found, otherwise null.</returns>
-        public static Type FindCommandType(string className)
+        public static Type? TryFindCommandType(string className)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
 
@@ -66,44 +123,40 @@ namespace dnproto.commands
                 }
             }
 
-            throw new Exception("Type not found for command: " + className);
+            return null;
         }
 
 
-        /// <summary>
-        /// Runs console program.
-        /// </summary>
-        /// <param name="arguments"></param>
-        /// <exception cref="Exception"></exception>
-        public static void Run(Dictionary<string, string> arguments)
+        public static void AssertArguments(ICommand command, Dictionary<string, string> arguments)
         {
-            // Do command
-            if (arguments.TryGetValue("command", out var commandName))
-            {
-                var commandType = dnproto.commands.CommandHelpers.FindCommandType(commandName);
+            var requiredArguments = command.GetRequiredArguments();
+            var optionalArguments = command.GetOptionalArguments();
 
-                if (commandType != null)
+            // Check for missing required arguments
+            foreach (var requiredArgument in requiredArguments)
+            {
+                if (arguments.ContainsKey(requiredArgument) == false)
                 {
-                    var commandInstance = Activator.CreateInstance(commandType) as dnproto.commands.ICommand;
-                    if (commandInstance != null)
-                    {
-                        Console.WriteLine($"Running command: " + commandType.Namespace + " " + commandType.Name);
-                        commandInstance.DoCommand(arguments);
-                    }
-                    else
-                    {
-                        throw new Exception($"Class '{commandName}' does not implement 'dnproto.commands.ICommand'.");
-                    }
-                }
-                else
-                {
-                    throw new Exception($"Class '{commandName}' not found in namespace 'dnproto.commands'.");
+                    throw new ArgumentException($"Missing required argument: {requiredArgument}");
                 }
             }
-            else
+
+            // Check for unknown arguments
+            foreach (var argument in arguments)
             {
-                throw new Exception("Argument 'command' not found.");
+                if (requiredArguments.Contains(argument.Key) == false && optionalArguments.Contains(argument.Key) == false && argument.Key != "command")
+                {
+                    throw new ArgumentException($"Unknown argument: {argument.Key}");
+                }
             }
         }
+
+
+        public static void PrintLineSeparator()
+        {
+            Console.WriteLine("---------------------------------------------------------");
+        }
+
+
     }
 }

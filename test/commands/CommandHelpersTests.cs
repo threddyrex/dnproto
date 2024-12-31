@@ -27,21 +27,38 @@ public class CommandHelpersTests
     }
 
     [Fact]
-    public void FindCommandType_NotFound()
+    public void TryFindCommandType_NotFound()
     {
-        Assert.Throws<Exception>(() => CommandHelpers.FindCommandType("notfound"));
+        Assert.Null(CommandHelpers.TryFindCommandType("notfound"));
     }
 
 
     [Fact]
-    public void FindCommandType_Correct()
+    public void TryFindCommandType_Correct()
     {
-        Assert.NotNull(CommandHelpers.FindCommandType("HelloWorld"));
+        Assert.NotNull(CommandHelpers.TryFindCommandType("HelloWorld"));
     }
 
     [Fact]
-    public void FindCommandType_CorrectLowercase()
+    public void TryFindCommandType_CorrectLowercase()
     {
-        Assert.NotNull(CommandHelpers.FindCommandType("helloWorld"));
+        Assert.NotNull(CommandHelpers.TryFindCommandType("helloWorld"));
+    }
+
+    [Fact]
+    public void AssertArguments_NoRequired()
+    {
+        var command = new HelloWorld();
+        var args = new Dictionary<string, string>();
+        CommandHelpers.AssertArguments(command, args);
+    }
+
+
+    [Fact]
+    public void AssertArguments_UnknownThrows()
+    {
+        var command = new HelloWorld();
+        var args = dnproto.commands.CommandHelpers.ParseArguments(new string[]{"/unknown", "value"});
+        Assert.Throws<ArgumentException>(() => CommandHelpers.AssertArguments(command, args));
     }
 }
