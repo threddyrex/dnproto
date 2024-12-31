@@ -20,14 +20,16 @@ namespace dnproto.commands
                 Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
             }
 
-
-            // Create command instance
             if (arguments.ContainsKey("command") == false)
             {
                 throw new Exception("Missing required argument: command");
             }
 
-            ICommand? commandInstance = CommandHelpers.TryCreateCommandInstance(arguments["command"]);
+            string commandName = arguments["command"];
+
+
+            // Create command instance
+            ICommand? commandInstance = CommandHelpers.TryCreateCommandInstance(commandName);
 
             if (commandInstance == null)
             {
@@ -125,6 +127,23 @@ namespace dnproto.commands
 
             return null;
         }
+
+        public static List<Type> GetAllCommandTypes()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            List<Type> commands = new List<Type>();
+
+            foreach (Type type in assembly.GetTypes())
+            {
+                if (type.Namespace == "dnproto.commands" && typeof(ICommand).IsAssignableFrom(type) && type.Name != "ICommand")
+                {
+                    commands.Add(type);
+                }
+            }
+
+            return commands;
+        }
+
 
 
         public static void AssertArguments(ICommand command, Dictionary<string, string> arguments)

@@ -61,4 +61,12 @@ public class CommandHelpersTests
         var args = dnproto.commands.CommandHelpers.ParseArguments(new string[]{"/unknown", "value"});
         Assert.Throws<ArgumentException>(() => CommandHelpers.AssertArguments(command, args));
     }
+
+
+    [Fact]
+    public void GetAllCommandTypes()
+    {
+        var types = CommandHelpers.GetAllCommandTypes();
+        Assert.True(types.Count > 2);
+    }
 }
