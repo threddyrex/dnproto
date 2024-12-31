@@ -28,14 +28,26 @@ dotnet build
 &nbsp;
 
 
-# Running a command
+# Listing all available commands in the tool
 
 Each feature of the utility is a "command". You can specify which command you want when running the tool, along with arguments.
 
-For example:
+To get the full list of commands:
 
 ```powershell
-dnproto.exe /command <commandname> /arg1 value1 /arg2 value2...
+.\dnproto.exe /command list
+```
+
+&nbsp;
+
+
+
+# Running a command
+
+To run one of the commands:
+
+```powershell
+.\dnproto.exe /command <commandname> /arg1 value1 /arg2 value2...
 ```
 
 &nbsp;
@@ -46,7 +58,18 @@ dnproto.exe /command <commandname> /arg1 value1 /arg2 value2...
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle) to resolve a handle.
 
 ```powershell
-dnproto.exe /command ResolveHandle /handle threddyrex.com
+.\dnproto.exe /command ResolveHandle /handle threddyrex.com
 ```
+
+&nbsp;
+
+# Getting a Bluesky profile
+
+This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile) to get the profile.
+
+```powershell
+.\dnproto.exe /command GetProfile /actor threddyrex.com
+```
+
 
 
