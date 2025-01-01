@@ -2,7 +2,7 @@
 
 
 
-dnproto.commands.CommandHelpers.Run(args);
+dnproto.helpers.CommandHelpers.RunMain(args);
 
 
 

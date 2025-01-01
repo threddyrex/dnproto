@@ -1,6 +1,7 @@
-﻿namespace dnproto.tests.commands;
+﻿namespace dnproto.tests.helpers;
 
 using dnproto.commands;
+using dnproto.helpers;
 
 public class CommandHelpersTests
 {
@@ -58,7 +59,7 @@ public class CommandHelpersTests
     public void AssertArguments_UnknownThrows()
     {
         var command = new HelloWorld();
-        var args = dnproto.commands.CommandHelpers.ParseArguments(new string[]{"/unknown", "value"});
+        var args = CommandHelpers.ParseArguments(new string[]{"/unknown", "value"});
         Assert.Throws<ArgumentException>(() => CommandHelpers.AssertArguments(command, args));
     }
 

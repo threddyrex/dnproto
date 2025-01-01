@@ -1,6 +1,7 @@
 using System.Reflection;
+using dnproto.commands;
 
-namespace dnproto.commands
+namespace dnproto.helpers
 {
     public static class CommandHelpers
     {
@@ -9,15 +10,19 @@ namespace dnproto.commands
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="Exception"></exception>
-        public static void Run(string[] args)
+        public static void RunMain(string[] args)
         {
             // Parse args
             PrintLineSeparator();
-            var arguments = dnproto.commands.CommandHelpers.ParseArguments(args);
-            Console.WriteLine("Parsed arguments:");
-            foreach (var kvp in arguments)
+            var arguments = CommandHelpers.ParseArguments(args);
+            Console.WriteLine("Parsed arguments length: " + arguments.Keys.Count);
+            if(arguments.Keys.Count > 0)
             {
-                Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
+                Console.WriteLine("Parsed arguments:");
+                foreach (var kvp in arguments)
+                {
+                    Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
+                }
             }
 
             if (arguments.ContainsKey("command") == false)
@@ -26,6 +31,15 @@ namespace dnproto.commands
             }
 
             string commandName = arguments["command"];
+
+
+            // Print local state directory
+            LocalStateHelpers.EnsureLocalStateDirectory();
+            LocalStateHelpers.EnsureLocalStateSessionFile();
+            Console.WriteLine("Last command run: " + LocalStateHelpers.ReadSessionProperty("lastCommand"));
+            Console.WriteLine("Last command run time: " + LocalStateHelpers.ReadSessionProperty("lastRunTime"));
+            LocalStateHelpers.WriteSessionProperty("lastCommand", commandName);
+            LocalStateHelpers.WriteSessionProperty("lastRunTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
 
             // Create command instance
@@ -42,7 +56,7 @@ namespace dnproto.commands
 
  
             // Do command
-            Console.WriteLine($"Running command...");
+            Console.WriteLine($"Running command.");
             PrintLineSeparator();
             commandInstance.DoCommand(arguments);
             PrintLineSeparator();
@@ -101,10 +115,10 @@ namespace dnproto.commands
         /// </summary>
         /// <param name="commandName"></param>
         /// <returns></returns>
-        public static ICommand? TryCreateCommandInstance(string commandName)
+        public static dnproto.commands.ICommand? TryCreateCommandInstance(string commandName)
         {
             var commandType = TryFindCommandType(commandName);
-            return (commandType is not null ? Activator.CreateInstance(commandType) as ICommand : null);
+            return (commandType is not null ? Activator.CreateInstance(commandType) as dnproto.commands.ICommand : null);
         }
 
         /// <summary>
@@ -146,7 +160,7 @@ namespace dnproto.commands
 
 
 
-        public static void AssertArguments(ICommand command, Dictionary<string, string> arguments)
+        public static void AssertArguments(dnproto.commands.ICommand command, Dictionary<string, string> arguments)
         {
             var requiredArguments = command.GetRequiredArguments();
             var optionalArguments = command.GetOptionalArguments();

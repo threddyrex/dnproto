@@ -1,3 +1,5 @@
+using dnproto.helpers;
+
 namespace dnproto.commands
 {
     public class Help : ICommand
