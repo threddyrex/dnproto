@@ -28,6 +28,18 @@ dotnet build
 &nbsp;
 
 
+# Showing the help
+
+You can view help for the utility by calling it with no arguments.
+
+```powershell
+.\dnproto.exe
+```
+
+
+&nbsp;
+
+
 
 
 # Running a command
