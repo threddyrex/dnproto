@@ -22,7 +22,7 @@ namespace dnproto.commands
 
             if (arguments.ContainsKey("command") == false)
             {
-                throw new Exception("Missing required argument: command");
+                arguments["command"] = "Help";
             }
 
             string commandName = arguments["command"];

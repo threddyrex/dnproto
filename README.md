@@ -28,27 +28,19 @@ dotnet build
 &nbsp;
 
 
-# Listing all available commands in the tool
-
-Each feature of the utility is a "command". You can specify which command you want when running the tool, along with arguments.
-
-To get the full list of commands:
-
-```powershell
-.\dnproto.exe /command list
-```
-
-&nbsp;
-
 
 
 # Running a command
+
+Each feature of the utility is a "command". You can specify which command you want when running the tool, along with arguments.
 
 To run one of the commands:
 
 ```powershell
 .\dnproto.exe /command <commandname> /arg1 value1 /arg2 value2...
 ```
+
+Calling dnproto with no arguments will print the help.
 
 &nbsp;
 
