@@ -86,3 +86,29 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 ```
 
 
+
+&nbsp;
+
+# Creating a session (log in)
+
+You can create a session (log in) using the following:
+
+```powershell
+\dnproto.exe /command createsession /pds "pds" /username "handle" /password "password"
+```
+
+After successful session creation, you can call other commands in dnproto that require authentication.
+
+
+
+&nbsp;
+
+# Creating a text post
+
+After creating a session with the server, you can create a text post with the following:
+
+
+```powershell
+\dnproto.exe /command createpost /text "text of post"
+```
+
