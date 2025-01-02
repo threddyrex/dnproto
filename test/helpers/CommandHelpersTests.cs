@@ -51,16 +51,16 @@ public class CommandHelpersTests
     {
         var command = new HelloWorld();
         var args = new Dictionary<string, string>();
-        CommandHelpers.AssertArguments(command, args);
+        Assert.True(CommandHelpers.CheckArguments(command, args));
     }
 
 
     [Fact]
-    public void AssertArguments_UnknownThrows()
+    public void CheckArguments_UnknownThrows()
     {
         var command = new HelloWorld();
         var args = CommandHelpers.ParseArguments(new string[]{"/unknown", "value"});
-        Assert.Throws<ArgumentException>(() => CommandHelpers.AssertArguments(command, args));
+        Assert.False(CommandHelpers.CheckArguments(command, args));
     }
 
 
