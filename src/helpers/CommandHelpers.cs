@@ -12,7 +12,9 @@ namespace dnproto.helpers
         /// <exception cref="Exception"></exception>
         public static void RunMain(string[] args)
         {
+            //
             // Parse args
+            //
             PrintLineSeparator();
             var arguments = CommandHelpers.ParseArguments(args);
             Console.WriteLine("Parsed arguments length: " + arguments.Keys.Count);
@@ -33,7 +35,9 @@ namespace dnproto.helpers
             string commandName = arguments["command"];
 
 
+            //
             // Print local state directory
+            //
             LocalStateHelpers.EnsureLocalStateDirectory();
             LocalStateHelpers.EnsureLocalStateSessionFile();
             Console.WriteLine("Last command run: " + LocalStateHelpers.ReadSessionProperty("lastCommand"));
@@ -42,7 +46,9 @@ namespace dnproto.helpers
             LocalStateHelpers.WriteSessionProperty("lastRunTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
 
+            //
             // Create command instance
+            //
             ICommand? commandInstance = CommandHelpers.TryCreateCommandInstance(commandName);
 
             if (commandInstance == null)
@@ -51,8 +57,17 @@ namespace dnproto.helpers
             }
 
 
-            // Assert arguments. This will throw if the arguments specified by the command aren't matched.
-            CommandHelpers.AssertArguments(commandInstance, arguments);
+            //
+            // Check that arguments exist. If not, print arguments and return.
+            //
+            if(CommandHelpers.CheckArguments(commandInstance, arguments) == false)
+            {
+                PrintLineSeparator();
+                Console.WriteLine("");
+                CommandHelpers.PrintArguments(commandName, commandInstance);
+                PrintLineSeparator();
+                return;
+            }
 
  
             // Do command
@@ -160,7 +175,7 @@ namespace dnproto.helpers
 
 
 
-        public static void AssertArguments(dnproto.commands.ICommand command, Dictionary<string, string> arguments)
+        public static bool CheckArguments(dnproto.commands.ICommand command, Dictionary<string, string> arguments)
         {
             var requiredArguments = command.GetRequiredArguments();
             var optionalArguments = command.GetOptionalArguments();
@@ -170,7 +185,7 @@ namespace dnproto.helpers
             {
                 if (arguments.ContainsKey(requiredArgument) == false)
                 {
-                    throw new ArgumentException($"Missing required argument: {requiredArgument}");
+                    return false;
                 }
             }
 
@@ -179,9 +194,33 @@ namespace dnproto.helpers
             {
                 if (requiredArguments.Contains(argument.Key) == false && optionalArguments.Contains(argument.Key) == false && argument.Key != "command")
                 {
-                    throw new ArgumentException($"Unknown argument: {argument.Key}");
+                    return false;
                 }
             }
+
+            return true;
+        }
+
+        public static void PrintArguments(string commandName, dnproto.commands.ICommand commandInstance)
+        {
+            Console.WriteLine("Usage:");
+            string usage = "    .\\dnproto.exe /command " + commandName + "";
+
+            // Required arguments
+            foreach (var requiredArgument in commandInstance.GetRequiredArguments())
+            {
+                usage += " /" + requiredArgument + " val ";
+            }
+
+            // Optional arguments
+            foreach (var optionalArgument in commandInstance.GetOptionalArguments())
+            {
+                usage += " [/" + optionalArgument + " val] ";
+            }
+
+            Console.WriteLine();
+            Console.WriteLine(usage);
+            Console.WriteLine();
         }
 
 
