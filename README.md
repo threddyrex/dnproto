@@ -76,4 +76,13 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 ```
 
 
+&nbsp;
+
+# Getting repo status
+
+
+```powershell
+\dnproto.exe /command getrepostatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
+```
+
 
