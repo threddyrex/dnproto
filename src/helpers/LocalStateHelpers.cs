@@ -59,6 +59,29 @@ namespace dnproto.helpers
             }
         }
 
+        public static void WriteSessionProperties(Dictionary<string, string> properties)
+        {
+            string filePath = GetLocalStateSessionFile();
+            var json = File.ReadAllText(filePath);
+            var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+
+            if(dict != null)
+            {
+                foreach(string key in properties.Keys)
+                {
+                    dict[key] = properties[key];
+                }
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                File.WriteAllText(filePath, JsonSerializer.Serialize(dict, options));
+            }
+            else
+            {
+                throw new Exception("Failed to deserialize session file.");
+            }
+        }
+
+
         public static string ReadSessionProperty(string key)
         {
             string filePath = GetLocalStateSessionFile();

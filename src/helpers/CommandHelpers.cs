@@ -23,7 +23,14 @@ namespace dnproto.helpers
                 Console.WriteLine("Parsed arguments:");
                 foreach (var kvp in arguments)
                 {
-                    Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
+                    if(kvp.Key == "password")
+                    {
+                        Console.WriteLine($"    {kvp.Key}: ********");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
+                    }
                 }
             }
 
@@ -34,6 +41,15 @@ namespace dnproto.helpers
 
             string commandName = arguments["command"];
 
+
+            //
+            // Do we want to debug?
+            //
+            if (arguments.ContainsKey("debugattach"))
+            {
+                Console.WriteLine("Waiting for debugger to attach. Press any key to continue.");
+                Console.ReadKey();
+            }
 
             //
             // Print local state directory
@@ -192,7 +208,7 @@ namespace dnproto.helpers
             // Check for unknown arguments
             foreach (var argument in arguments)
             {
-                if (requiredArguments.Contains(argument.Key) == false && optionalArguments.Contains(argument.Key) == false && argument.Key != "command")
+                if (requiredArguments.Contains(argument.Key) == false && optionalArguments.Contains(argument.Key) == false && argument.Key != "command" && argument.Key != "debugattach")
                 {
                     return false;
                 }
