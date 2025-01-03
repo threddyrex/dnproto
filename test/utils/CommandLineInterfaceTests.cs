@@ -59,7 +59,7 @@ public class CommandLineInterfaceTests
     public void CheckArguments_UnknownThrows()
     {
         var command = new HelloWorld();
-        var args = CommandHelpers.ParseArguments(new string[]{"/unknown", "value"});
+        var args = CommandLineInterface.ParseArguments(new string[]{"/unknown", "value"});
         Assert.False(CommandLineInterface.CheckArguments(command, args));
     }
 
