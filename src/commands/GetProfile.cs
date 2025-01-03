@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -24,9 +25,12 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public void DoCommand(Dictionary<string, string> arguments)
         {
-            Console.WriteLine("Getting profile...");
+            string actor = arguments["actor"];
 
-            JsonNode? profile = DoGetProfile(arguments["actor"]);
+            Console.WriteLine($"actor: {actor}");
+
+            JsonNode? profile = WebServiceClient.SendRequest($"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}",
+                HttpMethod.Get);
 
             if(profile == null)
             {
@@ -35,31 +39,8 @@ namespace dnproto.commands
             }
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("Profile:");
+            Console.WriteLine("response:");
             Console.WriteLine(profile.ToJsonString(options));
-        }
-
-        
-        /// <summary>
-        /// Gets profile.
-        /// </summary>
-        /// <param name="actor"></param>
-        /// <returns></returns>
-        public static JsonNode? DoGetProfile(string actor)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                var response = client.Send(request);
-
-                using (var reader = new StreamReader(response.Content.ReadAsStream()))
-                {
-                    var responseText = reader.ReadToEnd();
-                    var ret = JsonNode.Parse(responseText);
-                    return ret;
-                }
-            }
-        }
-    }
+        }        
+   }
 }

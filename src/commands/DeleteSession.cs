@@ -28,28 +28,12 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public void DoCommand(Dictionary<string, string> arguments)
         {
-            DoDeleteSession();
-        }
-
-        
-        /// <summary>
-        /// Delete session
-        /// </summary>
-        /// <returns></returns>
-        public static void DoDeleteSession()
-        {
-
-            string sessionDid = "";
-            string sessionPds = "";
-            string sessionAccessJwt = "";
-            string sessionRefreshJwt = "";
-
             LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
             {
-                {"sessionDid", sessionDid},
-                {"sessionPds", sessionPds},
-                {"sessionAccessJwt", sessionAccessJwt},
-                {"sessionRefreshJwt", sessionRefreshJwt}
+                {"did", ""},
+                {"pds", ""},
+                {"accessJwt", ""},
+                {"refreshJwt", ""}
             });
         }
     }

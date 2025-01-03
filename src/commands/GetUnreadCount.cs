@@ -28,14 +28,34 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public void DoCommand(Dictionary<string, string> arguments)
         {
-            string accessJwt = LocalStateSession.ReadSessionProperty("sessionAccessJwt");
-            string pds = LocalStateSession.ReadSessionProperty("sessionPds");
-            string did = LocalStateSession.ReadSessionProperty("sessionDid");
+            //
+            // Find existing session on disk
+            //
+            string accessJwt = LocalStateSession.ReadSessionProperty("accessJwt");
+            string pds = LocalStateSession.ReadSessionProperty("pds");
+            string did = LocalStateSession.ReadSessionProperty("did");
 
-            Console.WriteLine("did: " + did);
+            Console.WriteLine($"pds: {pds}");
+            Console.WriteLine($"did: {did}");
 
-            JsonNode? unreadCount = DoGetUnreadCount(pds, accessJwt);
+            if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
+            {
+                Console.WriteLine("Session not found. Please log in.");
+                return;
+            }
 
+
+            //
+            // Call WS
+            //
+            JsonNode? unreadCount = WebServiceClient.SendRequest($"https://{pds}/xrpc/app.bsky.notification.getUnreadCount",
+                HttpMethod.Get, 
+                accessJwt: accessJwt);
+
+
+            //
+            // Print results
+            //
             if(unreadCount == null)
             {
                 Console.WriteLine("GetUnreadCount returned null.");
@@ -43,38 +63,8 @@ namespace dnproto.commands
             }
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("Unread count:");
+            Console.WriteLine("response:");
             Console.WriteLine(unreadCount.ToJsonString(options));
-        }
-
-        
-        /// <summary>
-        /// Get unread notification count
-        /// </summary>
-        /// <param name="pds"></param>
-        /// <param name="accessJwt"></param>
-        /// <returns></returns>
-        public static JsonNode? DoGetUnreadCount(string pds, string accessJwt)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                // Setup request
-                string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);;
-                
-
-                // Send
-                var response = client.Send(request);
-
-                using (var reader = new StreamReader(response.Content.ReadAsStream()))
-                {
-                    var responseText = reader.ReadToEnd();
-                    var ret = JsonNode.Parse(responseText);
-                    return ret;
-                }
-            }
         }
     }
 }

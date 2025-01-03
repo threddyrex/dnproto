@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -25,7 +26,13 @@ namespace dnproto.commands
         public void DoCommand(Dictionary<string, string> arguments)
         {
             string pds = arguments.ContainsKey("pds") ? arguments["pds"] : "bsky.social";
-            JsonNode? repoStatus = DoGetRepoStatus(pds, arguments["did"]);
+            string did = arguments["did"];
+
+            Console.WriteLine($"pds: {pds}");
+            Console.WriteLine($"did: {did}");
+
+            JsonNode? repoStatus = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}",
+                HttpMethod.Get);
 
             if(repoStatus == null)
             {
@@ -34,32 +41,8 @@ namespace dnproto.commands
             }
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("Repo Status:");
+            Console.WriteLine("response:");
             Console.WriteLine(repoStatus.ToJsonString(options));
         }
-
-        
-        /// <summary>
-        /// Gets repo status.
-        /// </summary>
-        /// <param name="pds"></param>
-        /// <param name="did"></param>
-        /// <returns></returns>
-        public static JsonNode? DoGetRepoStatus(string pds, string did)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string url = $"https://{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}";
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                var response = client.Send(request);
-
-                using (var reader = new StreamReader(response.Content.ReadAsStream()))
-                {
-                    var responseText = reader.ReadToEnd();
-                    var ret = JsonNode.Parse(responseText);
-                    return ret;
-                }
-            }
-        }
-    }
+   }
 }

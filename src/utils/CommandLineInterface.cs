@@ -139,6 +139,16 @@ namespace dnproto.utils
             return arguments;
         }
 
+        public static string? TryGetArgumentValue(Dictionary<string, string> arguments, string argumentName)
+        {
+            if(arguments.ContainsKey(argumentName) == false)
+            {
+                return null;
+            }
+
+            return arguments[argumentName];
+        }
+
 
 
         /// <summary>

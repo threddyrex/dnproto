@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -29,9 +30,10 @@ namespace dnproto.commands
                 throw new ArgumentException("Missing required argument: handle");
             }
 
-            Console.WriteLine("Resolving handle...");
+            string handle = arguments["handle"];
 
-            JsonNode? resolvedHandle = Resolve(arguments["handle"]);
+            JsonNode? resolvedHandle = WebServiceClient.SendRequest($"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}",
+                HttpMethod.Get);
 
             if(resolvedHandle == null)
             {
@@ -40,32 +42,8 @@ namespace dnproto.commands
             }
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("Handle resolved:");
+            Console.WriteLine("response:");
             Console.WriteLine(resolvedHandle.ToJsonString(options));
-        }
-
-        
-        /// <summary>
-        /// Resolves a handle to a JSON object.
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <returns></returns>
-        public static JsonNode? Resolve(string handle)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
-                var request = new HttpRequestMessage(HttpMethod.Get, url);
-                var response = client.Send(request);
-
-                using (var reader = new StreamReader(response.Content.ReadAsStream()))
-                {
-                    var responseText = reader.ReadToEnd();
-                    var ret = JsonNode.Parse(responseText);
-                    return ret;
-                }
-            }
-
         }
     }
 }
