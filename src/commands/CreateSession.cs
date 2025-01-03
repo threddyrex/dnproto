@@ -76,7 +76,7 @@ namespace dnproto.commands
             }
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("Session:");
+            Console.WriteLine("response:");
             Console.WriteLine(session.ToJsonString(options));
         }
     }

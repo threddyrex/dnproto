@@ -6,7 +6,6 @@ namespace dnproto.commands
     {        
         public override void DoCommand(Dictionary<string, string> arguments)
         {
-            Console.WriteLine();
             Console.WriteLine("Usage:");
             Console.WriteLine();
             Console.WriteLine("    dnproto /command commandname [/arg1 val1 /arg2 val2]");
@@ -18,7 +17,6 @@ namespace dnproto.commands
             {
                 Console.WriteLine("    " + command.Name);
             }
-            Console.WriteLine();
         }
     }
 }

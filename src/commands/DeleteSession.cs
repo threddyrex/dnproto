@@ -17,6 +17,7 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public override void DoCommand(Dictionary<string, string> arguments)
         {
+            Console.WriteLine("Deleting session.");
             LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
             {
                 {"did", ""},

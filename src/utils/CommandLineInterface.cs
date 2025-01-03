@@ -252,7 +252,9 @@ namespace dnproto.utils
 
         public static void PrintLineSeparator()
         {
+            Console.WriteLine();
             Console.WriteLine("---------------------------------------------------------");
+            Console.WriteLine();
         }
 
 
