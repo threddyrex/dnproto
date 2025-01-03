@@ -130,4 +130,11 @@ Once you are done using the tool and want to log out, call the following:
 ```
 
 
+&nbsp;
+
+# Downloading a user's repo
+
+```powershell
+.\dnproto.exe /command GetRepo /did "did" /pds "pds hostname" /outputfilepath "file to write repo"
+```
 
