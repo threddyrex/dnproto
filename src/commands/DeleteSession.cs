@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.helpers;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -44,7 +44,7 @@ namespace dnproto.commands
             string sessionAccessJwt = "";
             string sessionRefreshJwt = "";
 
-            LocalStateHelpers.WriteSessionProperties(new Dictionary<string, string>
+            LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
             {
                 {"sessionDid", sessionDid},
                 {"sessionPds", sessionPds},

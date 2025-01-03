@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace dnproto.helpers
+namespace dnproto.utils
 {   
-    public static class JsonHelpers
+    public static class JsonReader
     {
         public static string GetPropertyValue (JsonNode? node, string propertyName)
         {

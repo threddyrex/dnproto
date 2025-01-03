@@ -1,9 +1,9 @@
 using System.Reflection;
 using dnproto.commands;
 
-namespace dnproto.helpers
+namespace dnproto.utils
 {
-    public static class CommandHelpers
+    public static class CommandLineInterface
     {
         /// <summary>
         /// Runs console program.
@@ -16,7 +16,7 @@ namespace dnproto.helpers
             // Parse args
             //
             PrintLineSeparator();
-            var arguments = CommandHelpers.ParseArguments(args);
+            var arguments = ParseArguments(args);
             Console.WriteLine("Parsed arguments length: " + arguments.Keys.Count);
             if(arguments.Keys.Count > 0)
             {
@@ -54,18 +54,18 @@ namespace dnproto.helpers
             //
             // Print local state directory
             //
-            LocalStateHelpers.EnsureLocalStateDirectory();
-            LocalStateHelpers.EnsureLocalStateSessionFile();
-            Console.WriteLine("Last command run: " + LocalStateHelpers.ReadSessionProperty("lastCommand"));
-            Console.WriteLine("Last command run time: " + LocalStateHelpers.ReadSessionProperty("lastRunTime"));
-            LocalStateHelpers.WriteSessionProperty("lastCommand", commandName);
-            LocalStateHelpers.WriteSessionProperty("lastRunTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            LocalStateSession.EnsureLocalStateDirectory();
+            LocalStateSession.EnsureLocalStateSessionFile();
+            Console.WriteLine("Last command run: " + LocalStateSession.ReadSessionProperty("lastCommand"));
+            Console.WriteLine("Last command run time: " + LocalStateSession.ReadSessionProperty("lastRunTime"));
+            LocalStateSession.WriteSessionProperty("lastCommand", commandName);
+            LocalStateSession.WriteSessionProperty("lastRunTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
 
             //
             // Create command instance
             //
-            ICommand? commandInstance = CommandHelpers.TryCreateCommandInstance(commandName);
+            ICommand? commandInstance = CommandLineInterface.TryCreateCommandInstance(commandName);
 
             if (commandInstance == null)
             {
@@ -76,11 +76,11 @@ namespace dnproto.helpers
             //
             // Check that arguments exist. If not, print arguments and return.
             //
-            if(CommandHelpers.CheckArguments(commandInstance, arguments) == false)
+            if(CommandLineInterface.CheckArguments(commandInstance, arguments) == false)
             {
                 PrintLineSeparator();
                 Console.WriteLine("");
-                CommandHelpers.PrintArguments(commandName, commandInstance);
+                CommandLineInterface.PrintArguments(commandName, commandInstance);
                 PrintLineSeparator();
                 return;
             }

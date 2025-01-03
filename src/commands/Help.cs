@@ -1,4 +1,4 @@
-using dnproto.helpers;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -23,7 +23,7 @@ namespace dnproto.commands
             Console.WriteLine();
             Console.WriteLine("Available commands:");
             Console.WriteLine();
-            var commands = CommandHelpers.GetAllCommandTypes();
+            var commands = CommandLineInterface.GetAllCommandTypes();
             foreach (var command in commands.OrderBy(c => c.Name))
             {
                 Console.WriteLine("    " + command.Name);

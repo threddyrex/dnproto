@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.helpers;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -28,9 +28,9 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public void DoCommand(Dictionary<string, string> arguments)
         {
-            string accessJwt = LocalStateHelpers.ReadSessionProperty("sessionAccessJwt");
-            string pds = LocalStateHelpers.ReadSessionProperty("sessionPds");
-            string did = LocalStateHelpers.ReadSessionProperty("sessionDid");
+            string accessJwt = LocalStateSession.ReadSessionProperty("sessionAccessJwt");
+            string pds = LocalStateSession.ReadSessionProperty("sessionPds");
+            string did = LocalStateSession.ReadSessionProperty("sessionDid");
 
             Console.WriteLine("did: " + did);
 

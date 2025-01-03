@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.helpers;
+using dnproto.utils;
 
 namespace dnproto.commands
 {
@@ -96,13 +96,13 @@ namespace dnproto.commands
 
                     if(response.StatusCode == HttpStatusCode.OK && ret != null && ret["did"] != null && ret["accessJwt"] != null && ret["refreshJwt"] != null)
                     {
-                        sessionDid = JsonHelpers.GetPropertyValue(ret, "did");
+                        sessionDid = JsonReader.GetPropertyValue(ret, "did");
                         sessionPds = pds;
-                        sessionAccessJwt = JsonHelpers.GetPropertyValue(ret, "accessJwt");
-                        sessionRefreshJwt = JsonHelpers.GetPropertyValue(ret, "refreshJwt");
+                        sessionAccessJwt = JsonReader.GetPropertyValue(ret, "accessJwt");
+                        sessionRefreshJwt = JsonReader.GetPropertyValue(ret, "refreshJwt");
                     }
 
-                    LocalStateHelpers.WriteSessionProperties(new Dictionary<string, string>
+                    LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
                     {
                         {"sessionDid", sessionDid},
                         {"sessionPds", sessionPds},

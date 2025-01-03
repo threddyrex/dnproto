@@ -1,7 +1,7 @@
-namespace dnproto.tests.helpers;
+namespace dnproto.tests.utils;
 
 using dnproto.commands;
-using dnproto.helpers;
+using dnproto.utils;
 
 public class LocalStateHelpersTests
 {
