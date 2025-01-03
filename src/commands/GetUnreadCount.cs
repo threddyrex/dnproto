@@ -23,9 +23,11 @@ namespace dnproto.commands
             string accessJwt = LocalStateSession.ReadSessionProperty("accessJwt");
             string pds = LocalStateSession.ReadSessionProperty("pds");
             string did = LocalStateSession.ReadSessionProperty("did");
+            string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
 
             Console.WriteLine($"pds: {pds}");
             Console.WriteLine($"did: {did}");
+            Console.WriteLine($"url: {url}");
 
             if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
             {
@@ -37,7 +39,7 @@ namespace dnproto.commands
             //
             // Call WS
             //
-            JsonNode? response = WebServiceClient.SendRequest($"https://{pds}/xrpc/app.bsky.notification.getUnreadCount",
+            JsonNode? response = WebServiceClient.SendRequest(url,
                 HttpMethod.Get, 
                 accessJwt: accessJwt);
 

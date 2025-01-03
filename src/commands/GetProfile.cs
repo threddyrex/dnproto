@@ -21,10 +21,12 @@ namespace dnproto.commands
         public override void DoCommand(Dictionary<string, string> arguments)
         {
             string actor = arguments["actor"];
+            string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
 
             Console.WriteLine($"actor: {actor}");
+            Console.WriteLine($"url: {url}");
 
-            JsonNode? profile = WebServiceClient.SendRequest($"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}",
+            JsonNode? profile = WebServiceClient.SendRequest(url,
                 HttpMethod.Get);
 
             WebServiceClient.PrintJsonResponseToConsole(profile);

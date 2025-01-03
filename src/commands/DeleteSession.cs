@@ -23,9 +23,11 @@ namespace dnproto.commands
             string pds = LocalStateSession.ReadSessionProperty("pds");
             string did = LocalStateSession.ReadSessionProperty("did");
             string refreshJwt = LocalStateSession.ReadSessionProperty("refreshJwt");
+            string url = $"https://{pds}/xrpc/com.atproto.server.deleteSession";
 
             Console.WriteLine($"pds: {pds}");
             Console.WriteLine($"did: {did}");
+            Console.WriteLine($"url: {url}");
 
             //
             // Clear local state
@@ -49,7 +51,7 @@ namespace dnproto.commands
                 return;
             }
 
-            JsonNode? response = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.server.deleteSession",
+            JsonNode? response = WebServiceClient.SendRequest(url,
                 HttpMethod.Post, 
                 accessJwt: refreshJwt);
 

@@ -35,12 +35,15 @@ namespace dnproto.commands
             string authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
             string username = CommandLineInterface.GetArgumentValue(arguments, "username");
             string password = CommandLineInterface.GetArgumentValue(arguments, "password");
+            string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
+
+            Console.WriteLine($"url: {url}");
 
 
             //
             // Send request
             //
-            JsonNode? session = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.server.createSession",
+            JsonNode? session = WebServiceClient.SendRequest(url,
                 HttpMethod.Post,
                 content: string.IsNullOrEmpty(authFactorToken) ?
                     new StringContent(JsonSerializer.Serialize(new

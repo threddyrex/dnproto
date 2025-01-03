@@ -35,9 +35,11 @@ namespace dnproto.commands
             string pds = LocalStateSession.ReadSessionProperty("pds");
             string did = LocalStateSession.ReadSessionProperty("did");
             string text = arguments["text"];
+            string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
 
             Console.WriteLine($"pds: {pds}");
             Console.WriteLine($"did: {did}");
+            Console.WriteLine($"url: {url}");
             Console.WriteLine($"text: {text}");
 
             if(string.IsNullOrEmpty(text))
@@ -50,7 +52,7 @@ namespace dnproto.commands
             //
             // Send request
             //
-            JsonNode? postResult = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.repo.createRecord",
+            JsonNode? postResult = WebServiceClient.SendRequest(url,
                 HttpMethod.Post,
                 accessJwt: accessJwt,
                 content: new StringContent(JsonSerializer.Serialize(new

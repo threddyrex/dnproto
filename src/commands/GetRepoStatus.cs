@@ -27,11 +27,13 @@ namespace dnproto.commands
         {
             string pds = arguments.ContainsKey("pds") ? arguments["pds"] : "bsky.social";
             string did = arguments["did"];
+            string url = $"https://{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}";
 
             Console.WriteLine($"pds: {pds}");
             Console.WriteLine($"did: {did}");
+            Console.WriteLine($"url: {url}");
 
-            JsonNode? repoStatus = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}",
+            JsonNode? repoStatus = WebServiceClient.SendRequest(url,
                 HttpMethod.Get);
 
             WebServiceClient.PrintJsonResponseToConsole(repoStatus);
