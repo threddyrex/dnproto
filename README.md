@@ -81,55 +81,6 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 .\dnproto.exe /command GetRepoStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
 ```
 
-
-
-&nbsp;
-
-# Creating a session (log in)
-
-You can create a session (log in) using the following:
-
-```powershell
-.\dnproto.exe /command CreateSession /pds "pds" /username "handle" /password "password"
-```
-
-After successful session creation, you can call other commands in dnproto that require authentication.
-
-
-
-&nbsp;
-
-# Creating a text post
-
-After creating a session with the server, you can create a text post with the following:
-
-```powershell
-.\dnproto.exe /command CreatePost /text "text of post"
-```
-
-
-
-
-&nbsp;
-
-# Getting the current logged in user's unread notification count
-
-```powershell
-.\dnproto.exe /command GetUnreadCount
-```
-
-
-&nbsp;
-
-# Deleting a session (log out)
-
-Once you are done using the tool and want to log out, call the following:
-
-```powershell
-.\dnproto.exe /command DeleteSession
-```
-
-
 &nbsp;
 
 # Downloading a user's repo
@@ -137,4 +88,26 @@ Once you are done using the tool and want to log out, call the following:
 ```powershell
 .\dnproto.exe /command GetRepo /did "did" /pds "pds hostname" /outputfilepath "file to write repo"
 ```
+
+
+&nbsp;
+
+# Logging in and interacting as the user.
+
+
+```powershell
+# log in
+.\dnproto.exe /command CreateSession /pds "pds" /username "handle" /password "password"
+
+# create a post
+.\dnproto.exe /command CreatePost /text "text of post"
+
+# get unread notification count
+.\dnproto.exe /command GetUnreadCount
+
+# log out
+.\dnproto.exe /command DeleteSession
+```
+
+
 
