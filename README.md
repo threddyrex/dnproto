@@ -121,7 +121,7 @@ After creating a session with the server, you can create a text post with the fo
 
 &nbsp;
 
-# Deleting a session (log in)
+# Deleting a session (log out)
 
 Once you are done using the tool and want to log out, call the following:
 
