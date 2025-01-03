@@ -69,15 +69,7 @@ namespace dnproto.commands
             //
             // Show result
             //
-            if(postResult == null)
-            {
-                Console.WriteLine("CreatePost returned null.");
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("response:");
-            Console.WriteLine(postResult.ToJsonString(options));
+            WebServiceClient.PrintJsonResponseToConsole(postResult);
         }
     }
 }

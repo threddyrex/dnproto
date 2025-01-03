@@ -25,19 +25,15 @@ namespace dnproto.commands
             }
 
             string handle = arguments["handle"];
+            string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
 
-            JsonNode? resolvedHandle = WebServiceClient.SendRequest($"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}",
+            Console.WriteLine($"handle: {handle}");
+            Console.WriteLine($"url: {url}");
+
+            JsonNode? response = WebServiceClient.SendRequest(url,
                 HttpMethod.Get);
 
-            if(resolvedHandle == null)
-            {
-                Console.WriteLine("ResolveHandle returned null.");
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("response:");
-            Console.WriteLine(resolvedHandle.ToJsonString(options));
+            WebServiceClient.PrintJsonResponseToConsole(response);
         }
     }
 }

@@ -69,15 +69,7 @@ namespace dnproto.commands
                 }
             );
 
-            if(session == null)
-            {
-                Console.WriteLine("CreateSession returned null.");
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("response:");
-            Console.WriteLine(session.ToJsonString(options));
+            WebServiceClient.PrintJsonResponseToConsole(session);
         }
     }
 }

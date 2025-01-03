@@ -17,7 +17,19 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public override void DoCommand(Dictionary<string, string> arguments)
         {
-            Console.WriteLine("Deleting session.");
+            //
+            // Get arguments
+            //
+            string pds = LocalStateSession.ReadSessionProperty("pds");
+            string did = LocalStateSession.ReadSessionProperty("did");
+            string refreshJwt = LocalStateSession.ReadSessionProperty("refreshJwt");
+
+            Console.WriteLine($"pds: {pds}");
+            Console.WriteLine($"did: {did}");
+
+            //
+            // Clear local state
+            //
             LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
             {
                 {"did", ""},
@@ -25,6 +37,27 @@ namespace dnproto.commands
                 {"accessJwt", ""},
                 {"refreshJwt", ""}
             });
+
+
+            //
+            // Call the API.
+            // (You can't delete accessJwt, but you can delete refreshJwt.)
+            //
+            if (string.IsNullOrEmpty(refreshJwt))
+            {
+                Console.WriteLine("Session not found. Nothing to delete.");
+                return;
+            }
+
+            JsonNode? response = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.server.deleteSession",
+                HttpMethod.Post, 
+                accessJwt: refreshJwt);
+
+
+            //
+            // Print results
+            //
+            WebServiceClient.PrintJsonResponseToConsole(response);
         }
     }
 }

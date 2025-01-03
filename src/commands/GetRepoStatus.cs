@@ -34,15 +34,7 @@ namespace dnproto.commands
             JsonNode? repoStatus = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}",
                 HttpMethod.Get);
 
-            if(repoStatus == null)
-            {
-                Console.WriteLine("GetRepoStatus returned null.");
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("response:");
-            Console.WriteLine(repoStatus.ToJsonString(options));
+            WebServiceClient.PrintJsonResponseToConsole(repoStatus);
         }
    }
 }

@@ -37,7 +37,7 @@ namespace dnproto.commands
             //
             // Call WS
             //
-            JsonNode? unreadCount = WebServiceClient.SendRequest($"https://{pds}/xrpc/app.bsky.notification.getUnreadCount",
+            JsonNode? response = WebServiceClient.SendRequest($"https://{pds}/xrpc/app.bsky.notification.getUnreadCount",
                 HttpMethod.Get, 
                 accessJwt: accessJwt);
 
@@ -45,15 +45,7 @@ namespace dnproto.commands
             //
             // Print results
             //
-            if(unreadCount == null)
-            {
-                Console.WriteLine("GetUnreadCount returned null.");
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("response:");
-            Console.WriteLine(unreadCount.ToJsonString(options));
+            WebServiceClient.PrintJsonResponseToConsole(response);
         }
     }
 }

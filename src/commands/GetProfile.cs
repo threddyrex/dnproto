@@ -27,15 +27,7 @@ namespace dnproto.commands
             JsonNode? profile = WebServiceClient.SendRequest($"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}",
                 HttpMethod.Get);
 
-            if(profile == null)
-            {
-                Console.WriteLine("GetProfile returned null.");
-                return;
-            }
-
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            Console.WriteLine("response:");
-            Console.WriteLine(profile.ToJsonString(options));
+            WebServiceClient.PrintJsonResponseToConsole(profile);
         }        
    }
 }

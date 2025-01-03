@@ -38,13 +38,41 @@ namespace dnproto.utils
                 //
                 // Read response and return
                 //
+                if(response == null)
+                {
+                    Console.WriteLine("response is null.");
+                    return null;
+                }
+
+                Console.WriteLine($"response status code: {response.StatusCode}");
+
                 using (var reader = new StreamReader(response.Content.ReadAsStream()))
                 {
                     var responseText = reader.ReadToEnd();
+
+                    if(string.IsNullOrEmpty(responseText))
+                    {
+                        return null;
+                    }
+
                     var ret = JsonNode.Parse(responseText);
                     return ret;
                 }
             }
+        }
+
+        public static void PrintJsonResponseToConsole(JsonNode? response)
+        {
+            if(response == null)
+            {
+                Console.WriteLine("response returned null.");
+                return;
+            }
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            Console.WriteLine("");
+            Console.WriteLine("response:");
+            Console.WriteLine(response.ToJsonString(options));
         }
     }
 }
