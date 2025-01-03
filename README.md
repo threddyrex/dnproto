@@ -78,7 +78,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 # Getting repo status
 
 ```powershell
-.\dnproto.exe /command getrepostatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
+.\dnproto.exe /command GetRepoStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
 ```
 
 
@@ -90,7 +90,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 You can create a session (log in) using the following:
 
 ```powershell
-.\dnproto.exe /command createsession /pds "pds" /username "handle" /password "password"
+.\dnproto.exe /command CreateSession /pds "pds" /username "handle" /password "password"
 ```
 
 After successful session creation, you can call other commands in dnproto that require authentication.
@@ -104,7 +104,7 @@ After successful session creation, you can call other commands in dnproto that r
 After creating a session with the server, you can create a text post with the following:
 
 ```powershell
-.\dnproto.exe /command createpost /text "text of post"
+.\dnproto.exe /command CreatePost /text "text of post"
 ```
 
 
@@ -115,7 +115,7 @@ After creating a session with the server, you can create a text post with the fo
 # Getting the current logged in user's unread notification count
 
 ```powershell
-.\dnproto.exe /command getunreadcount
+.\dnproto.exe /command GetUnreadCount
 ```
 
 
@@ -126,7 +126,7 @@ After creating a session with the server, you can create a text post with the fo
 Once you are done using the tool and want to log out, call the following:
 
 ```powershell
-.\dnproto.exe /command deletesession
+.\dnproto.exe /command DeleteSession
 ```
 
 
