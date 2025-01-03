@@ -11,7 +11,8 @@ namespace dnproto.commands
     public class DeleteSession : BaseCommand
     {
         /// <summary>
-        /// Delete session
+        /// Delete session. At the moment, you can't call this with the accessJwt - that
+        /// one needs to expire on the server on its own. But you can delete the refreshJwt.
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>

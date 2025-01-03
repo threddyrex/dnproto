@@ -19,6 +19,9 @@ namespace dnproto.commands
         /// <exception cref="ArgumentException"></exception>
         public override void DoCommand(Dictionary<string, string> arguments)
         {
+            //
+            // Get arguments.
+            //
             if(arguments.ContainsKey("handle") == false)
             {
                 throw new ArgumentException("Missing required argument: handle");
@@ -30,9 +33,15 @@ namespace dnproto.commands
             Console.WriteLine($"handle: {handle}");
             Console.WriteLine($"url: {url}");
 
+            //
+            // Send request.
+            //
             JsonNode? response = WebServiceClient.SendRequest(url,
                 HttpMethod.Get);
 
+            //
+            // Print response.
+            //
             WebServiceClient.PrintJsonResponseToConsole(response);
         }
     }

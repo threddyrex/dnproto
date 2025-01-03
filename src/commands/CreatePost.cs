@@ -15,12 +15,6 @@ namespace dnproto.commands
             return new HashSet<string>(new string[]{"text"});
         }
 
-        public override HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>(new string[]{});
-        }
-
-
         /// <summary>
         /// Create post
         /// </summary>

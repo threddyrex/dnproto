@@ -3,10 +3,13 @@ using System.Text.Json.Nodes;
 
 namespace dnproto.utils
 {
-    // This class contains helper methods for managing local state directories 
-    // and session files for the dnproto application.
-    //
-    // For example: "login as user, then do some stuff..."
+    /// <summary>
+    /// This class contains helper methods for managing local state directories 
+    /// and session files for the dnproto application.
+    ///
+    /// For example: "login as user, then do some stuff..."
+    /// 
+    /// </summary>
     public static class LocalStateSession
     {
         public static string GetLocalStateDirectory()

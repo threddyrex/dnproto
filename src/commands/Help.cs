@@ -2,6 +2,9 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
+    /// <summary>
+    /// Show help/usage. This command is used if no command is specified.
+    /// </summary>
     public class Help : BaseCommand
     {        
         public override void DoCommand(Dictionary<string, string> arguments)

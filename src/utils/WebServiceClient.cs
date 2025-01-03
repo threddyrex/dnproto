@@ -9,6 +9,16 @@ namespace dnproto.utils
 {
     public class WebServiceClient
     {
+        /// <summary>
+        /// Many calls to the Bluesky APIs follow the same pattern. This function implements that pattern.
+        /// You'll see this being called in commands like "GetUnreadCount" and "ResolveHandle".
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="getOrPut"></param>
+        /// <param name="accessJwt"></param>
+        /// <param name="contentType"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
         public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null)
         {
             using (HttpClient client = new HttpClient())
@@ -61,6 +71,10 @@ namespace dnproto.utils
             }
         }
 
+        /// <summary>
+        /// Currently most of the commands just print the response to the console.
+        /// </summary>
+        /// <param name="response"></param>
         public static void PrintJsonResponseToConsole(JsonNode? response)
         {
             if(response == null)

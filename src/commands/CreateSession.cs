@@ -22,7 +22,7 @@ namespace dnproto.commands
 
 
         /// <summary>
-        /// Create session (login)
+        /// Create session (log in)
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
