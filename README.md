@@ -17,7 +17,6 @@ dotnet test
 
 &nbsp;
 
-
 # Building dnproto
 
 ```powershell
@@ -25,8 +24,8 @@ cd .\src\
 dotnet build
 ```
 
-&nbsp;
 
+&nbsp;
 
 # Showing the help
 
@@ -38,9 +37,6 @@ You can view help for the utility by calling it with no arguments.
 
 
 &nbsp;
-
-
-
 
 # Running a command
 
@@ -54,8 +50,8 @@ To run one of the commands:
 
 Calling dnproto with no arguments will print the help.
 
-&nbsp;
 
+&nbsp;
 
 # Resolving a Bluesky handle
 
@@ -64,6 +60,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto
 ```powershell
 .\dnproto.exe /command ResolveHandle /handle threddyrex.com
 ```
+
 
 &nbsp;
 
@@ -80,9 +77,8 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 
 # Getting repo status
 
-
 ```powershell
-\dnproto.exe /command getrepostatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
+.\dnproto.exe /command getrepostatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
 ```
 
 
@@ -94,7 +90,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 You can create a session (log in) using the following:
 
 ```powershell
-\dnproto.exe /command createsession /pds "pds" /username "handle" /password "password"
+.\dnproto.exe /command createsession /pds "pds" /username "handle" /password "password"
 ```
 
 After successful session creation, you can call other commands in dnproto that require authentication.
@@ -107,8 +103,19 @@ After successful session creation, you can call other commands in dnproto that r
 
 After creating a session with the server, you can create a text post with the following:
 
+```powershell
+.\dnproto.exe /command createpost /text "text of post"
+```
+
+
+
+
+&nbsp;
+
+# Getting the current logged in user's unread notification count
 
 ```powershell
-\dnproto.exe /command createpost /text "text of post"
+.\dnproto.exe /command getunreadcount
 ```
+
 
