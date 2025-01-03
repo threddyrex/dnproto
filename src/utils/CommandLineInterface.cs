@@ -141,12 +141,12 @@ namespace dnproto.utils
 
         public static string GetArgumentValue(Dictionary<string, string> arguments, string argumentName)
         {
-            if(arguments.ContainsKey(argumentName) == false)
+            if(arguments.ContainsKey(argumentName.ToLower()) == false)
             {
                 return "";
             }
 
-            return arguments[argumentName];
+            return arguments[argumentName.ToLower()];
         }
 
 
@@ -203,8 +203,8 @@ namespace dnproto.utils
 
         public static bool CheckArguments(dnproto.commands.BaseCommand command, Dictionary<string, string> arguments)
         {
-            var requiredArguments = command.GetRequiredArguments();
-            var optionalArguments = command.GetOptionalArguments();
+            var requiredArguments = command.GetRequiredArguments().Select(arg => arg.ToLower()).ToList();
+            var optionalArguments = command.GetOptionalArguments().Select(arg => arg.ToLower()).ToList();
 
             // Check for missing required arguments
             foreach (var requiredArgument in requiredArguments)

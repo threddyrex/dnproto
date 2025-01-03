@@ -12,14 +12,16 @@ namespace dnproto.utils
         /// <summary>
         /// Many calls to the Bluesky APIs follow the same pattern. This function implements that pattern.
         /// You'll see this being called in commands like "GetUnreadCount" and "ResolveHandle".
+        /// If user specifies an output file, the response is written to that file.
         /// </summary>
         /// <param name="url"></param>
         /// <param name="getOrPut"></param>
         /// <param name="accessJwt"></param>
         /// <param name="contentType"></param>
         /// <param name="content"></param>
+        /// <param name="outputFilePath"></param>
         /// <returns></returns>
-        public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null)
+        public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -45,6 +47,7 @@ namespace dnproto.utils
                 //
                 var response = client.Send(request);
 
+
                 //
                 // Read response and return
                 //
@@ -56,6 +59,23 @@ namespace dnproto.utils
 
                 Console.WriteLine($"response status code: {response.StatusCode}");
 
+                // If the user has specified an output file, write the response to that file.
+                if (outputFilePath != null)
+                {
+                    Console.WriteLine($"writing to: {outputFilePath}");
+
+                    using (var responseStream = response.Content.ReadAsStream())
+                    {
+                        using (var fs = new FileStream(outputFilePath, FileMode.Create))
+                        {
+                            responseStream.CopyTo(fs);
+                        }
+                    }
+
+                    return null;
+                }
+
+                // Otherwise it's probably json and return that.
                 using (var reader = new StreamReader(response.Content.ReadAsStream()))
                 {
                     var responseText = reader.ReadToEnd();
