@@ -5,14 +5,14 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class GetRepoStatus : ICommand
+    public class GetRepoStatus : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
+        public override HashSet<string> GetRequiredArguments()
         {
             return new HashSet<string>(new string[]{"did"});
         }
 
-        public HashSet<string> GetOptionalArguments()
+        public override HashSet<string> GetOptionalArguments()
         {
             return new HashSet<string>(new string[]{"pds"});
         }
@@ -23,7 +23,7 @@ namespace dnproto.commands
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             string pds = arguments.ContainsKey("pds") ? arguments["pds"] : "bsky.social";
             string did = arguments["did"];

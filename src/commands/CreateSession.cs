@@ -8,14 +8,14 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class CreateSession : ICommand
+    public class CreateSession : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
+        public override HashSet<string> GetRequiredArguments()
         {
             return new HashSet<string>(new string[]{"username", "password"});
         }
 
-        public HashSet<string> GetOptionalArguments()
+        public override HashSet<string> GetOptionalArguments()
         {
             return new HashSet<string>(new string[]{"pds", "authFactorToken"});
         }
@@ -26,15 +26,15 @@ namespace dnproto.commands
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
             // Get arguments
             //
             string pds = arguments.ContainsKey("pds") ? arguments["pds"] : "bsky.social";
-            string? authFactorToken = CommandLineInterface.TryGetArgumentValue(arguments, "authFactorToken");
-            string? username = CommandLineInterface.TryGetArgumentValue(arguments, "username");
-            string? password = CommandLineInterface.TryGetArgumentValue(arguments, "password");
+            string authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
+            string username = CommandLineInterface.GetArgumentValue(arguments, "username");
+            string password = CommandLineInterface.GetArgumentValue(arguments, "password");
 
 
             //
@@ -42,7 +42,7 @@ namespace dnproto.commands
             //
             JsonNode? session = WebServiceClient.SendRequest($"https://{pds}/xrpc/com.atproto.server.createSession",
                 HttpMethod.Post,
-                content: authFactorToken == null ?
+                content: string.IsNullOrEmpty(authFactorToken) ?
                     new StringContent(JsonSerializer.Serialize(new
                         {
                             identifier = username,
@@ -60,20 +60,6 @@ namespace dnproto.commands
             //
             // Process response
             //
-            if(session == null)
-            {
-                Console.WriteLine("CreateSession returned null.");
-                LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
-                {
-                    {"sessionDid", ""},
-                    {"sessionPds", ""},
-                    {"sessionAccessJwt", ""},
-                    {"sessionRefreshJwt", ""}
-                });
-
-                return;
-            }
-
             LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
                 {
                     {"did", JsonReader.GetPropertyValue(session, "did")},
@@ -83,6 +69,11 @@ namespace dnproto.commands
                 }
             );
 
+            if(session == null)
+            {
+                Console.WriteLine("CreateSession returned null.");
+                return;
+            }
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             Console.WriteLine("Session:");

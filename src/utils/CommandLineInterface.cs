@@ -65,7 +65,7 @@ namespace dnproto.utils
             //
             // Create command instance
             //
-            ICommand? commandInstance = CommandLineInterface.TryCreateCommandInstance(commandName);
+            BaseCommand? commandInstance = CommandLineInterface.TryCreateCommandInstance(commandName);
 
             if (commandInstance == null)
             {
@@ -139,11 +139,11 @@ namespace dnproto.utils
             return arguments;
         }
 
-        public static string? TryGetArgumentValue(Dictionary<string, string> arguments, string argumentName)
+        public static string GetArgumentValue(Dictionary<string, string> arguments, string argumentName)
         {
             if(arguments.ContainsKey(argumentName) == false)
             {
-                return null;
+                return "";
             }
 
             return arguments[argumentName];
@@ -156,10 +156,10 @@ namespace dnproto.utils
         /// </summary>
         /// <param name="commandName"></param>
         /// <returns></returns>
-        public static dnproto.commands.ICommand? TryCreateCommandInstance(string commandName)
+        public static dnproto.commands.BaseCommand? TryCreateCommandInstance(string commandName)
         {
             var commandType = TryFindCommandType(commandName);
-            return (commandType is not null ? Activator.CreateInstance(commandType) as dnproto.commands.ICommand : null);
+            return (commandType is not null ? Activator.CreateInstance(commandType) as dnproto.commands.BaseCommand : null);
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace dnproto.utils
 
             foreach (Type type in assembly.GetTypes())
             {
-                if (type.Namespace == "dnproto.commands" && typeof(ICommand).IsAssignableFrom(type) && type.Name != "ICommand")
+                if (type.Namespace == "dnproto.commands" && typeof(BaseCommand).IsAssignableFrom(type) && type.Name != "BaseCommand")
                 {
                     commands.Add(type);
                 }
@@ -201,7 +201,7 @@ namespace dnproto.utils
 
 
 
-        public static bool CheckArguments(dnproto.commands.ICommand command, Dictionary<string, string> arguments)
+        public static bool CheckArguments(dnproto.commands.BaseCommand command, Dictionary<string, string> arguments)
         {
             var requiredArguments = command.GetRequiredArguments();
             var optionalArguments = command.GetOptionalArguments();
@@ -227,7 +227,7 @@ namespace dnproto.utils
             return true;
         }
 
-        public static void PrintArguments(string commandName, dnproto.commands.ICommand commandInstance)
+        public static void PrintArguments(string commandName, dnproto.commands.BaseCommand commandInstance)
         {
             Console.WriteLine("Usage:");
             string usage = "    .\\dnproto.exe /command " + commandName + "";

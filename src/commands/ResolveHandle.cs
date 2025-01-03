@@ -5,25 +5,19 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class ResolveHandle : ICommand
+    public class ResolveHandle : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
+        public override HashSet<string> GetRequiredArguments()
         {
             return new HashSet<string>(new string[]{"handle"});
         }
-
-        public HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>();
-        }
-
 
         /// <summary>
         /// Resolves a handle to a JSON object.
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             if(arguments.ContainsKey("handle") == false)
             {

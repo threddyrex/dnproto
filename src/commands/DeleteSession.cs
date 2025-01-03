@@ -8,25 +8,14 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class DeleteSession : ICommand
+    public class DeleteSession : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
-        {
-            return new HashSet<string>();
-        }
-
-        public HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>();
-        }
-
-
         /// <summary>
         /// Delete session
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
             {

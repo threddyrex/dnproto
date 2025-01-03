@@ -2,19 +2,9 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class Help : ICommand
-    {
-        public HashSet<string> GetRequiredArguments()
-        {
-            return new HashSet<string>();
-        }
-
-        public HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>();
-        }
-        
-        public void DoCommand(Dictionary<string, string> arguments)
+    public class Help : BaseCommand
+    {        
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             Console.WriteLine();
             Console.WriteLine("Usage:");

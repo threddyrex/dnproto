@@ -8,25 +8,14 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class GetUnreadCount : ICommand
+    public class GetUnreadCount : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
-        {
-            return new HashSet<string>();
-        }
-
-        public HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>();
-        }
-
-
         /// <summary>
         /// Get unread notification count
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
             // Find existing session on disk

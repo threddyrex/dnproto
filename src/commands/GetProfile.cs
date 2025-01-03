@@ -5,16 +5,11 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class GetProfile : ICommand
+    public class GetProfile : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
+        public override HashSet<string> GetRequiredArguments()
         {
             return new HashSet<string>(new string[]{"actor"});
-        }
-
-        public HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>();
         }
 
 
@@ -23,7 +18,7 @@ namespace dnproto.commands
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             string actor = arguments["actor"];
 

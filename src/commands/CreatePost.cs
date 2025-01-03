@@ -8,14 +8,14 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class CreatePost : ICommand
+    public class CreatePost : BaseCommand
     {
-        public HashSet<string> GetRequiredArguments()
+        public override HashSet<string> GetRequiredArguments()
         {
             return new HashSet<string>(new string[]{"text"});
         }
 
-        public HashSet<string> GetOptionalArguments()
+        public override HashSet<string> GetOptionalArguments()
         {
             return new HashSet<string>(new string[]{});
         }
@@ -26,7 +26,7 @@ namespace dnproto.commands
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
-        public void DoCommand(Dictionary<string, string> arguments)
+        public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
             // Get arguments
