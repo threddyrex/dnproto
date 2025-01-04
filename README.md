@@ -94,19 +94,23 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 
 # Logging in and interacting as the user.
 
+You can create a session on the server. The token for the session is
+stored in a file on local disk (specified by $sessionFile).
 
 ```powershell
+$sessionFile = "path_to_file"
+
 # log in
-.\dnproto.exe /command CreateSession /pds "pds" /username "handle" /password "password"
+.\dnproto.exe /command CreateSession /sessionfilepath $sessionFile /pds "pds" /username "handle" /password "password"
 
 # create a post
-.\dnproto.exe /command CreatePost /text "text of post"
+.\dnproto.exe /command CreatePost /sessionfilepath $sessionFile /text "text of post"
 
 # get unread notification count
-.\dnproto.exe /command GetUnreadCount
+.\dnproto.exe /command GetUnreadCount /sessionfilepath $sessionFile
 
 # log out
-.\dnproto.exe /command DeleteSession
+.\dnproto.exe /command DeleteSession /sessionfilepath $sessionFile
 ```
 
 

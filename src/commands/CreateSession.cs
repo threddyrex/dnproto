@@ -12,7 +12,7 @@ namespace dnproto.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"username", "password"});
+            return new HashSet<string>(new string[]{"username", "password", "sessionFilePath"});
         }
 
         public override HashSet<string> GetOptionalArguments()
@@ -59,20 +59,22 @@ namespace dnproto.commands
                         }))
             );
 
+            if (session == null)
+            {
+                Console.WriteLine("Session returned null.");
+                return;
+            }
+
+            // add pds
+            session["pds"] = pds;
 
             //
             // Process response
             //
-            LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
-                {
-                    {"did", JsonReader.GetPropertyValue(session, "did")},
-                    {"pds", pds},
-                    {"accessJwt", JsonReader.GetPropertyValue(session, "accessJwt")},
-                    {"refreshJwt", JsonReader.GetPropertyValue(session, "refreshJwt")}
-                }
-            );
-
             WebServiceClient.PrintJsonResponseToConsole(session);
+            Console.WriteLine();
+            JsonData.WriteJsonToFile(session, CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath"));
+
         }
     }
 }

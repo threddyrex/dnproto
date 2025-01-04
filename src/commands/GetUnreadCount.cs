@@ -10,6 +10,11 @@ namespace dnproto.commands
 {
     public class GetUnreadCount : BaseCommand
     {
+        public override HashSet<string> GetRequiredArguments()
+        {
+            return new HashSet<string>(new string[]{"sessionFilePath"});
+        }
+
         /// <summary>
         /// Get unread notification count
         /// </summary>
@@ -20,9 +25,11 @@ namespace dnproto.commands
             //
             // Find existing session on disk
             //
-            string accessJwt = LocalStateSession.ReadSessionProperty("accessJwt");
-            string pds = LocalStateSession.ReadSessionProperty("pds");
-            string did = LocalStateSession.ReadSessionProperty("did");
+            JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath"));
+
+            string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
+            string pds = JsonData.GetPropertyValue(session, "pds");
+            string did = JsonData.GetPropertyValue(session, "did");
             string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
 
             Console.WriteLine($"pds: {pds}");

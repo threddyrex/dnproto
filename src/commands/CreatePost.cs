@@ -12,7 +12,7 @@ namespace dnproto.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"text"});
+            return new HashSet<string>(new string[]{"sessionFilePath", "text"});
         }
 
         /// <summary>
@@ -25,10 +25,11 @@ namespace dnproto.commands
             //
             // Get arguments
             //
-            string accessJwt = LocalStateSession.ReadSessionProperty("accessJwt");
-            string pds = LocalStateSession.ReadSessionProperty("pds");
-            string did = LocalStateSession.ReadSessionProperty("did");
-            string text = arguments["text"];
+            JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath"));
+            string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
+            string pds = JsonData.GetPropertyValue(session, "pds");
+            string did = JsonData.GetPropertyValue(session, "did");
+            string text = CommandLineInterface.GetArgumentValue(arguments, "text");
             string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
 
             Console.WriteLine($"pds: {pds}");

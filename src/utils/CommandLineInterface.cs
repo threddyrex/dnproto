@@ -51,16 +51,6 @@ namespace dnproto.utils
                 Console.ReadKey();
             }
 
-            //
-            // Print local state directory
-            //
-            LocalStateSession.EnsureLocalStateDirectory();
-            LocalStateSession.EnsureLocalStateSessionFile();
-            Console.WriteLine("Last command run: " + LocalStateSession.ReadSessionProperty("lastCommand"));
-            Console.WriteLine("Last command run time: " + LocalStateSession.ReadSessionProperty("lastRunTime"));
-            LocalStateSession.WriteSessionProperty("lastCommand", commandName);
-            LocalStateSession.WriteSessionProperty("lastRunTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-
 
             //
             // Create command instance

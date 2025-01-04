@@ -10,6 +10,11 @@ namespace dnproto.commands
 {
     public class DeleteSession : BaseCommand
     {
+        public override HashSet<string> GetRequiredArguments()
+        {
+            return new HashSet<string>(new string[]{"sessionFilePath"});
+        }
+        
         /// <summary>
         /// Delete session. At the moment, you can't call this with the accessJwt - that
         /// one needs to expire on the server on its own. But you can delete the refreshJwt.
@@ -21,9 +26,11 @@ namespace dnproto.commands
             //
             // Get arguments
             //
-            string pds = LocalStateSession.ReadSessionProperty("pds");
-            string did = LocalStateSession.ReadSessionProperty("did");
-            string refreshJwt = LocalStateSession.ReadSessionProperty("refreshJwt");
+            string sessionFilePath = CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath");
+            JsonNode? session = JsonData.ReadJsonFromFile(sessionFilePath);
+            string refreshJwt = JsonData.GetPropertyValue(session, "refreshJwt");
+            string pds = JsonData.GetPropertyValue(session, "pds");
+            string did = JsonData.GetPropertyValue(session, "did");
             string url = $"https://{pds}/xrpc/com.atproto.server.deleteSession";
 
             Console.WriteLine($"pds: {pds}");
@@ -33,14 +40,11 @@ namespace dnproto.commands
             //
             // Clear local state
             //
-            LocalStateSession.WriteSessionProperties(new Dictionary<string, string>
+            if(File.Exists(sessionFilePath))
             {
-                {"did", ""},
-                {"pds", ""},
-                {"accessJwt", ""},
-                {"refreshJwt", ""}
-            });
-
+                Console.WriteLine($"Deleting session file: {sessionFilePath}");
+                File.Delete(sessionFilePath);
+            }
 
             //
             // Call the API.
