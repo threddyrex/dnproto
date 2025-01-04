@@ -12,6 +12,12 @@ namespace dnproto.commands
             return new HashSet<string>(new string[]{"handle"});
         }
 
+        public override HashSet<string> GetOptionalArguments()
+        {
+            return new HashSet<string>(new string[]{"responseFilePath"});
+        }
+
+
         /// <summary>
         /// Resolves a handle to a JSON object.
         /// </summary>
@@ -43,6 +49,7 @@ namespace dnproto.commands
             // Print response.
             //
             WebServiceClient.PrintJsonResponseToConsole(response);
+            JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "responseFilePath"));
         }
     }
 }

@@ -12,7 +12,7 @@ namespace dnproto.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"pds", "did", "outputFilePath"});
+            return new HashSet<string>(new string[]{"pds", "did", "repoFilePath"});
         }
 
 
@@ -28,15 +28,15 @@ namespace dnproto.commands
             //
             string pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
             string did = CommandLineInterface.GetArgumentValue(arguments, "did");
-            string outputFilePath = CommandLineInterface.GetArgumentValue(arguments, "outputFilePath");
+            string repoFilePath = CommandLineInterface.GetArgumentValue(arguments, "repoFilePath");
             string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
 
             Console.WriteLine($"pds: {pds}");
             Console.WriteLine($"did: {did}");
-            Console.WriteLine($"outputFilePath: {outputFilePath}");
+            Console.WriteLine($"repoFilePath: {repoFilePath}");
             Console.WriteLine($"url: {url}");
 
-            if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(outputFilePath))
+            if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repoFilePath))
             {
                 Console.WriteLine("Invalid arguments.");
                 return;
@@ -48,7 +48,8 @@ namespace dnproto.commands
             //
             WebServiceClient.SendRequest(url,
                 HttpMethod.Get, 
-                outputFilePath: outputFilePath);
+                outputFilePath: repoFilePath,
+                parseJsonResponse: false);
 
         }
     }

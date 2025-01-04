@@ -15,6 +15,12 @@ namespace dnproto.commands
             return new HashSet<string>(new string[]{"sessionFilePath"});
         }
 
+        public override HashSet<string> GetOptionalArguments()
+        {
+            return new HashSet<string>(new string[]{"pds", "responseFilePath"});
+        }
+
+
         /// <summary>
         /// Get unread notification count
         /// </summary>
@@ -55,6 +61,7 @@ namespace dnproto.commands
             // Print results
             //
             WebServiceClient.PrintJsonResponseToConsole(response);
+            JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "responseFilePath"));
         }
     }
 }

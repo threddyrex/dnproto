@@ -14,7 +14,7 @@ namespace dnproto.commands
 
         public override HashSet<string> GetOptionalArguments()
         {
-            return new HashSet<string>(new string[]{"pds"});
+            return new HashSet<string>(new string[]{"pds", "responseFilePath"});
         }
 
 
@@ -37,6 +37,7 @@ namespace dnproto.commands
                 HttpMethod.Get);
 
             WebServiceClient.PrintJsonResponseToConsole(repoStatus);
+            JsonData.WriteJsonToFile(repoStatus, CommandLineInterface.GetArgumentValue(arguments, "responseFilePath"));
         }
    }
 }

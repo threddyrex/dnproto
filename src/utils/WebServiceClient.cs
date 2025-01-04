@@ -21,7 +21,7 @@ namespace dnproto.utils
         /// <param name="content"></param>
         /// <param name="outputFilePath"></param>
         /// <returns></returns>
-        public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null)
+        public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -47,10 +47,6 @@ namespace dnproto.utils
                 //
                 var response = client.Send(request);
 
-
-                //
-                // Read response and return
-                //
                 if(response == null)
                 {
                     Console.WriteLine("response is null.");
@@ -59,35 +55,47 @@ namespace dnproto.utils
 
                 Console.WriteLine($"response status code: {response.StatusCode}");
 
+                //
+                // If user wants json, parse that.
+                //
+                JsonNode? jsonResponse = null;
+                if(parseJsonResponse)
+                {
+                    using (var reader = new StreamReader(response.Content.ReadAsStream()))
+                    {
+                        var responseText = reader.ReadToEnd();
+
+                        if(string.IsNullOrEmpty(responseText) == false)
+                        {
+                            jsonResponse = JsonNode.Parse(responseText);
+                        }
+                    }
+                }
+
+                //
                 // If the user has specified an output file, write the response to that file.
-                if (outputFilePath != null)
+                //
+                if (string.IsNullOrEmpty(outputFilePath) == false)
                 {
                     Console.WriteLine($"writing to: {outputFilePath}");
 
-                    using (var responseStream = response.Content.ReadAsStream())
+                    if (parseJsonResponse)
                     {
-                        using (var fs = new FileStream(outputFilePath, FileMode.Create))
+                        JsonData.WriteJsonToFile(jsonResponse, outputFilePath);
+                    }
+                    else
+                    {
+                        using (var responseStream = response.Content.ReadAsStream())
                         {
-                            responseStream.CopyTo(fs);
+                            using (var fs = new FileStream(outputFilePath, FileMode.Create))
+                            {
+                                responseStream.CopyTo(fs);
+                            }
                         }
                     }
-
-                    return null;
                 }
 
-                // Otherwise it's probably json and return that.
-                using (var reader = new StreamReader(response.Content.ReadAsStream()))
-                {
-                    var responseText = reader.ReadToEnd();
-
-                    if(string.IsNullOrEmpty(responseText))
-                    {
-                        return null;
-                    }
-
-                    var ret = JsonNode.Parse(responseText);
-                    return ret;
-                }
+                return jsonResponse;
             }
         }
 
@@ -107,6 +115,7 @@ namespace dnproto.utils
             Console.WriteLine("");
             Console.WriteLine("response:");
             Console.WriteLine(response.ToJsonString(options));
+            Console.WriteLine("");
         }
     }
 }

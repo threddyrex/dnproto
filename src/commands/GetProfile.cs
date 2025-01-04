@@ -12,6 +12,12 @@ namespace dnproto.commands
             return new HashSet<string>(new string[]{"actor"});
         }
 
+        public override HashSet<string> GetOptionalArguments()
+        {
+            return new HashSet<string>(new string[]{"responseFilePath"});
+        }
+
+
 
         /// <summary>
         /// Gets user profile.
@@ -30,6 +36,7 @@ namespace dnproto.commands
                 HttpMethod.Get);
 
             WebServiceClient.PrintJsonResponseToConsole(profile);
+            JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "responseFilePath"));
         }        
    }
 }

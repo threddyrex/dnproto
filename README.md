@@ -85,8 +85,10 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 
 # Downloading a user's repo
 
+Calls getRepo for the user, and writes the file to repoFilePath.
+
 ```powershell
-.\dnproto.exe /command GetRepo /did "did" /pds "pds hostname" /outputfilepath "file to write repo"
+.\dnproto.exe /command GetRepo /did "did" /pds "pds hostname" /repofilepath "file to write repo"
 ```
 
 
