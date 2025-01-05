@@ -26,9 +26,9 @@ namespace dnproto.commands
             //
             // Get arguments
             //
-            string pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
-            string did = CommandLineInterface.GetArgumentValue(arguments, "did");
-            string repoFilePath = CommandLineInterface.GetArgumentValue(arguments, "repoFilePath");
+            string? pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
+            string? did = CommandLineInterface.GetArgumentValue(arguments, "did");
+            string? repoFilePath = CommandLineInterface.GetArgumentValue(arguments, "repoFilePath");
             string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
 
             Console.WriteLine($"pds: {pds}");

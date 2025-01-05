@@ -22,7 +22,7 @@ namespace dnproto.utils
             return "";
         }
 
-        public static void WriteJsonToFile(JsonNode? node, string outputFilePath)
+        public static void WriteJsonToFile(JsonNode? node, string? outputFilePath)
         {
             if(node == null || string.IsNullOrEmpty(outputFilePath))
             {
@@ -36,7 +36,7 @@ namespace dnproto.utils
         }
 
 
-        public static JsonNode? ReadJsonFromFile(string inputFilePath)
+        public static JsonNode? ReadJsonFromFile(string? inputFilePath)
         {
             if(string.IsNullOrEmpty(inputFilePath))
             {

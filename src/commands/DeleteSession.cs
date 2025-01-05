@@ -26,11 +26,11 @@ namespace dnproto.commands
             //
             // Get arguments
             //
-            string sessionFilePath = CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath");
+            string? sessionFilePath = CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath");
             JsonNode? session = JsonData.ReadJsonFromFile(sessionFilePath);
-            string refreshJwt = JsonData.GetPropertyValue(session, "refreshJwt");
-            string pds = JsonData.GetPropertyValue(session, "pds");
-            string did = JsonData.GetPropertyValue(session, "did");
+            string? refreshJwt = JsonData.GetPropertyValue(session, "refreshJwt");
+            string? pds = JsonData.GetPropertyValue(session, "pds");
+            string? did = JsonData.GetPropertyValue(session, "did");
             string url = $"https://{pds}/xrpc/com.atproto.server.deleteSession";
 
             Console.WriteLine($"pds: {pds}");

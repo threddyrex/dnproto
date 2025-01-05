@@ -32,9 +32,9 @@ namespace dnproto.commands
             // Get arguments
             //
             string pds = arguments.ContainsKey("pds") ? arguments["pds"] : "bsky.social";
-            string authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
-            string username = CommandLineInterface.GetArgumentValue(arguments, "username");
-            string password = CommandLineInterface.GetArgumentValue(arguments, "password");
+            string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
+            string? username = CommandLineInterface.GetArgumentValue(arguments, "username");
+            string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
             string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
 
             Console.WriteLine($"url: {url}");

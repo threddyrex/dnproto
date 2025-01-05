@@ -45,7 +45,7 @@ namespace dnproto.utils
             //
             // Do we want to debug?
             //
-            if (arguments.ContainsKey("debugattach"))
+            if (arguments.ContainsKey("debug"))
             {
                 Console.WriteLine("Waiting for debugger to attach. Press any key to continue.");
                 Console.ReadKey();
@@ -129,15 +129,6 @@ namespace dnproto.utils
             return arguments;
         }
 
-        public static string GetArgumentValue(Dictionary<string, string> arguments, string argumentName)
-        {
-            if(arguments.ContainsKey(argumentName.ToLower()) == false)
-            {
-                return "";
-            }
-
-            return arguments[argumentName.ToLower()];
-        }
 
 
 
@@ -191,24 +182,45 @@ namespace dnproto.utils
 
 
 
-        public static bool CheckArguments(dnproto.commands.BaseCommand command, Dictionary<string, string> arguments)
+        public static bool CheckArguments(dnproto.commands.BaseCommand command, Dictionary<string, string> userArguments)
         {
             var requiredArguments = command.GetRequiredArguments().Select(arg => arg.ToLower()).ToList();
             var optionalArguments = command.GetOptionalArguments().Select(arg => arg.ToLower()).ToList();
+            var reservedArguments = GetReservedArguments();
 
             // Check for missing required arguments
             foreach (var requiredArgument in requiredArguments)
             {
-                if (arguments.ContainsKey(requiredArgument) == false)
+                if (userArguments.ContainsKey(requiredArgument) == false)
+                {
+                    return false;
+                }
+            }
+
+            // Check for required arguments that clash with reserved arguments
+            foreach (var requiredArgument in requiredArguments)
+            {
+                if (reservedArguments.Contains(requiredArgument))
                 {
                     return false;
                 }
             }
 
             // Check for unknown arguments
-            foreach (var argument in arguments)
+            foreach (var userArgument in userArguments)
             {
-                if (requiredArguments.Contains(argument.Key) == false && optionalArguments.Contains(argument.Key) == false && argument.Key != "command" && argument.Key != "debugattach")
+                if (requiredArguments.Contains(userArgument.Key) == false 
+                    && optionalArguments.Contains(userArgument.Key) == false 
+                    && reservedArguments.Contains(userArgument.Key) == false)
+                {
+                    return false;
+                }
+            }
+
+            // Check for optional arguments that clash with reserved arguments
+            foreach (var optionalArgument in optionalArguments)
+            {
+                if (reservedArguments.Contains(optionalArgument))
                 {
                     return false;
                 }
@@ -239,6 +251,20 @@ namespace dnproto.utils
             Console.WriteLine();
         }
 
+        public static HashSet<string> GetReservedArguments()
+        {
+            return new HashSet<string>(new string[] { "command", "debug" });
+        }
+
+        public static string? GetArgumentValue(Dictionary<string, string> arguments, string argumentName)
+        {
+            if(arguments.ContainsKey(argumentName.ToLower()) == false)
+            {
+                return null;
+            }
+
+            return arguments[argumentName.ToLower()];
+        }
 
         public static void PrintLineSeparator()
         {

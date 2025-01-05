@@ -29,7 +29,7 @@ namespace dnproto.commands
             string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
             string pds = JsonData.GetPropertyValue(session, "pds");
             string did = JsonData.GetPropertyValue(session, "did");
-            string text = CommandLineInterface.GetArgumentValue(arguments, "text");
+            string? text = CommandLineInterface.GetArgumentValue(arguments, "text");
             string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
 
             Console.WriteLine($"pds: {pds}");
