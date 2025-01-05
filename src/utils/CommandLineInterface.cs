@@ -47,8 +47,12 @@ namespace dnproto.utils
             //
             if (arguments.ContainsKey("debug"))
             {
-                Console.WriteLine("Waiting for debugger to attach. Press any key to continue.");
-                Console.ReadKey();
+                Console.WriteLine("Waiting for debugger to attach.");
+
+                while (!System.Diagnostics.Debugger.IsAttached)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                }
             }
 
 
