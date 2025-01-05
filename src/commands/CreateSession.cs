@@ -12,7 +12,7 @@ namespace dnproto.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"username", "password", "sessionFilePath"});
+            return new HashSet<string>(new string[]{"username", "password", "sessionFile"});
         }
 
         public override HashSet<string> GetOptionalArguments()
@@ -73,7 +73,7 @@ namespace dnproto.commands
             //
             WebServiceClient.PrintJsonResponseToConsole(session);
             Console.WriteLine();
-            JsonData.WriteJsonToFile(session, CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath"));
+            JsonData.WriteJsonToFile(session, CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
 
         }
     }

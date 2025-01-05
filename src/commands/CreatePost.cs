@@ -12,7 +12,7 @@ namespace dnproto.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"sessionFilePath", "text"});
+            return new HashSet<string>(new string[]{"sessionFile", "text"});
         }
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace dnproto.commands
             //
             // Get arguments
             //
-            JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath"));
+            JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
             string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
             string pds = JsonData.GetPropertyValue(session, "pds");
             string did = JsonData.GetPropertyValue(session, "did");

@@ -103,16 +103,16 @@ stored in a file on local disk (specified by $sessionFile).
 $sessionFile = "path_to_file"
 
 # log in
-.\dnproto.exe /command CreateSession /sessionfilepath $sessionFile /pds "pds" /username "handle" /password "password"
+.\dnproto.exe /command CreateSession /sessionfile $sessionFile /pds "pds" /username "handle" /password "password"
 
 # create a post
-.\dnproto.exe /command CreatePost /sessionfilepath $sessionFile /text "text of post"
+.\dnproto.exe /command CreatePost /sessionfile $sessionFile /text "text of post"
 
 # get unread notification count
-.\dnproto.exe /command GetUnreadCount /sessionfilepath $sessionFile
+.\dnproto.exe /command GetUnreadCount /sessionfile $sessionFile
 
 # log out
-.\dnproto.exe /command DeleteSession /sessionfilepath $sessionFile
+.\dnproto.exe /command DeleteSession /sessionfile $sessionFile
 ```
 
 
