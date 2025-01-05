@@ -18,7 +18,7 @@ namespace dnproto.commands
 
             public override string ToString()
             {
-                return $"[length: {Length}, value: {Value}]";
+                return $"(VarInt length:{Length} value:{Value})";
             }
         }
 
@@ -51,6 +51,7 @@ namespace dnproto.commands
                 return;
             }
 
+            string base32characters = "abcdefghijklmnopqrstuvwxyz234567";
 
             using(var fs = new FileStream(repoFile, FileMode.Open))
             {
@@ -59,7 +60,8 @@ namespace dnproto.commands
                 int headerBytesRead = fs.Read(headerBytes, 0, headerLength.Value);
 
                 Console.WriteLine();
-                Console.WriteLine($"headerLength: {headerLength}  headerBytesRead: {headerBytesRead}");
+                Console.WriteLine($"headerLength: {headerLength}");
+                Console.WriteLine($"headerBytesRead: {headerBytesRead}");
                 Console.WriteLine();
 
                 while(fs.Position < fs.Length)
@@ -67,9 +69,21 @@ namespace dnproto.commands
                     Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
                     VarInt blockLength = ReadVarInt(fs);
 
+                    Console.WriteLine($"blockLength: {blockLength}");
+                    Console.WriteLine();
+
+                    // cid
+
                     // https://github.com/multiformats/cid
                     VarInt cidVersion = ReadVarInt(fs);
                     VarInt cidMulticodec = ReadVarInt(fs);
+                    VarInt cidHashFunction = ReadVarInt(fs); // likely sha2-256, 0x12, decimal 18
+                    VarInt cidDigestSize = ReadVarInt(fs);
+
+                    Console.WriteLine($"cidVersion: {cidVersion}");
+                    Console.WriteLine($"cidMulticodec: {cidMulticodec}");
+                    Console.WriteLine($"cidHashFunction: {cidHashFunction}");
+                    Console.WriteLine($"cidDigestSize: {cidDigestSize}");
 
                     // https://github.com/multiformats/multicodec/blob/master/table.csv
                     // dag-cbor = 0x71
@@ -78,23 +92,34 @@ namespace dnproto.commands
                         Console.WriteLine($"cidMulticodec.Value != 0x71: {cidMulticodec.Value}");
                     }
 
-                    // cid
-                    int CID_LENGTH = 36;                    
-                    byte[] cidBytes = new byte[CID_LENGTH];
-                    int cidBytesRead = fs.Read(cidBytes, 0, CID_LENGTH);
+                    byte[] cidDigestBytes = new byte[cidDigestSize.Value];
+                    int cidDigestBytesRead = fs.Read(cidDigestBytes, 0, cidDigestSize.Value);
 
-                    string cid = BitConverter.ToString(cidBytes).Replace("-", string.Empty);
-                    Console.WriteLine($"cidBytesRead: {cidBytesRead}  cid: {cid}");
+                    // Put full cid together
+                    var ms = new MemoryStream();
+                    ms.WriteByte((byte)cidVersion.Value);
+                    ms.WriteByte((byte)cidMulticodec.Value);
+                    ms.WriteByte((byte)cidHashFunction.Value);
+                    ms.WriteByte((byte)cidDigestSize.Value);
+                    ms.Write(cidDigestBytes, 0, cidDigestSize.Value);
+                    byte[] cidBytes = ms.ToArray();
+                    int cidBytesLength = cidBytes.Length;
+
+                    string cidBits = string.Join("", cidBytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
+                    Console.WriteLine($"cidBytesLength: {cidBytesLength}");
+                    Console.WriteLine($"cidBits: {cidBits}");
                     Console.WriteLine();
 
                     // rest of data block
-                    int restOfBlockLength = blockLength.Value - (cidVersion.Length + cidMulticodec.Length + CID_LENGTH);
+                    int restOfBlockLength = blockLength.Value - (cidVersion.Length + cidMulticodec.Length + cidHashFunction.Length + cidDigestSize.Length + cidDigestSize.Value);
                     byte[] blockBytes = new byte[restOfBlockLength];
                     int blockBytesRead = fs.Read(blockBytes, 0, restOfBlockLength);
 
-                    Console.WriteLine($"blockLength: {blockLength}  cidVersion: {cidVersion}  cidMulticodec: {cidMulticodec}  restOfBlockLength: {restOfBlockLength}  blockBytesRead: {blockBytesRead}");
+                    Console.WriteLine($"restOfBlockLength: {restOfBlockLength}");
+                    Console.WriteLine($"blockBytesRead: {blockBytesRead}");
                     Console.WriteLine();
-                    Console.WriteLine($"blockBytes string: {Encoding.UTF8.GetString(blockBytes)}");
+                    Console.WriteLine($"blockBytes string:");
+                    Console.WriteLine($"{Encoding.UTF8.GetString(blockBytes)}");
                     Console.WriteLine();
                 }
             }
