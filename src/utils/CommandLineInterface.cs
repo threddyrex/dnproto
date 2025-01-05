@@ -45,7 +45,7 @@ namespace dnproto.utils
             //
             // Do we want to debug?
             //
-            if (arguments.ContainsKey("debug"))
+            if (arguments.ContainsKey("debug") && GetArgumentValue(arguments, "debug") == "true")
             {
                 Console.WriteLine("Waiting for debugger to attach.");
 

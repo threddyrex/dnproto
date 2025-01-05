@@ -104,7 +104,7 @@ namespace dnproto.commands
                     int cidBytesLength = cidBytes.Length;
 
                     string cidBits = string.Join("", cidBytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
-                    string cidbase32 = BytesToBase32(cidBytes);
+                    string cidbase32 = "b" + BytesToBase32(cidBytes);
                     Console.WriteLine($"cidBytesLength: {cidBytesLength}");
                     Console.WriteLine($"cidBits: {cidBits}");
                     Console.WriteLine($"cidbase32: {cidbase32}");
@@ -156,7 +156,6 @@ namespace dnproto.commands
             int index = 0;
 
             StringBuilder sb = new StringBuilder();
-            sb.Append("b");
 
             while(index < cidBits.Length-5)
             {
