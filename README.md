@@ -117,3 +117,15 @@ $sessionFile = "path_to_file"
 
 
 
+&nbsp;
+
+# Write json responses to disk
+
+Many of the commands are just calls to the Bluesky APIs, which return json responses. 
+These commands usually provide a "outfile" argument for writing the response to disk:
+
+```powershell
+.\dnproto.exe /command GetRepoStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
+```
+
+
