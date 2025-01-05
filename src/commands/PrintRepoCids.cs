@@ -18,7 +18,7 @@ namespace dnproto.commands
 
             public override string ToString()
             {
-                return $"(VarInt length:{Length} value:{Value})";
+                return $"(VarInt length:{Length} value:{Value} hex:0x{Value:X})";
             }
         }
 
@@ -50,8 +50,6 @@ namespace dnproto.commands
                 Console.WriteLine("File does not exist.");
                 return;
             }
-
-            string base32characters = "abcdefghijklmnopqrstuvwxyz234567";
 
             using(var fs = new FileStream(repoFile, FileMode.Open))
             {
@@ -106,8 +104,10 @@ namespace dnproto.commands
                     int cidBytesLength = cidBytes.Length;
 
                     string cidBits = string.Join("", cidBytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
+                    string cidbase32 = BytesToBase32(cidBytes);
                     Console.WriteLine($"cidBytesLength: {cidBytesLength}");
                     Console.WriteLine($"cidBits: {cidBits}");
+                    Console.WriteLine($"cidbase32: {cidbase32}");
                     Console.WriteLine();
 
                     // rest of data block
@@ -141,6 +141,41 @@ namespace dnproto.commands
                 shift += 7;
             } while ((b & 0x80) != 0);
             return ret;
+        }
+
+        //
+        // Clearly not the most efficient way to do this, but it works for now.
+        //
+        // Take 5 bits at a time, convert to base32 character.
+        //
+        public static string BytesToBase32(byte[] bytes)
+        {
+            string base32characters = "abcdefghijklmnopqrstuvwxyz234567";
+            string cidBits = string.Join("", bytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
+
+            int index = 0;
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("b");
+
+            while(index < cidBits.Length-5)
+            {
+                string next5 = cidBits.Substring(index, 5);
+                index += 5;
+                int next5Int = Convert.ToInt32(next5, 2);
+                char next5Char = base32characters[next5Int];
+                sb.Append(next5Char);
+            }
+
+            if (index < cidBits.Length)
+            {
+                string next5 = cidBits.Substring(index).PadRight(5, '0');
+                int next5Int = Convert.ToInt32(next5, 2);
+                char next5Char = base32characters[next5Int];
+                sb.Append(next5Char);
+            }
+
+            return sb.ToString();
         }
     }
 }
