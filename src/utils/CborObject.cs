@@ -2,15 +2,30 @@ using System.Text;
 
 namespace dnproto.utils;
 
-public class CborReader
+public class CborObject
 {
+    public required CborType Type;
+
+    public required object Value;
+
+    public override string ToString()
+    {
+        return $"CborObject -> {TryGetString()}";
+    }
+
+    public string TryGetString()
+    {
+        string? sval = Value.ToString();
+        return sval != null ? sval : "";
+    }
+
     /// <summary>
     /// Read a CBOR object from a stream. Recursively reads maps and arrays.
     /// </summary>
     /// <param name="s"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static CborObject ReadNext(Stream s)
+    public static CborObject ReadFromStream(Stream s)
     {
         CborType type = CborType.ReadNextType(s);
         int length = 0;
@@ -23,9 +38,9 @@ public class CborReader
 
                 for(int i = 0; i < length; i++)
                 {
-                    CborObject key = ReadNext(s);
-                    string? keyString = key != null ? key.AsDictionaryKey() : null;
-                    CborObject value = ReadNext(s);
+                    CborObject key = ReadFromStream(s);
+                    string? keyString = key != null ? key.TryGetString() : null;
+                    CborObject value = ReadFromStream(s);
 
                     if(keyString != null)
                     {
@@ -49,7 +64,7 @@ public class CborReader
 
                 for(int i = 0; i < length; i++)
                 {
-                    object value = ReadNext(s);
+                    object value = ReadFromStream(s);
                     list.Add(value);
                 }
 
@@ -142,7 +157,7 @@ public class CborType
 
     public override string ToString()
     {
-        return $"{GetMajorTypeString()} ({MajorType}), AdditionalInfo: {AdditionalInfo}";
+        return $"CborType -> {GetMajorTypeString()} ({MajorType}), AdditionalInfo: {AdditionalInfo}";
     }
 
     public string GetMajorTypeString()
@@ -168,25 +183,6 @@ public class CborType
             default:
                 return "UNKNOWN";
         }
-    }
-
-}
-
-public class CborObject
-{
-    public required CborType Type;
-
-    public required object Value;
-
-    public override string ToString()
-    {
-        return $"CborObject -> {AsDictionaryKey()}";
-    }
-
-    public string AsDictionaryKey()
-    {
-        var s = Value.ToString();
-        return s != null ? s : "";
     }
 
 }

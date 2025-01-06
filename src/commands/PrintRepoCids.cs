@@ -62,7 +62,7 @@ namespace dnproto.commands
 
                 using(var ms = new MemoryStream(headerBytes))
                 {
-                    var header = CborReader.ReadNext(ms);
+                    var header = CborObject.ReadFromStream(ms);
                     Console.WriteLine($"header: {header}");
                 }
 
@@ -108,7 +108,7 @@ namespace dnproto.commands
 
                     using(var ms = new MemoryStream(blockBytes))
                     {
-                        var block = CborReader.ReadNext(ms);
+                        var block = CborObject.ReadFromStream(ms);
                         Console.WriteLine($"block: {block}");
                     }
                 }
