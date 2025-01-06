@@ -70,4 +70,9 @@ public class Cid
     {
         return "b" + Base32Encoding.BytesToBase32(GetBytes());
     }
+
+    public override string ToString()
+    {
+        return GetBase32();
+    }
 }
