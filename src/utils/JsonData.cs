@@ -35,6 +35,17 @@ namespace dnproto.utils
             System.IO.File.WriteAllText(outputFilePath, node.ToJsonString(options));
         }
 
+        public static string GetObjectJsonString(object? obj)
+        {
+            if (obj == null)
+            {
+                return "";
+            }
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            return JsonSerializer.Serialize(obj, options);
+        }
+
 
         public static JsonNode? ReadJsonFromFile(string? inputFilePath)
         {

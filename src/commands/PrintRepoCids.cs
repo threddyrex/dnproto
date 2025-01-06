@@ -64,6 +64,14 @@ namespace dnproto.commands
                 {
                     var header = CborObject.ReadFromStream(ms);
                     Console.WriteLine($"header: {header}");
+                    var headerRaw = header.GetRawValue();
+                    Console.WriteLine($"headerRaw: {headerRaw}");
+                    var headerJson = JsonData.GetObjectJsonString(headerRaw);
+                    Console.WriteLine();
+                    Console.WriteLine($"headerJson:");
+                    Console.WriteLine();
+                    Console.WriteLine($"{headerJson}");
+                    Console.WriteLine();
                 }
 
 
@@ -110,6 +118,14 @@ namespace dnproto.commands
                     {
                         var block = CborObject.ReadFromStream(ms);
                         Console.WriteLine($"block: {block}");
+                        var blockRaw = block.GetRawValue();
+                        Console.WriteLine($"blockRaw: {blockRaw}");
+                        var blockJson = JsonData.GetObjectJsonString(blockRaw);
+                        Console.WriteLine();
+                        Console.WriteLine($"blockJson:");
+                        Console.WriteLine();
+                        Console.WriteLine($"{blockJson}");
+                        Console.WriteLine();
                     }
                 }
             }

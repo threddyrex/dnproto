@@ -15,8 +15,15 @@ public class Cid
     // fourth byte
     public required VarInt DigestSize { get; set; }
 
-    // next 32 bytes
+    // next (and final) 32 bytes
     public required byte[] DigestBytes { get; set; }
+
+    // entire array of bytes (including version, multicodec, hash function, digest size, and digest bytes)
+    public required byte[] AllBytes { get; set; }
+
+    // base32 representation of the CID
+    public required string Base32 { get; set; }
+
 
     public static Cid ReadCid(Stream s)
     {
@@ -38,42 +45,40 @@ public class Cid
         byte[] digestBytes = new byte[digestSize.Value];
         int cidDigestBytesRead = s.Read(digestBytes, 0, digestSize.Value);
 
+        var ms = new MemoryStream();
+        ms.WriteByte((byte)version.Value);
+        ms.WriteByte((byte)multicodec.Value);
+        ms.WriteByte((byte)hashFunction.Value);
+        ms.WriteByte((byte)digestSize.Value);
+        ms.Write(digestBytes, 0, digestSize.Value);
+        byte[] allBytes = ms.ToArray();
+
+        string base32 = "b" + Base32Encoding.BytesToBase32(allBytes);
+
         return new Cid
         {
             Version = version,
             Multicodec = multicodec,
             HashFunction = hashFunction,
             DigestSize = digestSize,
-            DigestBytes = digestBytes
+            DigestBytes = digestBytes,
+            AllBytes = allBytes,
+            Base32 = base32
         };
     } 
 
-    /// <summary>
-    /// Put it all together.
-    /// </summary>
-    /// <returns></returns>
     public byte[] GetBytes()
     {
-        var ms = new MemoryStream();
-        ms.WriteByte((byte)Version.Value);
-        ms.WriteByte((byte)Multicodec.Value);
-        ms.WriteByte((byte)HashFunction.Value);
-        ms.WriteByte((byte)DigestSize.Value);
-        ms.Write(DigestBytes, 0, DigestSize.Value);
-        return ms.ToArray();
+        return AllBytes;
     }
 
-    /// <summary>
-    /// Get the base32 representation of the CID.
-    /// </summary>
-    /// <returns></returns>
     public string GetBase32()
     {
-        return "b" + Base32Encoding.BytesToBase32(GetBytes());
+        return Base32;
     }
 
     public override string ToString()
     {
-        return GetBase32();
+        return Base32;
     }
 }

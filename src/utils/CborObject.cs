@@ -8,17 +8,6 @@ public class CborObject
 
     public required object Value;
 
-    public override string ToString()
-    {
-        return $"CborObject -> {TryGetString()}";
-    }
-
-    public string TryGetString()
-    {
-        string? sval = Value.ToString();
-        return sval != null ? sval : "";
-    }
-
     /// <summary>
     /// Read a CBOR object from a stream. Recursively reads maps and arrays.
     /// </summary>
@@ -32,9 +21,9 @@ public class CborObject
 
         switch(type.MajorType)
         {
-            case 5: // TYPE_MAP
+            case CborType.TYPE_MAP:
                 length = GetLength(type, s); // might read one more byte for length
-                Dictionary<string, object> dict = new Dictionary<string, object>();
+                Dictionary<string, CborObject> dict = new Dictionary<string, CborObject>();
 
                 for(int i = 0; i < length; i++)
                 {
@@ -53,23 +42,27 @@ public class CborObject
                 }
 
                 return new CborObject { Type = type, Value = dict };
-            case 3: // TYPE_TEXT
+
+            case CborType.TYPE_ARRAY:
                 length = GetLength(type, s);
-                byte[] bytes = new byte[length];
-                int readLength = s.Read(bytes, 0, length);
-                return new CborObject { Type = type, Value = Encoding.UTF8.GetString(bytes) };
-            case 4: // TYPE_ARRAY
-                length = GetLength(type, s);
-                List<object> list = new List<object>();
+                List<CborObject> list = new List<CborObject>();
 
                 for(int i = 0; i < length; i++)
                 {
-                    object value = ReadFromStream(s);
+                    var value = ReadFromStream(s);
                     list.Add(value);
                 }
 
                 return new CborObject { Type = type, Value = list };
-            case 6: // TYPE_TAG
+
+
+            case CborType.TYPE_TEXT:
+                length = GetLength(type, s);
+                byte[] bytes = new byte[length];
+                int readLength = s.Read(bytes, 0, length);
+                return new CborObject { Type = type, Value = Encoding.UTF8.GetString(bytes) };
+
+            case CborType.TYPE_TAG:
                 int tag = s.ReadByte();
                 if(tag != 42)
                 {
@@ -83,14 +76,17 @@ public class CborObject
                 Cid cid = Cid.ReadCid(s);
 
                 return new CborObject { Type = type, Value = cid };
-            case 0: // TYPE_UNSIGNED_INT
+
+            case CborType.TYPE_UNSIGNED_INT:
                 return new CborObject { Type = type, Value = GetLength(type, s) };
-            case 2: // TYPE_BYTE_STRING
+
+            case CborType.TYPE_BYTE_STRING:
                 length = GetLength(type, s);
                 byte[] byteString = new byte[length];
                 int bytesRead = s.Read(byteString, 0, length);
                 return new CborObject { Type = type, Value = Encoding.UTF8.GetString(byteString) };
-            case 7: // TYPE_SIMPLE_VALUE
+
+            case CborType.TYPE_SIMPLE_VALUE:
                 if(type.AdditionalInfo == 0x16)
                 {
                     return new CborObject { Type = type, Value = "null" };
@@ -109,6 +105,7 @@ public class CborObject
                 {
                     throw new Exception("Unknown simple value: " + type.AdditionalInfo);
                 }
+
             default:
                 throw new Exception("Unknown major type: " + type.MajorType);
         }
@@ -137,6 +134,73 @@ public class CborObject
         
         return length;
     }
+
+    public override string ToString()
+    {
+        return $"CborObject -> {TryGetString()}";
+    }
+
+    public string TryGetString()
+    {
+        string? sval = Value.ToString();
+        return sval != null ? sval : "";
+    }
+
+    public object? GetRawValue()
+    {
+        if(Type.MajorType == CborType.TYPE_TEXT)
+        {
+            return Value;
+        }
+        else if(Type.MajorType == CborType.TYPE_BYTE_STRING)
+        {
+            return Value;
+        }
+        else if(Type.MajorType == CborType.TYPE_UNSIGNED_INT)
+        {
+            return Value;
+        }
+        else if(Type.MajorType == CborType.TYPE_SIMPLE_VALUE)
+        {
+            return Value;
+        }
+        else if(Type.MajorType == CborType.TYPE_ARRAY)
+        {
+            List<object> list = new List<object>();
+
+            foreach(var obj in (List<CborObject>)Value)
+            {
+                var v = obj.GetRawValue();
+                if (v != null)
+                {
+                    list.Add(v);
+                }
+            }
+
+            return list;
+        }
+        else if(Type.MajorType == CborType.TYPE_MAP)
+        {
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+            foreach(KeyValuePair<string, CborObject> kvp in (Dictionary<string, CborObject>)Value)
+            {
+                var v = kvp.Value.GetRawValue();
+                if(v != null)
+                {
+                    dict[kvp.Key] = v;
+                }
+            }
+            return dict;
+        }
+        else if(Type.MajorType == CborType.TYPE_TAG)
+        {
+            return Value;
+        }
+        else
+        {
+            throw new Exception("Unknown major type: " + Type.MajorType);
+        }
+    }
 }
 
 public class CborType
@@ -164,25 +228,34 @@ public class CborType
     {
         switch(MajorType)
         {
-            case 0:
+            case TYPE_UNSIGNED_INT:
                 return "TYPE_UNSIGNED_INT";
-            case 1:
+            case TYPE_NEGATIVE_INT:
                 return "TYPE_NEGATIVE_INT";
-            case 2:
+            case TYPE_BYTE_STRING:
                 return "TYPE_BYTE_STRING";
-            case 3:
+            case TYPE_TEXT:
                 return "TYPE_TEXT";
-            case 4:
+            case TYPE_ARRAY:
                 return "TYPE_ARRAY";
-            case 5:
+            case TYPE_MAP:
                 return "TYPE_MAP";
-            case 6:
+            case TYPE_TAG:
                 return "TYPE_TAG";
-            case 7:
+            case TYPE_SIMPLE_VALUE:
                 return "TYPE_SIMPLE_VALUE";
             default:
                 return "UNKNOWN";
         }
     }
+
+    public const int TYPE_UNSIGNED_INT = 0;
+    public const int TYPE_NEGATIVE_INT = 1;
+    public const int TYPE_BYTE_STRING = 2;
+    public const int TYPE_TEXT = 3;
+    public const int TYPE_ARRAY = 4;
+    public const int TYPE_MAP = 5;
+    public const int TYPE_TAG = 6;
+    public const int TYPE_SIMPLE_VALUE = 7;
 
 }
