@@ -10,7 +10,7 @@ public class CborReader
     /// <param name="s"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static object ReadNext(Stream s)
+    public static CborObject ReadNext(Stream s)
     {
         CborType type = CborType.ReadNextType(s);
         int length = 0;
@@ -23,9 +23,9 @@ public class CborReader
 
                 for(int i = 0; i < length; i++)
                 {
-                    object key = ReadNext(s);
-                    string? keyString = key != null ? key.ToString() : null;
-                    object value = ReadNext(s);
+                    CborObject key = ReadNext(s);
+                    string? keyString = key != null ? key.AsDictionaryKey() : null;
+                    CborObject value = ReadNext(s);
 
                     if(keyString != null)
                     {
@@ -89,10 +89,6 @@ public class CborReader
                 {
                     s.ReadByte();
                     return new CborObject { Type = type, Value = true };
-                }
-                else if(type.AdditionalInfo == 0x18)
-                {
-                    return new CborObject { Type = type, Value = type.AdditionalInfo.ToString() };
                 }
                 else
                 {
@@ -184,7 +180,13 @@ public class CborObject
 
     public override string ToString()
     {
+        return $"CborObject -> {AsDictionaryKey()}";
+    }
+
+    public string AsDictionaryKey()
+    {
         var s = Value.ToString();
         return s != null ? s : "";
     }
+
 }
