@@ -12,7 +12,13 @@ namespace dnproto.commands
         }
 
         /// <summary>
-        /// Load repo car and list cids
+        /// Load repo car and list cids.
+        ///
+        /// https://ipld.io/specs/transport/car/carv1/#format-description
+        /// 
+        /// [---  header  --------]   [----------------- data ---------------------------------]
+        /// [varint | header block]   [varint | cid | data block]....[varint | cid | data block] 
+        ///
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
