@@ -11,17 +11,6 @@ namespace dnproto.commands
             return new HashSet<string>(new string[]{"repoFile"});
         }
 
-        public class VarInt
-        {
-            public int Length { get; set; }
-            public int Value { get; set; }
-
-            public override string ToString()
-            {
-                return $"{Value} (length:{Length} hex:0x{Value:X})";
-            }
-        }
-
         /// <summary>
         /// Load repo car and list cids
         /// </summary>
@@ -53,7 +42,7 @@ namespace dnproto.commands
 
             using(var fs = new FileStream(repoFile, FileMode.Open))
             {
-                VarInt headerLength = ReadVarInt(fs);
+                VarInt headerLength = VarInt.ReadVarInt(fs);
                 byte[] headerBytes = new byte[headerLength.Value];
                 int headerBytesRead = fs.Read(headerBytes, 0, headerLength.Value);
 
@@ -65,18 +54,19 @@ namespace dnproto.commands
                 while(fs.Position < fs.Length)
                 { 
                     Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-                    VarInt blockLength = ReadVarInt(fs);
 
+                    // Full block length
+                    VarInt blockLength = VarInt.ReadVarInt(fs);
                     Console.WriteLine($"blockLength: {blockLength}");
                     Console.WriteLine();
 
                     // cid
 
                     // https://github.com/multiformats/cid
-                    VarInt cidVersion = ReadVarInt(fs);
-                    VarInt cidMulticodec = ReadVarInt(fs);
-                    VarInt cidHashFunction = ReadVarInt(fs); // likely sha2-256, 0x12, decimal 18
-                    VarInt cidDigestSize = ReadVarInt(fs);
+                    VarInt cidVersion = VarInt.ReadVarInt(fs);
+                    VarInt cidMulticodec = VarInt.ReadVarInt(fs);
+                    VarInt cidHashFunction = VarInt.ReadVarInt(fs); // likely sha2-256, 0x12, decimal 18
+                    VarInt cidDigestSize = VarInt.ReadVarInt(fs);
 
                     Console.WriteLine($"cidVersion:       {cidVersion}");
                     Console.WriteLine($"cidMulticodec:    {cidMulticodec}");
@@ -85,6 +75,7 @@ namespace dnproto.commands
 
                     // https://github.com/multiformats/multicodec/blob/master/table.csv
                     // dag-cbor = 0x71
+                    // should not happen for AT
                     if(cidMulticodec.Value != 0x71)
                     {
                         Console.WriteLine($"cidMulticodec.Value != 0x71: {cidMulticodec.Value}");
@@ -104,8 +95,8 @@ namespace dnproto.commands
                     int cidBytesLength = cidBytes.Length;
 
                     string cidBits = string.Join("", cidBytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
-                    string cidbase32 = "b" + BytesToBase32(cidBytes);
-                    string cidbase32Orig = "b" + BytesToBase32Orig(cidBytes);
+                    string cidbase32 = "b" + Base32Encoding.BytesToBase32(cidBytes);
+                    string cidbase32Orig = "b" + Base32Encoding.BytesToBase32Orig(cidBytes);
                     Console.WriteLine($"cidBytesLength:   {cidBytesLength}");
                     //Console.WriteLine($"cidBits: {cidBits}");
                     Console.WriteLine($"cidbase32 OLD:    {cidbase32Orig}");
@@ -127,122 +118,5 @@ namespace dnproto.commands
             }
         }
 
-        public static VarInt ReadVarInt(FileStream fs)
-        {
-            VarInt ret = new VarInt();
-            ret.Value = 0;
-            ret.Length = 0;
-
-            int shift = 0;
-            byte b;
-            do
-            {
-                ret.Length++;
-                b = (byte)fs.ReadByte();
-                ret.Value |= (b & 0x7F) << shift;
-                shift += 7;
-            } while ((b & 0x80) != 0);
-            return ret;
-        }
-
-        // Take 5 bits at a time and convert to base32 character.
-        public static string BytesToBase32(byte[] bytes)
-        {
-            int currentByteIndex = 0;
-            int bitsRemaining = 8;
-            string charMap = "abcdefghijklmnopqrstuvwxyz234567";
-            StringBuilder sb = new StringBuilder();
-
-            while(bitsRemaining > 0)
-            {
-                if(bitsRemaining >= 5)
-                {
-                    int next5Int = (bytes[currentByteIndex] >> (bitsRemaining - 5)) & 0x1F;
-                    sb.Append(charMap[next5Int]);
-                    bitsRemaining -= 5;
-
-                    if(bitsRemaining == 0 && currentByteIndex + 1 < bytes.Length)
-                    {
-                        currentByteIndex++;
-                        bitsRemaining = 8;
-                    }
-                }
-                else
-                {
-                    if(currentByteIndex + 1 < bytes.Length)
-                    {
-                        int next5int = bytes[currentByteIndex];
-                        // shift left to get the bits we need
-                        next5int = next5int << (5 - bitsRemaining);
-                        // mask out the rest
-                        next5int = next5int & 0x1F;
-                        // get the next byte
-                        int next5int2 = bytes[currentByteIndex + 1];
-                        // shift right to get the bits we need
-                        next5int2 = next5int2 >> (8 - (5 - bitsRemaining));
-                        // mask out the rest
-                        next5int2 = next5int2 & 0x1F;
-                        // combine those two
-                        next5int = next5int | next5int2;
-                        sb.Append(charMap[next5int]);
-                        // move to the next byte
-                        currentByteIndex++;
-                        // figure out bitsremaining
-                        bitsRemaining = 8 - (5 - bitsRemaining);
-                    }
-                    else
-                    {
-                        // this is the last one
-                        // get final byte
-                        int next5int = bytes[currentByteIndex];
-                        // shift left to get the bits we need
-                        next5int = next5int << (5 - bitsRemaining);
-                        // mask out the rest
-                        next5int = next5int & 0x1F;
-                        sb.Append(charMap[next5int]);
-                        bitsRemaining = 0; // end
-                    }
-                }
-            }
-
-
-            return sb.ToString();
-        }
-
-
-        //
-        // Clearly not the most efficient way to do this, but it works for now.
-        //
-        // Take 5 bits at a time, convert to base32 character.
-        //
-        public static string BytesToBase32Orig(byte[] bytes)
-        {
-            string base32characters = "abcdefghijklmnopqrstuvwxyz234567";
-            string cidBits = string.Join("", bytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
-
-            int index = 0;
-
-            StringBuilder sb = new StringBuilder();
-
-            while(index < cidBits.Length-5)
-            {
-                string next5 = cidBits.Substring(index, 5);
-                index += 5;
-                int next5Int = Convert.ToInt32(next5, 2);
-                char next5Char = base32characters[next5Int];
-                sb.Append(next5Char);
-            }
-
-            if (index < cidBits.Length)
-            {
-                string next5 = cidBits.Substring(index).PadRight(5, '0');
-                int next5Int = Convert.ToInt32(next5, 2);
-                char next5Char = base32characters[next5Int];
-                sb.Append(next5Char);
-            }
-
-            return sb.ToString();
-        }
-
-    }
+   }
 }
