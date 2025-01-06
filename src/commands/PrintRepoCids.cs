@@ -18,7 +18,7 @@ namespace dnproto.commands
 
             public override string ToString()
             {
-                return $"(VarInt length:{Length} value:{Value} hex:0x{Value:X})";
+                return $"{Value} (length:{Length} hex:0x{Value:X})";
             }
         }
 
@@ -78,10 +78,10 @@ namespace dnproto.commands
                     VarInt cidHashFunction = ReadVarInt(fs); // likely sha2-256, 0x12, decimal 18
                     VarInt cidDigestSize = ReadVarInt(fs);
 
-                    Console.WriteLine($"cidVersion: {cidVersion}");
-                    Console.WriteLine($"cidMulticodec: {cidMulticodec}");
-                    Console.WriteLine($"cidHashFunction: {cidHashFunction}");
-                    Console.WriteLine($"cidDigestSize: {cidDigestSize}");
+                    Console.WriteLine($"cidVersion:       {cidVersion}");
+                    Console.WriteLine($"cidMulticodec:    {cidMulticodec}");
+                    Console.WriteLine($"cidHashFunction:  {cidHashFunction}");
+                    Console.WriteLine($"cidDigestSize:    {cidDigestSize}");
 
                     // https://github.com/multiformats/multicodec/blob/master/table.csv
                     // dag-cbor = 0x71
@@ -105,9 +105,11 @@ namespace dnproto.commands
 
                     string cidBits = string.Join("", cidBytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
                     string cidbase32 = "b" + BytesToBase32(cidBytes);
-                    Console.WriteLine($"cidBytesLength: {cidBytesLength}");
-                    Console.WriteLine($"cidBits: {cidBits}");
-                    Console.WriteLine($"cidbase32: {cidbase32}");
+                    string cidbase32Orig = "b" + BytesToBase32Orig(cidBytes);
+                    Console.WriteLine($"cidBytesLength:   {cidBytesLength}");
+                    //Console.WriteLine($"cidBits: {cidBits}");
+                    Console.WriteLine($"cidbase32 OLD:    {cidbase32Orig}");
+                    Console.WriteLine($"cidbase32 NEW:    {cidbase32}");
                     Console.WriteLine();
 
                     // rest of data block
@@ -143,12 +145,77 @@ namespace dnproto.commands
             return ret;
         }
 
+        // Take 5 bits at a time and convert to base32 character.
+        public static string BytesToBase32(byte[] bytes)
+        {
+            int currentByteIndex = 0;
+            int bitsRemaining = 8;
+            string charMap = "abcdefghijklmnopqrstuvwxyz234567";
+            StringBuilder sb = new StringBuilder();
+
+            while(bitsRemaining > 0)
+            {
+                if(bitsRemaining >= 5)
+                {
+                    int next5Int = (bytes[currentByteIndex] >> (bitsRemaining - 5)) & 0x1F;
+                    sb.Append(charMap[next5Int]);
+                    bitsRemaining -= 5;
+
+                    if(bitsRemaining == 0 && currentByteIndex + 1 < bytes.Length)
+                    {
+                        currentByteIndex++;
+                        bitsRemaining = 8;
+                    }
+                }
+                else
+                {
+                    if(currentByteIndex + 1 < bytes.Length)
+                    {
+                        int next5int = bytes[currentByteIndex];
+                        // shift left to get the bits we need
+                        next5int = next5int << (5 - bitsRemaining);
+                        // mask out the rest
+                        next5int = next5int & 0x1F;
+                        // get the next byte
+                        int next5int2 = bytes[currentByteIndex + 1];
+                        // shift right to get the bits we need
+                        next5int2 = next5int2 >> (8 - (5 - bitsRemaining));
+                        // mask out the rest
+                        next5int2 = next5int2 & 0x1F;
+                        // combine those two
+                        next5int = next5int | next5int2;
+                        sb.Append(charMap[next5int]);
+                        // move to the next byte
+                        currentByteIndex++;
+                        // figure out bitsremaining
+                        bitsRemaining = 8 - (5 - bitsRemaining);
+                    }
+                    else
+                    {
+                        // this is the last one
+                        // get final byte
+                        int next5int = bytes[currentByteIndex];
+                        // shift left to get the bits we need
+                        next5int = next5int << (5 - bitsRemaining);
+                        // mask out the rest
+                        next5int = next5int & 0x1F;
+                        sb.Append(charMap[next5int]);
+                        bitsRemaining = 0; // end
+                    }
+                }
+            }
+
+
+            return sb.ToString();
+        }
+
+
         //
         // Clearly not the most efficient way to do this, but it works for now.
         //
         // Take 5 bits at a time, convert to base32 character.
         //
-        public static string BytesToBase32(byte[] bytes)
+        public static string BytesToBase32Orig(byte[] bytes)
         {
             string base32characters = "abcdefghijklmnopqrstuvwxyz234567";
             string cidBits = string.Join("", bytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
@@ -176,5 +243,6 @@ namespace dnproto.commands
 
             return sb.ToString();
         }
+
     }
 }
