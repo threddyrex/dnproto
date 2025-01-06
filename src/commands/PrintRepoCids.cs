@@ -46,9 +46,12 @@ namespace dnproto.commands
                 return;
             }
 
+            int cidCount = 0;
+
             using(var fs = new FileStream(repoFile, FileMode.Open))
             {
                 VarInt headerLength = VarInt.ReadVarInt(fs);
+
                 byte[] headerBytes = new byte[headerLength.Value];
                 int headerBytesRead = fs.Read(headerBytes, 0, headerLength.Value);
 
@@ -56,6 +59,13 @@ namespace dnproto.commands
                 Console.WriteLine($"headerLength: {headerLength}");
                 Console.WriteLine($"headerBytesRead: {headerBytesRead}");
                 Console.WriteLine();
+
+                using(var ms = new MemoryStream(headerBytes))
+                {
+                    var header = CborReader.ReadNext(ms);
+                    Console.WriteLine($"header: {header}");
+                }
+
 
                 while(fs.Position < fs.Length)
                 { 
@@ -67,50 +77,25 @@ namespace dnproto.commands
                     Console.WriteLine();
 
                     // cid
+                    Cid cid = Cid.ReadCid(fs);
 
-                    // https://github.com/multiformats/cid
-                    VarInt cidVersion = VarInt.ReadVarInt(fs);
-                    VarInt cidMulticodec = VarInt.ReadVarInt(fs);
-                    VarInt cidHashFunction = VarInt.ReadVarInt(fs); // likely sha2-256, 0x12, decimal 18
-                    VarInt cidDigestSize = VarInt.ReadVarInt(fs);
+                    Console.WriteLine($"cidVersion:       {cid.Version}");
+                    Console.WriteLine($"cidMulticodec:    {cid.Multicodec}");
+                    Console.WriteLine($"cidHashFunction:  {cid.HashFunction}");
+                    Console.WriteLine($"cidDigestSize:    {cid.DigestSize}");
 
-                    Console.WriteLine($"cidVersion:       {cidVersion}");
-                    Console.WriteLine($"cidMulticodec:    {cidMulticodec}");
-                    Console.WriteLine($"cidHashFunction:  {cidHashFunction}");
-                    Console.WriteLine($"cidDigestSize:    {cidDigestSize}");
-
-                    // https://github.com/multiformats/multicodec/blob/master/table.csv
-                    // dag-cbor = 0x71
-                    // should not happen for AT
-                    if(cidMulticodec.Value != 0x71)
-                    {
-                        Console.WriteLine($"cidMulticodec.Value != 0x71: {cidMulticodec.Value}");
-                    }
-
-                    byte[] cidDigestBytes = new byte[cidDigestSize.Value];
-                    int cidDigestBytesRead = fs.Read(cidDigestBytes, 0, cidDigestSize.Value);
-
-                    // Put full cid together
-                    var ms = new MemoryStream();
-                    ms.WriteByte((byte)cidVersion.Value);
-                    ms.WriteByte((byte)cidMulticodec.Value);
-                    ms.WriteByte((byte)cidHashFunction.Value);
-                    ms.WriteByte((byte)cidDigestSize.Value);
-                    ms.Write(cidDigestBytes, 0, cidDigestSize.Value);
-                    byte[] cidBytes = ms.ToArray();
+                    byte[] cidBytes = cid.GetBytes();
                     int cidBytesLength = cidBytes.Length;
+                    string cidbase32 = cid.GetBase32();
 
-                    string cidBits = string.Join("", cidBytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
-                    string cidbase32 = "b" + Base32Encoding.BytesToBase32(cidBytes);
-                    string cidbase32Orig = "b" + Base32Encoding.BytesToBase32Orig(cidBytes);
                     Console.WriteLine($"cidBytesLength:   {cidBytesLength}");
-                    //Console.WriteLine($"cidBits: {cidBits}");
-                    Console.WriteLine($"cidbase32 OLD:    {cidbase32Orig}");
                     Console.WriteLine($"cidbase32 NEW:    {cidbase32}");
                     Console.WriteLine();
 
+                    cidCount++;
+
                     // rest of data block
-                    int restOfBlockLength = blockLength.Value - (cidVersion.Length + cidMulticodec.Length + cidHashFunction.Length + cidDigestSize.Length + cidDigestSize.Value);
+                    int restOfBlockLength = blockLength.Value - (cid.Version.Length + cid.Multicodec.Length + cid.HashFunction.Length + cid.DigestSize.Length + cid.DigestSize.Value);
                     byte[] blockBytes = new byte[restOfBlockLength];
                     int blockBytesRead = fs.Read(blockBytes, 0, restOfBlockLength);
 
@@ -122,7 +107,8 @@ namespace dnproto.commands
                     Console.WriteLine();
                 }
             }
-        }
 
+            Console.WriteLine($"cidCount: {cidCount}");;
+        }
    }
 }
