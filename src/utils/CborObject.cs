@@ -194,7 +194,14 @@ public class CborObject
         }
         else if(Type.MajorType == CborType.TYPE_TAG)
         {
-            return Value;
+            if(Value is Cid)
+            {
+                return ((Cid)Value).GetBase32();
+            }
+            else
+            {
+                return Value;
+            }
         }
         else
         {
