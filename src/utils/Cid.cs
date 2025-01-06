@@ -28,10 +28,11 @@ public class Cid
 
         // https://github.com/multiformats/multicodec/blob/master/table.csv
         // dag-cbor = 0x71
+        // raw = 0x55
         // should not happen for AT
-        if(multicodec.Value != 0x71)
+        if(multicodec.Value != 0x71 && multicodec.Value != 0x55)
         {
-            throw new Exception($"cidMulticodec.Value != 0x71: {multicodec.Value}");
+            throw new Exception($"cidMulticodec.Value != 0x71 or 0x55: {multicodec.Value}");
         }
 
         byte[] digestBytes = new byte[digestSize.Value];

@@ -105,6 +105,12 @@ namespace dnproto.commands
                     Console.WriteLine($"blockBytes string:");
                     Console.WriteLine($"{Encoding.UTF8.GetString(blockBytes)}");
                     Console.WriteLine();
+
+                    using(var ms = new MemoryStream(blockBytes))
+                    {
+                        var block = CborReader.ReadNext(ms);
+                        Console.WriteLine($"block: {block}");
+                    }
                 }
             }
 
