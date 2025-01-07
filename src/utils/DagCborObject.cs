@@ -127,6 +127,10 @@ public class DagCborObject
         {
             length = ((byte)s.ReadByte() << 8) | (byte)s.ReadByte();
         }
+        else if (type.AdditionalInfo == 26)
+        {
+            length = ((byte)s.ReadByte() << 24) | ((byte)s.ReadByte() << 16) | ((byte)s.ReadByte() << 8) | (byte)s.ReadByte();
+        }
         else
         {
             throw new Exception("Unknown additional info: " + type.AdditionalInfo);
