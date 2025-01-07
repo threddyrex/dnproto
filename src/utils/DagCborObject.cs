@@ -2,34 +2,34 @@ using System.Text;
 
 namespace dnproto.utils;
 
-public class CborObject
+public class DagCborObject
 {
-    public required CborType Type;
+    public required DagCborType Type;
 
     public required object Value;
 
     /// <summary>
-    /// Read a CBOR object from a stream. Recursively reads maps and arrays.
+    /// Read a DagCbor object from a stream. Recursively reads maps and arrays.
     /// </summary>
     /// <param name="s"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static CborObject ReadFromStream(Stream s)
+    public static DagCborObject ReadFromStream(Stream s)
     {
-        CborType type = CborType.ReadNextType(s);
+        DagCborType type = DagCborType.ReadNextType(s);
         int length = 0;
 
         switch(type.MajorType)
         {
-            case CborType.TYPE_MAP:
+            case DagCborType.TYPE_MAP:
                 length = GetLength(type, s); // might read one more byte for length
-                Dictionary<string, CborObject> dict = new Dictionary<string, CborObject>();
+                Dictionary<string,DagCborObject> dict = new Dictionary<string,DagCborObject>();
 
                 for(int i = 0; i < length; i++)
                 {
-                    CborObject key = ReadFromStream(s);
+                   DagCborObject key = ReadFromStream(s);
                     string? keyString = key != null ? key.TryGetString() : null;
-                    CborObject value = ReadFromStream(s);
+                   DagCborObject value = ReadFromStream(s);
 
                     if(keyString != null)
                     {
@@ -41,11 +41,11 @@ public class CborObject
                     }
                 }
 
-                return new CborObject { Type = type, Value = dict };
+                return new DagCborObject { Type = type, Value = dict };
 
-            case CborType.TYPE_ARRAY:
+            case DagCborType.TYPE_ARRAY:
                 length = GetLength(type, s);
-                List<CborObject> list = new List<CborObject>();
+                List<DagCborObject> list = new List<DagCborObject>();
 
                 for(int i = 0; i < length; i++)
                 {
@@ -53,53 +53,53 @@ public class CborObject
                     list.Add(value);
                 }
 
-                return new CborObject { Type = type, Value = list };
+                return new DagCborObject { Type = type, Value = list };
 
 
-            case CborType.TYPE_TEXT:
+            case DagCborType.TYPE_TEXT:
                 length = GetLength(type, s);
                 byte[] bytes = new byte[length];
                 int readLength = s.Read(bytes, 0, length);
-                return new CborObject { Type = type, Value = Encoding.UTF8.GetString(bytes) };
+                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(bytes) };
 
-            case CborType.TYPE_TAG:
+            case DagCborType.TYPE_TAG:
                 int tag = s.ReadByte();
                 if(tag != 42)
                 {
                     throw new Exception("Unknown tag: " + tag);
                 }
 
-                CborType byteStringType = CborType.ReadNextType(s);
+               DagCborType byteStringType =DagCborType.ReadNextType(s);
                 length = GetLength(byteStringType, s);
                 int shouldBeZero = s.ReadByte(); // read one more byte for 0
 
-                Cid cid = Cid.ReadCid(s);
+                CidV1 cid = CidV1.ReadCid(s);
 
-                return new CborObject { Type = type, Value = cid };
+                return new DagCborObject { Type = type, Value = cid };
 
-            case CborType.TYPE_UNSIGNED_INT:
-                return new CborObject { Type = type, Value = GetLength(type, s) };
+            case DagCborType.TYPE_UNSIGNED_INT:
+                return new DagCborObject { Type = type, Value = GetLength(type, s) };
 
-            case CborType.TYPE_BYTE_STRING:
+            case DagCborType.TYPE_BYTE_STRING:
                 length = GetLength(type, s);
                 byte[] byteString = new byte[length];
                 int bytesRead = s.Read(byteString, 0, length);
-                return new CborObject { Type = type, Value = Encoding.UTF8.GetString(byteString) };
+                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(byteString) };
 
-            case CborType.TYPE_SIMPLE_VALUE:
+            case DagCborType.TYPE_SIMPLE_VALUE:
                 if(type.AdditionalInfo == 0x16)
                 {
-                    return new CborObject { Type = type, Value = "null" };
+                    return new DagCborObject { Type = type, Value = "null" };
                 }
                 else if(type.AdditionalInfo == 0x14)
                 {
                     s.ReadByte();
-                    return new CborObject { Type = type, Value = false };
+                    return new DagCborObject { Type = type, Value = false };
                 }
                 else if(type.AdditionalInfo == 0x15)
                 {
                     s.ReadByte();
-                    return new CborObject { Type = type, Value = true };
+                    return new DagCborObject { Type = type, Value = true };
                 }
                 else
                 {
@@ -111,7 +111,7 @@ public class CborObject
         }
     }
 
-    public static int GetLength(CborType type, Stream s)
+    public static int GetLength(DagCborType type, Stream s)
     {
         int length = 0;
         
@@ -148,27 +148,27 @@ public class CborObject
 
     public object? GetRawValue()
     {
-        if(Type.MajorType == CborType.TYPE_TEXT)
+        if(Type.MajorType ==DagCborType.TYPE_TEXT)
         {
             return Value;
         }
-        else if(Type.MajorType == CborType.TYPE_BYTE_STRING)
+        else if(Type.MajorType ==DagCborType.TYPE_BYTE_STRING)
         {
             return Value;
         }
-        else if(Type.MajorType == CborType.TYPE_UNSIGNED_INT)
+        else if(Type.MajorType ==DagCborType.TYPE_UNSIGNED_INT)
         {
             return Value;
         }
-        else if(Type.MajorType == CborType.TYPE_SIMPLE_VALUE)
+        else if(Type.MajorType ==DagCborType.TYPE_SIMPLE_VALUE)
         {
             return Value;
         }
-        else if(Type.MajorType == CborType.TYPE_ARRAY)
+        else if(Type.MajorType ==DagCborType.TYPE_ARRAY)
         {
             List<object> list = new List<object>();
 
-            foreach(var obj in (List<CborObject>)Value)
+            foreach(var obj in (List<DagCborObject>)Value)
             {
                 var v = obj.GetRawValue();
                 if (v != null)
@@ -179,10 +179,10 @@ public class CborObject
 
             return list;
         }
-        else if(Type.MajorType == CborType.TYPE_MAP)
+        else if(Type.MajorType ==DagCborType.TYPE_MAP)
         {
             Dictionary<string, object> dict = new Dictionary<string, object>();
-            foreach(KeyValuePair<string, CborObject> kvp in (Dictionary<string, CborObject>)Value)
+            foreach(KeyValuePair<string,DagCborObject> kvp in (Dictionary<string,DagCborObject>)Value)
             {
                 var v = kvp.Value.GetRawValue();
                 if(v != null)
@@ -192,11 +192,11 @@ public class CborObject
             }
             return dict;
         }
-        else if(Type.MajorType == CborType.TYPE_TAG)
+        else if(Type.MajorType ==DagCborType.TYPE_TAG)
         {
-            if(Value is Cid)
+            if(Value is CidV1)
             {
-                return ((Cid)Value).GetBase32();
+                return ((CidV1)Value).GetBase32();
             }
             else
             {
@@ -210,20 +210,20 @@ public class CborObject
     }
 }
 
-public class CborType
+public class DagCborType
 {
     public int MajorType;
     public int AdditionalInfo;
     public byte OriginalByte;
     
-    public static CborType ReadNextType(Stream s)
+    public static DagCborType ReadNextType(Stream s)
     {
         byte b = (byte)s.ReadByte();
         
         int majorType = b >> 5;
         int additionalInfo = b & 0x1F;
         
-        return new CborType() { MajorType = majorType, AdditionalInfo = additionalInfo, OriginalByte = b };
+        return new DagCborType() { MajorType = majorType, AdditionalInfo = additionalInfo, OriginalByte = b };
     }
 
     public override string ToString()

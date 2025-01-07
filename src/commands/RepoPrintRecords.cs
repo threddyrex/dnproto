@@ -4,7 +4,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class PrintRepoCids : BaseCommand
+    public class RepoPrintRecords : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -14,17 +14,19 @@ namespace dnproto.commands
         /// <summary>
         /// Load repo car and list cids.
         ///
-        /// https://ipld.io/specs/transport/car/carv1/#format-description
+        /// Format from spec:
         /// 
-        /// [---  header  --------]   [----------------- data ---------------------------------]
-        /// [varint | header block]   [varint | cid | data block]....[varint | cid | data block] 
+        ///    [---  header  --------]   [----------------- data ---------------------------------]
+        ///    [varint | header block]   [varint | cid | data block]....[varint | cid | data block] 
         ///
         /// 
         /// represented using the data types we have:
         /// 
-        /// [---  header  --------]   [----------------- data ---------------------------------]
-        /// [VarInt | CborObject  ]   [VarInt | Cid | CborObject]....[VarInt | Cid | CborObject] 
+        ///    [---  header  --------]   [----------------- data ---------------------------------]
+        ///    [VarInt | CborObject  ]   [VarInt | Cid | CborObject]....[VarInt | Cid | CborObject] 
         ///
+        /// 
+        /// https://ipld.io/specs/transport/car/carv1/#format-description
         /// 
         /// </summary>
         /// <param name="arguments"></param>
@@ -56,10 +58,14 @@ namespace dnproto.commands
 
             using(var fs = new FileStream(repoFile, FileMode.Open))
             {
+                //
+                // Read header
+                //
                 VarInt headerLength = VarInt.ReadVarInt(fs);
-                var header = CborObject.ReadFromStream(fs);
-                var headerJson = JsonData.GetObjectJsonString(header.GetRawValue());
+                var header = DagCborObject.ReadFromStream(fs);
 
+                // print
+                var headerJson = JsonData.GetObjectJsonString(header.GetRawValue());
                 Console.WriteLine();
                 Console.WriteLine($"headerJson:");
                 Console.WriteLine();
@@ -71,18 +77,18 @@ namespace dnproto.commands
                 { 
                     Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
 
-                    // Read block length
+                    //
+                    // Read data block (record)
+                    //
                     VarInt blockLength = VarInt.ReadVarInt(fs);
+                    CidV1 cid = CidV1.ReadCid(fs);
+                    var dataBlock = DagCborObject.ReadFromStream(fs);
 
-                    // Read cid
-                    Cid cid = Cid.ReadCid(fs);
+
+                    // print
                     Console.WriteLine($"cid: {cid.GetBase32()}");
                     Console.WriteLine();
-
-                    // rest of data block
-                    var dataBlock = CborObject.ReadFromStream(fs);
                     var blockJson = JsonData.GetObjectJsonString(dataBlock.GetRawValue());
-
                     Console.WriteLine();
                     Console.WriteLine($"blockJson:");
                     Console.WriteLine();

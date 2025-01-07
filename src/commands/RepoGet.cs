@@ -8,7 +8,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class GetRepo : BaseCommand
+    public class RepoGet : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

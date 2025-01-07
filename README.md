@@ -78,7 +78,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 # Getting repo status
 
 ```powershell
-.\dnproto.exe /command GetRepoStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
+.\dnproto.exe /command RepoGetStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
 ```
 
 &nbsp;
@@ -88,7 +88,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 Calls getRepo for the user, and writes the file to repoFilePath.
 
 ```powershell
-.\dnproto.exe /command GetRepo /did "did" /pds "pds hostname" /repofilepath "file to write repo"
+.\dnproto.exe /command RepoGet /did "did" /pds "pds hostname" /repofilepath "file to write repo"
 ```
 
 
@@ -103,16 +103,16 @@ stored in a file on local disk (specified by $sessionFile).
 $sessionFile = "path_to_file"
 
 # log in
-.\dnproto.exe /command CreateSession /sessionfile $sessionFile /pds "pds" /username "handle" /password "password"
+.\dnproto.exe /command SessionCreate /sessionfile $sessionFile /pds "pds" /username "handle" /password "password"
 
 # create a post
-.\dnproto.exe /command CreatePost /sessionfile $sessionFile /text "text of post"
+.\dnproto.exe /command PostCreate /sessionfile $sessionFile /text "text of post"
 
 # get unread notification count
 .\dnproto.exe /command GetUnreadCount /sessionfile $sessionFile
 
 # log out
-.\dnproto.exe /command DeleteSession /sessionfile $sessionFile
+.\dnproto.exe /command SessionDelete /sessionfile $sessionFile
 ```
 
 
@@ -125,7 +125,7 @@ Many of the commands are just calls to the Bluesky APIs, which return json respo
 These commands usually provide a "outfile" argument for writing the response to disk:
 
 ```powershell
-.\dnproto.exe /command GetRepoStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
+.\dnproto.exe /command RepoGetStatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
 ```
 
 

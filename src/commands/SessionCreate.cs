@@ -8,7 +8,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class CreateSession : BaseCommand
+    public class SessionCreate : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
