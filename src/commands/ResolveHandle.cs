@@ -51,5 +51,22 @@ namespace dnproto.commands
             WebServiceClient.PrintJsonResponseToConsole(response);
             JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }
+
+        public static string? DoResolveHandle(string handle)
+        {
+            string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
+
+            JsonNode? response = WebServiceClient.SendRequest(url,
+                HttpMethod.Get);
+
+            if(response == null || string.IsNullOrEmpty(JsonData.GetPropertyValue(response, "did")))
+            {
+                return null;
+            }
+            else
+            {
+                return JsonData.GetPropertyValue(response, "did");
+            }
+        }
     }
 }

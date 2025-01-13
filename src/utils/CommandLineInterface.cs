@@ -270,6 +270,11 @@ namespace dnproto.utils
             return arguments[argumentName.ToLower()];
         }
 
+        public static bool HasArgument(Dictionary<string, string> arguments, string argumentName)
+        {
+            return arguments != null && arguments.ContainsKey(argumentName.ToLower());
+        }
+
         public static void PrintLineSeparator()
         {
             Console.WriteLine();

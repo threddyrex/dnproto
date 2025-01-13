@@ -22,6 +22,23 @@ namespace dnproto.utils
             return "";
         }
 
+        public static string GetValueAtPath (JsonNode? node, string[] propertyNames)
+        {
+            JsonNode? current = node;
+
+            foreach(var propertyName in propertyNames)
+            {
+                if(current == null)
+                {
+                    return "";
+                }
+
+                current = current[propertyName];
+            }
+
+            return current?.ToString() ?? "";
+        }
+
         public static void WriteJsonToFile(JsonNode? node, string? outputFilePath)
         {
             if(node == null || string.IsNullOrEmpty(outputFilePath))
