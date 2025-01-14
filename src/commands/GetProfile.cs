@@ -38,5 +38,15 @@ namespace dnproto.commands
             WebServiceClient.PrintJsonResponseToConsole(profile);
             JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }        
+
+        public static JsonNode? DoGetProfile(string actor)
+        {
+            string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
+
+            JsonNode? profile = WebServiceClient.SendRequest(url,
+                HttpMethod.Get);
+
+            return profile;
+        }
    }
 }

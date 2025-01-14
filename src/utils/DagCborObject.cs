@@ -212,6 +212,38 @@ public class DagCborObject
             throw new Exception("Unknown major type: " + Type.MajorType);
         }
     }
+
+    public string? GetMapValueAtPath(string[] propertyNames)
+    {
+
+        DagCborObject? current = this;
+
+        foreach(string propertyName in propertyNames)
+        {
+            if(current.Type.MajorType != DagCborType.TYPE_MAP)
+            {
+                return null;
+            }
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null)
+            {
+                return null;
+            }
+
+            if(dict.ContainsKey(propertyName))
+            {
+                current = dict[propertyName];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        return current != null ? current.Value.ToString() : null;
+    }
 }
 
 public class DagCborType

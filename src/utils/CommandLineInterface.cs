@@ -270,6 +270,46 @@ namespace dnproto.utils
             return arguments[argumentName.ToLower()];
         }
 
+        public static int GetArgumentValueWithDefault(Dictionary<string, string> arguments, string argumentName, int defaultValue)
+        {
+            if(arguments.ContainsKey(argumentName.ToLower()) == false)
+            {
+                return defaultValue;
+            }
+
+            int val = 0;
+
+            if(int.TryParse(arguments[argumentName.ToLower()], out val))
+            {
+                return val;
+            }
+
+            return defaultValue;
+        }
+
+        public static bool GetArgumentValueWithDefault(Dictionary<string, string> arguments, string argumentName, bool defaultValue)
+        {
+            if(arguments.ContainsKey(argumentName.ToLower()) == false)
+            {
+                return defaultValue;
+            }
+
+            bool val;
+
+            if(bool.TryParse(arguments[argumentName.ToLower()], out val))
+            {
+                return val;
+            }
+
+            return defaultValue;
+        }
+
+        public static string GetArgumentValueWithDefault(Dictionary<string, string> arguments, string argumentName, string defaultValue)
+        {
+            return arguments.ContainsKey(argumentName.ToLower()) ? arguments[argumentName.ToLower()] : defaultValue;
+        }
+
+
         public static bool HasArgument(Dictionary<string, string> arguments, string argumentName)
         {
             return arguments != null && arguments.ContainsKey(argumentName.ToLower());

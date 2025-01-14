@@ -53,8 +53,6 @@ namespace dnproto.utils
                     return null;
                 }
 
-                Console.WriteLine($"response status code: {response.StatusCode}");
-
                 //
                 // If user wants json, parse that.
                 //
