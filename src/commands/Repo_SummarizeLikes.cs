@@ -152,8 +152,9 @@ namespace dnproto.commands
 
             // Get list sorted by count
             var sortedLikeCountsByDid = likeCountsByDid.OrderByDescending(x => x.Value);
-            Console.WriteLine("dict length: " + sortedLikeCountsByDid.Count());
+            Console.WriteLine("number of accounts: " + sortedLikeCountsByDid.Count());
 
+            Console.WriteLine();
 
             // Print top n
             int i = 0;
@@ -163,8 +164,26 @@ namespace dnproto.commands
             {
                 i++;
                 sumOfTopLikes += kvp.Value;
-                var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                Console.WriteLine($"{profileUrl}: {kvp.Value}");
+
+
+                if(resolveHandles)
+                {
+                    JsonNode? profile = Profile_Get.DoGetProfile(kvp.Key);
+                    string handle = JsonData.GetPropertyValue(profile, "handle");
+
+                    var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
+                    Console.WriteLine($"{profileUrl}   {kvp.Value} likes     ({handle})");
+
+                    // sleep 2 secs
+                    Thread.Sleep(resolveWaitSeconds * 1000);
+
+                }
+                else
+                {
+                    var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
+                    Console.WriteLine($"{profileUrl}   {kvp.Value} likes");
+                }
+
 
                 if(i >= printCount)
                 {
@@ -178,37 +197,6 @@ namespace dnproto.commands
             Console.WriteLine("total number of likes: " + sortedLikeCountsByDid.Sum(x => x.Value));
             Console.WriteLine();
 
-
-
-            // Resolving handles?
-            if(resolveHandles)
-            {
-                i = 0;
-                Console.WriteLine();
-                Console.WriteLine("Resolving handles...");
-                Console.WriteLine();
-
-                foreach (var kvp in sortedLikeCountsByDid)
-                {
-                    i++;
-
-                    JsonNode? profile = Profile_Get.DoGetProfile(kvp.Key);
-
-                    string handle = JsonData.GetPropertyValue(profile, "handle");
-
-                    var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                    Console.WriteLine($"{profileUrl}: {kvp.Value}   ({handle})");
-
-
-                    // sleep 2 secs
-                    Thread.Sleep(resolveWaitSeconds * 1000);
-
-                    if(i >= printCount)
-                    {
-                        break;
-                    }
-                }
-            }
         }
    }
 }
