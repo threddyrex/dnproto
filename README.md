@@ -123,6 +123,25 @@ $sessionFile = "path_to_file"
 ```
 
 
+&nbsp;
+
+# Comparing Two Repositories
+
+You can compare the interactions between two repos (accounts) using the following.
+It will print out likes, replies, reposts, and quote posts.
+
+```powershell
+# Download first repo from Bluesky
+.\dnproto.exe /command repo_get /handle "handle1.com" /repofile "handle1.car"
+
+# Download second repo from Bluesky
+.\dnproto.exe /command repo_get /handle "handle2.com" /repofile "handle2.car"
+
+# Compare the two repo files on disk and print out interactions
+.\dnproto.exe /command repo_compare /repofile1 "handle1.car" /repofile2 "handle2.car"
+```
+
+
 
 &nbsp;
 
