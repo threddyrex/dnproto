@@ -63,29 +63,21 @@ namespace dnproto.commands
                 //
                 // Read header
                 //
-                VarInt headerLength = VarInt.ReadVarInt(fs);
-                var header = DagCborObject.ReadFromStream(fs);
+                var repoHeader = RepoHeader.ReadFromStream(fs);
 
-                // print
-                var headerJson = JsonData.GetObjectJsonString(header.GetRawValue());
 
                 while(fs.Position < fs.Length)
                 { 
                     //
                     // Read data block (record)
                     //
-                    VarInt blockLength = VarInt.ReadVarInt(fs);
-                    CidV1 cid = CidV1.ReadCid(fs);
-                    var dataBlock = DagCborObject.ReadFromStream(fs);
+                    var repoRecord = RepoRecord.ReadFromStream(fs);
 
-                    var recordType = dataBlock.GetMapValueAtPath(new string[]{"$type"});
-                    var createdAt = dataBlock.GetMapValueAtPath(new string[]{"createdAt"});
-
-                    if (string.IsNullOrEmpty(recordType) == false 
-                        && string.Equals(recordType, "app.bsky.feed.like") 
-                        && string.IsNullOrEmpty(createdAt) == false && string.Compare(createdAt, createdAfter) > 0)
+                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") 
+                        && string.IsNullOrEmpty(repoRecord.CreatedAt) == false 
+                        && string.Compare(repoRecord.CreatedAt, createdAfter) > 0)
                     {
-                        var uri = dataBlock.GetMapValueAtPath(new string[]{"subject", "uri"});
+                        var uri = repoRecord.Record.GetMapValueAtPath(["subject", "uri"]);
 
                         if (uri != null)
                         {
