@@ -73,29 +73,28 @@ namespace dnproto.commands
                     //
                     var repoRecord = RepoRecord.ReadFromStream(fs);
 
-                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") 
-                        && string.IsNullOrEmpty(repoRecord.CreatedAt) == false 
-                        && string.Compare(repoRecord.CreatedAt, createdAfter) > 0)
+                    //
+                    // validate
+                    //
+                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") == false) continue;
+                    if (string.IsNullOrEmpty(repoRecord.CreatedAt)) continue;
+                    if ((string.Compare(repoRecord.CreatedAt, createdAfter) > 0) == false) continue;
+
+                    string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
+                    if (uri == null) continue;
+
+                    var uriParts = uri.Split('/');
+                    var likeDid = uriParts.Count() > 2 ? uriParts[2] : null;
+                    if (string.IsNullOrEmpty(likeDid)) continue;
+
+
+                    if(likeCountsByDid.ContainsKey(likeDid))
                     {
-                        var uri = repoRecord.Record.GetMapValueAtPath(["subject", "uri"]);
-
-                        if (uri != null)
-                        {
-                            var uriParts = uri.Split('/');
-                            var likeDid = uriParts.Count() > 2 ? uriParts[2] : null;
-
-                            if(string.IsNullOrEmpty(likeDid) == false)
-                            {
-                                if(likeCountsByDid.ContainsKey(likeDid))
-                                {
-                                    likeCountsByDid[likeDid] = likeCountsByDid[likeDid] + 1;
-                                }
-                                else
-                                {
-                                    likeCountsByDid[likeDid] = 1;
-                                }
-                            }
-                        }
+                        likeCountsByDid[likeDid] = likeCountsByDid[likeDid] + 1;
+                    }
+                    else
+                    {
+                        likeCountsByDid[likeDid] = 1;
                     }
                 }
             }

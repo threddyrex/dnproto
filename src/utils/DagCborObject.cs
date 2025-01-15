@@ -8,6 +8,50 @@ public class DagCborObject
 
     public required object Value;
 
+
+    /// <summary>
+    /// Finds an object at the path specified by the property names.
+    /// </summary>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public object? SelectObject(string[] propertyNames)
+    {
+        DagCborObject? current = this;
+
+        foreach(string propertyName in propertyNames)
+        {
+            if(current.Type.MajorType != DagCborType.TYPE_MAP) return null;
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null) return null;
+
+            if(dict.ContainsKey(propertyName)) current = dict[propertyName];
+            else return null;
+        }
+
+        return current != null ? current.Value : null;
+    }
+
+    /// <summary>
+    /// Finds an object at the path specified by the property names, 
+    /// and returns as string if possible.
+    /// </summary>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public string? SelectString(string[] propertyNames)
+    {
+        object? o = SelectObject(propertyNames);
+
+        if(o as string != null) return o as string;
+        if(o as int? != null) return o.ToString();
+        if(o as bool? != null) return o.ToString();
+        if(o as CidV1 != null) return ((CidV1)o).GetBase32();
+
+        return null;
+    }
+
+    
     /// <summary>
     /// Read a DagCbor object from a stream. Recursively reads maps and arrays.
     /// </summary>
@@ -213,37 +257,6 @@ public class DagCborObject
         }
     }
 
-    public string? GetMapValueAtPath(string[] propertyNames)
-    {
-
-        DagCborObject? current = this;
-
-        foreach(string propertyName in propertyNames)
-        {
-            if(current.Type.MajorType != DagCborType.TYPE_MAP)
-            {
-                return null;
-            }
-
-            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
-
-            if(dict == null)
-            {
-                return null;
-            }
-
-            if(dict.ContainsKey(propertyName))
-            {
-                current = dict[propertyName];
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        return current != null ? current.Value.ToString() : null;
-    }
 }
 
 public class DagCborType

@@ -26,7 +26,7 @@ public class RepoRecord
 
     public required CidV1 Cid { get; set; }
 
-    public required DagCborObject Record { get; set; }
+    public required DagCborObject DataBlock { get; set; }
 
     public string? JsonString { get; set; }
 
@@ -39,15 +39,16 @@ public class RepoRecord
         VarInt blockLength = VarInt.ReadVarInt(s);
         CidV1 cid = CidV1.ReadCid(s);
         var dataBlock = DagCborObject.ReadFromStream(s);
-        var recordType = dataBlock.GetMapValueAtPath(new string[]{"$type"});
+
         var recordJson = JsonData.GetObjectJsonString(dataBlock.GetRawValue());
-        var createdAt = dataBlock.GetMapValueAtPath(new string[]{"createdAt"});
+        var recordType = dataBlock.SelectString(["$type"]);
+        var createdAt = dataBlock.SelectString(["createdAt"]);
 
         return new RepoRecord
         {
             Length = blockLength,
             Cid = cid,
-            Record = dataBlock,
+            DataBlock = dataBlock,
             JsonString = recordJson,
             RecordType = recordType,
             CreatedAt = createdAt

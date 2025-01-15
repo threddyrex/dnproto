@@ -68,14 +68,14 @@ namespace dnproto.commands
             //
             // Find did for repos
             //
-            string? repo1Did = FindDidForRepo(repoFile1);
-            string? repo2Did = FindDidForRepo(repoFile2);
+            string? did1 = FindDidForRepo(repoFile1);
+            string? did2 = FindDidForRepo(repoFile2);
 
-            Console.WriteLine($"repo1Did: {repo1Did}");
-            Console.WriteLine($"repo2Did: {repo2Did}");
+            Console.WriteLine($"did1: {did1}");
+            Console.WriteLine($"did2: {did2}");
             Console.WriteLine($"");
 
-            if(string.IsNullOrEmpty(repo1Did) || string.IsNullOrEmpty(repo2Did))
+            if(string.IsNullOrEmpty(did1) || string.IsNullOrEmpty(did2))
             {
                 Console.WriteLine("Did not find did for repo1 or repo2.");
                 return;
@@ -83,34 +83,47 @@ namespace dnproto.commands
 
 
             //
-            // repo1 likes repo2
+            // repo1 --> did2
             //
             CommandLineInterface.PrintLineSeparator();
-            Console.WriteLine($"repo1: {repo1Did}");
+            Console.WriteLine($"-------------------------------------------------");
+            Console.WriteLine($"| FIRST REPO                                    |");
+            Console.WriteLine($"-------------------------------------------------");
             Console.WriteLine($"");
-            FindLikesForRepo(repoFile1, repo1Did, repo2Did);
+            Console.WriteLine($"repo:   {did1}");
             Console.WriteLine($"");
-            FindRepliesForRepo(repoFile1, repo1Did, repo2Did);
             Console.WriteLine($"");
-            FindRepostsForRepo(repoFile1, repo1Did, repo2Did);
+            FindLikesForRepo(repoFile1, did1, did2);
             Console.WriteLine($"");
-            FindQuotePostsForRepo(repoFile1, repo1Did, repo2Did);
+            FindRepliesForRepo(repoFile1, did1, did2);
             Console.WriteLine($"");
-            FindMentionsForRepo(repoFile1, repo1Did, repo2Did);
+            FindRepostsForRepo(repoFile1, did1, did2);
+            Console.WriteLine($"");
+            FindQuotePostsForRepo(repoFile1, did1, did2);
+            Console.WriteLine($"");
+            FindMentionsForRepo3(repoFile1, did1, did2);
             Console.WriteLine($"");
 
+            //
+            // repo2 --> did1
+            //
             CommandLineInterface.PrintLineSeparator();
-            Console.WriteLine($"repo2: {repo2Did}");
+            Console.WriteLine($"-------------------------------------------------");
+            Console.WriteLine($"| SECOND REPO                                   |");
+            Console.WriteLine($"-------------------------------------------------");
             Console.WriteLine($"");
-            FindLikesForRepo(repoFile2, repo2Did, repo1Did);
+            Console.WriteLine($"repo:   {did2}");
             Console.WriteLine($"");
-            FindRepliesForRepo(repoFile2, repo2Did, repo1Did);
             Console.WriteLine($"");
-            FindRepostsForRepo(repoFile2, repo2Did, repo1Did);
+            FindLikesForRepo(repoFile2, did2, did1);
             Console.WriteLine($"");
-            FindQuotePostsForRepo(repoFile2, repo2Did, repo1Did);
+            FindRepliesForRepo(repoFile2, did2, did1);
             Console.WriteLine($"");
-            FindMentionsForRepo(repoFile2, repo2Did, repo1Did);
+            FindRepostsForRepo(repoFile2, did2, did1);
+            Console.WriteLine($"");
+            FindQuotePostsForRepo(repoFile2, did2, did1);
+            Console.WriteLine($"");
+            FindMentionsForRepo3(repoFile2, did2, did1);
             Console.WriteLine($"");
 
 
@@ -137,12 +150,15 @@ namespace dnproto.commands
                     //
                     var repoRecord = RepoRecord.ReadFromStream(fs);
 
-                    string? did = repoRecord.Record.GetMapValueAtPath(["did"]);
-                    string? rev = repoRecord.Record.GetMapValueAtPath(["rev"]);
-                    string? data = repoRecord.Record.GetMapValueAtPath(["data"]);
-                    string? version = repoRecord.Record.GetMapValueAtPath(["version"]);
+                    string? did = repoRecord.DataBlock.SelectString(["did"]);
+                    string? rev = repoRecord.DataBlock.SelectString(["rev"]);
+                    string? data = repoRecord.DataBlock.SelectString(["data"]);
+                    string? version = repoRecord.DataBlock.SelectString(["version"]);
 
-                    if (string.IsNullOrEmpty(did) == false && string.IsNullOrEmpty(rev) == false && string.IsNullOrEmpty(data) == false && string.IsNullOrEmpty(version) == false)
+                    if (string.IsNullOrEmpty(did) == false 
+                        && string.IsNullOrEmpty(rev) == false 
+                        && string.IsNullOrEmpty(data) == false 
+                        && string.IsNullOrEmpty(version) == false)
                     {
                         return did;
                     }
@@ -175,7 +191,7 @@ namespace dnproto.commands
 
                     if (repoRecord.RecordType == "app.bsky.feed.like")
                     {
-                        string? uri = repoRecord.Record.GetMapValueAtPath(["subject", "uri"]);
+                        string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
 
                         if (uri != null && uri.Contains(targetDid))
                         {
@@ -210,8 +226,8 @@ namespace dnproto.commands
 
                     if (repoRecord.RecordType == "app.bsky.feed.post")
                     {
-                        string? uriReply = repoRecord.Record.GetMapValueAtPath(["reply", "parent", "uri"]);
-                        string? uriRoot = repoRecord.Record.GetMapValueAtPath(["reply", "root", "uri"]);
+                        string? uriReply = repoRecord.DataBlock.SelectString(["reply", "parent", "uri"]);
+                        string? uriRoot = repoRecord.DataBlock.SelectString(["reply", "root", "uri"]);
 
                         if (uriReply != null && uriReply.Contains(targetDid))
                         {
@@ -253,7 +269,7 @@ namespace dnproto.commands
 
                     if (repoRecord.RecordType == "app.bsky.feed.repost")
                     {
-                        string? uri = repoRecord.Record.GetMapValueAtPath(["subject", "uri"]);
+                        string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
 
                         if (uri != null && uri.Contains(targetDid))
                         {
@@ -290,7 +306,7 @@ namespace dnproto.commands
 
                     if (repoRecord.RecordType == "app.bsky.feed.post")
                     {
-                        string? uri = repoRecord.Record.GetMapValueAtPath(["embed", "record", "uri"]);
+                        string? uri = repoRecord.DataBlock.SelectString(["embed", "record", "uri"]);
 
                         if (uri != null && uri.Contains(targetDid))
                         {
@@ -304,7 +320,8 @@ namespace dnproto.commands
 
 
         
-        public static void FindMentionsForRepo(string? repoFile, string? sourceDid, string? targetDid)
+
+        public static void FindMentionsForRepo3(string? repoFile, string? sourceDid, string? targetDid)
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid))
             {
@@ -324,52 +341,37 @@ namespace dnproto.commands
                     // Read data block (record)
                     //
                     var repoRecord = RepoRecord.ReadFromStream(fs);
+                    if (repoRecord.RecordType != "app.bsky.feed.post") continue;
 
-                    if (repoRecord.RecordType == "app.bsky.feed.post")
+                    string? text = repoRecord.DataBlock.SelectString(["text"]) as string;
+                    if (text == null) continue;
+
+                    List<DagCborObject>? facets = repoRecord.DataBlock.SelectObject(["facets"]) as List<DagCborObject>;
+                    if (facets == null) continue;
+
+                    foreach(DagCborObject facet in facets)
                     {
-                        Dictionary<string, object>? recordRaw = (Dictionary<string, object>?) repoRecord.Record.GetRawValue();
+                        List<DagCborObject>? featuresArray = facet.SelectObject(["features"]) as List<DagCborObject>;
+                        if (featuresArray == null) continue;
+                        if (featuresArray.Count != 1) continue;
 
-                        if (recordRaw == null) continue;
-                        if (recordRaw.ContainsKey("text") == false) continue;
-                        if (recordRaw.ContainsKey("facets") == false) continue;
+                        DagCborObject feature = featuresArray[0];
+                        string? did = feature.SelectString(["did"]);
+                        string? type = feature.SelectString(["$type"]);
 
-                        string? text = recordRaw["text"] as string;
-
-                        List<object>? facets = recordRaw["facets"] as List<object>;
-
-                        if(facets == null) continue;
-
-                        foreach(Dictionary<string, object>? facet in facets)
+                        if (type == "app.bsky.richtext.facet#mention" && did == targetDid)
                         {
-                            if(facet == null) continue;
-                            if (facet.ContainsKey("features") == false) continue;
-
-                            List<object>? features = facet["features"] as List<object>;
-
-                            if(features == null) continue;
-
-                            foreach(Dictionary<string, object> feature in features)
-                            {
-                                if (feature.ContainsKey("did") == false) continue;
-                                if (feature.ContainsKey("$type") == false) continue;
-
-                                string? did = feature["did"] as string;
-                                string? type = feature["$type"] as string;
-
-                                if (type == "app.bsky.richtext.facet#mention" && did == targetDid)
-                                {
-                                    Console.WriteLine($"------------------");
-                                    Console.WriteLine($"| mentioned -->  |");
-                                    Console.WriteLine($"------------------");
-                                    Console.WriteLine($"{text}");
-                                    Console.WriteLine("");
-                                }
-                            }
+                            Console.WriteLine($"------------------");
+                            Console.WriteLine($"| mentioned -->  |");
+                            Console.WriteLine($"------------------");
+                            Console.WriteLine($"{text}");
+                            Console.WriteLine("");
                         }
                     }
                 }
             }
         }
+
 
    }
 }
