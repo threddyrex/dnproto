@@ -5,7 +5,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class PlcGetPdsHistory : BaseCommand
+    public class PlcDir_GetPdsHistory : BaseCommand
     {
         public override HashSet<string> GetOptionalArguments()
         {
@@ -25,7 +25,7 @@ namespace dnproto.commands
             if(CommandLineInterface.HasArgument(arguments, "handle"))
             {
                 Console.WriteLine("Resolving handle to did.");
-                did = ResolveHandle.DoResolveHandle(arguments["handle"]);
+                did = Handle_Resolve.DoResolveHandle(arguments["handle"]);
             }
             else
             {

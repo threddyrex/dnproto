@@ -8,7 +8,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class PostCreate : BaseCommand
+    public class Post_Create : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

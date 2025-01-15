@@ -5,7 +5,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class GetProfile : BaseCommand
+    public class Profile_Get : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

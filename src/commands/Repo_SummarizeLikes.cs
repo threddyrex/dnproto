@@ -6,7 +6,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class RepoSummarizeLikes : BaseCommand
+    public class Repo_SummarizeLikes : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -49,6 +49,7 @@ namespace dnproto.commands
             Console.WriteLine($"printCount: {printCount}");
             Console.WriteLine($"createdAfter: {createdAfter}");
             Console.WriteLine($"resolveHandles: {resolveHandles}");
+            Console.WriteLine($"resolveWaitSeconds: {resolveWaitSeconds}");
             Console.WriteLine($"");
 
             if (!fileExists)
@@ -180,7 +181,7 @@ namespace dnproto.commands
                 {
                     i++;
 
-                    JsonNode? profile = GetProfile.DoGetProfile(kvp.Key);
+                    JsonNode? profile = Profile_Get.DoGetProfile(kvp.Key);
 
                     string handle = JsonData.GetPropertyValue(profile, "handle");
 

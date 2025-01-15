@@ -5,7 +5,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class ResolveHandle : BaseCommand
+    public class Handle_Resolve : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

@@ -4,7 +4,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class RepoPrintRecords : BaseCommand
+    public class Repo_PrintRecords : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

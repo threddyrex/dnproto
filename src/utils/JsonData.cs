@@ -34,6 +34,12 @@ namespace dnproto.utils
                 }
 
                 current = current[propertyName];
+
+                // if array, just get first element
+                if(current is JsonArray && ((JsonArray)current).Count == 1)
+                {
+                    current = current[0];
+                }
             }
 
             return current?.ToString() ?? "";
@@ -50,6 +56,19 @@ namespace dnproto.utils
 
             var options = new JsonSerializerOptions { WriteIndented = true };
             System.IO.File.WriteAllText(outputFilePath, node.ToJsonString(options));
+        }
+
+        public static void WriteJsonToFile(string jsonData, string? outputFilePath)
+        {
+            if(string.IsNullOrEmpty(jsonData) || string.IsNullOrEmpty(outputFilePath))
+            {
+                return;
+            }
+
+            Console.WriteLine($"Writing JSON to file: {outputFilePath}");
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            System.IO.File.WriteAllText(outputFilePath, jsonData);
         }
 
         public static string GetObjectJsonString(object? obj)

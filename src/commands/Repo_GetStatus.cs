@@ -5,7 +5,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class RepoGetStatus : BaseCommand
+    public class Repo_GetStatus : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
