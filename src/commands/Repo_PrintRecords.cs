@@ -8,29 +8,10 @@ namespace dnproto.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"repoFile"});
+            return [.. new string[]{"repoFile"}];
         }
 
-        /// <summary>
-        /// Load repo car and list cids.
-        ///
-        /// Format from spec:
-        /// 
-        ///    [---  header  --------]   [----------------- data ---------------------------------]
-        ///    [varint | header block]   [varint | cid | data block]....[varint | cid | data block] 
-        ///
-        /// 
-        /// represented using the data types we have:
-        /// 
-        ///    [---  header  --------]   [----------------- data ---------------------------------]
-        ///    [VarInt | CborObject  ]   [VarInt | Cid | CborObject]....[VarInt | Cid | CborObject] 
-        ///
-        /// 
-        /// https://ipld.io/specs/transport/car/carv1/#format-description
-        /// 
-        /// </summary>
-        /// <param name="arguments"></param>
-        /// <exception cref="ArgumentException"></exception>
+
         public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
@@ -61,15 +42,13 @@ namespace dnproto.commands
                 //
                 // Read header
                 //
-                VarInt headerLength = VarInt.ReadVarInt(fs);
-                var header = DagCborObject.ReadFromStream(fs);
+                RepoHeader repoHeader = RepoHeader.ReadFromStream(fs);
 
                 // print
-                var headerJson = JsonData.GetObjectJsonString(header.GetRawValue());
                 Console.WriteLine();
                 Console.WriteLine($"headerJson:");
                 Console.WriteLine();
-                Console.WriteLine($"{headerJson}");
+                Console.WriteLine($"{repoHeader.JsonString}");
                 Console.WriteLine();
 
 
@@ -80,19 +59,15 @@ namespace dnproto.commands
                     //
                     // Read data block (record)
                     //
-                    VarInt blockLength = VarInt.ReadVarInt(fs);
-                    CidV1 cid = CidV1.ReadCid(fs);
-                    var dataBlock = DagCborObject.ReadFromStream(fs);
-
+                    var repoRecord = RepoRecord.ReadFromStream(fs);
 
                     // print
-                    Console.WriteLine($"cid: {cid.GetBase32()}");
+                    Console.WriteLine($"cid: {repoRecord.Cid.GetBase32()}");
                     Console.WriteLine();
-                    var blockJson = JsonData.GetObjectJsonString(dataBlock.GetRawValue());
                     Console.WriteLine();
                     Console.WriteLine($"blockJson:");
                     Console.WriteLine();
-                    Console.WriteLine($"{blockJson}");
+                    Console.WriteLine($"{repoRecord.JsonString}");
                     Console.WriteLine();
                 }
             }
