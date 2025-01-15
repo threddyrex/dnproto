@@ -91,6 +91,13 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 .\dnproto.exe /command repo_get /did "did" /pds "pds hostname" /repofilepath "file to write repo"
 ```
 
+You can also pass in a handle:
+
+
+```powershell
+.\dnproto.exe /command repo_get /handle "account handle" /repofilepath "file to write repo"
+```
+
 
 &nbsp;
 
