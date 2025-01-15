@@ -57,6 +57,18 @@ namespace dnproto.commands
             JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }
 
+
+        /// <summary>
+        /// 
+        /// Attempts the following steps:
+        ///
+        ///     1. Resolve handle to did.
+        ///     2. Resolve did to didDoc.
+        ///     3. Resolve didDoc to pds.
+        ///     
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>
         public static Dictionary<string, string> DoResolveHandleInfo(string handle)
         {
             Dictionary<string, string> ret = new Dictionary<string, string>();
@@ -139,6 +151,10 @@ namespace dnproto.commands
                 ret["pds"] = pds.Replace("https://", "");
             }
 
+
+            //
+            // return
+            //
             return ret;
 
         }

@@ -157,9 +157,12 @@ namespace dnproto.commands
 
             // Print top n
             int i = 0;
+            int sumOfTopLikes = 0;
+   
             foreach (var kvp in sortedLikeCountsByDid)
             {
                 i++;
+                sumOfTopLikes += kvp.Value;
                 var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
                 Console.WriteLine($"{profileUrl}: {kvp.Value}");
 
@@ -168,6 +171,14 @@ namespace dnproto.commands
                     break;
                 }
             }
+
+            // print sum of dictionary values
+            Console.WriteLine();
+            Console.WriteLine("sum of top likes: " + sumOfTopLikes);
+            Console.WriteLine("total number of likes: " + sortedLikeCountsByDid.Sum(x => x.Value));
+            Console.WriteLine();
+
+
 
             // Resolving handles?
             if(resolveHandles)
