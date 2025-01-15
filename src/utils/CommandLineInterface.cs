@@ -63,7 +63,22 @@ namespace dnproto.utils
 
             if (commandInstance == null)
             {
-                throw new Exception($"Command '{arguments["command"]}' not found.");
+                Console.WriteLine();
+                Console.WriteLine($"Command not found: {commandName}");
+                Console.WriteLine();
+
+                commandInstance = CommandLineInterface.TryCreateCommandInstance("help");
+
+                if(commandInstance == null)
+                {
+                    throw new Exception("Help command not found.");
+                }
+                else
+                {
+                    commandInstance.DoCommand(arguments);
+                    Console.WriteLine();
+                    return;
+                }
             }
 
 
