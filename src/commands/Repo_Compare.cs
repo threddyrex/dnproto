@@ -96,6 +96,8 @@ namespace dnproto.commands
             Console.WriteLine($"");
             FindQuotePostsForRepo(repoFile1, repo1Did, repo2Did);
             Console.WriteLine($"");
+            FindMentionsForRepo(repoFile1, repo1Did, repo2Did);
+            Console.WriteLine($"");
 
             CommandLineInterface.PrintLineSeparator();
             Console.WriteLine($"repo2: {repo2Did}");
@@ -107,6 +109,8 @@ namespace dnproto.commands
             FindRepostsForRepo(repoFile2, repo2Did, repo1Did);
             Console.WriteLine($"");
             FindQuotePostsForRepo(repoFile2, repo2Did, repo1Did);
+            Console.WriteLine($"");
+            FindMentionsForRepo(repoFile2, repo2Did, repo1Did);
             Console.WriteLine($"");
 
 
@@ -297,5 +301,75 @@ namespace dnproto.commands
                 }
             }
         }
+
+
+        
+        public static void FindMentionsForRepo(string? repoFile, string? sourceDid, string? targetDid)
+        {
+            if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid))
+            {
+                return;
+            }
+
+            using(var fs = new FileStream(repoFile, FileMode.Open))
+            {
+                //
+                // Read header
+                //
+                var repoHeader = RepoHeader.ReadFromStream(fs);
+
+                while(fs.Position < fs.Length)
+                { 
+                    //
+                    // Read data block (record)
+                    //
+                    var repoRecord = RepoRecord.ReadFromStream(fs);
+
+                    if (repoRecord.RecordType == "app.bsky.feed.post")
+                    {
+                        Dictionary<string, object>? recordRaw = (Dictionary<string, object>?) repoRecord.Record.GetRawValue();
+
+                        if (recordRaw == null) continue;
+                        if (recordRaw.ContainsKey("text") == false) continue;
+                        if (recordRaw.ContainsKey("facets") == false) continue;
+
+                        string? text = recordRaw["text"] as string;
+
+                        List<object>? facets = recordRaw["facets"] as List<object>;
+
+                        if(facets == null) continue;
+
+                        foreach(Dictionary<string, object>? facet in facets)
+                        {
+                            if(facet == null) continue;
+                            if (facet.ContainsKey("features") == false) continue;
+
+                            List<object>? features = facet["features"] as List<object>;
+
+                            if(features == null) continue;
+
+                            foreach(Dictionary<string, object> feature in features)
+                            {
+                                if (feature.ContainsKey("did") == false) continue;
+                                if (feature.ContainsKey("$type") == false) continue;
+
+                                string? did = feature["did"] as string;
+                                string? type = feature["$type"] as string;
+
+                                if (type == "app.bsky.richtext.facet#mention" && did == targetDid)
+                                {
+                                    Console.WriteLine($"------------------");
+                                    Console.WriteLine($"| mentioned -->  |");
+                                    Console.WriteLine($"------------------");
+                                    Console.WriteLine($"{text}");
+                                    Console.WriteLine("");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
    }
 }
