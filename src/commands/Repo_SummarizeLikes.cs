@@ -15,7 +15,7 @@ namespace dnproto.commands
 
         public override HashSet<string> GetOptionalArguments()
         {
-            return new HashSet<string>(new string[]{"verbose", "printcount", "createdafter", "resolvehandles", "resolvewaitseconds"});
+            return new HashSet<string>(new string[]{"printcount", "createdafter", "resolvehandles", "resolvewaitseconds"});
         }
 
         /// <summary>
@@ -28,8 +28,6 @@ namespace dnproto.commands
             // Get arguments
             //
             string? repoFile = CommandLineInterface.GetArgumentValue(arguments, "repoFile");
-            string? verboseS = CommandLineInterface.GetArgumentValue(arguments, "verbose");
-            bool verbose = string.IsNullOrEmpty(verboseS) == false && string.Equals(verboseS, "true");
             int printCount = CommandLineInterface.GetArgumentValueWithDefault(arguments, "printcount", 20);
             string createdAfter = CommandLineInterface.GetArgumentValueWithDefault(arguments, "createdafter", "2010");
             bool resolveHandles = CommandLineInterface.GetArgumentValueWithDefault(arguments, "resolvehandles", false);
@@ -45,7 +43,6 @@ namespace dnproto.commands
 
             Console.WriteLine($"repoFile: {repoFile}");
             Console.WriteLine($"fileExists: {fileExists}");
-            Console.WriteLine($"verbose: {verbose}");
             Console.WriteLine($"printCount: {printCount}");
             Console.WriteLine($"createdAfter: {createdAfter}");
             Console.WriteLine($"resolveHandles: {resolveHandles}");
@@ -72,40 +69,14 @@ namespace dnproto.commands
                 // print
                 var headerJson = JsonData.GetObjectJsonString(header.GetRawValue());
 
-                if(verbose)
-                {
-                    Console.WriteLine();
-                    Console.WriteLine($"headerJson:");
-                    Console.WriteLine();
-                    Console.WriteLine($"{headerJson}");
-                    Console.WriteLine();
-                }
-
-
                 while(fs.Position < fs.Length)
                 { 
-                    if(verbose) Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-
                     //
                     // Read data block (record)
                     //
                     VarInt blockLength = VarInt.ReadVarInt(fs);
                     CidV1 cid = CidV1.ReadCid(fs);
                     var dataBlock = DagCborObject.ReadFromStream(fs);
-
-
-                    // print
-                    if(verbose)
-                    {
-                        Console.WriteLine($"cid: {cid.GetBase32()}");
-                        Console.WriteLine();
-                        var blockJson = JsonData.GetObjectJsonString(dataBlock.GetRawValue());
-                        Console.WriteLine();
-                        Console.WriteLine($"blockJson:");
-                        Console.WriteLine();
-                        Console.WriteLine($"{blockJson}");
-                        Console.WriteLine();
-                    }
 
                     var recordType = dataBlock.GetMapValueAtPath(new string[]{"$type"});
                     var createdAt = dataBlock.GetMapValueAtPath(new string[]{"createdAt"});
@@ -116,20 +87,10 @@ namespace dnproto.commands
                     {
                         var uri = dataBlock.GetMapValueAtPath(new string[]{"subject", "uri"});
 
-                        if(verbose)
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine($"recordType: {recordType}");
-                            Console.WriteLine($"createdAt: {createdAt}");
-                            Console.WriteLine($"uri: {uri}");
-                        }
-
                         if (uri != null)
                         {
                             var uriParts = uri.Split('/');
                             var likeDid = uriParts.Count() > 2 ? uriParts[2] : null;
-
-                            if(verbose) Console.WriteLine($"likeDid: {likeDid}");
 
                             if(string.IsNullOrEmpty(likeDid) == false)
                             {
@@ -143,8 +104,6 @@ namespace dnproto.commands
                                 }
                             }
                         }
-
-                        if(verbose) Console.WriteLine();
                     }
                 }
             }
