@@ -51,6 +51,21 @@ public class DagCborObject
         return null;
     }
 
+    /// <summary>
+    /// Finds an object at the path specified by the property names, 
+    /// and returns as int if possible.
+    /// </summary>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public int? SelectInt(string[] propertyNames)
+    {
+        object? o = SelectObject(propertyNames);
+
+        if(o as int? != null) return o as int?;
+
+        return null;
+    }
+
     
     /// <summary>
     /// Read a DagCbor object from a stream. Recursively reads maps and arrays.
