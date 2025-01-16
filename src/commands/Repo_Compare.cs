@@ -148,26 +148,22 @@ namespace dnproto.commands
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
-            // read file
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
+            Repo.WalkRepo(
+                repoFile,
+                (header) => { return true;}, 
+                (record) => 
+                {
+                    if (record.RecordType != "app.bsky.feed.like") return true;
 
-                while(fs.Position < fs.Length)
-                { 
-                    // read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-
-                    if (repoRecord.RecordType != "app.bsky.feed.like") continue;
-
-                    string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
-                    if (uri == null || uri.Contains(targetDid) == false) continue;
+                    string? uri = record.DataBlock.SelectString(["subject", "uri"]);
+                    if (uri == null || uri.Contains(targetDid) == false) return true;
 
                     string clickableUri = uri.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
                     Console.WriteLine($"liked -->   {clickableUri}");
+
+                    return true;
                 }
-            }
+            );
         }
 
 
@@ -175,20 +171,15 @@ namespace dnproto.commands
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
+            Repo.WalkRepo(
+                repoFile,
+                (header) => { return true;}, 
+                (record) => 
+                {
+                    if (record.RecordType != "app.bsky.feed.post") return true;
 
-                while(fs.Position < fs.Length)
-                { 
-                    // read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-
-                    if (repoRecord.RecordType != "app.bsky.feed.post") continue;
-
-                    string? uriReply = repoRecord.DataBlock.SelectString(["reply", "parent", "uri"]);
-                    string? uriRoot = repoRecord.DataBlock.SelectString(["reply", "root", "uri"]);
+                    string? uriReply = record.DataBlock.SelectString(["reply", "parent", "uri"]);
+                    string? uriRoot = record.DataBlock.SelectString(["reply", "root", "uri"]);
 
                     if (uriReply != null && uriReply.Contains(targetDid))
                     {
@@ -200,8 +191,10 @@ namespace dnproto.commands
                         string clickableUri = uriRoot.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
                         Console.WriteLine($"replied to -->   {clickableUri}");
                     }
+
+                    return true;
                 }
-            }
+            );
         }
 
 
@@ -210,26 +203,22 @@ namespace dnproto.commands
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // Read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
+            Repo.WalkRepo(
+                repoFile,
+                (header) => { return true;}, 
+                (record) => 
+                {
+                    if (record.RecordType != "app.bsky.feed.repost") return true;
 
-                while(fs.Position < fs.Length)
-                { 
-                    // Read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-                    
-                    if (repoRecord.RecordType != "app.bsky.feed.repost") continue;
-
-                    string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
-
-                    if (uri == null || uri.Contains(targetDid) == false) continue;
+                    string? uri = record.DataBlock.SelectString(["subject", "uri"]);
+                    if (uri == null || uri.Contains(targetDid) == false) return true;
 
                     string clickableUri = uri.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
                     Console.WriteLine($"reposted -->   {clickableUri}");
+
+                    return true;
                 }
-            }
+            );
         }
 
 
@@ -238,27 +227,22 @@ namespace dnproto.commands
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
-            // read file
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
+            Repo.WalkRepo(
+                repoFile,
+                (header) => { return true;}, 
+                (record) => 
+                {
+                    if (record.RecordType != "app.bsky.feed.post") return true;
 
-                while(fs.Position < fs.Length)
-                { 
-                    // read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-
-                    if (repoRecord.RecordType != "app.bsky.feed.post") continue;
-
-                    string? uri = repoRecord.DataBlock.SelectString(["embed", "record", "uri"]);
-
-                    if (uri == null || uri.Contains(targetDid) == false) continue;
+                    string? uri = record.DataBlock.SelectString(["embed", "record", "uri"]);
+                    if (uri == null || uri.Contains(targetDid) == false) return true;
 
                     string clickableUri = uri.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
                     Console.WriteLine($"quote posted -->   {clickableUri}");
+
+                    return true;
                 }
-            }
+            );
         }
 
 
@@ -268,36 +252,32 @@ namespace dnproto.commands
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid) || rkeys == null) return;
 
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // Read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
+            Repo.WalkRepo(
+                repoFile,
+                (header) => { return true;}, 
+                (record) => 
+                {
+                    if (record.RecordType != "app.bsky.feed.post") return true;
 
-                while(fs.Position < fs.Length)
-                { 
-                    // Read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-                    if (repoRecord.RecordType != "app.bsky.feed.post") continue;
+                    string? text = record.DataBlock.SelectString(["text"]);
+                    if (text == null) return true;
 
-                    string? text = repoRecord.DataBlock.SelectString(["text"]) as string;
-                    if (text == null) continue;
-
-                    List<DagCborObject>? facets = repoRecord.DataBlock.SelectObject(["facets"]) as List<DagCborObject>;
-                    if (facets == null) continue;
+                    List<DagCborObject>? facets = record.DataBlock.SelectObject(["facets"]) as List<DagCborObject>;
+                    if (facets == null) return true;
 
                     foreach(DagCborObject facet in facets)
                     {
                         List<DagCborObject>? featuresArray = facet.SelectObject(["features"]) as List<DagCborObject>;
-                        if (featuresArray == null) continue;
-                        if (featuresArray.Count != 1) continue;
+                        if (featuresArray == null) return true;
+                        if (featuresArray.Count != 1) return true;
 
                         DagCborObject feature = featuresArray[0];
                         string? did = feature.SelectString(["did"]);
                         string? type = feature.SelectString(["$type"]);
 
-                        if (type != "app.bsky.richtext.facet#mention" || did != targetDid) continue;
+                        if (type != "app.bsky.richtext.facet#mention" || did != targetDid) return true;
 
-                        string? rkey = rkeys.ContainsKey(repoRecord.Cid.Base32) ? rkeys[repoRecord.Cid.Base32] : null;
+                        string? rkey = rkeys.ContainsKey(record.Cid.Base32) ? rkeys[record.Cid.Base32] : null;
 
                         if (rkey == null)
                         {
@@ -313,8 +293,11 @@ namespace dnproto.commands
                             Console.WriteLine($"mentioned -->   {clickableUri}");
                         }
                     }
+
+                    return true;
                 }
-            }
+            );
+
         }
 
 

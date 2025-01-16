@@ -4,6 +4,42 @@ namespace dnproto.utils;
 
 public class Repo
 {
+
+        /// <summary>
+        /// Start at beginning and read through entire repo. 
+        /// Use callbacks to let caller know when we find things.
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="headerCallback"></param>
+        /// <param name="recordCallback"></param>
+        public static void WalkRepo(Stream s, Func<RepoHeader, bool> headerCallback, Func<RepoRecord, bool> recordCallback)
+        {
+            if (s == null) return;
+
+            // Read header
+            var repoHeader = RepoHeader.ReadFromStream(s);
+            bool keepGoing = headerCallback(repoHeader);
+
+            while(s.Position < s.Length && keepGoing)
+            { 
+                // Read data block (record)
+                var repoRecord = RepoRecord.ReadFromStream(s);
+                keepGoing = recordCallback(repoRecord);
+            }
+        }
+
+
+        public static void WalkRepo(string repoFile, Func<RepoHeader, bool> headerCallback, Func<RepoRecord, bool> recordCallback)
+        {
+            if (string.IsNullOrEmpty(repoFile)) return;
+            using(var fs = new FileStream(repoFile, FileMode.Open))
+            {
+                WalkRepo(fs, headerCallback, recordCallback);
+            }
+        }
+
+
+
         /// <summary>
         /// 
         /// Find the rkeys in a repo file. Return it as a cid->rkey dictionary.
