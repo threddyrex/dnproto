@@ -3,14 +3,157 @@ using System.Text;
 namespace dnproto.repo;
 
 /// <summary>
-/// The fundamental type for a block of data in IPLD.
-/// Everything is a DagCborObject.
+/// Represents the data block section of a repo record (after version and cid).
+/// You normally start by reading a repo with "ReadFromStream". See Repo.WalkRepo for an example.
+/// Then you can inspect the data with the Select* functions, which will return a value at a path.
 /// </summary>
 public class DagCborObject
 {
     public required DagCborType Type;
 
     public required object Value;
+
+    
+    /// <summary>
+    /// Read a DagCbor object from a stream. Recursively reads maps and arrays.
+    /// The top-level type for a record's data block is *usually* a map, containing one or more elements.
+    /// For example, a post record will have a map with keys like "text", "$type", "createdAt", etc.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public static DagCborObject ReadFromStream(Stream s)
+    {
+        DagCborType type = DagCborType.ReadNextType(s);
+        int length = 0;
+
+        switch(type.MajorType)
+        {
+            case DagCborType.TYPE_MAP:
+                length = ReadLengthFromStream(type, s); // might read one more byte for length
+                Dictionary<string,DagCborObject> dict = new Dictionary<string,DagCborObject>();
+
+                for(int i = 0; i < length; i++)
+                {
+                   DagCborObject key = ReadFromStream(s);
+                    string? keyString = key != null ? key.TryGetString() : null;
+                   DagCborObject value = ReadFromStream(s);
+
+                    if(keyString != null)
+                    {
+                        dict[keyString] = value;
+                    }
+                    else
+                    {
+                        throw new Exception("Key is null.");
+                    }
+                }
+
+                return new DagCborObject { Type = type, Value = dict };
+
+            case DagCborType.TYPE_ARRAY:
+                length = ReadLengthFromStream(type, s);
+                List<DagCborObject> list = new List<DagCborObject>();
+
+                for(int i = 0; i < length; i++)
+                {
+                    var value = ReadFromStream(s);
+                    list.Add(value);
+                }
+
+                return new DagCborObject { Type = type, Value = list };
+
+
+            case DagCborType.TYPE_TEXT:
+                length = ReadLengthFromStream(type, s);
+                byte[] bytes = new byte[length];
+                int readLength = s.Read(bytes, 0, length);
+                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(bytes) };
+
+            case DagCborType.TYPE_TAG:
+                int tag = s.ReadByte();
+                if(tag != 42)
+                {
+                    throw new Exception("Unknown tag: " + tag);
+                }
+
+               DagCborType byteStringType =DagCborType.ReadNextType(s);
+                length = ReadLengthFromStream(byteStringType, s);
+                int shouldBeZero = s.ReadByte(); // read one more byte for 0
+
+                CidV1 cid = CidV1.ReadCid(s);
+
+                return new DagCborObject { Type = type, Value = cid };
+
+            case DagCborType.TYPE_UNSIGNED_INT:
+                return new DagCborObject { Type = type, Value = ReadLengthFromStream(type, s) };
+
+            case DagCborType.TYPE_BYTE_STRING:
+                length = ReadLengthFromStream(type, s);
+                byte[] byteString = new byte[length];
+                int bytesRead = s.Read(byteString, 0, length);
+                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(byteString) };
+
+            case DagCborType.TYPE_SIMPLE_VALUE:
+                if(type.AdditionalInfo == 0x16)
+                {
+                    return new DagCborObject { Type = type, Value = "null" };
+                }
+                else if(type.AdditionalInfo == 0x14)
+                {
+                    s.ReadByte();
+                    return new DagCborObject { Type = type, Value = false };
+                }
+                else if(type.AdditionalInfo == 0x15)
+                {
+                    s.ReadByte();
+                    return new DagCborObject { Type = type, Value = true };
+                }
+                else
+                {
+                    throw new Exception("Unknown simple value: " + type.AdditionalInfo);
+                }
+
+            default:
+                throw new Exception("Unknown major type: " + type.MajorType);
+        }
+    }
+
+
+    /// <summary>
+    /// Read the next length value from the stream.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="s"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    private static int ReadLengthFromStream(DagCborType type, Stream s)
+    {
+        int length = 0;
+        
+        if(type.AdditionalInfo < 24)
+        {
+            length = type.AdditionalInfo;
+        }
+        else if(type.AdditionalInfo == 24)
+        {
+            length = (byte)s.ReadByte();
+        }
+        else if(type.AdditionalInfo == 25)
+        {
+            length = ((byte)s.ReadByte() << 8) | (byte)s.ReadByte();
+        }
+        else if (type.AdditionalInfo == 26)
+        {
+            length = ((byte)s.ReadByte() << 24) | ((byte)s.ReadByte() << 16) | ((byte)s.ReadByte() << 8) | (byte)s.ReadByte();
+        }
+        else
+        {
+            throw new Exception("Unknown additional info: " + type.AdditionalInfo);
+        }
+        
+        return length;
+    }
 
 
     /// <summary>
@@ -70,137 +213,7 @@ public class DagCborObject
         return null;
     }
 
-    
-    /// <summary>
-    /// Read a DagCbor object from a stream. Recursively reads maps and arrays.
-    /// </summary>
-    /// <param name="s"></param>
-    /// <returns></returns>
-    /// <exception cref="Exception"></exception>
-    public static DagCborObject ReadFromStream(Stream s)
-    {
-        DagCborType type = DagCborType.ReadNextType(s);
-        int length = 0;
 
-        switch(type.MajorType)
-        {
-            case DagCborType.TYPE_MAP:
-                length = GetLength(type, s); // might read one more byte for length
-                Dictionary<string,DagCborObject> dict = new Dictionary<string,DagCborObject>();
-
-                for(int i = 0; i < length; i++)
-                {
-                   DagCborObject key = ReadFromStream(s);
-                    string? keyString = key != null ? key.TryGetString() : null;
-                   DagCborObject value = ReadFromStream(s);
-
-                    if(keyString != null)
-                    {
-                        dict[keyString] = value;
-                    }
-                    else
-                    {
-                        throw new Exception("Key is null.");
-                    }
-                }
-
-                return new DagCborObject { Type = type, Value = dict };
-
-            case DagCborType.TYPE_ARRAY:
-                length = GetLength(type, s);
-                List<DagCborObject> list = new List<DagCborObject>();
-
-                for(int i = 0; i < length; i++)
-                {
-                    var value = ReadFromStream(s);
-                    list.Add(value);
-                }
-
-                return new DagCborObject { Type = type, Value = list };
-
-
-            case DagCborType.TYPE_TEXT:
-                length = GetLength(type, s);
-                byte[] bytes = new byte[length];
-                int readLength = s.Read(bytes, 0, length);
-                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(bytes) };
-
-            case DagCborType.TYPE_TAG:
-                int tag = s.ReadByte();
-                if(tag != 42)
-                {
-                    throw new Exception("Unknown tag: " + tag);
-                }
-
-               DagCborType byteStringType =DagCborType.ReadNextType(s);
-                length = GetLength(byteStringType, s);
-                int shouldBeZero = s.ReadByte(); // read one more byte for 0
-
-                CidV1 cid = CidV1.ReadCid(s);
-
-                return new DagCborObject { Type = type, Value = cid };
-
-            case DagCborType.TYPE_UNSIGNED_INT:
-                return new DagCborObject { Type = type, Value = GetLength(type, s) };
-
-            case DagCborType.TYPE_BYTE_STRING:
-                length = GetLength(type, s);
-                byte[] byteString = new byte[length];
-                int bytesRead = s.Read(byteString, 0, length);
-                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(byteString) };
-
-            case DagCborType.TYPE_SIMPLE_VALUE:
-                if(type.AdditionalInfo == 0x16)
-                {
-                    return new DagCborObject { Type = type, Value = "null" };
-                }
-                else if(type.AdditionalInfo == 0x14)
-                {
-                    s.ReadByte();
-                    return new DagCborObject { Type = type, Value = false };
-                }
-                else if(type.AdditionalInfo == 0x15)
-                {
-                    s.ReadByte();
-                    return new DagCborObject { Type = type, Value = true };
-                }
-                else
-                {
-                    throw new Exception("Unknown simple value: " + type.AdditionalInfo);
-                }
-
-            default:
-                throw new Exception("Unknown major type: " + type.MajorType);
-        }
-    }
-
-    public static int GetLength(DagCborType type, Stream s)
-    {
-        int length = 0;
-        
-        if(type.AdditionalInfo < 24)
-        {
-            length = type.AdditionalInfo;
-        }
-        else if(type.AdditionalInfo == 24)
-        {
-            length = (byte)s.ReadByte();
-        }
-        else if(type.AdditionalInfo == 25)
-        {
-            length = ((byte)s.ReadByte() << 8) | (byte)s.ReadByte();
-        }
-        else if (type.AdditionalInfo == 26)
-        {
-            length = ((byte)s.ReadByte() << 24) | ((byte)s.ReadByte() << 16) | ((byte)s.ReadByte() << 8) | (byte)s.ReadByte();
-        }
-        else
-        {
-            throw new Exception("Unknown additional info: " + type.AdditionalInfo);
-        }
-        
-        return length;
-    }
 
     public override string ToString()
     {
@@ -213,6 +226,12 @@ public class DagCborObject
         return sval != null ? sval : "";
     }
 
+    /// <summary>
+    /// This extracts the data (Value) from this DagCborObject and its children.
+    /// Helpful when you want to convert to something like json for debugging.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public object? GetRawValue()
     {
         if(Type.MajorType ==DagCborType.TYPE_TEXT)
