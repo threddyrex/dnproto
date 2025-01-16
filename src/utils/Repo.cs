@@ -8,6 +8,26 @@ public class Repo
         /// <summary>
         /// Start at beginning and read through entire repo. 
         /// Use callbacks to let caller know when we find things.
+        /// This is just top-level algorithm. Most of the heavy lifting
+        /// is done in RepoHeader, RepoRecord, VarInt, CidV1, and DagCborObject.
+        /// 
+        /// Repo Format
+        ///
+        /// Format from spec:
+        /// 
+        ///    [---  header  -------- ]   [----------------- data ---------------------------------]
+        ///    [varint | header block ]   [varint | cid | data block]....[varint | cid | data block] 
+        ///
+        /// 
+        /// Represented using the data types we have:
+        /// 
+        ///    [---  header  -------- ]   [----------------- data -------------------------------------------]
+        ///    [VarInt | DagCborObject]   [VarInt | CidV1 | DagCborObject]....[VarInt | CidV1 | DagCborObject] 
+        ///
+        /// 
+        /// https://ipld.io/specs/transport/car/carv1/#format-description
+        /// 
+        /// 
         /// </summary>
         /// <param name="s"></param>
         /// <param name="headerCallback"></param>
