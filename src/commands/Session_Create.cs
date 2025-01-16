@@ -13,7 +13,7 @@ public class Session_Create : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"username", "password", "sessionFile"});
+        return new HashSet<string>(new string[]{"handle", "password", "sessionFile"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -29,15 +29,27 @@ public class Session_Create : BaseCommand
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
-        //
         // Get arguments
-        //
-        string pds = arguments.ContainsKey("pds") ? arguments["pds"] : "bsky.social";
+        string? pds = arguments.ContainsKey("pds") ? arguments["pds"] : null;
         string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
-        string? username = CommandLineInterface.GetArgumentValue(arguments, "username");
+        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-        string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
 
+        if(handle == null || password == null)
+        {
+            throw new ArgumentException("Missing required argument: handle or password");
+        }
+
+        // If pds is not provided, get it from the handle
+        if (string.IsNullOrEmpty(pds))
+        {
+            Console.WriteLine("Resolving handle to get pds.");
+            var handleInfo = Handle_ResolveInfo.DoResolveHandleInfo(handle);
+            pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
+        }
+
+        // Construct url
+        string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
         Console.WriteLine($"url: {url}");
 
 
@@ -49,12 +61,12 @@ public class Session_Create : BaseCommand
             content: string.IsNullOrEmpty(authFactorToken) ?
                 new StringContent(JsonSerializer.Serialize(new
                     {
-                        identifier = username,
+                        identifier = handle,
                         password = password
                     })) : 
                 new StringContent(JsonSerializer.Serialize(new
                     {
-                        identifier = username,
+                        identifier = handle,
                         password = password,
                         authFactorToken = authFactorToken
                     }))

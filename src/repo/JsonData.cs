@@ -3,98 +3,105 @@ using System.Text.Json.Nodes;
 
 namespace dnproto.repo;
 
+/// <summary>
+/// Just some helpers for working with json.
+/// </summary>
 public static class JsonData
 {
-    public static string GetPropertyValue (JsonNode? node, string propertyName)
-    {
-        if (node == null)
-        {
-            return "";
-        }
-
-        var objValue = node[propertyName];
-
-        if(objValue != null)
-        {
-            return objValue.ToString();
-        }
-
-        return "";
-    }
-
-    public static string GetValueAtPath (JsonNode? node, string[] propertyNames)
+    /// <summary>
+    /// Find node at path and return it. Kinda like xpath.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public static JsonNode? SelectNode (JsonNode? node, string[] propertyNames)
     {
         JsonNode? current = node;
 
         foreach(var propertyName in propertyNames)
         {
-            if(current == null)
-            {
-                return "";
-            }
-
+            if(current == null) return null;
             current = current[propertyName];
-
-            // if array, just get first element
-            if(current is JsonArray && ((JsonArray)current).Count == 1)
-            {
-                current = current[0];
-            }
         }
 
-        return current?.ToString() ?? "";
+        return current;
     }
 
-    public static void WriteJsonToFile(JsonNode? node, string? outputFilePath)
+    /// <summary>
+    /// Find node at a path, and return string value for it.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public static string? SelectString(JsonNode? node, string[] propertyNames)
     {
-        if(node == null || string.IsNullOrEmpty(outputFilePath))
-        {
-            return;
-        }
+        var selectedNode = SelectNode(node, propertyNames);
+        return selectedNode != null ? selectedNode.ToString() : null;
+    }
 
-        Console.WriteLine($"Writing JSON to file: {outputFilePath}");
+    public static string? SelectString(JsonNode? node, string propertyName)
+    {
+        return SelectString(node, [propertyName]);
+    }
 
+
+
+    /// <summary>
+    /// Convert json node to json string.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public static string? ConvertToJsonString(JsonNode? node)
+    {
+        if(node == null) return null;
         var options = new JsonSerializerOptions { WriteIndented = true };
-        System.IO.File.WriteAllText(outputFilePath, node.ToJsonString(options));
+        return node.ToJsonString(options);
     }
 
-    public static void WriteJsonToFile(string jsonData, string? outputFilePath)
+
+    /// <summary>
+    /// Convert object to json string.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static string? ConvertObjectToJsonString(object? obj)
     {
-        if(string.IsNullOrEmpty(jsonData) || string.IsNullOrEmpty(outputFilePath))
-        {
-            return;
-        }
-
-        Console.WriteLine($"Writing JSON to file: {outputFilePath}");
-
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        System.IO.File.WriteAllText(outputFilePath, jsonData);
-    }
-
-    public static string GetObjectJsonString(object? obj)
-    {
-        if (obj == null)
-        {
-            return "";
-        }
-
+        if (obj == null) return null;
         var options = new JsonSerializerOptions { WriteIndented = true };
         return JsonSerializer.Serialize(obj, options);
     }
 
 
+    /// <summary>
+    /// Write json node to file.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="outputFilePath"></param>
+    public static void WriteJsonToFile(JsonNode? node, string? outputFilePath)
+    {
+        if(node == null || string.IsNullOrEmpty(outputFilePath)) return;
+        string? jsonString = ConvertToJsonString(node);
+        WriteJsonToFile(jsonString, outputFilePath);
+    }
+
+
+    public static void WriteJsonToFile(string? jsonString, string? outputFilePath)
+    {
+        if(string.IsNullOrEmpty(jsonString) || string.IsNullOrEmpty(outputFilePath)) return;
+        Console.WriteLine($"Writing JSON to file: {outputFilePath}");
+        System.IO.File.WriteAllText(outputFilePath, jsonString);
+    }
+
+
+    /// <summary>
+    /// Reads json node from file.
+    /// </summary>
+    /// <param name="inputFilePath"></param>
+    /// <returns></returns>
     public static JsonNode? ReadJsonFromFile(string? inputFilePath)
     {
-        if(string.IsNullOrEmpty(inputFilePath))
-        {
-            return null;
-        }
-
-        if(!System.IO.File.Exists(inputFilePath))
-        {
-            return null;
-        }
-
+        if(string.IsNullOrEmpty(inputFilePath)) return null;
+        if(!System.IO.File.Exists(inputFilePath)) return null;
         var jsonString = System.IO.File.ReadAllText(inputFilePath);
         return JsonNode.Parse(jsonString);
     }

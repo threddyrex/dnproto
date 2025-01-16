@@ -27,16 +27,21 @@ public class Post_Create : BaseCommand
         // Get arguments
         //
         JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
-        string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
-        string pds = JsonData.GetPropertyValue(session, "pds");
-        string did = JsonData.GetPropertyValue(session, "did");
+        string? accessJwt = JsonData.SelectString(session, "accessJwt");
+        string? pds = JsonData.SelectString(session, "pds");
+        string? did = JsonData.SelectString(session, "did");
         string? text = CommandLineInterface.GetArgumentValue(arguments, "text");
-        string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
+
 
         Console.WriteLine($"pds: {pds}");
         Console.WriteLine($"did: {did}");
-        Console.WriteLine($"url: {url}");
         Console.WriteLine($"text: {text}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
+        {
+            Console.WriteLine("Session not found. Please log in.");
+            return;
+        }
 
         if(string.IsNullOrEmpty(text))
         {
@@ -44,6 +49,8 @@ public class Post_Create : BaseCommand
             return;
         }
 
+        string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
+        Console.WriteLine($"url: {url}");
 
         //
         // Send request

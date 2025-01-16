@@ -60,13 +60,9 @@ public class Handle_Resolve : BaseCommand
         JsonNode? response = WebServiceClient.SendRequest(url,
             HttpMethod.Get);
 
-        if(response == null || string.IsNullOrEmpty(JsonData.GetPropertyValue(response, "did")))
-        {
-            return null;
-        }
-        else
-        {
-            return JsonData.GetPropertyValue(response, "did");
-        }
+        string? did = JsonData.SelectString(response, "did");
+
+        return did;
+
     }
 }

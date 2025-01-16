@@ -34,14 +34,12 @@ namespace dnproto.commands
             //
             JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
 
-            string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
-            string pds = JsonData.GetPropertyValue(session, "pds");
-            string did = JsonData.GetPropertyValue(session, "did");
-            string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
+            string? accessJwt = JsonData.SelectString(session, "accessJwt");
+            string? pds = JsonData.SelectString(session, "pds");
+            string? did = JsonData.SelectString(session, "did");
 
             Console.WriteLine($"pds: {pds}");
             Console.WriteLine($"did: {did}");
-            Console.WriteLine($"url: {url}");
 
             if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
             {
@@ -49,6 +47,8 @@ namespace dnproto.commands
                 return;
             }
 
+            string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
+            Console.WriteLine($"url: {url}");
 
             //
             // Call WS

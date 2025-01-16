@@ -17,7 +17,7 @@ public class RepoHeader
     {
         var headerLength = VarInt.ReadVarInt(s);
         var header = DagCborObject.ReadFromStream(s);
-        var headerJson = JsonData.GetObjectJsonString(header.GetRawValue());
+        var headerJson = JsonData.ConvertObjectToJsonString(header.GetRawValue());
 
         return new RepoHeader
         {

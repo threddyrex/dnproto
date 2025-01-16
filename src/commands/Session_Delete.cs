@@ -29,9 +29,9 @@ public class Session_Delete : BaseCommand
         //
         string? sessionFilePath = CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath");
         JsonNode? session = JsonData.ReadJsonFromFile(sessionFilePath);
-        string? refreshJwt = JsonData.GetPropertyValue(session, "refreshJwt");
-        string? pds = JsonData.GetPropertyValue(session, "pds");
-        string? did = JsonData.GetPropertyValue(session, "did");
+        string? refreshJwt = JsonData.SelectString(session, "refreshJwt");
+        string? pds = JsonData.SelectString(session, "pds");
+        string? did = JsonData.SelectString(session, "did");
         string url = $"https://{pds}/xrpc/com.atproto.server.deleteSession";
 
         Console.WriteLine($"pds: {pds}");

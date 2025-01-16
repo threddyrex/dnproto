@@ -117,14 +117,4 @@ public class WebServiceClient
         Console.WriteLine(response.ToJsonString(options));
         Console.WriteLine("");
     }
-    public static string? GetResponseJsonString(JsonNode? response)
-    {
-        if(response == null)
-        {
-            return null;
-        }
-
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        return response.ToJsonString(options);
-    }
 }

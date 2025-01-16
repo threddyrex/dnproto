@@ -27,7 +27,7 @@ public class RepoRecord
         CidV1 cid = CidV1.ReadCid(s);
         var dataBlock = DagCborObject.ReadFromStream(s);
 
-        var recordJson = JsonData.GetObjectJsonString(dataBlock.GetRawValue());
+        var recordJson = JsonData.ConvertObjectToJsonString(dataBlock.GetRawValue());
         var recordType = dataBlock.SelectString(["$type"]);
         var createdAt = dataBlock.SelectString(["createdAt"]);
 

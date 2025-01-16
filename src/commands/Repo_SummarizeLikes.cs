@@ -116,7 +116,7 @@ namespace dnproto.commands
                 if(resolveHandles)
                 {
                     JsonNode? profile = Profile_Get.DoGetProfile(kvp.Key);
-                    string handle = JsonData.GetPropertyValue(profile, "handle");
+                    string? handle = JsonData.SelectString(profile, "handle");
 
                     var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
                     Console.WriteLine($"{profileUrl}   {kvp.Value} likes     ({handle})");

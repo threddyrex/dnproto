@@ -45,7 +45,7 @@ public class Handle_ResolveInfo : BaseCommand
         //
         Dictionary<string, string> resolveHandleInfo = DoResolveHandleInfo(handle);
 
-        string jsonData = JsonData.GetObjectJsonString(resolveHandleInfo);
+        string? jsonData = JsonData.ConvertObjectToJsonString(resolveHandleInfo);
 
 
         //
@@ -87,17 +87,9 @@ public class Handle_ResolveInfo : BaseCommand
         JsonNode? response = WebServiceClient.SendRequest(url,
             HttpMethod.Get);
 
-        if(response == null || string.IsNullOrEmpty(JsonData.GetPropertyValue(response, "did")))
-        {
-            return ret;
-        }
+        did = JsonData.SelectString(response, "did");
 
-        did = JsonData.GetPropertyValue(response, "did");
-
-        if(string.IsNullOrEmpty(did))
-        {
-            return ret;
-        }
+        if(string.IsNullOrEmpty(did)) return ret;
 
         ret["did"] = did;
 
@@ -112,7 +104,7 @@ public class Handle_ResolveInfo : BaseCommand
             response = WebServiceClient.SendRequest(url_plc,
                 HttpMethod.Get);
 
-            didDoc = WebServiceClient.GetResponseJsonString(response);
+            didDoc = JsonData.ConvertToJsonString(response);
 
             if(didDoc != null)
             {
@@ -128,7 +120,7 @@ public class Handle_ResolveInfo : BaseCommand
 
             response = WebServiceClient.SendRequest(url_didweb, HttpMethod.Get);
 
-            didDoc = WebServiceClient.GetResponseJsonString(response);
+            didDoc = JsonData.ConvertToJsonString(response);
 
             if(didDoc != null)
             {
@@ -139,18 +131,22 @@ public class Handle_ResolveInfo : BaseCommand
         //
         // didDoc -> pds
         //
-        if(string.IsNullOrEmpty(didDoc))
-        {
-            return ret;
-        }
+        if(string.IsNullOrEmpty(didDoc)) return ret;
 
         JsonNode? didDocJson = JsonNode.Parse(didDoc);
+        if(didDocJson == null) return ret;
 
-        if(didDocJson != null)
-        {
-            string pds = JsonData.GetValueAtPath(didDocJson, new string [] {"service", "serviceEndpoint"});
-            ret["pds"] = pds.Replace("https://", "");
-        }
+        JsonArray? services = JsonData.SelectNode(didDocJson, ["service"]) as JsonArray;
+
+        if (services == null || services.Count == 0) return ret;
+
+        JsonNode? service = services[0];
+
+        string? pds = JsonData.SelectString(service, ["serviceEndpoint"]);
+
+        if(string.IsNullOrEmpty(pds)) return ret;
+
+        ret["pds"] = pds.Replace("https://", "");
 
 
         //

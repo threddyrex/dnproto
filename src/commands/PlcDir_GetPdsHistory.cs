@@ -44,16 +44,15 @@ public class PlcDir_GetPdsHistory : BaseCommand
         Console.WriteLine($"did: {did}");
         Console.WriteLine($"url: {url}");
 
-        JsonNode? response = WebServiceClient.SendRequest(url,
-            HttpMethod.Get);
+        JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get);
 
         // Loop through children json nodes
         if(response != null && response is JsonArray)
         {
-            foreach(JsonNode? child in response.AsArray())
+            foreach(JsonNode? didDoc in response.AsArray())
             {
-                string pds = JsonData.GetValueAtPath(child, new string [] {"operation", "services", "atproto_pds", "endpoint"});
-                string createdAt = JsonData.GetPropertyValue(child, "createdAt");
+                string? pds = JsonData.SelectString(didDoc, ["operation", "services", "atproto_pds", "endpoint"]);
+                string? createdAt = JsonData.SelectString(didDoc, "createdAt");
                 Console.WriteLine($"createdAt: {createdAt}   pds: {pds}");
             }
         }
