@@ -4,7 +4,11 @@ This is a tool written in C# for interacting with ATProto and Bluesky. It's a wo
 
 The sections below explain how to use the command line tool.
 
-If you are interested in using the C# repo parsing code, check out Repo.cs in the repo directory to get started. That's the entry point to those classes.
+If you are interested in using the C# repo parsing code, check out [Repo.cs](/src/repo/Repo.cs) in the repo directory to get started. 
+That's the entry point to those classes. 
+
+Most of the heavy lifting for repo parsing is done in [VarInt.cs](/src/repo/VarInt.cs),
+[CidV1.cs](/src/repo/CidV1.cs), and [DagCborObject.cs](/src/repo/DagCborObject.cs)
 
 
 
