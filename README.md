@@ -91,7 +91,7 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 Using handle:
 
 ```powershell
-.\dnproto.exe /command repo_get /handle "account handle" /repofilepath "file to write repo"
+.\dnproto.exe /command repo_get /handle "threddyrex.org" /repofilepath "myfile.car"
 ```
 
 Or using did and pds:
