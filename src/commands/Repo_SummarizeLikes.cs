@@ -57,38 +57,26 @@ namespace dnproto.commands
 
             Dictionary<string, int> likeCountsByDid = new Dictionary<string, int>();
 
-
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                //
-                // Read header
-                //
-                var repoHeader = RepoHeader.ReadFromStream(fs);
-
-
-                while(fs.Position < fs.Length)
-                { 
-                    //
-                    // Read data block (record)
-                    //
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-
-                    //
-                    // validate
-                    //
-                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") == false) continue;
-                    if (string.IsNullOrEmpty(repoRecord.CreatedAt)) continue;
-                    if ((string.Compare(repoRecord.CreatedAt, createdAfter) > 0) == false) continue;
+            //
+            // Walk repo
+            //
+            Repo.WalkRepo(
+                repoFile,
+                (repoHeader) => { return true; },
+                (repoRecord) =>
+                {
+                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") == false) return true;
+                    if (string.IsNullOrEmpty(repoRecord.CreatedAt)) return true;
+                    if ((string.Compare(repoRecord.CreatedAt, createdAfter) > 0) == false) return true;
 
                     string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
-                    if (uri == null) continue;
+                    if (uri == null) return true;
 
                     var uriParts = uri.Split('/');
-                    var likeDid = uriParts.Count() > 2 ? uriParts[2] : null;
-                    if (string.IsNullOrEmpty(likeDid)) continue;
+                    var likeDid = uriParts.Length > 2 ? uriParts[2] : null;
+                    if (string.IsNullOrEmpty(likeDid)) return true;
 
-
-                    if(likeCountsByDid.ContainsKey(likeDid))
+                    if (likeCountsByDid.ContainsKey(likeDid))
                     {
                         likeCountsByDid[likeDid] = likeCountsByDid[likeDid] + 1;
                     }
@@ -96,17 +84,25 @@ namespace dnproto.commands
                     {
                         likeCountsByDid[likeDid] = 1;
                     }
+
+                    return true;
                 }
-            }
+            );
 
 
+
+            //
             // Get list sorted by count
+            //
             var sortedLikeCountsByDid = likeCountsByDid.OrderByDescending(x => x.Value);
             Console.WriteLine("number of accounts: " + sortedLikeCountsByDid.Count());
 
             Console.WriteLine();
 
+
+            //
             // Print top n
+            //
             int i = 0;
             int sumOfTopLikes = 0;
    
