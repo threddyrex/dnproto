@@ -101,16 +101,16 @@ You can create a session on the server. The token for the session is
 stored in a file on local disk (specified by $sessionFile).
 
 ```powershell
-$sessionFile = "path_to_file"
+$sessionFile = "sessionfile.txt"
 
 # log in
 .\dnproto.exe /command session_create /sessionfile $sessionFile /handle "handle" /password "password"
 
 # create a post
-.\dnproto.exe /command post_create /sessionfile $sessionFile /text "text of post"
+.\dnproto.exe /command session_post /sessionfile $sessionFile /text "text of post"
 
 # get unread notification count
-.\dnproto.exe /command GetUnreadCount /sessionfile $sessionFile
+.\dnproto.exe /command session_getunreadcount /sessionfile $sessionFile
 
 # log out
 .\dnproto.exe /command session_delete /sessionfile $sessionFile

@@ -9,7 +9,7 @@ using dnproto.utils;
 
 namespace dnproto.commands;
 
-public class Post_Create : BaseCommand
+public class Session_Post : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

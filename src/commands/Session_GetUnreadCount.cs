@@ -9,7 +9,7 @@ using dnproto.utils;
 
 namespace dnproto.commands
 {
-    public class GetUnreadCount : BaseCommand
+    public class Session_GetUnreadCount : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
