@@ -71,6 +71,13 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 
 # Getting repo status
 
+With handle:
+
+```powershell
+.\dnproto.exe /command repo_getstatus /handle "threddyrex.org"
+```
+
+Or with did and pds:
 ```powershell
 .\dnproto.exe /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
 ```
@@ -81,16 +88,19 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 
 Calls getRepo for the user, and writes the file to repoFilePath.
 
-```powershell
-.\dnproto.exe /command repo_get /did "did" /pds "pds hostname" /repofilepath "file to write repo"
-```
-
-You can also pass in a handle:
-
+Using handle:
 
 ```powershell
 .\dnproto.exe /command repo_get /handle "account handle" /repofilepath "file to write repo"
 ```
+
+Or using did and pds:
+
+```powershell
+.\dnproto.exe /command repo_get /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /repofilepath "myfile.car"
+```
+
+
 
 
 &nbsp;
