@@ -55,20 +55,16 @@ public class Repo
 
             Dictionary<string, string> rkeys = new Dictionary<string, string>();
 
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // Read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
-
-                while(fs.Position < fs.Length)
-                { 
-                    // Read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-                    if (repoRecord == null) continue;
+            Repo.WalkRepo(
+                repoFile,
+                (header) => { return true; },
+                (repoRecord) =>
+                {
+                    if (repoRecord == null) return true;
 
                     // merkle records have "e" as the root item
                     List<DagCborObject>? e = repoRecord.DataBlock.SelectObject(["e"]) as List<DagCborObject>;
-                    if (e == null) continue;
+                    if (e == null) return true;
 
                     // loop through the items
                     string? kCurrent = null;
@@ -93,8 +89,10 @@ public class Repo
 
                         if (string.IsNullOrEmpty(kCurrent) == false) rkeys[v] = kCurrent.Split("/").Last();
                     }
+
+                    return true;
                 }
-            }
+            );
 
             return rkeys;
         }
@@ -109,15 +107,19 @@ public class Repo
         {
             if (string.IsNullOrEmpty(repoFile)) return null;
 
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // Read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
+            string? ret = null;
 
-                while(fs.Position < fs.Length)
-                { 
-                    // Read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
+            //
+            // walk
+            //
+            Repo.WalkRepo(
+                repoFile,
+
+                (header) => { return true; },
+
+                (repoRecord) =>
+                {
+                    if (repoRecord == null) return true;
 
                     string? did = repoRecord.DataBlock.SelectString(["did"]);
                     string? rev = repoRecord.DataBlock.SelectString(["rev"]);
@@ -129,11 +131,14 @@ public class Repo
                         && string.IsNullOrEmpty(data) == false 
                         && string.IsNullOrEmpty(version) == false)
                     {
-                        return did;
+                        ret = did;
+                        return false;
                     }
-                }
-            }
 
-            return null;
+                    return true;
+                }
+            );
+
+            return ret;
         }
 }

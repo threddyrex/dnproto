@@ -96,7 +96,7 @@ namespace dnproto.commands
             Console.WriteLine($"| FIRST REPO                                    |");
             Console.WriteLine($"-------------------------------------------------");
             Console.WriteLine($"");
-            Console.WriteLine($"repo:   {did1}");
+            Console.WriteLine($"USER:   {did1}");
             Console.WriteLine($"");
             Console.WriteLine($"");
             FindLikesForRepo(repoFile1, did1, did2);
@@ -125,7 +125,7 @@ namespace dnproto.commands
             Console.WriteLine($"| SECOND REPO                                   |");
             Console.WriteLine($"-------------------------------------------------");
             Console.WriteLine($"");
-            Console.WriteLine($"repo:   {did2}");
+            Console.WriteLine($"USER:   {did2}");
             Console.WriteLine($"");
             Console.WriteLine($"");
             FindLikesForRepo(repoFile2, did2, did1);
