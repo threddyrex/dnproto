@@ -11,7 +11,6 @@ namespace dnproto.commands
             return [.. new string[]{"repoFile"}];
         }
 
-
         public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
@@ -37,31 +36,22 @@ namespace dnproto.commands
             }
 
 
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                //
-                // Read header
-                //
-                RepoHeader repoHeader = RepoHeader.ReadFromStream(fs);
-
-                // print
-                Console.WriteLine();
-                Console.WriteLine($"headerJson:");
-                Console.WriteLine();
-                Console.WriteLine($"{repoHeader.JsonString}");
-                Console.WriteLine();
-
-
-                while(fs.Position < fs.Length)
-                { 
+            //
+            // Walk repo
+            //
+            Repo.WalkRepo(
+                repoFile,
+                (repoHeader) =>
+                {
+                    Console.WriteLine($"headerJson:");
+                    Console.WriteLine();
+                    Console.WriteLine($"{repoHeader.JsonString}");
+                    Console.WriteLine();
+                    return true;
+                },
+                (repoRecord) =>
+                {
                     Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-
-                    //
-                    // Read data block (record)
-                    //
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-
-                    // print
                     Console.WriteLine($"cid: {repoRecord.Cid.GetBase32()}");
                     Console.WriteLine();
                     Console.WriteLine();
@@ -69,8 +59,9 @@ namespace dnproto.commands
                     Console.WriteLine();
                     Console.WriteLine($"{repoRecord.JsonString}");
                     Console.WriteLine();
+                    return true;
                 }
-            }
+            );
         }
    }
 }
