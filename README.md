@@ -79,7 +79,7 @@ With handle:
 
 Or with did and pds:
 ```powershell
-.\dnproto.exe /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social"
+.\dnproto.exe /command repo_getstatus /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social"
 ```
 
 &nbsp;
@@ -97,7 +97,7 @@ Using handle:
 Or using did and pds:
 
 ```powershell
-.\dnproto.exe /command repo_get /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /repofilepath "myfile.car"
+.\dnproto.exe /command repo_get /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social" /repofilepath "myfile.car"
 ```
 
 
