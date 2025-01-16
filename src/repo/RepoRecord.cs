@@ -3,22 +3,8 @@ using dnproto.utils;
 namespace dnproto.repo;
 
 /// <summary>
-/// Repo Format
-///
-/// Format from spec:
-/// 
-///    [---  header  --------]   [----------------- data ---------------------------------]
-///    [varint | header block]   [varint | cid | data block]....[varint | cid | data block] 
-///
-/// 
-/// represented using the data types we have:
-/// 
-///    [---  header  --------]   [----------------- data ---------------------------------]
-///    [VarInt | CborObject  ]   [VarInt | Cid | CborObject]....[VarInt | Cid | CborObject] 
-///
-/// 
-/// https://ipld.io/specs/transport/car/carv1/#format-description
-/// 
+/// The record of a dag cbor file. Each item in a repo (post, like, follow, etc.) is stored as a record.
+/// The DataBlock contains the data. You can view a pretty-printed version of the data in JsonString.
 /// </summary>
 
 public class RepoRecord
