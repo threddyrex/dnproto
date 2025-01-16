@@ -68,8 +68,8 @@ namespace dnproto.commands
             //
             // Find did for repos
             //
-            string? did1 = FindDidForRepo(repoFile1);
-            string? did2 = FindDidForRepo(repoFile2);
+            string? did1 = Repo.FindDid(repoFile1);
+            string? did2 = Repo.FindDid(repoFile2);
 
             Console.WriteLine($"did1: {did1}");
             Console.WriteLine($"did2: {did2}");
@@ -85,8 +85,8 @@ namespace dnproto.commands
             //
             // repo1 --> did2
             //
-            Dictionary<string, DagCborObject>? merkle1 = FindMerkleRecords(repoFile1);
-            if (merkle1 == null)
+            Dictionary<string, string>? rkeys1 = Repo.FindRkeys(repoFile1);
+            if (rkeys1 == null)
             {
                 Console.WriteLine("Could not find merkle records for repo1.");
                 return;
@@ -107,15 +107,15 @@ namespace dnproto.commands
             Console.WriteLine($"");
             FindQuotePostsForRepo(repoFile1, did1, did2);
             Console.WriteLine($"");
-            FindMentionsForRepo3(repoFile1, did1, did2, merkle1);
+            FindMentionsForRepo3(repoFile1, did1, did2, rkeys1);
             Console.WriteLine($"");
 
 
             //
             // repo2 --> did1
             //
-            Dictionary<string, DagCborObject>? merkle2 = FindMerkleRecords(repoFile2);
-            if (merkle2 == null)
+            Dictionary<string, string>? rkeys2 = Repo.FindRkeys(repoFile2);
+            if (rkeys2 == null)
             {
                 Console.WriteLine("Could not find merkle records for repo2.");
                 return;
@@ -136,78 +136,13 @@ namespace dnproto.commands
             Console.WriteLine($"");
             FindQuotePostsForRepo(repoFile2, did2, did1);
             Console.WriteLine($"");
-            FindMentionsForRepo3(repoFile2, did2, did1, merkle2);
+            FindMentionsForRepo3(repoFile2, did2, did1, rkeys2);
             Console.WriteLine($"");
 
 
         }
 
 
-        public static Dictionary<string, DagCborObject>? FindMerkleRecords(string repoFile)
-        {
-            if (string.IsNullOrEmpty(repoFile)) return null;
-
-            Dictionary<string, DagCborObject> records = new Dictionary<string, DagCborObject>();
-
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // Read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
-
-                while(fs.Position < fs.Length)
-                { 
-                    // Read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-                    if (repoRecord == null) continue;
-
-                    List<DagCborObject>? e = repoRecord.DataBlock.SelectObject(["e"]) as List<DagCborObject>;
-                    if (e == null) continue;
-
-                    foreach(DagCborObject node in e)
-                    {
-                        string? v = node.SelectString(["v"]);
-                        if (string.IsNullOrEmpty(v)) continue;
-
-                        records[v] = repoRecord.DataBlock;
-                    }
-                }
-            }
-
-            return records;
-        }
-
-
-        public static string? FindDidForRepo(string? repoFile)
-        {
-            if (string.IsNullOrEmpty(repoFile)) return null;
-
-            using(var fs = new FileStream(repoFile, FileMode.Open))
-            {
-                // Read header
-                var repoHeader = RepoHeader.ReadFromStream(fs);
-
-                while(fs.Position < fs.Length)
-                { 
-                    // Read data block (record)
-                    var repoRecord = RepoRecord.ReadFromStream(fs);
-
-                    string? did = repoRecord.DataBlock.SelectString(["did"]);
-                    string? rev = repoRecord.DataBlock.SelectString(["rev"]);
-                    string? data = repoRecord.DataBlock.SelectString(["data"]);
-                    string? version = repoRecord.DataBlock.SelectString(["version"]);
-
-                    if (string.IsNullOrEmpty(did) == false 
-                        && string.IsNullOrEmpty(rev) == false 
-                        && string.IsNullOrEmpty(data) == false 
-                        && string.IsNullOrEmpty(version) == false)
-                    {
-                        return did;
-                    }
-                }
-            }
-
-            return null;
-        }
 
         public static void FindLikesForRepo(string? repoFile, string? sourceDid, string? targetDid)
         {
@@ -329,9 +264,9 @@ namespace dnproto.commands
 
         
 
-        public static void FindMentionsForRepo3(string? repoFile, string? sourceDid, string? targetDid, Dictionary<string, DagCborObject>? merkle)
+        public static void FindMentionsForRepo3(string? repoFile, string? sourceDid, string? targetDid, Dictionary<string, string>? rkeys)
         {
-            if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid) || merkle == null) return;
+            if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid) || rkeys == null) return;
 
             using(var fs = new FileStream(repoFile, FileMode.Open))
             {
@@ -362,7 +297,7 @@ namespace dnproto.commands
 
                         if (type != "app.bsky.richtext.facet#mention" || did != targetDid) continue;
 
-                        string? rkey = FindRkeyForCid(repoRecord.Cid.Base32, merkle);
+                        string? rkey = rkeys.ContainsKey(repoRecord.Cid.Base32) ? rkeys[repoRecord.Cid.Base32] : null;
 
                         if (rkey == null)
                         {
@@ -383,59 +318,5 @@ namespace dnproto.commands
         }
 
 
-        /// <summary>
-        /// 
-        /// Walk the elements of the node entry and find the rkey for the given cid.
-        /// 
-        /// https://atproto.com/specs/repository#repo-data-structure-v3
-        /// 
-        /// </summary>
-        /// <param name="cid"></param>
-        /// <param name="merkle"></param>
-        /// <returns></returns>
-        public static string? FindRkeyForCid(string cid, Dictionary<string, DagCborObject>? merkle)
-        {
-            if (string.IsNullOrEmpty(cid) || merkle == null) return null;
-            if (merkle.ContainsKey(cid) == false) return null;
-
-            DagCborObject? record = merkle[cid];
-            if (record == null) return null;
-
-            List<DagCborObject>? e = record.SelectObject(["e"]) as List<DagCborObject>;
-            if (e == null) return null;
-
-            string? kCurrent = null;
-
-            foreach(DagCborObject node in e)
-            {
-                string? v = node.SelectString(["v"]);
-                if (string.IsNullOrEmpty(v)) return null;
-                string? k = node.SelectString(["k"]);
-                if (string.IsNullOrEmpty(v)) return null;
-                int? p = node.SelectInt(["p"]);
-                if (p == null) return null;
-
-                if (p == 0)
-                {
-                    kCurrent = k;
-                }
-                else if (kCurrent != null)
-                {
-                    kCurrent = kCurrent.Substring(0, (int)p) + k;
-                }
-                else
-                {
-                    return null;
-                }
-
-                if (string.Equals(cid, v)) break; // we're done
-            }
-
-
-            if (kCurrent == null) return null;
-
-            string rkey = kCurrent.Split("/").Last();
-            return rkey;
-        }
    }
 }
