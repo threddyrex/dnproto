@@ -1,7 +1,11 @@
 using System.Text;
 
-namespace dnproto.utils;
+namespace dnproto.repo;
 
+/// <summary>
+/// The fundamental type for a block of data in IPLD.
+/// Everything is a DagCborObject.
+/// </summary>
 public class DagCborObject
 {
     public required DagCborType Type;

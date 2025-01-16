@@ -1,5 +1,6 @@
 
 using dnproto.utils;
+namespace dnproto.repo;
 
 /// <summary>
 /// Repo Format

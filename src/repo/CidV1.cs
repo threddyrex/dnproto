@@ -1,6 +1,11 @@
 
-namespace dnproto.utils;
+namespace dnproto.repo;
 
+/// <summary>
+/// Represents a cid in atproto. Only cid version 1 is supported.
+/// https://github.com/multiformats/cid
+/// https://github.com/multiformats/multicodec/blob/master/table.csv
+/// </summary>
 public class CidV1
 {
     // first byte

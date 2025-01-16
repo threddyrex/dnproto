@@ -1,11 +1,15 @@
 
 using System.Text;
+namespace dnproto.repo;
 
-namespace dnproto.utils;
 
 public class Base32Encoding
 {
-    // Take 5 bits at a time and convert to base32 character.
+    /// <summary>
+    /// Take 5 bits at a time and convert to base32 character.
+    /// </summary>
+    /// <param name="bytes"></param>
+    /// <returns></returns>
     public static string BytesToBase32(byte[] bytes)
     {
         int currentByteIndex = 0;
@@ -68,41 +72,4 @@ public class Base32Encoding
 
         return sb.ToString();
     }
-
-
-    //
-    // Clearly not the most efficient way to do this, but it works for now.
-    //
-    // Take 5 bits at a time, convert to base32 character.
-    //
-    public static string BytesToBase32Orig(byte[] bytes)
-    {
-        string base32characters = "abcdefghijklmnopqrstuvwxyz234567";
-        string cidBits = string.Join("", bytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
-
-        int index = 0;
-
-        StringBuilder sb = new StringBuilder();
-
-        while(index < cidBits.Length-5)
-        {
-            string next5 = cidBits.Substring(index, 5);
-            index += 5;
-            int next5Int = Convert.ToInt32(next5, 2);
-            char next5Char = base32characters[next5Int];
-            sb.Append(next5Char);
-        }
-
-        if (index < cidBits.Length)
-        {
-            string next5 = cidBits.Substring(index).PadRight(5, '0');
-            int next5Int = Convert.ToInt32(next5, 2);
-            char next5Char = base32characters[next5Int];
-            sb.Append(next5Char);
-        }
-
-        return sb.ToString();
-    }
-
-    
 }

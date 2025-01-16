@@ -1,5 +1,6 @@
 using System.Text;
 
+using dnproto.repo;
 using dnproto.utils;
 
 namespace dnproto.commands

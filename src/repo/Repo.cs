@@ -1,5 +1,5 @@
 
-namespace dnproto.utils;
+namespace dnproto.repo;
 
 
 public class Repo
@@ -8,8 +8,9 @@ public class Repo
         /// <summary>
         /// Start at beginning and read through entire repo. 
         /// Use callbacks to let caller know when we find things.
-        /// This is just top-level algorithm. Most of the heavy lifting
-        /// is done in RepoHeader, RepoRecord, VarInt, CidV1, and DagCborObject.
+        /// 
+        /// This is just the top-level algorithm. Most of the heavy lifting
+        /// is done in VarInt, CidV1, and DagCborObject.
         /// 
         /// Repo Format
         ///

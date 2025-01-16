@@ -1,5 +1,5 @@
 
-namespace dnproto.utils;
+namespace dnproto.repo;
 
 /// <summary>
 /// In CAR files, several values are stored as variable-length integers (varints).

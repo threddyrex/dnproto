@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+using dnproto.repo;
 using dnproto.utils;
 
 namespace dnproto.commands
