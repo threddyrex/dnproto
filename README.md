@@ -2,17 +2,10 @@
 
 This is a tool written in C# for interacting with ATProto and Bluesky. It's a work in progress.
 
-&nbsp;
+The sections below explain how to use the command line tool.
 
+If you are interested in using the C# repo parsing code, check out Repo.cs in the repo directory to get started. That's the entry point to those classes.
 
-# Running the unit tests
-
-You can run the unit tests with the following commands:
-
-```powershell
-cd .\test\
-dotnet test
-```
 
 
 &nbsp;
@@ -153,5 +146,6 @@ These commands usually provide a "outfile" argument for writing the response to 
 ```powershell
 .\dnproto.exe /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
 ```
+
 
 
