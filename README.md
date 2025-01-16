@@ -104,7 +104,7 @@ stored in a file on local disk (specified by $sessionFile).
 $sessionFile = "path_to_file"
 
 # log in
-.\dnproto.exe /command session_create /sessionfile $sessionFile /pds "pds" /username "handle" /password "password"
+.\dnproto.exe /command session_create /sessionfile $sessionFile /handle "handle" /password "password"
 
 # create a post
 .\dnproto.exe /command post_create /sessionfile $sessionFile /text "text of post"
