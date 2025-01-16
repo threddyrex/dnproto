@@ -4,69 +4,69 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using dnproto.repo;
 using dnproto.utils;
 
-namespace dnproto.commands
+namespace dnproto.commands;
+
+public class Post_Create : BaseCommand
 {
-    public class Post_Create : BaseCommand
+    public override HashSet<string> GetRequiredArguments()
     {
-        public override HashSet<string> GetRequiredArguments()
+        return new HashSet<string>(new string[]{"sessionFile", "text"});
+    }
+
+    /// <summary>
+    /// Create post
+    /// </summary>
+    /// <param name="arguments"></param>
+    /// <exception cref="ArgumentException"></exception>
+    public override void DoCommand(Dictionary<string, string> arguments)
+    {
+        //
+        // Get arguments
+        //
+        JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
+        string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
+        string pds = JsonData.GetPropertyValue(session, "pds");
+        string did = JsonData.GetPropertyValue(session, "did");
+        string? text = CommandLineInterface.GetArgumentValue(arguments, "text");
+        string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
+
+        Console.WriteLine($"pds: {pds}");
+        Console.WriteLine($"did: {did}");
+        Console.WriteLine($"url: {url}");
+        Console.WriteLine($"text: {text}");
+
+        if(string.IsNullOrEmpty(text))
         {
-            return new HashSet<string>(new string[]{"sessionFile", "text"});
+            Console.WriteLine("Text is required.");
+            return;
         }
 
-        /// <summary>
-        /// Create post
-        /// </summary>
-        /// <param name="arguments"></param>
-        /// <exception cref="ArgumentException"></exception>
-        public override void DoCommand(Dictionary<string, string> arguments)
-        {
-            //
-            // Get arguments
-            //
-            JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
-            string accessJwt = JsonData.GetPropertyValue(session, "accessJwt");
-            string pds = JsonData.GetPropertyValue(session, "pds");
-            string did = JsonData.GetPropertyValue(session, "did");
-            string? text = CommandLineInterface.GetArgumentValue(arguments, "text");
-            string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
 
-            Console.WriteLine($"pds: {pds}");
-            Console.WriteLine($"did: {did}");
-            Console.WriteLine($"url: {url}");
-            Console.WriteLine($"text: {text}");
-
-            if(string.IsNullOrEmpty(text))
-            {
-                Console.WriteLine("Text is required.");
-                return;
-            }
-
-
-            //
-            // Send request
-            //
-            JsonNode? postResult = WebServiceClient.SendRequest(url,
-                HttpMethod.Post,
-                accessJwt: accessJwt,
-                content: new StringContent(JsonSerializer.Serialize(new
-                    {
-                        repo = did,
-                        collection = "app.bsky.feed.post",
-                        record = new {
-                            text = text,
-                            createdAt = System.DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                        }                    
-                    }))
-            );
+        //
+        // Send request
+        //
+        JsonNode? postResult = WebServiceClient.SendRequest(url,
+            HttpMethod.Post,
+            accessJwt: accessJwt,
+            content: new StringContent(JsonSerializer.Serialize(new
+                {
+                    repo = did,
+                    collection = "app.bsky.feed.post",
+                    record = new {
+                        text = text,
+                        createdAt = System.DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+                    }                    
+                }))
+        );
 
 
 
-            //
-            // Show result
-            //
-            WebServiceClient.PrintJsonResponseToConsole(postResult);
-        }
+        //
+        // Show result
+        //
+        WebServiceClient.PrintJsonResponseToConsole(postResult);
     }
 }
