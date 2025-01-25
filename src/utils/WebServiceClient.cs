@@ -25,6 +25,8 @@ public class WebServiceClient
     /// <returns></returns>
     public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null)
     {
+        Console.WriteLine($"SendRequest: {url}");
+
         using (HttpClient client = new HttpClient())
         {
             //
@@ -54,6 +56,8 @@ public class WebServiceClient
                 Console.WriteLine("response is null.");
                 return null;
             }
+
+            Console.WriteLine($"status code: {response.StatusCode} ({(int)response.StatusCode})");
 
             //
             // If user wants json, parse that.
