@@ -71,6 +71,12 @@ public static class JsonData
         return JsonSerializer.Serialize(obj, options);
     }
 
+    public static object? ConvertJsonStringToObject(string? jsonString)
+    {
+        if(string.IsNullOrEmpty(jsonString)) return null;
+        return JsonSerializer.Deserialize<object>(jsonString);
+    }
+
 
     /// <summary>
     /// Write json node to file.
