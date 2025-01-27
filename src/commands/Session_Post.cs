@@ -101,23 +101,10 @@ public class Session_Post : BaseCommand
                     record = new {
                         text = text,
                         facets = mentions.Select(mention => JsonData.ConvertJsonStringToObject(
-                            // This is a hack. We're creating a json object in a string and then converting it to an object.
-                            // This is because the object is a dynamic object and we can't create it directly.
-                            // Properties can't start with '$'.
-                            // We need to create a json object with the following structure:
-                            // {
-                            //     "$type": "app.bsky.richtext.facet",
-                            //     "index": {
-                            //         "byteStart": 0,
-                            //         "byteEnd": 5
-                            //     },
-                            //     "features": [
-                            //         {
-                            //             "$type": "app.bsky.richtext.facet#mention",
-                            //             "did": "did:atproto:identity:0x1234567890abcdef"
-                            //         }
-                            //     ]
-                            // }
+                            // This is a hack. We're creating an object that will eventually be
+                            // converted to json for the request. However we can't create a C# object
+                            // with a property named "$type". Thus we have to create it as a string
+                            // first, convert to anonymous object, and then continue on.
                             $"{{\"$type\":\"app.bsky.richtext.facet\",\"index\":{{\"byteStart\":{mention.ByteStart},\"byteEnd\":{mention.ByteEnd}}},\"features\":[{{\"$type\":\"app.bsky.richtext.facet#mention\",\"did\":\"{mention.Did}\"}}]}}"
                         )).ToArray(),
                         createdAt = System.DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
