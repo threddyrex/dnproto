@@ -22,7 +22,7 @@ public class DagCborObject
     /// <param name="s"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static DagCborObject ReadFromStream(Stream s)
+    public static DagCborObject ReadFromStream(Stream s, Dictionary<string, DagCborObject>? dataBlockDict = null)
     {
         DagCborType type = DagCborType.ReadNextType(s);
         int length = 0;
@@ -31,7 +31,7 @@ public class DagCborObject
         {
             case DagCborType.TYPE_MAP:
                 length = ReadLengthFromStream(type, s); // might read one more byte for length
-                Dictionary<string,DagCborObject> dict = new Dictionary<string,DagCborObject>();
+                Dictionary<string,DagCborObject> dict = dataBlockDict != null ? dataBlockDict : new Dictionary<string,DagCborObject>();
 
                 for(int i = 0; i < length; i++)
                 {
@@ -289,17 +289,13 @@ public class DagCborObject
                 return Value;
             }
         }
-        else if(Type.MajorType ==DagCborType.TYPE_DNPROTO_EXCEPTION)
-        {
-            return Value;
-        }
         else
         {
             throw new Exception("Unknown major type: " + Type.MajorType);
         }
     }
 
-    public static DagCborObject FromException(Exception e, byte[] buffer)
+    public static DagCborObject FromException(Exception e, byte[] buffer, Dictionary<string, DagCborObject> dataBlockDict)
     {
         string bufferString = Encoding.UTF8.GetString(buffer);
 
@@ -308,18 +304,28 @@ public class DagCborObject
         sb.AppendLine("Exception Type: " + e.GetType().Name);
         sb.AppendLine("Exception Message: " + e.Message);
         sb.AppendLine("Exception StackTrace: " + e.StackTrace);
-        sb.AppendLine("DNPROTO EXCEPTION");
+
+        dataBlockDict["DNPROTO_EXCEPTION"] = new DagCborObject
+        {
+            Type = new DagCborType
+            {
+                MajorType = DagCborType.TYPE_TEXT,
+                AdditionalInfo = 0,
+                OriginalByte = 0
+            },
+            Value = sb.ToString()
+        };
 
 
         return new DagCborObject
         {
             Type = new DagCborType
             {
-                MajorType = DagCborType.TYPE_DNPROTO_EXCEPTION,
+                MajorType = DagCborType.TYPE_MAP,
                 AdditionalInfo = 0,
                 OriginalByte = 0
             },
-            Value = sb.ToString()
+            Value = dataBlockDict
         };
     }
 }
@@ -365,8 +371,6 @@ public class DagCborType
                 return "TYPE_TAG";
             case TYPE_SIMPLE_VALUE:
                 return "TYPE_SIMPLE_VALUE";
-            case TYPE_DNPROTO_EXCEPTION:
-                return "TYPE_DNPROTO_EXCEPTION";
             default:
                 return "UNKNOWN";
         }
@@ -380,6 +384,4 @@ public class DagCborType
     public const int TYPE_MAP = 5;
     public const int TYPE_TAG = 6;
     public const int TYPE_SIMPLE_VALUE = 7;
-    public const int TYPE_DNPROTO_EXCEPTION = -1;
-
 }

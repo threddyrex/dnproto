@@ -44,19 +44,20 @@ public class RepoRecord
         CidV1 cid = CidV1.ReadCid(ms);
 
         DagCborObject? dataBlock = null;
+        Dictionary<string, DagCborObject>? dataBlockDict = new Dictionary<string, DagCborObject>();
         string? recordType = null;
         string? createdAt = null;
         try
         {
-            dataBlock = DagCborObject.ReadFromStream(ms);
-            recordType = dataBlock.SelectString(["$type"]);
+            dataBlock = DagCborObject.ReadFromStream(ms, dataBlockDict);
             createdAt = dataBlock.SelectString(["createdAt"]);
         }
         catch (Exception ex)
         {
-            dataBlock = DagCborObject.FromException(ex, buffer);
+            dataBlock = DagCborObject.FromException(ex, buffer, dataBlockDict);
         }
 
+        recordType = dataBlock.SelectString(["$type"]);
 
         var recordJson = JsonData.ConvertObjectToJsonString(dataBlock.GetRawValue());
 

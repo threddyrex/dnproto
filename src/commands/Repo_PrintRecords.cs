@@ -41,6 +41,7 @@ namespace dnproto.commands
             //
             int totalRecords = 0;
             Dictionary<string, int> dagCborTypeCounts = new Dictionary<string, int>();
+            Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>();
 
             //
             // Walk repo
@@ -78,6 +79,17 @@ namespace dnproto.commands
                         dagCborTypeCounts[typeString] = 1;
                     }
 
+                    string recordType = repoRecord.RecordType ?? "null";
+
+                    if (recordTypeCounts.ContainsKey(recordType))
+                    {
+                        recordTypeCounts[recordType] = recordTypeCounts[recordType] + 1;
+                    }
+                    else
+                    {
+                        recordTypeCounts[recordType] = 1;
+                    }
+
                     return true;
                 }
             );
@@ -96,6 +108,11 @@ namespace dnproto.commands
                 Console.WriteLine($"    {kvp.Key} - {kvp.Value}");
             }
             Console.WriteLine();
+            Console.WriteLine($"RecordType counts:");
+            foreach (var kvp in recordTypeCounts)
+            {
+                Console.WriteLine($"    {kvp.Key} - {kvp.Value}");
+            }
         }
    }
 }
