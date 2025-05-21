@@ -164,5 +164,6 @@ These commands usually provide a "outfile" argument for writing the response to 
 # Exceptions
 
 If you are parsing records and for some reason the parsing code cannot understand 
-a certain record structure, it will create a DagCborObject of type "TYPE_DNPROTO_EXCEPTION", and 
-continue to the next record. I've seen this recently with non-Bluesky record types.
+a certain record structure, it will create a DagCborObject and include a map entry 
+with the key "DNPROTO_EXCEPTION", and continue to the next record. 
+I've seen this recently with non-Bluesky record types, like the flashes app profile.
