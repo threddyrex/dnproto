@@ -1,0 +1,254 @@
+
+
+
+----------------------------------------------------------------------------------------------------------
+LIKE
+----------------------------------------------------------------------------------------------------------
+
+
+cid: bafyreih4aif5amniaxw6tpphyp63q3n37rzfew27dz366zrnydnpskqw3u
+
+
+blockJson:
+
+{
+  "$type": "app.bsky.feed.like",
+  "subject": {
+    "cid": "bafyreierfdumc3aihsyhof27w2dlgirhh3k5abngjv7awkbvs3qtykgvha",
+    "uri": "at://did:plc:watmxkxfjbwyxfuutganopfk/app.bsky.feed.post/3lfgd7ub5cs2s"
+  },
+  "createdAt": "2025-01-10T23:17:28.390Z"
+}
+
+
+
+
+----------------------------------------------------------------------------------------------------------
+POST
+----------------------------------------------------------------------------------------------------------
+
+
+cid: bafyreicnx7cjxmbhiecaqbhknipg5rgkml2rngv4npeogbph4h76jlya2i
+
+
+blockJson:
+
+{
+  "text": "this account is nearly a month old, time to create a new one lol",
+  "$type": "app.bsky.feed.post",
+  "langs": [
+    "en"
+  ],
+  "createdAt": "2025-01-09T19:36:11.392Z"
+}
+
+
+----------------------------------------------------------------------------------------------------------
+RE-POST
+----------------------------------------------------------------------------------------------------------
+
+cid: bafyreidvhwzfhjzzruvtpwe2jmp3tws2bhry6oexzbenalj6d23dxjrgyq
+
+
+blockJson:
+
+{
+  "$type": "app.bsky.feed.repost",
+  "subject": {
+    "cid": "bafyreiez7msce3feqjrkjf542cc4jf6quxek6j74z7gzhie73dzsyqb36y",
+    "uri": "at://did:plc:watmxkxfjbwyxfuutganopfk/app.bsky.feed.post/3lczad2hfks23"
+  },
+  "createdAt": "2024-12-11T07:30:44.189Z"
+}
+
+
+
+----------------------------------------------------------------------------------------------------------
+QUOTE POST
+----------------------------------------------------------------------------------------------------------
+
+cid: bafyreicfwv5rnmrkvygzlehhhoqwloosqcyf75bqsdwbfywxtjr5x3sz4q
+
+
+blockJson:
+
+{
+  "text": "hello again from a parking lot",
+  "$type": "app.bsky.feed.post",
+  "embed": {
+    "$type": "app.bsky.embed.record",
+    "record": {
+      "cid": "bafyreiaikwq7pgojzxcuxzh5khzypx3vyl36owibp3m2ebpsghypdijjea",
+      "uri": "at://did:plc:watmxkxfjbwyxfuutganopfk/app.bsky.feed.post/3lbnl2hdcak24"
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "createdAt": "2024-12-14T18:41:50.706Z"
+}
+
+
+----------------------------------------------------------------------------------------------------------
+REPLY
+----------------------------------------------------------------------------------------------------------
+
+cid: bafyreicr7wejnfpmqrjazimn75qxyzvvgckszksyzwydraqlulb3ryzo2u
+
+
+blockJson:
+
+{
+  "text": "handle changes for didweb are tricky",
+  "$type": "app.bsky.feed.post",
+  "langs": [
+    "en"
+  ],
+  "reply": {
+    "root": {
+      "cid": "bafyreiavsjct2z6z2chiflwhead52qfde7am57r4abzrbacqvxf4322grq",
+      "uri": "at://did:web:threddyrex.org/app.bsky.feed.post/3lehufk3k6k25"
+    },
+    "parent": {
+      "cid": "bafyreiavsjct2z6z2chiflwhead52qfde7am57r4abzrbacqvxf4322grq",
+      "uri": "at://did:web:threddyrex.org/app.bsky.feed.post/3lehufk3k6k25"
+    }
+  },
+  "createdAt": "2024-12-29T20:33:47.535Z"
+}
+
+
+
+----------------------------------------------------------------------------------------------------------
+MENTIONS
+----------------------------------------------------------------------------------------------------------
+
+
+
+cid: bafyreickk5kqydx5v6h5kheizdk6mkynknmqoyaxnj33wdmbpqoo4cddje
+
+
+blockJson:
+
+{
+  "text": "testing what a mention looks like for two mentions\n\n@threddyrex.com \n\n@sam.didweb.social",
+  "$type": "app.bsky.feed.post",
+  "langs": [
+    "en"
+  ],
+  "facets": [
+    {
+      "$type": "app.bsky.richtext.facet",
+      "index": {
+        "byteEnd": 67,
+        "byteStart": 52
+      },
+      "features": [
+        {
+          "did": "did:plc:watmxkxfjbwyxfuutganopfk",
+          "$type": "app.bsky.richtext.facet#mention"
+        }
+      ]
+    },
+    {
+      "$type": "app.bsky.richtext.facet",
+      "index": {
+        "byteEnd": 88,
+        "byteStart": 70
+      },
+      "features": [
+        {
+          "did": "did:web:sam.didweb.social",
+          "$type": "app.bsky.richtext.facet#mention"
+        }
+      ]
+    }
+  ],
+  "createdAt": "2025-01-15T07:43:04.547Z"
+}
+
+
+
+
+----------------------------------------------------------------------------------------------------------
+FOLLOW
+----------------------------------------------------------------------------------------------------------
+
+
+cid: bafyreibei6qs64mc6oh5ib5lumw7yutmokpcawivianfdv7wcmr4pzpsty
+
+
+blockJson:
+
+{
+  "$type": "app.bsky.graph.follow",
+  "subject": "did:plc:watmxkxfjbwyxfuutganopfk",
+  "createdAt": "2024-12-11T01:50:27.002Z"
+}
+
+
+
+
+----------------------------------------------------------------------------------------------------------
+MERKLE SEARCH TREE - RKEY
+----------------------------------------------------------------------------------------------------------
+
+
+cid: bafyreicpfzow2we7j3p7uvc34u6hw64wft3zv6s4pg2vicxaxtmwezrtlm
+
+
+blockJson:
+
+{
+  "e": [
+    {
+      "k": "app.bsky.feed.post/3lehuiillpk25",
+      "p": 0,
+      "t": "bafyreiesyhv3vd2g36crdzui7ayjmzxuq3prltwf2dyfmaeimin6sn5tsu",
+      "v": "bafyreicr7wejnfpmqrjazimn75qxyzvvgckszksyzwydraqlulb3ryzo2u"
+    },
+    {
+      "k": "fdgfmmq2s2b",
+      "p": 21,
+      "t": "null",
+      "v": "bafyreicnx7cjxmbhiecaqbhknipg5rgkml2rngv4npeogbph4h76jlya2i"
+    },
+    {
+      "k": "r6qjvfss27",
+      "p": 22,
+      "t": "null",
+      "v": "bafyreiajsdgdbbxmjotbmj72ua42ryxdursrifr36efpq6zkuhozeddgmq"
+    },
+    {
+      "k": "7346yr227",
+      "p": 23,
+      "t": "bafyreidyvlgyhx6b5nvgxz5ekun2sa5h3t7xwwxq37lzp6edaogtkpdyxy",
+      "v": "bafyreifsa5iyrdopylggaiqrrwlsz6zfkca7peeoc4bxpzlki7qinthcle"
+    },
+    {
+      "k": "repost/3lcyo7xf37c2y",
+      "p": 14,
+      "t": "null",
+      "v": "bafyreic64dykejcvq7c7conkchdetjz42lnizh4lhgdeim7h7esikg7sna"
+    },
+    {
+      "k": "zadrkiwk2s",
+      "p": 24,
+      "t": "bafyreicg2nlh2yngfgl7qeuk53u5oglbrppnpscmmld3tqb7kwkxo4ffji",
+      "v": "bafyreidvhwzfhjzzruvtpwe2jmp3tws2bhry6oexzbenalj6d23dxjrgyq"
+    },
+    {
+      "k": "graph.block/3lczb67z3gs2s",
+      "p": 9,
+      "t": "bafyreiacl42ps75nw7um3dmnvfsuqtiusfr3jodbknc3dpmcptghdulf24",
+      "v": "bafyreieck2ygoqlosgh4uv7ifnkfc24sekhf4gqt2rt22rb7vjdty4lnpe"
+    },
+    {
+      "k": "dexuusgrc2s",
+      "p": 23,
+      "t": "bafyreicdmjko4zvtt3npbqo347uxf7nwd3pl66syvqasil6yggzzneeruq",
+      "v": "bafyreidrz7f2ezkzngm2k3gnyxv755qiu3oj5qmnhkw2i553rj4lq5rjwm"
+    }
+  ],
+  "l": "bafyreicgwjabq5kj6fk4lfgovq4wjqlfxxgha5naezbwwywygljchtxmx4"
+}
