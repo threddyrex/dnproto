@@ -23,13 +23,17 @@ public class RepoRecord
 
     public static RepoRecord ReadFromStream(Stream s)
     {
+
+        //
+        // The block length is the first VarInt in the stream.
+        //
         VarInt blockLength = VarInt.ReadVarInt(s);
 
-        // Get length, and use that to read bytes into a memory stream.
-        // Useful for debugging - we can just skip the record (storing bytes) and move to next record.
-        int l = blockLength.Value;
 
-        // Read l bytes into memory stream
+        //
+        // Use the block length to read the entire block into a memory stream.
+        //
+        int l = blockLength.Value;
         byte[] buffer = new byte[l];
         int bytesRead = s.Read(buffer, 0, l);
         if (bytesRead != l)
@@ -37,10 +41,12 @@ public class RepoRecord
             throw new Exception($"Failed to read {l} bytes from stream. Read {bytesRead} bytes.");
         }
 
-        // Create a memory stream from the buffer
         using MemoryStream ms = new MemoryStream(buffer);
 
-        // Read from memory stream instead of the original stream
+
+        //
+        // Read the record from the memory stream.
+        //
         CidV1 cid = CidV1.ReadCid(ms);
 
         DagCborObject? dataBlock = null;
@@ -61,7 +67,9 @@ public class RepoRecord
 
         var recordJson = JsonData.ConvertObjectToJsonString(dataBlock.GetRawValue());
 
+        //
         // Return
+        //
         return new RepoRecord
         {
             Length = blockLength,
