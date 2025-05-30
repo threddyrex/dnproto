@@ -23,7 +23,9 @@ namespace dnproto.commands
 
 
         /// <summary>
-        /// Get preferences for the current session
+        /// Get preferences for the current session.
+        /// Contains things like muted words, saved feeds, etc. 
+        /// https://docs.bsky.app/docs/api/app-bsky-actor-get-preferences
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>

@@ -23,7 +23,8 @@ namespace dnproto.commands
 
 
         /// <summary>
-        /// Get unread notification count
+        /// Get unread notification count.
+        /// https://docs.bsky.app/docs/api/app-bsky-notification-get-unread-count
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
