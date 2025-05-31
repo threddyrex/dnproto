@@ -35,9 +35,9 @@ public class DagCborObject
 
                 for(int i = 0; i < length; i++)
                 {
-                   DagCborObject key = ReadFromStream(s);
+                    DagCborObject key = ReadFromStream(s);
                     string? keyString = key != null ? key.TryGetString() : null;
-                   DagCborObject value = ReadFromStream(s);
+                    DagCborObject value = ReadFromStream(s);
 
                     if(keyString != null)
                     {
@@ -101,12 +101,10 @@ public class DagCborObject
                 }
                 else if(type.AdditionalInfo == 0x14)
                 {
-                    s.ReadByte();
                     return new DagCborObject { Type = type, Value = false };
                 }
                 else if(type.AdditionalInfo == 0x15)
                 {
-                    s.ReadByte();
                     return new DagCborObject { Type = type, Value = true };
                 }
                 else
