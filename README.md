@@ -178,8 +178,8 @@ I've seen this recently with non-Bluesky record types, like the flashes app prof
 
 
 ```powershell
-.\dnproto.exe /command repo_get /handle "threddyrex.com" /repofile "threddy.car"
-.\dnproto.exe /command repo_printposts /repofile "threddy.car"
+.\dnproto.exe /command repo_get /handle "yourhandle.com" /repofile "repo.car"
+.\dnproto.exe /command repo_printposts /repofile "repo.car" > posts.txt
 ```
 
 
