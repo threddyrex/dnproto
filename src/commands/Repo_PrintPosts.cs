@@ -27,9 +27,6 @@ namespace dnproto.commands
 
             bool fileExists = File.Exists(repoFile);
 
-            Console.WriteLine($"repoFile: {repoFile}");
-            Console.WriteLine($"fileExists: {fileExists}");
-
             if (!fileExists)
             {
                 Console.WriteLine("File does not exist.");
