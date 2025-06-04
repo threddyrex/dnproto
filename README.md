@@ -159,6 +159,7 @@ These commands usually provide a "outfile" argument for writing the response to 
 ```
 
 
+
 &nbsp;
 
 # Exceptions
@@ -167,3 +168,18 @@ If you are parsing records and for some reason the parsing code cannot understan
 a certain record structure, it will create a DagCborObject and include a map entry 
 with the key "DNPROTO_EXCEPTION", and continue to the next record. 
 I've seen this recently with non-Bluesky record types, like the flashes app profile.
+
+
+
+
+&nbsp;
+
+# Download repo and print posts
+
+
+```powershell
+.\dnproto.exe /command repo_get /handle "threddyrex.com" /repofile "threddy.car"
+.\dnproto.exe /command repo_printposts /repofile "threddy.car"
+```
+
+
