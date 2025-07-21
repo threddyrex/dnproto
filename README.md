@@ -178,7 +178,9 @@ I've seen this recently with non-Bluesky record types, like the flashes app prof
 
 
 ```powershell
+# Download full CAR file from the user's PDS, and store on local disk
 .\dnproto.exe /command repo_get /handle "yourhandle.com" /repofile "repo.car"
+# Parse local CAR file and print posts
 .\dnproto.exe /command repo_printposts /repofile "repo.car" > posts.txt
 ```
 
