@@ -184,3 +184,10 @@ I've seen this recently with non-Bluesky record types, like the flashes app prof
 ```
 
 
+
+&nbsp;
+
+# Linux Support
+
+Is Linux supported? Yes! I tested a few of the commands on an Ubuntu VM. dotnet is supported (generally) on Linux.
+
