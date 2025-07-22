@@ -190,4 +190,5 @@ I've seen this recently with non-Bluesky record types, like the flashes app prof
 # Linux Support
 
 Is Linux supported? Yes! I tested a few of the commands on an Ubuntu VM. dotnet is supported (generally) on Linux.
+As of now, the test suite fully passes on an Ubuntu VM.
 
