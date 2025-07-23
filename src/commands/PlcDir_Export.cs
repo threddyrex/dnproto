@@ -21,9 +21,9 @@ public class PlcDir_Export : BaseCommand
     /// <summary>
     /// Export data from plc
     /// 
-    /// https://plc.directory/export?count=10&after=2024-12-08T20:33:04Z
-    /// 
     /// https://web.plc.directory/api/redoc#operation/Export
+    /// 
+    /// https://plc.directory/export?count=10&after=2024-12-08T20:33:04Z
     /// 
     /// </summary>
     /// <param name="arguments"></param>
@@ -95,6 +95,7 @@ public class PlcDir_Export : BaseCommand
         Console.WriteLine($"after: {after}");
         Console.WriteLine($"url: {url}");
 
+        // Don't parse return JSON, because technically it returns "jsonlines", which is multiple lines of JSON.
         WebServiceClient.SendRequest(url, HttpMethod.Get, parseJsonResponse: false, outputFilePath: CommandLineInterface.GetArgumentValue(arguments, "outfile"));
 
     }
