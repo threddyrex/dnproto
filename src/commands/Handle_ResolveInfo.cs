@@ -64,7 +64,7 @@ public class Handle_ResolveInfo : BaseCommand
     /// Attempts the following steps:
     ///
     ///     1. Resolve handle to did.
-    ///     2. Resolve did to didDoc.
+    ///     2. Resolve did to didDoc. (did:plc or did:web)
     ///     3. Resolve didDoc to pds.
     ///     
     /// </summary>
@@ -74,16 +74,16 @@ public class Handle_ResolveInfo : BaseCommand
     {
         Dictionary<string, string> ret = new Dictionary<string, string>();
 
+
+        //
+        // 1. Resolve handle to did.
+        //
         string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
         string? did = null;
         string? didDoc = null;
-
         ret["url_resolveHandle"] = url;
 
 
-        //
-        // Handle -> did
-        //
         JsonNode? response = WebServiceClient.SendRequest(url,
             HttpMethod.Get);
 
@@ -95,7 +95,7 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // did -> didDoc
+        // 2. Resolve did to didDoc. (did:plc or did:web)
         //
         if(did.StartsWith("did:plc"))
         {
@@ -128,10 +128,11 @@ public class Handle_ResolveInfo : BaseCommand
             }
         }
 
+
         //
-        // didDoc -> pds
+        // 3. Resolve didDoc to pds.
         //
-        if(string.IsNullOrEmpty(didDoc)) return ret;
+        if (string.IsNullOrEmpty(didDoc)) return ret;
 
         JsonNode? didDocJson = JsonNode.Parse(didDoc);
         if(didDocJson == null) return ret;
