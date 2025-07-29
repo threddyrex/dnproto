@@ -5,13 +5,12 @@ using dnproto.repo;
 namespace dnproto.utils;
 
 /// <summary>
-/// Utility class for Bluesky related operations.
+/// Utility class for Bluesky-related functions.
 /// </summary>
 public class BlueskyUtils
 {
     /// <summary>
-    /// 
-    /// Resolves a handle to a dictionary containing did, didDoc, and pds.
+    /// Finds a bunch of info for a handle. (did, didDoc, pds)
     ///
     /// Attempts the following steps:
     ///
@@ -38,12 +37,12 @@ public class BlueskyUtils
         //
         string? did = BlueskyUtils.ResolveHandleToDid_ViaDns(handle);
 
-        if (string.IsNullOrEmpty(did))
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
         {
             did = BlueskyUtils.ResolveHandleToDid_ViaHttp(handle);
         }
 
-        if(string.IsNullOrEmpty(did)) return ret;
+        if(string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
         ret["did"] = did;
 
 
@@ -67,6 +66,9 @@ public class BlueskyUtils
 
         if (string.IsNullOrEmpty(didDoc)) return ret;
         ret["didDoc"] = didDoc;
+
+        Console.WriteLine("didDoc:");
+        Console.WriteLine(didDoc);
 
 
         //
