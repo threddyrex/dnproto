@@ -74,38 +74,14 @@ public class Handle_ResolveInfo : BaseCommand
         //
         // 1. Resolve handle to did (dns or http).
         //
-        string? did = null;
-        string url = $"https://cloudflare-dns.com/dns-query?name=_atproto.{handle}&type=TXT";
-        ret["url_dns"] = url;
-        JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get, acceptHeader: "application/dns-json");
+        string? did = BlueskyUtils.ResolveHandleToDid_ViaDns(handle);
 
-        if (response != null) 
-        {
-            did = response["Answer"]?.AsArray()?.FirstOrDefault()?.AsObject()?["data"]?.ToString().Replace("\"", "").Replace("did=", "");
-            Console.WriteLine($"dns did response: {did}");
-        }
-
-        // dns didn't work? try http
         if (string.IsNullOrEmpty(did))
         {
-            Console.WriteLine($"No did found in dns response, trying http resolution for handle '{handle}'");
-
-            // If dns did not return a result, try the http endpoint
-            url = $"https://{handle}/.well-known/atproto-did";
-            ret["url_http"] = url;
-            var responseText = WebServiceClient.SendRequestEx(url, HttpMethod.Get);
-
-            if (responseText != null)
-            {
-                did = responseText;
-            }
-
-            Console.WriteLine($"https did response: {did}");
+            did = BlueskyUtils.ResolveHandleToDid_ViaHttp(handle);
         }
 
-
         if(string.IsNullOrEmpty(did)) return ret;
-
         ret["did"] = did;
 
 
@@ -115,54 +91,28 @@ public class Handle_ResolveInfo : BaseCommand
         string? didDoc = null;
         if(did.StartsWith("did:plc"))
         {
-            string url_plc = $"https://plc.directory/{did}";
-            ret["url_plc"] = url_plc;
-            response = WebServiceClient.SendRequest(url_plc,
-                HttpMethod.Get);
-
-            didDoc = JsonData.ConvertToJsonString(response);
-
-            if(didDoc != null)
-            {
-                ret["didDoc"] = didDoc;
-            }
+            didDoc = BlueskyUtils.ResolveDidToDidDoc_DidPlc(did);
         }
         else if(did.StartsWith("did:web"))
         {
-            string hostname = did.Replace("did:web:", "");
-
-            string url_didweb = $"https://{hostname}/.well-known/did.json";
-            ret["url_didweb"] = url_didweb;
-
-            response = WebServiceClient.SendRequest(url_didweb, HttpMethod.Get);
-
-            didDoc = JsonData.ConvertToJsonString(response);
-
-            if(didDoc != null)
-            {
-                ret["didDoc"] = didDoc;
-            }
+            didDoc = BlueskyUtils.ResolveDidToDidDoc_DidWeb(did);
         }
+        else
+        {
+            Console.WriteLine($"Unsupported did type: {did}");
+            return ret;
+        }
+
+        if (string.IsNullOrEmpty(didDoc)) return ret;
+        ret["didDoc"] = didDoc;
 
 
         //
         // 3. Resolve didDoc to pds.
         //
-        if (string.IsNullOrEmpty(didDoc)) return ret;
-
-        JsonNode? didDocJson = JsonNode.Parse(didDoc);
-        if(didDocJson == null) return ret;
-
-        JsonArray? services = JsonData.SelectNode(didDocJson, ["service"]) as JsonArray;
-
-        if (services == null || services.Count == 0) return ret;
-
-        JsonNode? service = services[0];
-
-        string? pds = JsonData.SelectString(service, ["serviceEndpoint"]);
+        string? pds = BlueskyUtils.ResolveDidDocToPds(didDoc);
 
         if(string.IsNullOrEmpty(pds)) return ret;
-
         ret["pds"] = pds.Replace("https://", "");
 
 

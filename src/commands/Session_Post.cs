@@ -88,7 +88,7 @@ public class Session_Post : BaseCommand
                     Console.WriteLine($"byteStart: {mention.ByteStart}");
                     Console.WriteLine($"byteEnd: {mention.ByteEnd}");
 
-                    mention.Did = skipResolve == true ? "skipping resolve handle" : Handle_Resolve.DoResolveHandle(mention.Handle);
+                    mention.Did = skipResolve == true ? "skipping resolve handle" : BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(mention.Handle);
 
                     Console.WriteLine($"mentionDid: '{mention.Did}'"); 
                     Console.WriteLine();

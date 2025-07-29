@@ -34,35 +34,18 @@ public class Handle_Resolve : BaseCommand
             throw new ArgumentException("Missing required argument: handle");
         }
 
-        string handle = arguments["handle"];
-        string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
-
-        Console.WriteLine($"handle: {handle}");
-        Console.WriteLine($"url: {url}");
-
-        //
-        // Send request.
-        //
-        JsonNode? response = WebServiceClient.SendRequest(url,
-            HttpMethod.Get);
+        string? did = BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
 
         //
         // Print response.
         //
-        WebServiceClient.PrintJsonResponseToConsole(response);
-        JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
-    }
-
-    public static string? DoResolveHandle(string handle)
-    {
-        string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
-
-        JsonNode? response = WebServiceClient.SendRequest(url,
-            HttpMethod.Get);
-
-        string? did = JsonData.SelectString(response, "did");
-
-        return did;
+        string? outfile = CommandLineInterface.GetArgumentValue(arguments, "outfile");
+        if(string.IsNullOrEmpty(outfile) == false)
+        {
+            Console.WriteLine($"Writing response to file: {outfile}");
+            File.WriteAllText(outfile, did ?? "");
+        }
 
     }
+
 }

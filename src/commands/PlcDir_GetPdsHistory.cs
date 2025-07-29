@@ -26,7 +26,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
         if(CommandLineInterface.HasArgument(arguments, "handle"))
         {
             Console.WriteLine("Resolving handle to did.");
-            did = Handle_Resolve.DoResolveHandle(arguments["handle"]);
+            did = BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
         }
         else
         {
