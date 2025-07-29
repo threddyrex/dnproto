@@ -23,7 +23,7 @@ public class WebServiceClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null)
+    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null)
     {
         Console.WriteLine($"SendRequest: {url}");
 
@@ -44,6 +44,11 @@ public class WebServiceClient
             if (accessJwt != null)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            }
+
+            if (!string.IsNullOrEmpty(acceptHeader))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
             }
 
             //
@@ -100,6 +105,80 @@ public class WebServiceClient
             }
 
             return jsonResponse;
+        }
+    }
+
+    /// <summary>
+    /// Same as above, but just get string.
+    /// </summary>
+    /// <param name="url"></param>
+    /// <param name="getOrPut"></param>
+    /// <param name="accessJwt"></param>
+    /// <param name="contentType"></param>
+    /// <param name="content"></param>
+    /// <param name="outputFilePath"></param>
+    /// <returns></returns>
+    public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null)
+    {
+        Console.WriteLine($"SendRequest: {url}");
+
+        using (HttpClient client = new HttpClient())
+        {
+            //
+            // Set up request
+            //
+            var request = new HttpRequestMessage(getOrPut, url);
+
+            if (content != null)
+            {
+                request.Content = content;
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+            }
+
+
+            if (accessJwt != null)
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            }
+
+            if (!string.IsNullOrEmpty(acceptHeader))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
+            }
+
+            //
+            // Send
+            //
+            var response = client.Send(request);
+
+            if(response == null)
+            {
+                Console.WriteLine("response is null.");
+                return null;
+            }
+
+            Console.WriteLine($"status code: {response.StatusCode} ({(int)response.StatusCode})");
+
+
+            //
+            // Get response text.
+            //
+            string? responseText = null;
+            using (var reader = new StreamReader(response.Content.ReadAsStream()))
+            {
+                responseText = reader.ReadToEnd();
+            }
+            
+            //
+            // If the user has specified an output file, write the response to that file.
+            //
+            if (string.IsNullOrEmpty(outputFilePath) == false && !string.IsNullOrEmpty(responseText))
+            {
+                Console.WriteLine($"writing to: {outputFilePath}");
+                File.WriteAllText(outputFilePath, responseText);
+            }
+
+            return responseText;
         }
     }
 

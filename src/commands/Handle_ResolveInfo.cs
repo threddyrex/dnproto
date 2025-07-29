@@ -35,16 +35,12 @@ public class Handle_ResolveInfo : BaseCommand
         }
 
         string handle = arguments["handle"];
-        string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
-
         Console.WriteLine($"handle: {handle}");
-        Console.WriteLine($"url: {url}");
 
         //
         // Send request.
         //
         Dictionary<string, string> resolveHandleInfo = DoResolveHandleInfo(handle);
-
         string? jsonData = JsonData.ConvertObjectToJsonString(resolveHandleInfo);
 
 
@@ -63,9 +59,10 @@ public class Handle_ResolveInfo : BaseCommand
     /// 
     /// Attempts the following steps:
     ///
-    ///     1. Resolve handle to did.
-    ///     2. Resolve did to didDoc. (did:plc or did:web)
-    ///     3. Resolve didDoc to pds.
+    ///     1. Resolve handle to did, using dns.
+    ///     2. Resolve handle to did, using http.
+    ///     3. Resolve did to didDoc. (did:plc or did:web)
+    ///     4. Resolve didDoc to pds.
     ///     
     /// </summary>
     /// <param name="handle"></param>
@@ -76,18 +73,40 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // 1. Resolve handle to did.
+        // 1. Resolve handle to did, using dns.
         //
-        string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
         string? did = null;
-        string? didDoc = null;
-        ret["url_resolveHandle"] = url;
+        string url = $"https://cloudflare-dns.com/dns-query?name=_atproto.{handle}&type=TXT";
+        ret["url_dns"] = url;
+        JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get, acceptHeader: "application/dns-json");
+
+        if (response != null) 
+        {
+            did = response["Answer"]?.AsArray()?.FirstOrDefault()?.AsObject()?["data"]?.ToString().Replace("\"", "").Replace("did=", "");
+        }
+
+        Console.WriteLine($"Resolved handle '{handle}' to DID: {did}");
 
 
-        JsonNode? response = WebServiceClient.SendRequest(url,
-            HttpMethod.Get);
+        //
+        // 2. Resolve handle to did, using http.
+        //
+        if (string.IsNullOrEmpty(did))
+        {
+            Console.WriteLine($"No did found in dns response, trying http resolution for handle '{handle}'");
 
-        did = JsonData.SelectString(response, "did");
+            // If dns did not return a result, try the http endpoint
+            url = $"https://{handle}/.well-known/atproto-did";
+            ret["url_http"] = url;
+            var responseText = WebServiceClient.SendRequestEx(url, HttpMethod.Get);
+
+            if (responseText != null)
+            {
+                did = responseText;
+            }
+        }
+
+        Console.WriteLine($"Resolved handle '{handle}' to DID: {did}");
 
         if(string.IsNullOrEmpty(did)) return ret;
 
@@ -95,8 +114,9 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // 2. Resolve did to didDoc. (did:plc or did:web)
+        // 3. Resolve did to didDoc. (did:plc or did:web)
         //
+        string? didDoc = null;
         if(did.StartsWith("did:plc"))
         {
             string url_plc = $"https://plc.directory/{did}";
@@ -130,7 +150,7 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // 3. Resolve didDoc to pds.
+        // 4. Resolve didDoc to pds.
         //
         if (string.IsNullOrEmpty(didDoc)) return ret;
 
