@@ -45,7 +45,7 @@ public class Repo_Get : BaseCommand
         if(string.IsNullOrEmpty(handle) == false)
         {
             Console.WriteLine("Resolving handle to did.");
-            Dictionary<string, string> handleInfo = Handle_ResolveInfo.DoResolveHandleInfo(handle);
+            Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
 
             did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;

@@ -7,6 +7,82 @@ namespace dnproto.utils;
 public class BlueskyUtils
 {
     /// <summary>
+    /// 
+    /// Attempts the following steps:
+    ///
+    ///     1. Resolve handle to did (dns or http).
+    ///     2. Resolve did to didDoc. (did:plc or did:web)
+    ///     3. Resolve didDoc to pds.
+    ///     
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <returns></returns>
+    public static Dictionary<string, string> ResolveHandleInfo(string? handle)
+    {
+        Dictionary<string, string> ret = new Dictionary<string, string>();
+
+        Console.WriteLine($"ResolveHandleInfo: handle: {handle}");
+        if (string.IsNullOrEmpty(handle))
+        {
+            Console.WriteLine("ResolveHandleInfo: Handle is null or empty. Exiting.");
+            return ret;
+        }
+
+        //
+        // 1. Resolve handle to did (dns or http).
+        //
+        string? did = BlueskyUtils.ResolveHandleToDid_ViaDns(handle);
+
+        if (string.IsNullOrEmpty(did))
+        {
+            did = BlueskyUtils.ResolveHandleToDid_ViaHttp(handle);
+        }
+
+        if(string.IsNullOrEmpty(did)) return ret;
+        ret["did"] = did;
+
+
+        //
+        // 2. Resolve did to didDoc. (did:plc or did:web)
+        //
+        string? didDoc = null;
+        if(did.StartsWith("did:plc"))
+        {
+            didDoc = BlueskyUtils.ResolveDidToDidDoc_DidPlc(did);
+        }
+        else if(did.StartsWith("did:web"))
+        {
+            didDoc = BlueskyUtils.ResolveDidToDidDoc_DidWeb(did);
+        }
+        else
+        {
+            Console.WriteLine($"ResolveHandleInfo: Unsupported did type: {did}");
+            return ret;
+        }
+
+        if (string.IsNullOrEmpty(didDoc)) return ret;
+        ret["didDoc"] = didDoc;
+
+
+        //
+        // 3. Resolve didDoc to pds.
+        //
+        string? pds = BlueskyUtils.ResolveDidDocToPds(didDoc);
+
+        if(string.IsNullOrEmpty(pds)) return ret;
+        ret["pds"] = pds.Replace("https://", "");
+
+
+        //
+        // return
+        //
+        return ret;
+
+    }
+
+
+
+    /// <summary>
     /// Resolves a handle to a did, using dns.
     /// </summary>
     /// <param name="handle">The handle to resolve.</param>
@@ -170,4 +246,27 @@ public class BlueskyUtils
         return pds.Replace("https://", "");
 
     }
+
+
+    /// <summary>
+    /// Gets the profile of an actor.
+    /// </summary>
+    /// <param name="actor">The actor to get the profile for.</param>
+    public static JsonNode? GetProfile(string? actor)
+    {
+        Console.WriteLine($"GetProfile: actor: {actor}");
+        if (string.IsNullOrEmpty(actor))
+        {
+            Console.WriteLine("GetProfile: Actor is null or empty. Exiting.");
+            return null;
+        }
+
+        string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
+        Console.WriteLine($"GetProfile: url: {url}");
+
+        JsonNode? profile = WebServiceClient.SendRequest(url, HttpMethod.Get);
+
+        return profile;
+    }
+
 }

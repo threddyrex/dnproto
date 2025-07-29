@@ -40,7 +40,7 @@ public class Repo_GetStatus : BaseCommand
         if(string.IsNullOrEmpty(handle) == false)
         {
             Console.WriteLine("Resolving handle to did.");
-            Dictionary<string, string> handleInfo = Handle_ResolveInfo.DoResolveHandleInfo(handle);
+            Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
 
             Console.WriteLine(JsonData.ConvertObjectToJsonString(handleInfo));
             Console.WriteLine();

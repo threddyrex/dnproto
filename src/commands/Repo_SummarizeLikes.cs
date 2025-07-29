@@ -115,7 +115,7 @@ namespace dnproto.commands
 
                 if(resolveHandles)
                 {
-                    JsonNode? profile = Profile_Get.DoGetProfile(kvp.Key);
+                    JsonNode? profile = BlueskyUtils.GetProfile(kvp.Key);
                     string? handle = JsonData.SelectString(profile, "handle");
 
                     var profileUrl = $"https://bsky.app/profile/{kvp.Key}";

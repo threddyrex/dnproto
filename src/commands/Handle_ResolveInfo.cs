@@ -40,7 +40,7 @@ public class Handle_ResolveInfo : BaseCommand
         //
         // Send request.
         //
-        Dictionary<string, string> resolveHandleInfo = DoResolveHandleInfo(handle);
+        Dictionary<string, string> resolveHandleInfo = BlueskyUtils.ResolveHandleInfo(handle);
         string? jsonData = JsonData.ConvertObjectToJsonString(resolveHandleInfo);
 
 
@@ -52,74 +52,5 @@ public class Handle_ResolveInfo : BaseCommand
         Console.WriteLine("");
 
         JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
-    }
-
-
-    /// <summary>
-    /// 
-    /// Attempts the following steps:
-    ///
-    ///     1. Resolve handle to did (dns or http).
-    ///     2. Resolve did to didDoc. (did:plc or did:web)
-    ///     3. Resolve didDoc to pds.
-    ///     
-    /// </summary>
-    /// <param name="handle"></param>
-    /// <returns></returns>
-    public static Dictionary<string, string> DoResolveHandleInfo(string handle)
-    {
-        Dictionary<string, string> ret = new Dictionary<string, string>();
-
-
-        //
-        // 1. Resolve handle to did (dns or http).
-        //
-        string? did = BlueskyUtils.ResolveHandleToDid_ViaDns(handle);
-
-        if (string.IsNullOrEmpty(did))
-        {
-            did = BlueskyUtils.ResolveHandleToDid_ViaHttp(handle);
-        }
-
-        if(string.IsNullOrEmpty(did)) return ret;
-        ret["did"] = did;
-
-
-        //
-        // 2. Resolve did to didDoc. (did:plc or did:web)
-        //
-        string? didDoc = null;
-        if(did.StartsWith("did:plc"))
-        {
-            didDoc = BlueskyUtils.ResolveDidToDidDoc_DidPlc(did);
-        }
-        else if(did.StartsWith("did:web"))
-        {
-            didDoc = BlueskyUtils.ResolveDidToDidDoc_DidWeb(did);
-        }
-        else
-        {
-            Console.WriteLine($"Unsupported did type: {did}");
-            return ret;
-        }
-
-        if (string.IsNullOrEmpty(didDoc)) return ret;
-        ret["didDoc"] = didDoc;
-
-
-        //
-        // 3. Resolve didDoc to pds.
-        //
-        string? pds = BlueskyUtils.ResolveDidDocToPds(didDoc);
-
-        if(string.IsNullOrEmpty(pds)) return ret;
-        ret["pds"] = pds.Replace("https://", "");
-
-
-        //
-        // return
-        //
-        return ret;
-
     }
 }

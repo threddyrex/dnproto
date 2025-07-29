@@ -44,7 +44,7 @@ public class Session_Create : BaseCommand
         if (string.IsNullOrEmpty(pds))
         {
             Console.WriteLine("Resolving handle to get pds.");
-            var handleInfo = Handle_ResolveInfo.DoResolveHandleInfo(handle);
+            var handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
         }
 

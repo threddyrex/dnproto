@@ -28,25 +28,9 @@ public class Profile_Get : BaseCommand
     public override void DoCommand(Dictionary<string, string> arguments)
     {
         string actor = arguments["actor"];
-        string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
-
-        Console.WriteLine($"actor: {actor}");
-        Console.WriteLine($"url: {url}");
-
-        JsonNode? profile = WebServiceClient.SendRequest(url,
-            HttpMethod.Get);
+        JsonNode? profile = BlueskyUtils.GetProfile(actor);
 
         WebServiceClient.PrintJsonResponseToConsole(profile);
         JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
     }        
-
-    public static JsonNode? DoGetProfile(string actor)
-    {
-        string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
-
-        JsonNode? profile = WebServiceClient.SendRequest(url,
-            HttpMethod.Get);
-
-        return profile;
-    }
 }
