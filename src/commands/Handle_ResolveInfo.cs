@@ -59,10 +59,9 @@ public class Handle_ResolveInfo : BaseCommand
     /// 
     /// Attempts the following steps:
     ///
-    ///     1. Resolve handle to did, using dns.
-    ///     2. Resolve handle to did, using http.
-    ///     3. Resolve did to didDoc. (did:plc or did:web)
-    ///     4. Resolve didDoc to pds.
+    ///     1. Resolve handle to did (dns or http).
+    ///     2. Resolve did to didDoc. (did:plc or did:web)
+    ///     3. Resolve didDoc to pds.
     ///     
     /// </summary>
     /// <param name="handle"></param>
@@ -73,7 +72,7 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // 1. Resolve handle to did, using dns.
+        // 1. Resolve handle to did (dns or http).
         //
         string? did = null;
         string url = $"https://cloudflare-dns.com/dns-query?name=_atproto.{handle}&type=TXT";
@@ -83,14 +82,10 @@ public class Handle_ResolveInfo : BaseCommand
         if (response != null) 
         {
             did = response["Answer"]?.AsArray()?.FirstOrDefault()?.AsObject()?["data"]?.ToString().Replace("\"", "").Replace("did=", "");
+            Console.WriteLine($"dns did response: {did}");
         }
 
-        Console.WriteLine($"Resolved handle '{handle}' to DID: {did}");
-
-
-        //
-        // 2. Resolve handle to did, using http.
-        //
+        // dns didn't work? try http
         if (string.IsNullOrEmpty(did))
         {
             Console.WriteLine($"No did found in dns response, trying http resolution for handle '{handle}'");
@@ -104,9 +99,10 @@ public class Handle_ResolveInfo : BaseCommand
             {
                 did = responseText;
             }
+
+            Console.WriteLine($"https did response: {did}");
         }
 
-        Console.WriteLine($"Resolved handle '{handle}' to DID: {did}");
 
         if(string.IsNullOrEmpty(did)) return ret;
 
@@ -114,7 +110,7 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // 3. Resolve did to didDoc. (did:plc or did:web)
+        // 2. Resolve did to didDoc. (did:plc or did:web)
         //
         string? didDoc = null;
         if(did.StartsWith("did:plc"))
@@ -150,7 +146,7 @@ public class Handle_ResolveInfo : BaseCommand
 
 
         //
-        // 4. Resolve didDoc to pds.
+        // 3. Resolve didDoc to pds.
         //
         if (string.IsNullOrEmpty(didDoc)) return ret;
 
