@@ -4,10 +4,15 @@ using dnproto.repo;
 
 namespace dnproto.utils;
 
+/// <summary>
+/// Utility class for Bluesky related operations.
+/// </summary>
 public class BlueskyUtils
 {
     /// <summary>
     /// 
+    /// Resolves a handle to a dictionary containing did, didDoc, and pds.
+    ///
     /// Attempts the following steps:
     ///
     ///     1. Resolve handle to did (dns or http).
