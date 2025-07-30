@@ -21,7 +21,7 @@ public class BlueskyUtils
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public static Dictionary<string, string> ResolveHandleInfo(string? handle)
+    public static Dictionary<string, string> ResolveHandleInfo(string? handle, bool useBlueskyApi = false)
     {
         Dictionary<string, string> ret = new Dictionary<string, string>();
 
@@ -33,9 +33,19 @@ public class BlueskyUtils
         }
 
         //
-        // 1. Resolve handle to did (dns or http).
+        // 1. Resolve handle to did (bluesky or dns or http).
         //
-        string? did = BlueskyUtils.ResolveHandleToDid_ViaDns(handle);
+        string? did = null;
+
+        if(useBlueskyApi)
+        {
+            did = ResolveHandleToDid_ViaBlueskyApi(handle);
+        }
+
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
+        {
+            did = BlueskyUtils.ResolveHandleToDid_ViaDns(handle);
+        }
 
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
         {
