@@ -25,6 +25,17 @@ public class Firehose_Consume : BaseCommand
     /// Listens to firehose and prints out what it sees.
     /// If you specify a handle, it will resolve the handle to a PDS and connect to that PDS.
     /// If you specify a PDS, it will connect to that PDS.
+    /// 
+    /// https://atproto.com/specs/event-stream#streaming-wire-protocol-v0
+    /// 
+    ///     "Every WebSocket frame contains two DAG-CBOR objects, 
+    ///     with bytes concatenated together: a header (indicating message type), 
+    ///     and the actual message."
+    /// 
+    ///     In the second object (message), there is a property called "blocks"
+    ///     that contains a byte array of records, in repo format.
+    ///     You can walk this byte array like a repo.
+    /// 
     /// </summary>
     /// <param name="arguments"></param>
     /// <exception cref="ArgumentException"></exception>
@@ -36,7 +47,7 @@ public class Firehose_Consume : BaseCommand
     public static async Task DoCommandAsync(Dictionary<string, string> arguments)
     {
         //
-        // Get arguments.
+        // Figure out which pds to connect to.
         //
         string? pds = null;
         if (arguments.ContainsKey("handle"))
@@ -104,6 +115,15 @@ public class Firehose_Consume : BaseCommand
                         // Reset memory stream
                         //
                         ms.Seek(0, SeekOrigin.Begin);
+
+
+                        //    
+                        // https://atproto.com/specs/event-stream#streaming-wire-protocol-v0
+                        //
+                        //      "Every WebSocket frame contains two DAG-CBOR objects, 
+                        //      with bytes concatenated together: a header (indicating message type), 
+                        //      and the actual message."
+                        //
 
                         //
                         // Read header
