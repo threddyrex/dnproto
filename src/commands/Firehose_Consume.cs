@@ -61,31 +61,16 @@ public class Firehose_Consume : BaseCommand
                 (header, message) =>
                 {
                     //
-                    // The first DAG-CBOR object: the header
+                    // Check header and message
                     //
-                    if (header == null)
+                    if (header == null || message == null)
                     {
                         Console.WriteLine("Received empty message.");
                         return false;
                     }
-                    else
-                    {
-                        Console.WriteLine($"Received header: {JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
-                    }
 
-
-                    //
-                    // The second DAG-CBOR object: the message
-                    //
-                    if (message == null)
-                    {
-                        Console.WriteLine("Received empty message.");
-                        return false;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Received message: {JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
-                    }
+                    Console.WriteLine($"header: {JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
+                    Console.WriteLine($"message: {JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
 
 
                     //
@@ -153,6 +138,11 @@ public class Firehose_Consume : BaseCommand
                                 }
                             );
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No blocks found in message.");
+                        return false;
                     }
 
                     return true;
