@@ -252,3 +252,39 @@ blockJson:
   ],
   "l": "bafyreicgwjabq5kj6fk4lfgovq4wjqlfxxgha5naezbwwywygljchtxmx4"
 }
+
+
+
+----------------------------------------------------------------------------------------------------------
+FIREHOSE MESSAGE
+----------------------------------------------------------------------------------------------------------
+
+first dag-cbor object is the header:
+
+  {
+    "t": "#commit",
+    "op": 1
+  }
+
+second dag-cbor object is the message:
+
+  {
+    "ops": [
+      {
+        "cid": "bafyreiablzhjcy766lyka2qxomevlxzqnvnkbnzdwnfdlvtaikm6u33geq",
+        "path": "app.bsky.feed.like/3lv7dksorfs2r",
+        "action": "create"
+      }
+    ],
+    "rev": "3lv7dksphuk2r",
+    "seq": 12547,
+    "repo": "did:plc:watmxkxfjbwyxfuutganopfk",
+    "time": "2025-07-30T19:17:51.414Z",
+    "blobs": [],
+    "since": "3lv7djnxpts2r",
+    "blocks": <omitted - this is byte array containing repo records, including repo header>
+    "commit": "bafyreihahrk5aepa4rclypsxecuxlqpcivcttxkccs2s56su2mof76ozi4",
+    "rebase": false,
+    "tooBig": false,
+    "prevData": "bafyreic26pqlp6brcdztagkqwuet2qxmlxpksqrn7cwphwvmgtecm3yzxu"
+  }
