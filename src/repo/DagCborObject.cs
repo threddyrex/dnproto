@@ -92,7 +92,7 @@ public class DagCborObject
                 length = ReadLengthFromStream(type, s);
                 byte[] byteString = new byte[length];
                 int bytesRead = s.Read(byteString, 0, length);
-                return new DagCborObject { Type = type, Value = Encoding.UTF8.GetString(byteString) };
+                return new DagCborObject { Type = type, Value = byteString };
 
             case DagCborType.TYPE_SIMPLE_VALUE:
                 if(type.AdditionalInfo == 0x16)
