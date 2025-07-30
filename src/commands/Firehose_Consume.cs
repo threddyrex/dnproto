@@ -125,8 +125,9 @@ public class Firehose_Consume : BaseCommand
                         //      and the actual message."
                         //
 
+
                         //
-                        // Read header
+                        // The first DAG-CBOR object: the header
                         //
                         DagCborObject? header = DagCborObject.ReadFromStream(ms);
 
@@ -137,8 +138,9 @@ public class Firehose_Consume : BaseCommand
                         }
                         Console.WriteLine($"Received header: {JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
 
+
                         //
-                        // Read body
+                        // The second DAG-CBOR object: the message
                         //
                         DagCborObject? body = DagCborObject.ReadFromStream(ms);
 
