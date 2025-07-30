@@ -81,10 +81,6 @@ public class Firehose_Consume : BaseCommand
                     var blocks = message.SelectObject(["blocks"]);
                     if (blocks != null && blocks is byte[])
                     {
-                        int totalRecords = 0;
-                        Dictionary<string, int> dagCborTypeCounts = new Dictionary<string, int>();
-                        Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>();
-
                         using (var blockStream = new MemoryStream((byte[])blocks))
                         {
                             //
@@ -110,29 +106,6 @@ public class Firehose_Consume : BaseCommand
                                     Console.WriteLine();
                                     Console.WriteLine($"{repoRecord.JsonString}");
                                     Console.WriteLine();
-
-                                    // For stats
-                                    totalRecords++;
-                                    string typeString = repoRecord.DataBlock.Type.GetMajorTypeString();
-                                    if (dagCborTypeCounts.ContainsKey(typeString))
-                                    {
-                                        dagCborTypeCounts[typeString]++;
-                                    }
-                                    else
-                                    {
-                                        dagCborTypeCounts[typeString] = 1;
-                                    }
-
-                                    string recordType = repoRecord.RecordType ?? "null";
-
-                                    if (recordTypeCounts.ContainsKey(recordType))
-                                    {
-                                        recordTypeCounts[recordType] = recordTypeCounts[recordType] + 1;
-                                    }
-                                    else
-                                    {
-                                        recordTypeCounts[recordType] = 1;
-                                    }
 
                                     return true;
                                 }
