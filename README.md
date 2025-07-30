@@ -2,10 +2,11 @@
 
 This is a tool written in C# for interacting with ATProto and Bluesky. It's a work in progress.
 
-Two classes to note:
+You can use this as a command line. There are also a few classes that are reusable in C# programs:
 
-- [Repo.cs](/src/repo/Repo.cs) - the entry point to the repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc.
-- [BlueskyUtils.cs](/src/utils/BlueskyUtils.cs) - shows various calls to the Bluesky API.
+- [Repo.cs](/src/repo/Repo.cs) - the entry point to the repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc. You'll need the entire "repo" directory.
+- [Firehose.cs](/src/firehose/Firehose.cs) - entry point for listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
+- [BlueskyUtils.cs](/src/utils/BlueskyUtils.cs) - utility class for calling various methods of the Bluesky API.
 
 
 &nbsp;
