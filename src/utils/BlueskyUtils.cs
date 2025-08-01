@@ -37,7 +37,7 @@ public class BlueskyUtils
         //
         string? did = null;
 
-        if(useBlueskyApi)
+        if (useBlueskyApi)
         {
             did = ResolveHandleToDid_ViaBlueskyApi(handle);
         }
@@ -52,7 +52,7 @@ public class BlueskyUtils
             did = BlueskyUtils.ResolveHandleToDid_ViaHttp(handle);
         }
 
-        if(string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
         ret["did"] = did;
 
 
@@ -60,11 +60,11 @@ public class BlueskyUtils
         // 2. Resolve did to didDoc. (did:plc or did:web)
         //
         string? didDoc = null;
-        if(did.StartsWith("did:plc"))
+        if (did.StartsWith("did:plc"))
         {
             didDoc = BlueskyUtils.ResolveDidToDidDoc_DidPlc(did);
         }
-        else if(did.StartsWith("did:web"))
+        else if (did.StartsWith("did:web"))
         {
             didDoc = BlueskyUtils.ResolveDidToDidDoc_DidWeb(did);
         }
@@ -77,8 +77,8 @@ public class BlueskyUtils
         if (string.IsNullOrEmpty(didDoc)) return ret;
         ret["didDoc"] = didDoc;
 
-        Console.WriteLine("didDoc:");
-        Console.WriteLine(didDoc);
+        Console.WriteLine("didDoc length:");
+        Console.WriteLine(didDoc?.Length);
 
 
         //
@@ -86,7 +86,7 @@ public class BlueskyUtils
         //
         string? pds = BlueskyUtils.ResolveDidDocToPds(didDoc);
 
-        if(string.IsNullOrEmpty(pds)) return ret;
+        if (string.IsNullOrEmpty(pds)) return ret;
         ret["pds"] = pds.Replace("https://", "");
 
 
@@ -106,7 +106,7 @@ public class BlueskyUtils
     /// <returns>The resolved did or null if not found.</returns>
     public static string? ResolveHandleToDid_ViaDns(string? handle)
     {
-        if(string.IsNullOrEmpty(handle))
+        if (string.IsNullOrEmpty(handle))
         {
             Console.WriteLine("ResolveHandleToDid_ViaDns: Handle is null or empty.");
             return null;
@@ -120,7 +120,7 @@ public class BlueskyUtils
 
         JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get, acceptHeader: "application/dns-json");
 
-        if (response != null) 
+        if (response != null)
         {
             did = response["Answer"]?.AsArray()?.FirstOrDefault()?.AsObject()?["data"]?.ToString().Replace("\"", "").Replace("did=", "");
         }
@@ -254,11 +254,11 @@ public class BlueskyUtils
         }
 
         JsonNode? didDocJson = JsonNode.Parse(didDoc);
-        if(didDocJson == null) return null;
+        if (didDocJson == null) return null;
 
         string? pds = didDocJson["service"]?.AsArray()?.FirstOrDefault()?["serviceEndpoint"]?.ToString();
 
-        if(string.IsNullOrEmpty(pds)) return null;
+        if (string.IsNullOrEmpty(pds)) return null;
 
         return pds.Replace("https://", "");
 
@@ -284,6 +284,85 @@ public class BlueskyUtils
         JsonNode? profile = WebServiceClient.SendRequest(url, HttpMethod.Get);
 
         return profile;
+    }
+
+
+    /// <summary>
+    /// Get repo for did.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <param name="repoFile"></param>
+    public static void GetRepo(string? pds, string? did, string? repoFile)
+    {
+        Console.WriteLine($"GetRepo: pds: {pds}, did: {did}, repoFile: {repoFile}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repoFile))
+        {
+            Console.WriteLine("GetRepo: Invalid arguments. Exiting.");
+            return;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
+        Console.WriteLine($"GetRepo: url: {url}");
+
+        WebServiceClient.SendRequest(url,
+            HttpMethod.Get,
+            outputFilePath: repoFile,
+            parseJsonResponse: false);
+
+    }
+
+
+    /// <summary>
+    /// List blobs for did.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <returns></returns>
+    public static JsonNode? ListBlobs(string? pds, string? did, string? blobsFile = null)
+    {
+        Console.WriteLine($"ListBlobs: pds: {pds}, did: {did}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
+        {
+            Console.WriteLine("ListBlobs: Invalid arguments. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit=1000";
+        Console.WriteLine($"ListBlobs: url: {url}");
+
+        JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get, outputFilePath: blobsFile);
+
+        return response;
+    }
+
+    /// <summary>
+    /// Get blob for did, by cid.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <param name="cid"></param>
+    /// <param name="blobFile"></param>
+    public static void GetBlob(string? pds, string? did, string? cid, string? blobFile)
+    {
+        Console.WriteLine($"GetBlob: pds: {pds}, did: {did}, cid: {cid}, blobFile: {blobFile}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(cid) || string.IsNullOrEmpty(blobFile))
+        {
+            Console.WriteLine("GetBlob: Invalid arguments. Exiting.");
+            return;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}";
+        Console.WriteLine($"GetBlob: url: {url}");
+
+        WebServiceClient.SendRequest(url,
+            HttpMethod.Get,
+            outputFilePath: blobFile,
+            parseJsonResponse: false);
+
     }
 
 }

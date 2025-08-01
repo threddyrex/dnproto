@@ -91,13 +91,13 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 Using handle:
 
 ```powershell
-.\dnproto.exe /command repo_get /handle <yourblueskyhandle.com> /repofilepath "myfile.car"
+.\dnproto.exe /command repo_get /handle <yourblueskyhandle.com> /outfile "myfile.car"
 ```
 
 Or using did and pds:
 
 ```powershell
-.\dnproto.exe /command repo_get /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social" /repofilepath "myfile.car"
+.\dnproto.exe /command repo_get /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social" /outfile "myfile.car"
 ```
 
 

@@ -11,7 +11,7 @@ public class Repo_Get : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"repoFile"});
+        return new HashSet<string>(new string[]{"outfile"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -33,11 +33,11 @@ public class Repo_Get : BaseCommand
         string? pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
         string? did = CommandLineInterface.GetArgumentValue(arguments, "did");
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
-        string? repoFile = CommandLineInterface.GetArgumentValue(arguments, "repoFile");
+        string? outfile = CommandLineInterface.GetArgumentValue(arguments, "outfile");
 
         Console.WriteLine($"pds: {pds}");
         Console.WriteLine($"did: {did}");
-        Console.WriteLine($"repoFile: {repoFile}");
+        Console.WriteLine($"outfile: {outfile}");
 
         //
         // If we're resolving handle, do that now.
@@ -54,10 +54,7 @@ public class Repo_Get : BaseCommand
         Console.WriteLine($"pds: {pds}");
         Console.WriteLine($"did: {did}");
 
-        string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
-        Console.WriteLine($"url: {url}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repoFile))
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(outfile))
         {
             Console.WriteLine("Invalid arguments.");
             return;
@@ -65,12 +62,8 @@ public class Repo_Get : BaseCommand
 
 
         //
-        // Call WS
+        // Call pds
         //
-        WebServiceClient.SendRequest(url,
-            HttpMethod.Get, 
-            outputFilePath: repoFile,
-            parseJsonResponse: false);
-
+        BlueskyUtils.GetRepo(pds, did, outfile);
     }
 }
