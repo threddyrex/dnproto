@@ -267,6 +267,7 @@ public class BlueskyUtils
 
     /// <summary>
     /// Gets the profile of an actor.
+    /// https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
     /// </summary>
     /// <param name="actor">The actor to get the profile for.</param>
     public static JsonNode? GetProfile(string? actor)
@@ -289,6 +290,7 @@ public class BlueskyUtils
 
     /// <summary>
     /// Get repo for did.
+    /// https://docs.bsky.app/docs/api/com-atproto-sync-get-repo
     /// </summary>
     /// <param name="pds"></param>
     /// <param name="did"></param>
@@ -316,26 +318,64 @@ public class BlueskyUtils
 
     /// <summary>
     /// List blobs for did.
+    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-blobs
     /// </summary>
     /// <param name="pds"></param>
     /// <param name="did"></param>
     /// <returns></returns>
-    public static JsonNode? ListBlobs(string? pds, string? did, string? blobsFile = null)
+    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100)
     {
+        List<string> blobs = new List<string>();
         Console.WriteLine($"ListBlobs: pds: {pds}, did: {did}");
-
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
             Console.WriteLine("ListBlobs: Invalid arguments. Exiting.");
-            return null;
+            return blobs;
         }
 
-        string url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit=1000";
-        Console.WriteLine($"ListBlobs: url: {url}");
+        bool keepGoing = true;
+        string? cursor = null;
 
-        JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get, outputFilePath: blobsFile);
+        while (keepGoing)
+        {
+            string? url = null;
 
-        return response;
+            if (cursor != null)
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}&cursor={cursor}";
+            }
+            else
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}";
+            }
+
+            Console.WriteLine($"ListBlobs: url: {url}");
+
+            JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get);
+
+            var cids = response?["cids"]?.AsArray();
+
+            keepGoing = cids != null && cids.Count == limit;
+
+            cursor = response?["cursor"]?.ToString();
+
+            if (cids != null)
+            {
+                foreach (var cid in cids)
+                {
+                    if (cid == null) continue;
+                    blobs.Add(cid.ToString());
+                }
+            }
+        }
+
+        if (blobsFile != null)
+        {
+            Console.WriteLine($"ListBlobs: Writing blobs to file: {blobsFile}");
+            File.WriteAllLines(blobsFile, blobs);
+        }
+
+        return blobs;
     }
 
     /// <summary>

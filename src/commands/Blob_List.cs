@@ -54,8 +54,19 @@ public class Blob_List : BaseCommand
         //
         // List blobs
         //
-        JsonNode? blobsResponse = BlueskyUtils.ListBlobs(pds, did, blobsFile: outfile);
+        List<string> blobs = BlueskyUtils.ListBlobs(pds, did, limit: 100);
 
-        WebServiceClient.PrintJsonResponseToConsole(blobsResponse);
+        foreach (var blob in blobs)
+        {
+            Console.WriteLine($"Blob: {blob}");
+        }
+
+        if (outfile != null)
+        {
+            File.WriteAllLines(outfile, blobs);
+            Console.WriteLine($"Blobs written to {outfile}");
+        }
+
+        Console.WriteLine($"Total blobs: {blobs.Count}");
     }
 }

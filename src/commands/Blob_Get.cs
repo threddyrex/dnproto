@@ -57,25 +57,17 @@ public class Blob_Get : BaseCommand
         // List blobs
         //
         string blobsFile = Path.Combine(outdir, $"blobs.json");
-        JsonNode? blobsResponse = BlueskyUtils.ListBlobs(pds, did, blobsFile: blobsFile);
+        List<string> blobs = BlueskyUtils.ListBlobs(pds, did, blobsFile: blobsFile);
 
         //
         // Get blobs
         //
-        if (blobsResponse != null)
+        foreach (var cid in blobs)
         {
-            var cidsArray = blobsResponse["cids"]?.AsArray();
-
-            if (cidsArray != null)
-            {
-                foreach (var cid in cidsArray)
-                {
-                    string blobFile = Path.Combine(outdir, $"{cid}");
-                    Console.WriteLine($"Downloading blob: {cid} to {blobFile}");
-                    BlueskyUtils.GetBlob(pds, did, cid?.ToString(), blobFile);
-                    System.Threading.Thread.Sleep(1000); // Throttle requests to avoid rate limiting
-                }
-            }
+            string blobFile = Path.Combine(outdir, $"{cid}");
+            Console.WriteLine($"Downloading blob: {cid} to {blobFile}");
+            BlueskyUtils.GetBlob(pds, did, cid?.ToString(), blobFile);
+            System.Threading.Thread.Sleep(1000); // Throttle requests to avoid rate limiting
         }
     }
 }
