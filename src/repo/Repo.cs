@@ -26,12 +26,17 @@ public class Repo
     ///    [VarInt | DagCborObject]   [VarInt | CidV1 | DagCborObject]....[VarInt | CidV1 | DagCborObject] 
     ///
     /// 
-    /// https://ipld.io/specs/transport/car/carv1/#format-description
+    /// Links:
     /// 
+    ///     https://ipld.io/specs/transport/car/carv1/
     /// 
+    ///     https://atproto.com/specs/repository
+    /// 
+    ///     https://ipld.io/specs/codecs/dag-cbor/spec/
+    ///
     /// </summary>
     /// <param name="s"></param>
-    /// <param name="headerCallback"></param>
+    /// <param name="headerCallback"></param>   
     /// <param name="recordCallback"></param>
     public static void WalkRepo(Stream s, Func<RepoHeader, bool> headerCallback, Func<RepoRecord, bool> recordCallback)
     {
