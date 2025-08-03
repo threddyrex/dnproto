@@ -6,13 +6,16 @@ public class Repo
 {
 
     /// <summary>
+    /// 
     /// Start at beginning and read through entire repo. 
     /// Use callbacks to let caller know when we find things.
-    /// 
     /// This is just the top-level algorithm. Most of the heavy lifting
     /// is done in VarInt, CidV1, and DagCborObject.
     /// 
-    /// Repo Format
+    /// https://ipld.io/specs/transport/car/carv1/
+    /// https://atproto.com/specs/repository
+    /// https://ipld.io/specs/codecs/dag-cbor/spec/
+    /// 
     ///
     /// Format from spec:
     /// 
@@ -25,14 +28,6 @@ public class Repo
     ///    [---  header  -------- ]   [----------------- data -------------------------------------------]
     ///    [VarInt | DagCborObject]   [VarInt | CidV1 | DagCborObject]....[VarInt | CidV1 | DagCborObject] 
     ///
-    /// 
-    /// Links:
-    /// 
-    ///     https://ipld.io/specs/transport/car/carv1/
-    /// 
-    ///     https://atproto.com/specs/repository
-    /// 
-    ///     https://ipld.io/specs/codecs/dag-cbor/spec/
     ///
     /// </summary>
     /// <param name="s"></param>
