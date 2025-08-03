@@ -323,7 +323,7 @@ public class BlueskyUtils
     /// <param name="pds"></param>
     /// <param name="did"></param>
     /// <returns></returns>
-    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100)
+    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100, int sleepMilliseconds = 1000)
     {
         List<string> blobs = new List<string>();
         Console.WriteLine($"ListBlobs: pds: {pds}, did: {did}");
@@ -336,6 +336,7 @@ public class BlueskyUtils
         bool keepGoing = true;
         string? cursor = null;
 
+        // We call the api in batches of 100 (or whatever limit is set).
         while (keepGoing)
         {
             string? url = null;
@@ -361,11 +362,19 @@ public class BlueskyUtils
 
             if (cids != null)
             {
+                Console.WriteLine($"ListBlobs: Count: {cids.Count}");
+                Console.WriteLine($"ListBlobs: Cursor: {cursor}");
+
                 foreach (var cid in cids)
                 {
                     if (cid == null) continue;
                     blobs.Add(cid.ToString());
                 }
+            }
+
+            if (keepGoing)
+            {
+                Thread.Sleep(sleepMilliseconds);
             }
         }
 
