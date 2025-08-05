@@ -4,9 +4,9 @@ using System.Text.Json.Nodes;
 using dnproto.repo;
 using dnproto.utils;
 
-namespace dnproto.commands;
+namespace dnproto.cli.commands;
 
-public class Handle_ResolveInfo : BaseCommand
+public class Handle_Resolve : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
@@ -34,23 +34,18 @@ public class Handle_ResolveInfo : BaseCommand
             throw new ArgumentException("Missing required argument: handle");
         }
 
-        string handle = arguments["handle"];
-        Console.WriteLine($"handle: {handle}");
-
-        //
-        // Send request.
-        //
-        Dictionary<string, string> resolveHandleInfo = BlueskyUtils.ResolveHandleInfo(handle);
-        string? jsonData = JsonData.ConvertObjectToJsonString(resolveHandleInfo);
-
+        string? did = BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
 
         //
         // Print response.
         //
-        Console.WriteLine("");
-        Console.WriteLine(jsonData);
-        Console.WriteLine("");
+        string? outfile = CommandLineInterface.GetArgumentValue(arguments, "outfile");
+        if(string.IsNullOrEmpty(outfile) == false)
+        {
+            Console.WriteLine($"Writing response to file: {outfile}");
+            File.WriteAllText(outfile, did ?? "");
+        }
 
-        JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
     }
+
 }

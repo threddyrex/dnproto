@@ -1,4 +1,4 @@
-namespace dnproto.commands
+namespace dnproto.cli.commands
 {
     /// <summary>
     /// A test command that prints "Hello, World!" to the console.

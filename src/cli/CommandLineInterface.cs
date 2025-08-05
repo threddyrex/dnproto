@@ -1,7 +1,7 @@
 using System.Reflection;
-using dnproto.commands;
+using dnproto.cli.commands;
 
-namespace dnproto.utils;
+namespace dnproto.cli;
 
 public static class CommandLineInterface
 {
@@ -156,10 +156,10 @@ public static class CommandLineInterface
     /// </summary>
     /// <param name="commandName"></param>
     /// <returns></returns>
-    public static dnproto.commands.BaseCommand? TryCreateCommandInstance(string commandName)
+    public static dnproto.cli.commands.BaseCommand? TryCreateCommandInstance(string commandName)
     {
         var commandType = TryFindCommandType(commandName);
-        return (commandType is not null ? Activator.CreateInstance(commandType) as dnproto.commands.BaseCommand : null);
+        return (commandType is not null ? Activator.CreateInstance(commandType) as dnproto.cli.commands.BaseCommand : null);
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public static class CommandLineInterface
 
         foreach (Type type in assembly.GetTypes())
         {
-            if (type.Namespace == "dnproto.commands" && string.Equals(type.Name, className, StringComparison.OrdinalIgnoreCase))
+            if (type.Namespace == "dnproto.cli.commands" && string.Equals(type.Name, className, StringComparison.OrdinalIgnoreCase))
             {
                 return type;
             }
@@ -190,7 +190,7 @@ public static class CommandLineInterface
 
         foreach (Type type in assembly.GetTypes())
         {
-            if (type.Namespace == "dnproto.commands" && typeof(BaseCommand).IsAssignableFrom(type) && type.Name != "BaseCommand")
+            if (type.Namespace == "dnproto.cli.commands" && typeof(BaseCommand).IsAssignableFrom(type) && type.Name != "BaseCommand")
             {
                 commands.Add(type);
             }
@@ -201,7 +201,7 @@ public static class CommandLineInterface
 
 
 
-    public static bool CheckArguments(dnproto.commands.BaseCommand command, Dictionary<string, string> userArguments)
+    public static bool CheckArguments(dnproto.cli.commands.BaseCommand command, Dictionary<string, string> userArguments)
     {
         var requiredArguments = command.GetRequiredArguments().Select(arg => arg.ToLower()).ToList();
         var optionalArguments = command.GetOptionalArguments().Select(arg => arg.ToLower()).ToList();
@@ -248,7 +248,7 @@ public static class CommandLineInterface
         return true;
     }
 
-    public static void PrintArguments(string commandName, dnproto.commands.BaseCommand commandInstance)
+    public static void PrintArguments(string commandName, dnproto.cli.commands.BaseCommand commandInstance)
     {
         Console.WriteLine("Usage:");
         string usage = "    .\\dnproto.exe /command " + commandName + "";

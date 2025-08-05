@@ -7,9 +7,9 @@ using System.Text.Json.Nodes;
 using dnproto.repo;
 using dnproto.utils;
 
-namespace dnproto.commands
+namespace dnproto.cli.commands
 {
-    public class Session_GetPreferences : BaseCommand
+    public class Session_GetUnreadCount : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -23,9 +23,8 @@ namespace dnproto.commands
 
 
         /// <summary>
-        /// Get preferences for the current session.
-        /// Contains things like muted words, saved feeds, etc. 
-        /// https://docs.bsky.app/docs/api/app-bsky-actor-get-preferences
+        /// Get unread notification count.
+        /// https://docs.bsky.app/docs/api/app-bsky-notification-get-unread-count
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
@@ -49,7 +48,7 @@ namespace dnproto.commands
                 return;
             }
 
-            string url = $"https://{pds}/xrpc/app.bsky.actor.getPreferences";
+            string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
             Console.WriteLine($"url: {url}");
 
             //

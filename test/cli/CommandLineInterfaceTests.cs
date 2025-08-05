@@ -1,6 +1,8 @@
 ﻿namespace dnproto.tests.utils;
 
-using dnproto.commands;
+
+using dnproto.cli;
+using dnproto.cli.commands;
 using dnproto.utils;
 
 public class CommandLineInterfaceTests

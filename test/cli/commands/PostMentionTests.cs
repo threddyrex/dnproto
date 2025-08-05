@@ -1,7 +1,7 @@
 
 namespace dnproto.tests.commands;
 
-using dnproto.commands;
+using dnproto.cli.commands;
 using dnproto.utils;
 
 public class PostMentionTests

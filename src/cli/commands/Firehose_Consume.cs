@@ -5,7 +5,7 @@ using dnproto.firehose;
 using dnproto.repo;
 using dnproto.utils;
 
-namespace dnproto.commands;
+namespace dnproto.cli.commands;
 
 public class Firehose_Consume : BaseCommand
 {

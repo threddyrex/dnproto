@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 using dnproto.repo;
 using dnproto.utils;
 
-namespace dnproto.commands;
+namespace dnproto.cli.commands;
 
 public class Profile_Get : BaseCommand
 {

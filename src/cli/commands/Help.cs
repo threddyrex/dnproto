@@ -1,6 +1,6 @@
 using dnproto.utils;
 
-namespace dnproto.commands;
+namespace dnproto.cli.commands;
 
 /// <summary>
 /// Show help/usage. This command is used if no command is specified.

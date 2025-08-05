@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.utils;
 
-namespace dnproto.commands;
+namespace dnproto.cli.commands;
 
 /// <summary>
 /// Get blobs for did.

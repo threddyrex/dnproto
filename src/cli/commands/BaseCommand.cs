@@ -1,4 +1,4 @@
-namespace dnproto.commands
+namespace dnproto.cli.commands
 {
     /// <summary>
     /// The user runs the tool and specifies one command to run. All of the commands inherit from this class.

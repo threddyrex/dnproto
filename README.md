@@ -2,20 +2,22 @@
 
 This is a tool written in C# for interacting with ATProto and Bluesky. It's a work in progress.
 
-You can use this as a command line. There are also a few classes that are reusable in C# programs:
+Besides being a command line tool, there are a few classes that are reusable in C# programs:
 
 - [Repo.cs](/src/repo/Repo.cs) - the entry point to the repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc. You'll need the entire "repo" directory.
 - [Firehose.cs](/src/firehose/Firehose.cs) - entry point for listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
-- [BlueskyUtils.cs](/src/utils/BlueskyUtils.cs) - utility class for calling various methods of the Bluesky API.
 
 
 &nbsp;
 
 # Building dnproto
 
+To get started, change into the src directory and build. I also like to set an alias.
+
 ```powershell
 cd .\src\
 dotnet build
+Set-Alias dnproto .\bin\Debug\net9.0\dnproto.exe
 ```
 
 
@@ -26,7 +28,7 @@ dotnet build
 You can view help for the utility by calling it with no arguments.
 
 ```powershell
-.\dnproto.exe
+dnproto
 ```
 
 
@@ -39,7 +41,7 @@ Each feature of the utility is a "command". You can specify which command you wa
 To run one of the commands:
 
 ```powershell
-.\dnproto.exe /command <commandname> /arg1 value1 /arg2 value2...
+dnproto /command <commandname> /arg1 value1 /arg2 value2...
 ```
 
 Calling dnproto with no arguments will print the help.
@@ -52,7 +54,7 @@ Calling dnproto with no arguments will print the help.
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle) to resolve a handle.
 
 ```powershell
-.\dnproto.exe /command handle_resolve /handle <yourblueskyhandle.com>
+dnproto /command handle_resolve /handle robtougher.com
 ```
 
 
@@ -63,7 +65,7 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile) to get the profile.
 
 ```powershell
-.\dnproto.exe /command profile_get /actor <yourblueskyhandle.com>
+dnproto /command profile_get /actor robtougher.com
 ```
 
 
@@ -74,12 +76,12 @@ This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.ac
 With handle:
 
 ```powershell
-.\dnproto.exe /command repo_getstatus /handle <yourblueskyhandle.com>
+dnproto /command repo_getstatus /handle robtougher.com
 ```
 
 Or with did and pds:
 ```powershell
-.\dnproto.exe /command repo_getstatus /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social"
+dnproto /command repo_getstatus /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social"
 ```
 
 &nbsp;
@@ -91,13 +93,13 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 Using handle:
 
 ```powershell
-.\dnproto.exe /command repo_get /handle <yourblueskyhandle.com> /outfile "myfile.car"
+dnproto /command repo_get /handle robtougher.com /outfile "myfile.car"
 ```
 
 Or using did and pds:
 
 ```powershell
-.\dnproto.exe /command repo_get /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social" /outfile "myfile.car"
+dnproto /command repo_get /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social" /outfile "myfile.car"
 ```
 
 
@@ -114,16 +116,16 @@ stored in a file on local disk (specified by $sessionFile).
 $sessionFile = "sessionfile.txt"
 
 # log in
-.\dnproto.exe /command session_create /sessionfile $sessionFile /handle "handle" /password "password"
+dnproto /command session_create /sessionfile $sessionFile /handle "handle" /password "password"
 
 # create a post
-.\dnproto.exe /command session_post /sessionfile $sessionFile /text "text of post"
+dnproto /command session_post /sessionfile $sessionFile /text "text of post"
 
 # get unread notification count
-.\dnproto.exe /command session_getunreadcount /sessionfile $sessionFile
+dnproto /command session_getunreadcount /sessionfile $sessionFile
 
 # log out
-.\dnproto.exe /command session_delete /sessionfile $sessionFile
+dnproto /command session_delete /sessionfile $sessionFile
 ```
 
 
@@ -136,13 +138,13 @@ It will print out likes, replies, reposts, and quote posts.
 
 ```powershell
 # Download first repo from Bluesky
-.\dnproto.exe /command repo_get /handle "handle1.com" /repofile "handle1.car"
+dnproto /command repo_get /handle "handle1.com" /repofile "handle1.car"
 
 # Download second repo from Bluesky
-.\dnproto.exe /command repo_get /handle "handle2.com" /repofile "handle2.car"
+dnproto /command repo_get /handle "handle2.com" /repofile "handle2.car"
 
 # Compare the two repo files on disk and print out interactions
-.\dnproto.exe /command repo_compare /repofile1 "handle1.car" /repofile2 "handle2.car"
+dnproto /command repo_compare /repofile1 "handle1.car" /repofile2 "handle2.car"
 ```
 
 
@@ -155,7 +157,7 @@ Many of the commands are just calls to the Bluesky APIs, which return json respo
 These commands usually provide a "outfile" argument for writing the response to disk:
 
 ```powershell
-.\dnproto.exe /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
+dnproto /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
 ```
 
 
@@ -179,9 +181,9 @@ I've seen this recently with non-Bluesky record types, like the flashes app prof
 
 ```powershell
 # Download full CAR file from the user's PDS, and store on local disk
-.\dnproto.exe /command repo_get /handle "yourhandle.com" /repofile "repo.car"
+dnproto /command repo_get /handle "yourhandle.com" /repofile "repo.car"
 # Parse local CAR file and print posts
-.\dnproto.exe /command repo_printposts /repofile "repo.car" > posts.txt
+dnproto /command repo_printposts /repofile "repo.car" > posts.txt
 ```
 
 
