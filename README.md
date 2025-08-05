@@ -12,12 +12,11 @@ Besides being a command line tool, there are a few classes that are reusable in 
 
 # Building dnproto
 
-To get started, change into the src directory and build. I also like to set an alias.
+To get started, change into the root directory and build. I also like to set an alias.
 
 ```powershell
-cd .\src\
 dotnet build
-Set-Alias dnproto .\bin\Debug\net9.0\dnproto.exe
+Set-Alias dnproto (Resolve-Path .\src\bin\Debug\net9.0\dnproto.exe).Path
 ```
 
 
