@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -38,7 +38,7 @@ public class Blob_List : BaseCommand
         //
         // Resolve handle
         //
-        Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
+        Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
         string? pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
         string? did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
 
@@ -54,7 +54,7 @@ public class Blob_List : BaseCommand
         //
         // List blobs
         //
-        List<string> blobs = BlueskyUtils.ListBlobs(pds, did, limit: 100);
+        List<string> blobs = BlueskyClient.ListBlobs(pds, did, limit: 100);
 
         foreach (var blob in blobs)
         {

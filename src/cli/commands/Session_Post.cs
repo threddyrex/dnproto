@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -88,7 +88,7 @@ public class Session_Post : BaseCommand
                     Console.WriteLine($"byteStart: {mention.ByteStart}");
                     Console.WriteLine($"byteEnd: {mention.ByteEnd}");
 
-                    mention.Did = skipResolve == true ? "skipping resolve handle" : BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(mention.Handle);
+                    mention.Did = skipResolve == true ? "skipping resolve handle" : BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(mention.Handle);
 
                     Console.WriteLine($"mentionDid: '{mention.Did}'"); 
                     Console.WriteLine();
@@ -126,7 +126,7 @@ public class Session_Post : BaseCommand
             return;
         }
 
-        JsonNode? postResult = WebServiceClient.SendRequest(url,
+        JsonNode? postResult = BlueskyClient.SendRequest(url,
             HttpMethod.Post,
             accessJwt: accessJwt,
             content: new StringContent(JsonSerializer.Serialize(json))
@@ -137,7 +137,7 @@ public class Session_Post : BaseCommand
         //
         // Show result
         //
-        WebServiceClient.PrintJsonResponseToConsole(postResult);
+        BlueskyClient.PrintJsonResponseToConsole(postResult);
     }
 }
 

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -40,7 +40,7 @@ public class Blob_Get : BaseCommand
         //
         // Resolve handle
         //
-        Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
+        Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
         string? pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
         string? did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
 
@@ -57,7 +57,7 @@ public class Blob_Get : BaseCommand
         // List blobs
         //
         string blobsFile = Path.Combine(outdir, $"blobs.json");
-        List<string> blobs = BlueskyUtils.ListBlobs(pds, did, blobsFile: blobsFile);
+        List<string> blobs = BlueskyClient.ListBlobs(pds, did, blobsFile: blobsFile);
 
         //
         // Get blobs
@@ -66,7 +66,7 @@ public class Blob_Get : BaseCommand
         {
             string blobFile = Path.Combine(outdir, $"{cid}");
             Console.WriteLine($"Downloading blob: {cid} to {blobFile}");
-            BlueskyUtils.GetBlob(pds, did, cid?.ToString(), blobFile);
+            BlueskyClient.GetBlob(pds, did, cid?.ToString(), blobFile);
             System.Threading.Thread.Sleep(1000); // Throttle requests to avoid rate limiting
         }
     }

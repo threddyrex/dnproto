@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -28,9 +28,9 @@ public class Profile_Get : BaseCommand
     public override void DoCommand(Dictionary<string, string> arguments)
     {
         string actor = arguments["actor"];
-        JsonNode? profile = BlueskyUtils.GetProfile(actor);
+        JsonNode? profile = BlueskyClient.GetProfile(actor);
 
-        WebServiceClient.PrintJsonResponseToConsole(profile);
+        BlueskyClient.PrintJsonResponseToConsole(profile);
         JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
     }        
 }

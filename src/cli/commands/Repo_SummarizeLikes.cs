@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
@@ -115,7 +115,7 @@ namespace dnproto.cli.commands
 
                 if(resolveHandles)
                 {
-                    JsonNode? profile = BlueskyUtils.GetProfile(kvp.Key);
+                    JsonNode? profile = BlueskyClient.GetProfile(kvp.Key);
                     string? handle = JsonData.SelectString(profile, "handle");
 
                     var profileUrl = $"https://bsky.app/profile/{kvp.Key}";

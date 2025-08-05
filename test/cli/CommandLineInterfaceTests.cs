@@ -3,7 +3,6 @@
 
 using dnproto.cli;
 using dnproto.cli.commands;
-using dnproto.utils;
 
 public class CommandLineInterfaceTests
 {

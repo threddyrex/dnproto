@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -40,7 +40,7 @@ public class Repo_GetStatus : BaseCommand
         if(string.IsNullOrEmpty(handle) == false)
         {
             Console.WriteLine("Resolving handle to did.");
-            Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
+            Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
 
             Console.WriteLine(JsonData.ConvertObjectToJsonString(handleInfo));
             Console.WriteLine();
@@ -63,7 +63,7 @@ public class Repo_GetStatus : BaseCommand
 
         Console.WriteLine();
         Console.WriteLine("Calling getRepoStatus.");
-        JsonNode? repoStatus = WebServiceClient.SendRequest(url,
+        JsonNode? repoStatus = BlueskyClient.SendRequest(url,
             HttpMethod.Get);
 
         JsonData.WriteJsonToFile(repoStatus, CommandLineInterface.GetArgumentValue(arguments, "outfile"));

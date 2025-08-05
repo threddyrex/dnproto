@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -26,7 +26,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
         if(CommandLineInterface.HasArgument(arguments, "handle"))
         {
             Console.WriteLine("Resolving handle to did.");
-            did = BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
+            did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
         }
         else
         {
@@ -44,7 +44,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
         Console.WriteLine($"did: {did}");
         Console.WriteLine($"url: {url}");
 
-        JsonNode? response = WebServiceClient.SendRequest(url, HttpMethod.Get);
+        JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
         // Loop through children json nodes
         if(response != null && response is JsonArray)

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -57,7 +57,7 @@ public class Session_Delete : BaseCommand
             return;
         }
 
-        JsonNode? response = WebServiceClient.SendRequest(url,
+        JsonNode? response = BlueskyClient.SendRequest(url,
             HttpMethod.Post, 
             accessJwt: refreshJwt);
 
@@ -65,6 +65,6 @@ public class Session_Delete : BaseCommand
         //
         // Print results
         //
-        WebServiceClient.PrintJsonResponseToConsole(response);
+        BlueskyClient.PrintJsonResponseToConsole(response);
     }
 }

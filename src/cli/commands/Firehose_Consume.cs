@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using dnproto.firehose;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -35,7 +35,7 @@ public class Firehose_Consume : BaseCommand
         string? pds = null;
         if (arguments.ContainsKey("handle"))
         {
-            Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(arguments["handle"], useBlueskyApi: true);
+            Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(arguments["handle"], useBlueskyApi: true);
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
         }
         else if (arguments.ContainsKey("pds"))

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -44,7 +44,7 @@ public class Session_Create : BaseCommand
         if (string.IsNullOrEmpty(pds))
         {
             Console.WriteLine("Resolving handle to get pds.");
-            var handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
+            var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
         }
 
@@ -56,7 +56,7 @@ public class Session_Create : BaseCommand
         //
         // Send request
         //
-        JsonNode? session = WebServiceClient.SendRequest(url,
+        JsonNode? session = BlueskyClient.SendRequest(url,
             HttpMethod.Post,
             content: string.IsNullOrEmpty(authFactorToken) ?
                 new StringContent(JsonSerializer.Serialize(new
@@ -84,7 +84,7 @@ public class Session_Create : BaseCommand
         //
         // Process response
         //
-        WebServiceClient.PrintJsonResponseToConsole(session);
+        BlueskyClient.PrintJsonResponseToConsole(session);
         Console.WriteLine();
         JsonData.WriteJsonToFile(session, CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
 

@@ -1,4 +1,3 @@
-using dnproto.utils;
 
 namespace dnproto.cli.commands;
 

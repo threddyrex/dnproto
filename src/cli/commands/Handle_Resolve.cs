@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -34,7 +34,7 @@ public class Handle_Resolve : BaseCommand
             throw new ArgumentException("Missing required argument: handle");
         }
 
-        string? did = BlueskyUtils.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
+        string? did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
 
         //
         // Print response.

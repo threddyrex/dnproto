@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
@@ -54,7 +54,7 @@ namespace dnproto.cli.commands
             //
             // Call WS
             //
-            JsonNode? response = WebServiceClient.SendRequest(url,
+            JsonNode? response = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
                 accessJwt: accessJwt);
 
@@ -62,7 +62,7 @@ namespace dnproto.cli.commands
             //
             // Print results
             //
-            WebServiceClient.PrintJsonResponseToConsole(response);
+            BlueskyClient.PrintJsonResponseToConsole(response);
             JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }
     }

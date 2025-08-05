@@ -4,9 +4,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
+
 public class Repo_Get : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
@@ -45,7 +46,7 @@ public class Repo_Get : BaseCommand
         if(string.IsNullOrEmpty(handle) == false)
         {
             Console.WriteLine("Resolving handle to did.");
-            Dictionary<string, string> handleInfo = BlueskyUtils.ResolveHandleInfo(handle);
+            Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
 
             did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
@@ -64,6 +65,6 @@ public class Repo_Get : BaseCommand
         //
         // Call pds
         //
-        BlueskyUtils.GetRepo(pds, did, outfile);
+        BlueskyClient.GetRepo(pds, did, outfile);
     }
 }

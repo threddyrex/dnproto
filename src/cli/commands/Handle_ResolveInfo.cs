@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -40,7 +40,7 @@ public class Handle_ResolveInfo : BaseCommand
         //
         // Send request.
         //
-        Dictionary<string, string> resolveHandleInfo = BlueskyUtils.ResolveHandleInfo(handle);
+        Dictionary<string, string> resolveHandleInfo = BlueskyClient.ResolveHandleInfo(handle);
         string? jsonData = JsonData.ConvertObjectToJsonString(resolveHandleInfo);
 
 

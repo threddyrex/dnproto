@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
-using dnproto.utils;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
@@ -96,7 +96,7 @@ public class PlcDir_Export : BaseCommand
         Console.WriteLine($"url: {url}");
 
         // Don't parse return JSON, because technically it returns "jsonlines", which is multiple lines of JSON.
-        WebServiceClient.SendRequest(url, HttpMethod.Get, parseJsonResponse: false, outputFilePath: CommandLineInterface.GetArgumentValue(arguments, "outfile"));
+        BlueskyClient.SendRequest(url, HttpMethod.Get, parseJsonResponse: false, outputFilePath: CommandLineInterface.GetArgumentValue(arguments, "outfile"));
 
     }
 }
