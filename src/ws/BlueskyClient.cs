@@ -457,6 +457,7 @@ public class BlueskyClient
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
             }
 
+
             //
             // Send
             //
@@ -469,6 +470,7 @@ public class BlueskyClient
             }
 
             Console.WriteLine($"status code: {response.StatusCode} ({(int)response.StatusCode})");
+            Console.WriteLine($"response: {response}");
             bool succeeded = response.StatusCode == HttpStatusCode.OK;
 
             //
