@@ -469,12 +469,13 @@ public class BlueskyClient
             }
 
             Console.WriteLine($"status code: {response.StatusCode} ({(int)response.StatusCode})");
+            bool succeeded = response.StatusCode == HttpStatusCode.OK;
 
             //
             // If user wants json, parse that.
             //
             JsonNode? jsonResponse = null;
-            if(parseJsonResponse)
+            if(parseJsonResponse && succeeded)
             {
                 using (var reader = new StreamReader(response.Content.ReadAsStream()))
                 {
@@ -490,7 +491,7 @@ public class BlueskyClient
             //
             // If the user has specified an output file, write the response to that file.
             //
-            if (string.IsNullOrEmpty(outputFilePath) == false)
+            if (string.IsNullOrEmpty(outputFilePath) == false && succeeded)
             {
                 Console.WriteLine($"writing to: {outputFilePath}");
 
