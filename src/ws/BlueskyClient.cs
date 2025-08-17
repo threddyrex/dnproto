@@ -429,7 +429,7 @@ public class BlueskyClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null)
+    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
     {
         Console.WriteLine($"SendRequest: {url}");
 
@@ -445,8 +445,7 @@ public class BlueskyClient
                 request.Content = content;
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
             }
-
-
+            
             if (accessJwt != null)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
@@ -457,6 +456,12 @@ public class BlueskyClient
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
             }
 
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                request.Headers.UserAgent.TryParseAdd(userAgent);
+            }
+
+            Console.WriteLine($"Request: {request}");
 
             //
             // Send
@@ -469,8 +474,8 @@ public class BlueskyClient
                 return null;
             }
 
-            Console.WriteLine($"status code: {response.StatusCode} ({(int)response.StatusCode})");
             Console.WriteLine($"response: {response}");
+
             bool succeeded = response.StatusCode == HttpStatusCode.OK;
 
             //
@@ -527,7 +532,7 @@ public class BlueskyClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null)
+    public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
     {
         Console.WriteLine($"SendRequest: {url}");
 
@@ -555,6 +560,13 @@ public class BlueskyClient
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
             }
 
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                request.Headers.UserAgent.TryParseAdd(userAgent);
+            }
+
+            Console.WriteLine($"Request: {request}");
+
             //
             // Send
             //
@@ -566,7 +578,7 @@ public class BlueskyClient
                 return null;
             }
 
-            Console.WriteLine($"status code: {response.StatusCode} ({(int)response.StatusCode})");
+            Console.WriteLine($"response: {response}");
 
 
             //
