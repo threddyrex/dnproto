@@ -461,7 +461,7 @@ public class BlueskyClient
                 request.Headers.UserAgent.TryParseAdd(userAgent);
             }
 
-            Console.WriteLine($"Request: {request}");
+            Console.WriteLine($"REQUEST:\n{request}");
 
             //
             // Send
@@ -474,7 +474,7 @@ public class BlueskyClient
                 return null;
             }
 
-            Console.WriteLine($"response: {response}");
+            Console.WriteLine($"RESPONSE:\n{response}");
 
             bool succeeded = response.StatusCode == HttpStatusCode.OK;
 
@@ -565,7 +565,7 @@ public class BlueskyClient
                 request.Headers.UserAgent.TryParseAdd(userAgent);
             }
 
-            Console.WriteLine($"Request: {request}");
+            Console.WriteLine($"REQUEST:\n{request}");
 
             //
             // Send
@@ -578,7 +578,7 @@ public class BlueskyClient
                 return null;
             }
 
-            Console.WriteLine($"response: {response}");
+            Console.WriteLine($"RESPONSE:\n{response}");
 
 
             //
