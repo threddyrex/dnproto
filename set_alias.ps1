@@ -1,0 +1,1 @@
+set-alias -Name dnproto -Value .\src\bin\Debug\net9.0\dnproto.exe -Scope Global
