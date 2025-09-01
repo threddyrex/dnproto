@@ -39,23 +39,7 @@ public class BlueskyClient
         //
         // 1. Resolve handle to did (bluesky or dns or http).
         //
-        string? did = null;
-
-        if (useBlueskyApi)
-        {
-            did = ResolveHandleToDid_ViaBlueskyApi(handle);
-        }
-
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
-        {
-            did = BlueskyClient.ResolveHandleToDid_ViaDns(handle);
-        }
-
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
-        {
-            did = BlueskyClient.ResolveHandleToDid_ViaHttp(handle);
-        }
-
+        string? did = ResolveHandleToDid(handle, useBlueskyApi);
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
         ret["did"] = did;
 
@@ -63,21 +47,7 @@ public class BlueskyClient
         //
         // 2. Resolve did to didDoc. (did:plc or did:web)
         //
-        string? didDoc = null;
-        if (did.StartsWith("did:plc"))
-        {
-            didDoc = BlueskyClient.ResolveDidToDidDoc_DidPlc(did);
-        }
-        else if (did.StartsWith("did:web"))
-        {
-            didDoc = BlueskyClient.ResolveDidToDidDoc_DidWeb(did);
-        }
-        else
-        {
-            Console.WriteLine($"ResolveHandleInfo: Unsupported did type: {did}");
-            return ret;
-        }
-
+        string? didDoc = ResolveDidToDidDoc(did);
         if (string.IsNullOrEmpty(didDoc)) return ret;
         ret["didDoc"] = didDoc;
 
@@ -99,6 +69,60 @@ public class BlueskyClient
         //
         return ret;
 
+    }
+
+
+    /// <summary>
+    /// Resolves a handle to a did.
+    /// If useBlueskyApi, it uses the public Bluesky API directly.
+    /// If not, first try DNS, and then try HTTP (.well-known)
+    /// </summary>
+    /// <param name="handle">The handle to resolve.</param>
+    /// <returns>The resolved did or null if not found.</returns>
+    public static string? ResolveHandleToDid(string? handle, bool useBlueskyApi = false)
+    {
+        string? did = null;
+
+        if (useBlueskyApi)
+        {
+            did = ResolveHandleToDid_ViaBlueskyApi(handle);
+        }
+
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
+        {
+            did = ResolveHandleToDid_ViaDns(handle);
+        }
+
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
+        {
+            did = ResolveHandleToDid_ViaHttp(handle);
+        }
+
+        return did;
+    }
+
+    /// <summary>
+    /// Resolves a did to a didDoc.
+    /// For did:plc, go to the plc directory. 
+    /// For did:web, resolve the doc via HTTP at the .well-known endpoint.
+    /// </summary>
+    /// <param name="did">The did to resolve.</param>
+    /// <returns>The resolved didDoc or null if not found.</returns>
+    public static string? ResolveDidToDidDoc(string? did)
+    {
+        if(did == null) return null;
+
+        string? didDoc = null;
+        if (did.StartsWith("did:plc"))
+        {
+            didDoc = BlueskyClient.ResolveDidToDidDoc_DidPlc(did);
+        }
+        else if (did.StartsWith("did:web"))
+        {
+            didDoc = BlueskyClient.ResolveDidToDidDoc_DidWeb(did);
+        }
+
+        return didDoc;
     }
 
 
