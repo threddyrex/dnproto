@@ -441,6 +441,62 @@ public class BlueskyClient
             parseJsonResponse: false);
 
     }
+
+
+
+    /// <summary>
+    /// Create a session for the user. This is "logging in". It returns a session but the important property is accessJwt.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="handle"></param>
+    /// <param name="password"></param>
+    /// <param name="authFactorToken"></param>
+    /// <returns></returns>
+    public static JsonNode? CreateSession(string? pds, string? handle, string? password, string? authFactorToken)
+    {
+        //
+        // Construct url
+        //
+        string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
+        Console.WriteLine($"url: {url}");
+
+
+        //
+        // Send request
+        //
+        JsonNode? session = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            content: string.IsNullOrEmpty(authFactorToken) ?
+                new StringContent(JsonSerializer.Serialize(new
+                    {
+                        identifier = handle,
+                        password = password
+                    })) : 
+                new StringContent(JsonSerializer.Serialize(new
+                    {
+                        identifier = handle,
+                        password = password,
+                        authFactorToken = authFactorToken
+                    }))
+        );
+
+        if (session == null)
+        {
+            Console.WriteLine("Session returned null.");
+            return null;
+        }
+
+        // add pds
+        session["pds"] = pds;
+
+        //
+        // Process response
+        //
+        BlueskyClient.PrintJsonResponseToConsole(session);
+        return session;
+    }
+
+
     /// <summary>
     /// Many calls to the Bluesky APIs follow the same pattern. This function implements that pattern.
     /// You'll see this being called in commands like "GetUnreadCount" and "ResolveHandle".
