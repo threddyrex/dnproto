@@ -8,7 +8,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class Post_ViewQuotedPost : BaseCommand
+public class Post_ViewBlock : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
@@ -16,8 +16,8 @@ public class Post_ViewQuotedPost : BaseCommand
     }
 
     /// <summary>
-    /// Given a URL, find the post that it is quoting.
-    /// Useful if the quoted post is blocked.
+    /// Print out the links for this post's parent, and also quoted post (if it exists).
+    /// For viewing blocks.
     /// </summary>
     /// <param name="arguments"></param>
     /// <exception cref="ArgumentException"></exception>
@@ -76,31 +76,62 @@ public class Post_ViewQuotedPost : BaseCommand
 
 
         //
-        // Find the embed. This is the quoted post.
+        // Find the quoted post.
         //
-        string? embedUri = response?["posts"]?[0]?["embed"]?["record"]?["uri"]?.ToString();
-        Console.WriteLine($"embedUri: {embedUri}");
+        string? quoteAtUrl = response?["posts"]?[0]?["embed"]?["record"]?["uri"]?.ToString();
+        string? quoteBskUrl = ConvertAtUrlToBskyUrl(quoteAtUrl);
 
-        if (string.IsNullOrEmpty(embedUri))
+        if(!string.IsNullOrEmpty(quoteBskUrl))
         {
-            Console.WriteLine("Could not find quoted post.");
-            return;
+            Console.WriteLine("QUOTE:");
+            Console.WriteLine($"    {quoteAtUrl}");
+            Console.WriteLine($"    {quoteBskUrl}");
+            Console.WriteLine();
         }
 
-        //
-        // Given the embedUri, construct the bsky url
-        //
-        string? didBlocked = embedUri?.Split('/')[2];
-        Console.WriteLine($"didBlocked: {didBlocked}");
+        string? parentAtUrl = response?["posts"]?[0]?["record"]?["reply"]?["parent"]?["uri"]?.ToString();
+        string? parentBskUrl = ConvertAtUrlToBskyUrl(parentAtUrl);
 
-        string? postIdBlocked = embedUri?.Split('/')[4];
-        Console.WriteLine($"postIdBlocked: {postIdBlocked}");
+        if(!string.IsNullOrEmpty(parentBskUrl))
+        {
+            Console.WriteLine("PARENT:");
+            Console.WriteLine($"    {parentAtUrl}");
+            Console.WriteLine($"    {parentBskUrl}");
+            Console.WriteLine();
+        }
 
-        string urlBlocked = $"https://bsky.app/profile/{didBlocked}/post/{postIdBlocked}";
+        string? rootAtUrl = response?["posts"]?[0]?["record"]?["reply"]?["root"]?["uri"]?.ToString();
+        string? rootBskUrl = ConvertAtUrlToBskyUrl(rootAtUrl);
 
-        Console.WriteLine();
-        Console.WriteLine($"!! CLICK HERE !!: {urlBlocked}");
-        Console.WriteLine();
+        if(!string.IsNullOrEmpty(rootBskUrl))
+        {
+            Console.WriteLine("ROOT:");
+            Console.WriteLine($"    {rootAtUrl}");
+            Console.WriteLine($"    {rootBskUrl}");
+            Console.WriteLine();
+        }
 
+    }
+
+
+    public static string? ConvertAtUrlToBskyUrl(string? atUrl)
+    {
+        if (string.IsNullOrEmpty(atUrl))
+        {
+            return null;
+        }
+
+        // Extract the DID and post ID from the AT URL
+        string[] parts = atUrl.Split('/');
+        if (parts.Length < 5)
+        {
+            return null;
+        }
+
+        string did = parts[2];
+        string postId = parts[4];
+
+        // Construct the BSky URL
+        return $"https://bsky.app/profile/{did}/post/{postId}";
     }
 }
