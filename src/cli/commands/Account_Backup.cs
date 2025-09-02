@@ -167,12 +167,12 @@ public class Account_Backup : BaseCommand
 
 
         //
-        // Create blobs directory
+        // Get blobs
         //
         if(getBlobs)
         {
             //
-            // List blobs
+            // List blobs (this just gives you the blob IDs)
             //
             List<string> blobs = BlueskyClient.ListBlobs(pds, did);
             string blobFile = Path.Combine(backupDir, "blobs.txt");
@@ -180,6 +180,9 @@ public class Account_Backup : BaseCommand
             File.WriteAllLines(blobFile, blobs);
 
 
+            //
+            // Create blobs directory
+            //
             string blobsDirectory = Path.Combine(backupDir, "blobs");
             Console.WriteLine($"Creating blobs directory: {blobsDirectory}");
             Directory.CreateDirectory(blobsDirectory);
@@ -202,7 +205,5 @@ public class Account_Backup : BaseCommand
                 Thread.Sleep(blobSleepSeconds * 1000);
             }
         }
-
-
     }
 }
