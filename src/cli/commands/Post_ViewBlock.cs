@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.ws;
+using dnproto.uri;
 
 namespace dnproto.cli.commands;
 
@@ -30,46 +31,54 @@ public class Post_ViewBlock : BaseCommand
         Console.WriteLine($"url: {url}");
 
         //
-        // split the url by the '/' character and find both the username and the post id
+        // Parse to AtUri
         //
-        string[] urlParts = url?.Split('/') ?? Array.Empty<string>();
-        string? username = urlParts.Length > 4 ? urlParts[4] : null;
-        string? postId = urlParts.Length > 6 ? urlParts[6] : null;
-
-        Console.WriteLine($"username: {username}");
-        Console.WriteLine($"postId: {postId}");
-
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(postId))
+        var uriOriginal = AtUri.FromBskyPost(url);
+        if (uriOriginal == null)
         {
             Console.WriteLine("Invalid URL format.");
             return;
         }
 
+        Console.WriteLine("uriOriginal: " + uriOriginal.ToDebugString());
 
-        //
-        // Resolve handle to did
-        //
-        string? did = BlueskyClient.ResolveHandleToDid(username);
-        Console.WriteLine($"did: {did}");
-
-        if (string.IsNullOrEmpty(did))
+        if(string.IsNullOrEmpty(uriOriginal.Authority) || string.IsNullOrEmpty(uriOriginal.Rkey))
         {
-            Console.WriteLine("Could not resolve handle to did.");
+            Console.WriteLine("Invalid URL format (missing authority or rkey).");
             return;
+        }
+
+        //
+        // If a handle was used, find the did.
+        // The "getPosts" endpoint requires a did.
+        //
+        if(! uriOriginal.Authority.StartsWith("did:"))
+        {
+            string? did = BlueskyClient.ResolveHandleToDid(uriOriginal.Authority);
+            Console.WriteLine($"did: {did}");
+
+            if (string.IsNullOrEmpty(did))
+            {
+                Console.WriteLine("Could not resolve handle to did.");
+                return;
+            }
+
+            uriOriginal.Authority = did;
+            Console.WriteLine("uriOriginal: " + uriOriginal.ToDebugString());
         }
 
 
         //
-        // construct AT URL
+        // construct AT URI
         //
-        string atUrl = $"at://{did}/app.bsky.feed.post/{postId}";
-        Console.WriteLine($"AT URL: {atUrl}");
+        string atUri = uriOriginal.ToAtUri();
+        Console.WriteLine($"AT URI: {atUri}");
 
 
         //
         // call getPosts
         //
-        string getPostsUrl = $"http://public.api.bsky.app/xrpc/app.bsky.feed.getPosts?uris={atUrl}";
+        string getPostsUrl = $"http://public.api.bsky.app/xrpc/app.bsky.feed.getPosts?uris={atUri}";
         Console.WriteLine($"getPostsUrl: {getPostsUrl}");
         JsonNode? response = BlueskyClient.SendRequest(getPostsUrl, HttpMethod.Get);
         BlueskyClient.PrintJsonResponseToConsole(response);
@@ -78,60 +87,39 @@ public class Post_ViewBlock : BaseCommand
         //
         // Find the quoted post.
         //
-        string? quoteAtUrl = response?["posts"]?[0]?["embed"]?["record"]?["uri"]?.ToString();
-        string? quoteBskUrl = ConvertAtUrlToBskyUrl(quoteAtUrl);
+        string? quoteAtUri = response?["posts"]?[0]?["embed"]?["record"]?["uri"]?.ToString();
+        string? quoteBskUri = AtUri.FromAtUri(quoteAtUri)?.ToBskyPostUri();
 
-        if(!string.IsNullOrEmpty(quoteBskUrl))
+        if(!string.IsNullOrEmpty(quoteBskUri))
         {
             Console.WriteLine("QUOTE:");
-            Console.WriteLine($"    {quoteAtUrl}");
-            Console.WriteLine($"    {quoteBskUrl}");
+            Console.WriteLine($"    {quoteAtUri}");
+            Console.WriteLine($"    {quoteBskUri}");
             Console.WriteLine();
         }
 
-        string? parentAtUrl = response?["posts"]?[0]?["record"]?["reply"]?["parent"]?["uri"]?.ToString();
-        string? parentBskUrl = ConvertAtUrlToBskyUrl(parentAtUrl);
+        string? parentAtUri = response?["posts"]?[0]?["record"]?["reply"]?["parent"]?["uri"]?.ToString();
+        string? parentBskUri = AtUri.FromAtUri(parentAtUri)?.ToBskyPostUri();
 
-        if(!string.IsNullOrEmpty(parentBskUrl))
+        if(!string.IsNullOrEmpty(parentBskUri))
         {
             Console.WriteLine("PARENT:");
-            Console.WriteLine($"    {parentAtUrl}");
-            Console.WriteLine($"    {parentBskUrl}");
+            Console.WriteLine($"    {parentAtUri}");
+            Console.WriteLine($"    {parentBskUri}");
             Console.WriteLine();
         }
 
-        string? rootAtUrl = response?["posts"]?[0]?["record"]?["reply"]?["root"]?["uri"]?.ToString();
-        string? rootBskUrl = ConvertAtUrlToBskyUrl(rootAtUrl);
+        string? rootAtUri = response?["posts"]?[0]?["record"]?["reply"]?["root"]?["uri"]?.ToString();
+        string? rootBskUri = AtUri.FromAtUri(rootAtUri)?.ToBskyPostUri();
 
-        if(!string.IsNullOrEmpty(rootBskUrl))
+        if(!string.IsNullOrEmpty(rootBskUri))
         {
             Console.WriteLine("ROOT:");
-            Console.WriteLine($"    {rootAtUrl}");
-            Console.WriteLine($"    {rootBskUrl}");
+            Console.WriteLine($"    {rootAtUri}");
+            Console.WriteLine($"    {rootBskUri}");
             Console.WriteLine();
         }
 
     }
 
-
-    public static string? ConvertAtUrlToBskyUrl(string? atUrl)
-    {
-        if (string.IsNullOrEmpty(atUrl))
-        {
-            return null;
-        }
-
-        // Extract the DID and post ID from the AT URL
-        string[] parts = atUrl.Split('/');
-        if (parts.Length < 5)
-        {
-            return null;
-        }
-
-        string did = parts[2];
-        string postId = parts[4];
-
-        // Construct the BSky URL
-        return $"https://bsky.app/profile/{did}/post/{postId}";
-    }
 }
