@@ -79,8 +79,15 @@ public class PlcDir_GetPdsHistory : BaseCommand
 
                 if(!pdsStatus.ContainsKey(pds))
                 {
-                    JsonNode? repoStatus = BlueskyClient.SendRequest($"{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}", HttpMethod.Get);
-                    active = repoStatus?["active"]?.ToString();
+                    try
+                    {
+                        JsonNode? repoStatus = BlueskyClient.SendRequest($"{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}", HttpMethod.Get);
+                        active = repoStatus?["active"]?.ToString();
+                    }
+                    catch (System.Net.Http.HttpRequestException)
+                    {
+                        active = "<exception>";
+                    }
 
                     if(!string.IsNullOrEmpty(active))
                     {
