@@ -35,11 +35,17 @@ public class AtUri
         uri.Authority = urlParts.Length > 4 ? urlParts[4] : null;
         uri.Rkey = urlParts.Length > 6 ? urlParts[6] : null;
 
+        if (string.IsNullOrEmpty(uri.Authority) || string.IsNullOrEmpty(uri.Rkey))
+        {
+            return null;
+        }
+
         return uri;
     }
 
     /// <summary>
     /// Parse an AT URI and construct AtUri object
+    /// ex: at://did:plc:44ybard66vv44zksje25o7dz/app.bsky.feed.post/3jwdwj2ctlk26
     /// </summary>
     public static AtUri? FromAtUri(string? atUri)
     {
