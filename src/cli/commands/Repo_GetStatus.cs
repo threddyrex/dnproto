@@ -66,6 +66,7 @@ public class Repo_GetStatus : BaseCommand
         JsonNode? repoStatus = BlueskyClient.SendRequest(url,
             HttpMethod.Get);
 
+        BlueskyClient.PrintJsonResponseToConsole(repoStatus);
         JsonData.WriteJsonToFile(repoStatus, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
     }
 }

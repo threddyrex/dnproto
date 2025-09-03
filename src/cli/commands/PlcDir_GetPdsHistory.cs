@@ -15,14 +15,17 @@ public class PlcDir_GetPdsHistory : BaseCommand
 
 
     /// <summary>
-    /// Gets pds history for did
+    /// Gets pds history for did. Check repo status on each pds (in case the account
+    /// did not deactivate on a previous pds).
     /// </summary>
     /// <param name="arguments"></param>
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
+        //
+        // Identify did to use
+        //
         string? did = null;
-
         if(CommandLineInterface.HasArgument(arguments, "handle"))
         {
             Console.WriteLine("Resolving handle to did.");
@@ -39,6 +42,10 @@ public class PlcDir_GetPdsHistory : BaseCommand
             return;
         }
 
+
+        //
+        // Call PLC dir for history
+        //
         string url = $"https://plc.directory/{did}/log/audit";
 
         Console.WriteLine($"did: {did}");
@@ -46,15 +53,61 @@ public class PlcDir_GetPdsHistory : BaseCommand
 
         JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
-        // Loop through children json nodes
+
+        //
+        // Loop through children json nodes. Call pds for each, asking if it thinks the repo is still active
+        //
+        List<string> consoleOutput = new List<string>();
+        Dictionary<string, string> pdsStatus = new Dictionary<string, string>();
+
+        pdsStatus["https://bsky.social"] = "<na>";
+
         if(response != null && response is JsonArray)
         {
             foreach(JsonNode? didDoc in response.AsArray())
             {
                 string? pds = JsonData.SelectString(didDoc, ["operation", "services", "atproto_pds", "endpoint"]);
                 string? createdAt = JsonData.SelectString(didDoc, "createdAt");
-                Console.WriteLine($"createdAt: {createdAt}   pds: {pds}");
+
+                if(string.IsNullOrEmpty(pds))
+                {
+                    Console.WriteLine("pds is empty.");
+                    continue;
+                }
+
+                string? active = null;
+
+                if(!pdsStatus.ContainsKey(pds))
+                {
+                    JsonNode? repoStatus = BlueskyClient.SendRequest($"{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}", HttpMethod.Get);
+                    active = repoStatus?["active"]?.ToString();
+
+                    if(!string.IsNullOrEmpty(active))
+                    {
+                        pdsStatus[pds] = active;
+                    }
+                    else
+                    {
+                        pdsStatus[pds] = "<null>";
+                    }
+                }
+
+                active = pdsStatus.ContainsKey(pds) ? pdsStatus[pds] : null;
+
+                consoleOutput.Add($"{createdAt}  pds: {pds}, active: {active}");
             }
+        }
+
+        //
+        // Print out the results.
+        //
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.WriteLine($"PDS History for {did}:");
+        Console.WriteLine();
+        foreach(string line in consoleOutput)
+        {
+            Console.WriteLine(line);
         }
     }
 }
