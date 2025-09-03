@@ -74,7 +74,7 @@ public class AtUri
         return $"at://{Authority}/{Collection}/{Rkey}";
     }
 
-    public string ToBskyPostUri()
+    public string ToBskyPostUrl()
     {
         return $"https://bsky.app/profile/{Authority}/post/{Rkey}";
     }

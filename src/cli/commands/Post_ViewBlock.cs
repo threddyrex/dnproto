@@ -88,35 +88,35 @@ public class Post_ViewBlock : BaseCommand
         // Find the quoted post.
         //
         string? quoteAtUri = response?["posts"]?[0]?["embed"]?["record"]?["uri"]?.ToString();
-        string? quoteBskUri = AtUri.FromAtUri(quoteAtUri)?.ToBskyPostUri();
+        string? quoteBskUrl = AtUri.FromAtUri(quoteAtUri)?.ToBskyPostUrl();
 
-        if(!string.IsNullOrEmpty(quoteBskUri))
+        if(!string.IsNullOrEmpty(quoteBskUrl))
         {
             Console.WriteLine("QUOTE:");
             Console.WriteLine($"    {quoteAtUri}");
-            Console.WriteLine($"    {quoteBskUri}");
+            Console.WriteLine($"    {quoteBskUrl}");
             Console.WriteLine();
         }
 
         string? parentAtUri = response?["posts"]?[0]?["record"]?["reply"]?["parent"]?["uri"]?.ToString();
-        string? parentBskUri = AtUri.FromAtUri(parentAtUri)?.ToBskyPostUri();
+        string? parentBskUrl = AtUri.FromAtUri(parentAtUri)?.ToBskyPostUrl();
 
-        if(!string.IsNullOrEmpty(parentBskUri))
+        if(!string.IsNullOrEmpty(parentBskUrl))
         {
             Console.WriteLine("PARENT:");
             Console.WriteLine($"    {parentAtUri}");
-            Console.WriteLine($"    {parentBskUri}");
+            Console.WriteLine($"    {parentBskUrl}");
             Console.WriteLine();
         }
 
         string? rootAtUri = response?["posts"]?[0]?["record"]?["reply"]?["root"]?["uri"]?.ToString();
-        string? rootBskUri = AtUri.FromAtUri(rootAtUri)?.ToBskyPostUri();
+        string? rootBskUrl = AtUri.FromAtUri(rootAtUri)?.ToBskyPostUrl();
 
-        if(!string.IsNullOrEmpty(rootBskUri))
+        if(!string.IsNullOrEmpty(rootBskUrl))
         {
             Console.WriteLine("ROOT:");
             Console.WriteLine($"    {rootAtUri}");
-            Console.WriteLine($"    {rootBskUri}");
+            Console.WriteLine($"    {rootBskUrl}");
             Console.WriteLine();
         }
 
