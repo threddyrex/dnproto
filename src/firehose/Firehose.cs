@@ -50,8 +50,6 @@ public class Firehose
             Uri uri = new Uri(url);
             await ws.ConnectAsync(uri, CancellationToken.None);
 
-            Console.WriteLine($"Connected to pds firehose: {url}");
-
             //
             // Listen for messages
             //
@@ -105,7 +103,6 @@ public class Firehose
                 //
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    Console.WriteLine("WebSocket closed.");
                     break;
                 }
             }

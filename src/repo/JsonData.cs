@@ -94,7 +94,6 @@ public static class JsonData
     public static void WriteJsonToFile(string? jsonString, string? outputFilePath)
     {
         if(string.IsNullOrEmpty(jsonString) || string.IsNullOrEmpty(outputFilePath)) return;
-        Console.WriteLine($"Writing JSON to file: {outputFilePath}");
         System.IO.File.WriteAllText(outputFilePath, jsonString);
     }
 
