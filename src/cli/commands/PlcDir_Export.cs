@@ -38,13 +38,13 @@ public class PlcDir_Export : BaseCommand
 
         if (CommandLineInterface.HasArgument(arguments, "count"))
         {
-            Console.WriteLine("Using count argument.");
+            Logger.LogInfo("Using count argument.");
             count = int.Parse(arguments["count"]);
         }
 
         if (CommandLineInterface.HasArgument(arguments, "after"))
         {
-            Console.WriteLine("Using after argument.");
+            Logger.LogInfo("Using after argument.");
             after = arguments["after"];
         }
 
@@ -54,13 +54,13 @@ public class PlcDir_Export : BaseCommand
         //
         if (CommandLineInterface.HasArgument(arguments, "previousfile"))
         {
-            Console.WriteLine("Using previousfile argument.");
+            Logger.LogInfo("Using previousfile argument.");
             string? previousFile = CommandLineInterface.GetArgumentValue(arguments, "previousfile");
 
             // read lines of file
             if (File.Exists(previousFile))
             {
-                Console.WriteLine($"File exists: {previousFile}");                
+                Logger.LogInfo($"File exists: {previousFile}");
 
                 string[] lines = File.ReadAllLines(previousFile);
                 if (lines.Length > 0)
@@ -76,12 +76,12 @@ public class PlcDir_Export : BaseCommand
                 }
                 else
                 {
-                    Console.WriteLine($"Warning: {previousFile} is empty, using default 'after' value: {after}");
+                    Logger.LogWarning($"Warning: {previousFile} is empty, using default 'after' value: {after}");
                 }
             }
             else
             {
-                Console.WriteLine($"Warning: {previousFile} does not exist, using default 'after' value: {after}");
+                Logger.LogWarning($"Warning: {previousFile} does not exist, using default 'after' value: {after}");
             }
         }
 
@@ -91,9 +91,9 @@ public class PlcDir_Export : BaseCommand
         //
         string url = $"https://plc.directory/export?count={count}&after={after}";
 
-        Console.WriteLine($"count: {count}");
-        Console.WriteLine($"after: {after}");
-        Console.WriteLine($"url: {url}");
+        Logger.LogInfo($"count: {count}");
+        Logger.LogInfo($"after: {after}");
+        Logger.LogInfo($"url: {url}");
 
         // Don't parse return JSON, because technically it returns "jsonlines", which is multiple lines of JSON.
         BlueskyClient.SendRequest(url, HttpMethod.Get, parseJsonResponse: false, outputFilePath: CommandLineInterface.GetArgumentValue(arguments, "outfile"));

@@ -34,16 +34,16 @@ public class Session_Delete : BaseCommand
         string? did = JsonData.SelectString(session, "did");
         string url = $"https://{pds}/xrpc/com.atproto.server.deleteSession";
 
-        Console.WriteLine($"pds: {pds}");
-        Console.WriteLine($"did: {did}");
-        Console.WriteLine($"url: {url}");
+        Logger.LogInfo($"pds: {pds}");
+        Logger.LogInfo($"did: {did}");
+        Logger.LogInfo($"url: {url}");
 
         //
         // Clear local state
         //
         if(File.Exists(sessionFilePath))
         {
-            Console.WriteLine($"Deleting session file: {sessionFilePath}");
+            Logger.LogInfo($"Deleting session file: {sessionFilePath}");
             File.Delete(sessionFilePath);
         }
 
@@ -53,7 +53,7 @@ public class Session_Delete : BaseCommand
         //
         if (string.IsNullOrEmpty(refreshJwt))
         {
-            Console.WriteLine("Session not found. Nothing to delete.");
+            Logger.LogError("Session not found. Nothing to delete.");
             return;
         }
 

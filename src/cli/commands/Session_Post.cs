@@ -40,24 +40,24 @@ public class Session_Post : BaseCommand
         bool? parsementions = CommandLineInterface.GetArgumentValueWithDefault(arguments, "parsementions", false);
 
 
-        Console.WriteLine($"pds: {pds}");
-        Console.WriteLine($"did: {did}");
-        Console.WriteLine($"text: {text}");
+        Logger.LogInfo($"pds: {pds}");
+        Logger.LogInfo($"did: {did}");
+        Logger.LogInfo($"text: {text}");
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
         {
-            Console.WriteLine("Session not found. Please log in.");
+            Logger.LogError("Session not found. Please log in.");
             return;
         }
 
         if(string.IsNullOrEmpty(text))
         {
-            Console.WriteLine("Text is required.");
+            Logger.LogError("Text is required.");
             return;
         }
 
         string url = $"https://{pds}/xrpc/com.atproto.repo.createRecord";
-        Console.WriteLine($"url: {url}");
+        Logger.LogInfo($"url: {url}");
 
         //
         // Create json object for sending.
@@ -83,15 +83,13 @@ public class Session_Post : BaseCommand
             {
                 foreach(PostMention mention in mentions)
                 {
-                    Console.WriteLine();
-                    Console.WriteLine($"Mention: '{mention.Handle}'");
-                    Console.WriteLine($"byteStart: {mention.ByteStart}");
-                    Console.WriteLine($"byteEnd: {mention.ByteEnd}");
+                    Logger.LogInfo($"Mention: '{mention.Handle}'");
+                    Logger.LogInfo($"byteStart: {mention.ByteStart}");
+                    Logger.LogInfo($"byteEnd: {mention.ByteEnd}");
 
                     mention.Did = skipResolve == true ? "skipping resolve handle" : BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(mention.Handle);
 
-                    Console.WriteLine($"mentionDid: '{mention.Did}'"); 
-                    Console.WriteLine();
+                    Logger.LogInfo($"mentionDid: '{mention.Did}'");
                 }
 
                 json = new
@@ -119,10 +117,8 @@ public class Session_Post : BaseCommand
         //
         if(skipSend == true)
         {
-            Console.WriteLine();
-            Console.WriteLine("Skipping send.");
-            Console.WriteLine();
-            Console.WriteLine(JsonData.ConvertObjectToJsonString((object?)json));
+            Logger.LogInfo("Skipping send.");
+            Logger.LogInfo(JsonData.ConvertObjectToJsonString((object?)json));
             return;
         }
 

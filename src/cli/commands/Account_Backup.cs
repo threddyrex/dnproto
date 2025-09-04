@@ -39,23 +39,23 @@ public class Account_Backup : BaseCommand
         bool getBlobs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getblobs", true);
         int blobSleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "blobsleepseconds", 1);
 
-        Console.WriteLine($"handle: {handle}");
-        Console.WriteLine($"outputDir: {outputDir}");
-        Console.WriteLine($"getPrefs: {getPrefs}");
-        Console.WriteLine($"getRepo: {getRepo}");
-        Console.WriteLine($"getBlobs: {getBlobs}");
-        Console.WriteLine($"password length: {password?.Length}");
-        Console.WriteLine($"authFactorToken length: {authFactorToken?.Length}");
+        Logger.LogInfo($"handle: {handle}");
+        Logger.LogInfo($"outputDir: {outputDir}");
+        Logger.LogInfo($"getPrefs: {getPrefs}");
+        Logger.LogInfo($"getRepo: {getRepo}");
+        Logger.LogInfo($"getBlobs: {getBlobs}");
+        Logger.LogInfo($"password length: {password?.Length}");
+        Logger.LogInfo($"authFactorToken length: {authFactorToken?.Length}");
 
         if(string.IsNullOrEmpty(outputDir) || string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(password))
         {
-            Console.WriteLine("Missing required argument.");
+            Logger.LogError("Missing required argument.");
             return;
         }
 
         if(!Directory.Exists(outputDir))
         {
-            Console.WriteLine("Output directory does not exist.");
+            Logger.LogError("Output directory does not exist.");
             return;
         }
 
@@ -65,12 +65,12 @@ public class Account_Backup : BaseCommand
         //
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         string backupDir = Path.Combine(outputDir, $"{handle}_{timestamp}");
-        Console.WriteLine($"Creating backup directory: {backupDir}");
+        Logger.LogInfo($"Creating backup directory: {backupDir}");
         Directory.CreateDirectory(backupDir);
 
         if(!Directory.Exists(backupDir))
         {
-            Console.WriteLine("Failed to create backup directory.");
+            Logger.LogError("Failed to create backup directory.");
             return;
         }
 
@@ -88,12 +88,12 @@ public class Account_Backup : BaseCommand
         readmeContents += $"getBlobs: {getBlobs}\n";
         readmeContents += $"password length: {password?.Length}\n";
         readmeContents += $"authFactorToken length: {authFactorToken?.Length}\n";
-        Console.WriteLine($"Creating readme file: {readmePath}");
+        Logger.LogInfo($"Creating readme file: {readmePath}");
         File.WriteAllText(readmePath, readmeContents);
 
         if(!File.Exists(readmePath))
         {
-            Console.WriteLine("Failed to create readme file.");
+            Logger.LogError("Failed to create readme file.");
             return;
         }
 
@@ -108,10 +108,12 @@ public class Account_Backup : BaseCommand
 
         if(string.IsNullOrEmpty(did) || string.IsNullOrEmpty(pds))
         {
-            Console.WriteLine("Failed to resolve handle to did and pds.");
+            Logger.LogError("Failed to resolve handle to did and pds.");
             return;
         }
 
+        Logger.LogInfo($"Resolved handle to did: {did}");
+        Logger.LogInfo($"Resolved handle to pds: {pds}");
 
         //
         // Get prefs
@@ -127,12 +129,12 @@ public class Account_Backup : BaseCommand
 
             if (session == null || string.IsNullOrEmpty(accessJwt))
             {
-                Console.WriteLine("FAILED TO CREATE SESSION! Either handle/password is incorrect, or you need to provide the authFactor token from email.");
+                Logger.LogError("FAILED TO CREATE SESSION! Either handle/password is incorrect, or you need to provide the authFactor token from email.");
                 return;
             }
             else
             {
-                Console.WriteLine($"Successfully created session.");
+                Logger.LogInfo($"Successfully created session.");
             }
 
 
@@ -148,7 +150,8 @@ public class Account_Backup : BaseCommand
             // Write to disk.
             //
             string prefsFile = Path.Combine(backupDir, "prefs.json");
-            Console.WriteLine($"Creating prefs file: {prefsFile}");
+            Logger.LogInfo($"(PREFS)");
+            Logger.LogInfo($"Creating prefs file: {prefsFile}");
             JsonData.WriteJsonToFile(response, prefsFile);
 
         }
@@ -160,7 +163,8 @@ public class Account_Backup : BaseCommand
         if(getRepo)
         {
             string repoFile = Path.Combine(backupDir, "repo.car");
-            Console.WriteLine($"Getting repo file: {repoFile}");
+            Logger.LogInfo($"(REPO)");
+            Logger.LogInfo($"Getting repo file: {repoFile}");
             BlueskyClient.GetRepo(pds, did, repoFile);
         }
 
@@ -176,7 +180,8 @@ public class Account_Backup : BaseCommand
             //
             List<string> blobs = BlueskyClient.ListBlobs(pds, did);
             string blobFile = Path.Combine(backupDir, "blobs.txt");
-            Console.WriteLine($"Creating blob file: {blobFile}");
+            Logger.LogInfo($"(BLOBS)");
+            Logger.LogInfo($"Creating blob list file: {blobFile}");
             File.WriteAllLines(blobFile, blobs);
 
 
@@ -184,12 +189,12 @@ public class Account_Backup : BaseCommand
             // Create blobs directory
             //
             string blobsDirectory = Path.Combine(backupDir, "blobs");
-            Console.WriteLine($"Creating blobs directory: {blobsDirectory}");
+            Logger.LogInfo($"Creating blobs directory: {blobsDirectory}");
             Directory.CreateDirectory(blobsDirectory);
 
             if(!Directory.Exists(blobsDirectory))
             {
-                Console.WriteLine("Failed to create blobs directory.");
+                Logger.LogError("Failed to create blobs directory.");
                 return;
             }
 
@@ -200,7 +205,7 @@ public class Account_Backup : BaseCommand
             foreach(string blob in blobs)
             {
                 string blobPath = Path.Combine(blobsDirectory, blob);
-                Console.WriteLine($"Getting blob file: {blobPath}");
+                Logger.LogInfo($"Getting blob file: {blobPath}");
                 BlueskyClient.GetBlob(pds, did, blob, blobPath);
                 Thread.Sleep(blobSleepSeconds * 1000);
             }

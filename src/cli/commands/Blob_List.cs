@@ -30,7 +30,7 @@ public class Blob_List : BaseCommand
 
         if (string.IsNullOrEmpty(handle))
         {
-            Console.WriteLine("Missing required arguments.");
+            Logger.LogError("Missing required arguments.");
             return;
         }
 
@@ -44,11 +44,10 @@ public class Blob_List : BaseCommand
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
-            Console.WriteLine("Could not resolve PDS or DID for the handle.");
+            Logger.LogError("Could not resolve PDS or DID for the handle.");
             return;
         }
 
-        CommandLineInterface.PrintLineSeparator();
 
 
         //
@@ -58,15 +57,15 @@ public class Blob_List : BaseCommand
 
         foreach (var blob in blobs)
         {
-            Console.WriteLine($"Blob: {blob}");
+            Logger.LogInfo($"Blob: {blob}");
         }
 
         if (outfile != null)
         {
             File.WriteAllLines(outfile, blobs);
-            Console.WriteLine($"Blobs written to {outfile}");
+            Logger.LogInfo($"Blobs written to {outfile}");
         }
 
-        Console.WriteLine($"Total blobs: {blobs.Count}");
+        Logger.LogInfo($"Total blobs: {blobs.Count}");
     }
 }

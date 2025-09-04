@@ -25,13 +25,13 @@ public class Blob_Get : BaseCommand
 
         if (string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(outdir))
         {
-            Console.WriteLine("Missing required arguments.");
+            Logger.LogError("Missing required arguments.");
             return;
         }
 
         if (!Directory.Exists(outdir))
         {
-            Console.WriteLine($"Output directory does not exist: {outdir}");
+            Logger.LogError($"Output directory does not exist: {outdir}");
             return;
         }
 
@@ -46,11 +46,9 @@ public class Blob_Get : BaseCommand
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
-            Console.WriteLine("Could not resolve PDS or DID for the handle.");
+            Logger.LogError("Could not resolve PDS or DID for the handle.");
             return;
         }
-
-        CommandLineInterface.PrintLineSeparator();
 
 
         //
@@ -65,7 +63,7 @@ public class Blob_Get : BaseCommand
         foreach (var cid in blobs)
         {
             string blobFile = Path.Combine(outdir, $"{cid}");
-            Console.WriteLine($"Downloading blob: {cid} to {blobFile}");
+            Logger.LogInfo($"Downloading blob: {cid} to {blobFile}");
             BlueskyClient.GetBlob(pds, did, cid?.ToString(), blobFile);
             System.Threading.Thread.Sleep(1000); // Throttle requests to avoid rate limiting
         }

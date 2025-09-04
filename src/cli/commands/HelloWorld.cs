@@ -7,7 +7,7 @@ namespace dnproto.cli.commands
     {
         public override void DoCommand(Dictionary<string, string> arguments)
         {
-            Console.WriteLine("Hello, World! This is a test command.");
+            Logger.LogInfo("Hello, World! This is a test command.");
         }
     }
 }

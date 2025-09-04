@@ -20,7 +20,7 @@ namespace dnproto.cli.commands
 
             if (string.IsNullOrEmpty(repoFile))
             {
-                Console.WriteLine("repoFile is empty.");
+                Logger.LogError("repoFile is empty.");
                 return;
             }
 
@@ -28,7 +28,7 @@ namespace dnproto.cli.commands
 
             if (!fileExists)
             {
-                Console.WriteLine("File does not exist.");
+                Logger.LogError("File does not exist.");
                 return;
             }
 
@@ -46,16 +46,9 @@ namespace dnproto.cli.commands
                     if (string.IsNullOrEmpty(repoRecord.RecordType)) return true;
                     if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post", StringComparison.OrdinalIgnoreCase) == false) return true;
 
-                    Console.WriteLine($"-----------------------------------------------------------------------------------------------------------");
-                    Console.WriteLine($"cid:");
-                    Console.WriteLine($"{repoRecord.Cid.GetBase32()}");
-                    Console.WriteLine();
-                    Console.WriteLine($"createdAt:");
-                    Console.WriteLine(repoRecord.DataBlock.SelectString(["createdAt"]));
-                    Console.WriteLine();
-                    Console.WriteLine($"text:");
-                    Console.WriteLine(repoRecord.DataBlock.SelectString(["text"]));
-                    Console.WriteLine();
+                    Console.WriteLine($"cid: {repoRecord.Cid.GetBase32()}");
+                    Console.WriteLine($"createdAt: {repoRecord.DataBlock.SelectString(["createdAt"])}");
+                    Console.WriteLine($"text: {repoRecord.DataBlock.SelectString(["text"])}");
                     return true;
                 }
             );

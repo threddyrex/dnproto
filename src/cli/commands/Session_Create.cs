@@ -37,20 +37,21 @@ public class Session_Create : BaseCommand
 
         if(handle == null || password == null)
         {
-            throw new ArgumentException("Missing required argument: handle or password");
+            Logger.LogError("Missing required argument: handle or password");
+            return;
         }
 
         // If pds is not provided, get it from the handle
         if (string.IsNullOrEmpty(pds))
         {
-            Console.WriteLine("Resolving handle to get pds.");
+            Logger.LogInfo("Resolving handle to get pds.");
             var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
         }
 
         // Construct url
         string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
-        Console.WriteLine($"url: {url}");
+        Logger.LogInfo($"url: {url}");
 
 
         //
@@ -74,7 +75,7 @@ public class Session_Create : BaseCommand
 
         if (session == null)
         {
-            Console.WriteLine("Session returned null.");
+            Logger.LogError("Session returned null.");
             return;
         }
 
@@ -85,7 +86,6 @@ public class Session_Create : BaseCommand
         // Process response
         //
         BlueskyClient.PrintJsonResponseToConsole(session);
-        Console.WriteLine();
         JsonData.WriteJsonToFile(session, CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
 
     }

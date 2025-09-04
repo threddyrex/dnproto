@@ -20,18 +20,18 @@ namespace dnproto.cli.commands
 
             if (string.IsNullOrEmpty(repoFile))
             {
-                Console.WriteLine("repoFile is empty.");
+                Logger.LogError("repoFile is empty.");
                 return;
             }
 
             bool fileExists = File.Exists(repoFile);
 
-            Console.WriteLine($"repoFile: {repoFile}");
-            Console.WriteLine($"fileExists: {fileExists}");
+            Logger.LogTrace($"repoFile: {repoFile}");
+            Logger.LogTrace($"fileExists: {fileExists}");
 
             if (!fileExists)
             {
-                Console.WriteLine("File does not exist.");
+                Logger.LogError("File does not exist.");
                 return;
             }
 
@@ -49,22 +49,13 @@ namespace dnproto.cli.commands
                 repoFile,
                 (repoHeader) =>
                 {
-                    Console.WriteLine($"headerJson:");
-                    Console.WriteLine();
-                    Console.WriteLine($"{repoHeader.JsonString}");
-                    Console.WriteLine();
+                    Logger.LogInfo($"headerJson: {repoHeader.JsonString}");
                     return true;
                 },
                 (repoRecord) =>
                 {
-                    Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-                    Console.WriteLine($"cid: {repoRecord.Cid.GetBase32()}");
-                    Console.WriteLine();
-                    Console.WriteLine();
-                    Console.WriteLine($"blockJson:");
-                    Console.WriteLine();
-                    Console.WriteLine($"{repoRecord.JsonString}");
-                    Console.WriteLine();
+                    Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
+                    Logger.LogInfo($"blockJson: {repoRecord.JsonString}");
 
                     // For stats
                     totalRecords++;
@@ -96,21 +87,18 @@ namespace dnproto.cli.commands
             //
             // Print stats
             //
-            Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-            Console.WriteLine($"Stats:");
-            Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-            Console.WriteLine($"Total records: {totalRecords}");
-            Console.WriteLine();
-            Console.WriteLine($"DagCborType counts:");
+            Logger.LogInfo($"Stats:");
+            Logger.LogInfo($"Total records: {totalRecords}");
+            Logger.LogInfo($"");
+            Logger.LogInfo($"DagCborType counts:");
             foreach (var kvp in dagCborTypeCounts)
             {
-                Console.WriteLine($"    {kvp.Key} - {kvp.Value}");
+                Logger.LogInfo($"    {kvp.Key} - {kvp.Value}");
             }
-            Console.WriteLine();
-            Console.WriteLine($"RecordType counts:");
+            Logger.LogInfo($"RecordType counts:");
             foreach (var kvp in recordTypeCounts)
             {
-                Console.WriteLine($"    {kvp.Key} - {kvp.Value}");
+                Logger.LogInfo($"    {kvp.Key} - {kvp.Value}");
             }
         }
    }

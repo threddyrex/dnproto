@@ -35,6 +35,7 @@ public class Handle_Resolve : BaseCommand
         }
 
         string? did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
+        Logger.LogInfo($"Resolved DID: {did}");
 
         //
         // Print response.

@@ -36,23 +36,23 @@ namespace dnproto.cli.commands
 
             if (string.IsNullOrEmpty(repoFile))
             {
-                Console.WriteLine("repoFile is empty.");
+                Logger.LogError("repoFile is empty.");
                 return;
             }
 
             bool fileExists = File.Exists(repoFile);
 
-            Console.WriteLine($"repoFile: {repoFile}");
-            Console.WriteLine($"fileExists: {fileExists}");
-            Console.WriteLine($"printCount: {printCount}");
-            Console.WriteLine($"createdAfter: {createdAfter}");
-            Console.WriteLine($"resolveHandles: {resolveHandles}");
-            Console.WriteLine($"resolveWaitSeconds: {resolveWaitSeconds}");
-            Console.WriteLine($"");
+            Logger.LogInfo($"repoFile: {repoFile}");
+            Logger.LogInfo($"fileExists: {fileExists}");
+            Logger.LogInfo($"printCount: {printCount}");
+            Logger.LogInfo($"createdAfter: {createdAfter}");
+            Logger.LogInfo($"resolveHandles: {resolveHandles}");
+            Logger.LogInfo($"resolveWaitSeconds: {resolveWaitSeconds}");
+            Logger.LogInfo($"");
 
             if (!fileExists)
             {
-                Console.WriteLine("File does not exist.");
+                Logger.LogError("File does not exist.");
                 return;
             }
 
@@ -96,9 +96,8 @@ namespace dnproto.cli.commands
             // Get list sorted by count
             //
             var sortedLikeCountsByDid = likeCountsByDid.OrderByDescending(x => x.Value);
-            Console.WriteLine("number of accounts: " + sortedLikeCountsByDid.Count());
+            Logger.LogInfo("number of accounts: " + sortedLikeCountsByDid.Count());
 
-            Console.WriteLine();
 
 
             //
@@ -119,7 +118,7 @@ namespace dnproto.cli.commands
                     string? handle = JsonData.SelectString(profile, "handle");
 
                     var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                    Console.WriteLine($"{profileUrl}   {kvp.Value} likes     ({handle})");
+                    Logger.LogInfo($"{profileUrl}   {kvp.Value} likes     ({handle})");
 
                     // sleep 2 secs
                     Thread.Sleep(resolveWaitSeconds * 1000);
@@ -128,7 +127,7 @@ namespace dnproto.cli.commands
                 else
                 {
                     var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                    Console.WriteLine($"{profileUrl}   {kvp.Value} likes");
+                    Logger.LogInfo($"{profileUrl}   {kvp.Value} likes");
                 }
 
 
@@ -139,10 +138,8 @@ namespace dnproto.cli.commands
             }
 
             // print sum of dictionary values
-            Console.WriteLine();
-            Console.WriteLine("sum of top likes: " + sumOfTopLikes);
-            Console.WriteLine("total number of likes: " + sortedLikeCountsByDid.Sum(x => x.Value));
-            Console.WriteLine();
+            Logger.LogInfo($"sum of top likes: {sumOfTopLikes}");
+            Logger.LogInfo($"total number of likes: {sortedLikeCountsByDid.Sum(x => x.Value)}");
 
         }
    }

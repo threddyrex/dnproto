@@ -8,16 +8,13 @@ public class Help : BaseCommand
 {        
     public override void DoCommand(Dictionary<string, string> arguments)
     {
-        Console.WriteLine("Usage:");
-        Console.WriteLine();
-        Console.WriteLine("    dnproto /command commandname [/arg1 val1 /arg2 val2]");
-        Console.WriteLine();
-        Console.WriteLine("Available commands:");
-        Console.WriteLine();
+        Logger.LogInfo("Usage:");
+        Logger.LogInfo("    dnproto /command commandname [/arg1 val1 /arg2 val2]");
+        Logger.LogInfo("Available commands:");
         var commands = CommandLineInterface.GetAllCommandTypes();
         foreach (var command in commands.OrderBy(c => c.Name))
         {
-            Console.WriteLine("    " + command.Name);
+            Logger.LogInfo("    " + command.Name);
         }
     }
 }

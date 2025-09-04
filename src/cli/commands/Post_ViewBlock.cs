@@ -28,7 +28,7 @@ public class Post_ViewBlock : BaseCommand
         // Get arguments
         //
         string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
-        Console.WriteLine($"url: {url}");
+        Logger.LogTrace($"url: {url}");
 
         //
         // Parse to AtUri
@@ -36,15 +36,15 @@ public class Post_ViewBlock : BaseCommand
         var uriOriginal = AtUri.FromBskyPost(url);
         if (uriOriginal == null)
         {
-            Console.WriteLine("Invalid URL format.");
+            Logger.LogError("Invalid URL format.");
             return;
         }
 
-        Console.WriteLine("uriOriginal: " + uriOriginal.ToDebugString());
+        Logger.LogTrace("uriOriginal: " + uriOriginal.ToDebugString());
 
         if(string.IsNullOrEmpty(uriOriginal.Authority) || string.IsNullOrEmpty(uriOriginal.Rkey))
         {
-            Console.WriteLine("Invalid URL format (missing authority or rkey).");
+            Logger.LogError("Invalid URL format (missing authority or rkey).");
             return;
         }
 
@@ -55,16 +55,16 @@ public class Post_ViewBlock : BaseCommand
         if(! uriOriginal.Authority.StartsWith("did:"))
         {
             string? did = BlueskyClient.ResolveHandleToDid(uriOriginal.Authority);
-            Console.WriteLine($"did: {did}");
+            Logger.LogTrace($"did: {did}");
 
             if (string.IsNullOrEmpty(did))
             {
-                Console.WriteLine("Could not resolve handle to did.");
+                Logger.LogError("Could not resolve handle to did.");
                 return;
             }
 
             uriOriginal.Authority = did;
-            Console.WriteLine("uriOriginal: " + uriOriginal.ToDebugString());
+            Logger.LogTrace("uriOriginal: " + uriOriginal.ToDebugString());
         }
 
 
@@ -72,17 +72,17 @@ public class Post_ViewBlock : BaseCommand
         // construct AT URI
         //
         string atUri = uriOriginal.ToAtUri();
-        Console.WriteLine($"AT URI: {atUri}");
+        Logger.LogTrace($"AT URI: {atUri}");
 
 
         //
         // call getPosts
         //
         string getPostsUrl = $"http://public.api.bsky.app/xrpc/app.bsky.feed.getPosts?uris={atUri}";
-        Console.WriteLine($"getPostsUrl: {getPostsUrl}");
+        Logger.LogTrace($"getPostsUrl: {getPostsUrl}");
         JsonNode? response = BlueskyClient.SendRequest(getPostsUrl, HttpMethod.Get);
-        BlueskyClient.PrintJsonResponseToConsole(response);
 
+        BlueskyClient.LogTraceJsonResponse(response);
 
         //
         // Find the quoted post.
@@ -92,10 +92,9 @@ public class Post_ViewBlock : BaseCommand
 
         if(!string.IsNullOrEmpty(quoteBskUrl))
         {
-            Console.WriteLine("QUOTE:");
-            Console.WriteLine($"    {quoteAtUri}");
-            Console.WriteLine($"    {quoteBskUrl}");
-            Console.WriteLine();
+            Logger.LogInfo("QUOTE:");
+            Logger.LogInfo($"{quoteAtUri}");
+            Logger.LogInfo($"{quoteBskUrl}");
         }
 
         string? parentAtUri = response?["posts"]?[0]?["record"]?["reply"]?["parent"]?["uri"]?.ToString();
@@ -103,10 +102,9 @@ public class Post_ViewBlock : BaseCommand
 
         if(!string.IsNullOrEmpty(parentBskUrl))
         {
-            Console.WriteLine("PARENT:");
-            Console.WriteLine($"    {parentAtUri}");
-            Console.WriteLine($"    {parentBskUrl}");
-            Console.WriteLine();
+            Logger.LogInfo("PARENT:");
+            Logger.LogInfo($"{parentAtUri}");
+            Logger.LogInfo($"{parentBskUrl}");
         }
 
         string? rootAtUri = response?["posts"]?[0]?["record"]?["reply"]?["root"]?["uri"]?.ToString();
@@ -114,10 +112,9 @@ public class Post_ViewBlock : BaseCommand
 
         if(!string.IsNullOrEmpty(rootBskUrl))
         {
-            Console.WriteLine("ROOT:");
-            Console.WriteLine($"    {rootAtUri}");
-            Console.WriteLine($"    {rootBskUrl}");
-            Console.WriteLine();
+            Logger.LogInfo("ROOT:");
+            Logger.LogInfo($"{rootAtUri}");
+            Logger.LogInfo($"{rootBskUrl}");
         }
 
     }

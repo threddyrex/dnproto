@@ -28,7 +28,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
         string? did = null;
         if(CommandLineInterface.HasArgument(arguments, "handle"))
         {
-            Console.WriteLine("Resolving handle to did.");
+            Logger.LogTrace("Resolving handle to did.");
             did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
         }
         else
@@ -38,7 +38,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
 
         if(string.IsNullOrEmpty(did))
         {
-            Console.WriteLine("did is empty.");
+            Logger.LogError("did is empty.");
             return;
         }
 
@@ -48,8 +48,8 @@ public class PlcDir_GetPdsHistory : BaseCommand
         //
         string url = $"https://plc.directory/{did}/log/audit";
 
-        Console.WriteLine($"did: {did}");
-        Console.WriteLine($"url: {url}");
+        Logger.LogTrace($"did: {did}");
+        Logger.LogTrace($"url: {url}");
 
         JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
@@ -71,7 +71,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
 
                 if(string.IsNullOrEmpty(pds))
                 {
-                    Console.WriteLine("pds is empty.");
+                    Logger.LogTrace("pds is empty.");
                     continue;
                 }
 
@@ -108,13 +108,10 @@ public class PlcDir_GetPdsHistory : BaseCommand
         //
         // Print out the results.
         //
-        Console.WriteLine();
-        Console.WriteLine();
-        Console.WriteLine($"PDS History for {did}:");
-        Console.WriteLine();
+        Logger.LogInfo($"PDS History for {did}:");
         foreach(string line in consoleOutput)
         {
-            Console.WriteLine(line);
+            Logger.LogInfo(line);
         }
     }
 }

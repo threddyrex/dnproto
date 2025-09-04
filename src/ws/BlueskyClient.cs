@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
+using dnproto.log;
 
 namespace dnproto.ws;
 
@@ -13,6 +14,8 @@ namespace dnproto.ws;
 /// </summary>
 public class BlueskyClient
 {
+    public static ILogger Logger = new NullLogger();
+
     /// <summary>
     /// Finds a bunch of info for a handle. (did, didDoc, pds)
     ///
@@ -29,10 +32,10 @@ public class BlueskyClient
     {
         Dictionary<string, string> ret = new Dictionary<string, string>();
 
-        Console.WriteLine($"ResolveHandleInfo: handle: {handle}");
+        Logger.LogTrace($"ResolveHandleInfo: handle: {handle}");
         if (string.IsNullOrEmpty(handle))
         {
-            Console.WriteLine("ResolveHandleInfo: Handle is null or empty. Exiting.");
+            Logger.LogTrace("ResolveHandleInfo: Handle is null or empty. Exiting.");
             return ret;
         }
 
@@ -51,8 +54,7 @@ public class BlueskyClient
         if (string.IsNullOrEmpty(didDoc)) return ret;
         ret["didDoc"] = didDoc;
 
-        Console.WriteLine("didDoc length:");
-        Console.WriteLine(didDoc?.Length);
+        Logger.LogTrace("didDoc length: " + didDoc?.Length);
 
 
         //
@@ -136,15 +138,15 @@ public class BlueskyClient
     {
         if (string.IsNullOrEmpty(handle))
         {
-            Console.WriteLine("ResolveHandleToDid_ViaDns: Handle is null or empty.");
+            Logger.LogTrace("ResolveHandleToDid_ViaDns: Handle is null or empty.");
             return null;
         }
 
         string? did = null;
         string url = $"https://cloudflare-dns.com/dns-query?name=_atproto.{handle}&type=TXT";
 
-        Console.WriteLine($"ResolveHandleToDid_ViaDns: handle: {handle}");
-        Console.WriteLine($"ResolveHandleToDid_ViaDns: url: {url}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaDns: handle: {handle}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaDns: url: {url}");
 
         JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get, acceptHeader: "application/dns-json");
 
@@ -153,7 +155,7 @@ public class BlueskyClient
             did = response["Answer"]?.AsArray()?.FirstOrDefault()?.AsObject()?["data"]?.ToString().Replace("\"", "").Replace("did=", "");
         }
 
-        Console.WriteLine($"ResolveHandleToDid_ViaDns: did: {did}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaDns: did: {did}");
 
         return did;
     }
@@ -169,8 +171,8 @@ public class BlueskyClient
         string? did = null;
         string url = $"https://{handle}/.well-known/atproto-did";
 
-        Console.WriteLine($"ResolveHandleToDid_ViaHttp: handle: {handle}");
-        Console.WriteLine($"ResolveHandleToDid_ViaHttp: url: {url}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaHttp: handle: {handle}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaHttp: url: {url}");
 
         var responseText = BlueskyClient.SendRequestEx(url, HttpMethod.Get);
 
@@ -179,7 +181,7 @@ public class BlueskyClient
             did = responseText;
         }
 
-        Console.WriteLine($"ResolveHandleToDid_ViaHttp: did: {did}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaHttp: did: {did}");
 
         return did;
     }
@@ -192,22 +194,22 @@ public class BlueskyClient
     /// <returns>The resolved did or null if not found.</returns>
     public static string? ResolveHandleToDid_ViaBlueskyApi(string? handle)
     {
-        Console.WriteLine($"ResolveHandleToDid_ViaBlueskyApi: handle: {handle}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaBlueskyApi: handle: {handle}");
 
         if (string.IsNullOrEmpty(handle))
         {
-            Console.WriteLine("ResolveHandleToDid_ViaBlueskyApi: Handle is null or empty. Exiting.");
+            Logger.LogTrace("ResolveHandleToDid_ViaBlueskyApi: Handle is null or empty. Exiting.");
             return null;
         }
 
         string url = $"https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle={handle}";
-        Console.WriteLine($"ResolveHandleToDid_ViaBlueskyApi: url: {url}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaBlueskyApi: url: {url}");
 
         JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
         string? did = JsonData.SelectString(response, "did");
 
-        Console.WriteLine($"ResolveHandleToDid_ViaBlueskyApi: did: {did}");
+        Logger.LogTrace($"ResolveHandleToDid_ViaBlueskyApi: did: {did}");
         return did;
     }
 
@@ -219,17 +221,17 @@ public class BlueskyClient
     /// <returns>The resolved didDoc or null if not found.</returns>
     public static string? ResolveDidToDidDoc_DidPlc(string? did)
     {
-        Console.WriteLine($"ResolveDidToDidDoc_DidPlc: did: {did}");
+        Logger.LogTrace($"ResolveDidToDidDoc_DidPlc: did: {did}");
 
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:plc"))
         {
-            Console.WriteLine($"ResolveDidToDidDoc_DidPlc: invalid did, exiting.");
+            Logger.LogError($"ResolveDidToDidDoc_DidPlc: invalid did, exiting.");
             return null;
         }
 
         string? didDoc = null;
         string url = $"https://plc.directory/{did}";
-        Console.WriteLine($"ResolveDidToDidDoc_DidPlc: url: {url}");
+        Logger.LogTrace($"ResolveDidToDidDoc_DidPlc: url: {url}");
 
         var response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
@@ -246,17 +248,17 @@ public class BlueskyClient
     /// <returns>The resolved didDoc or null if not found.</returns>
     public static string? ResolveDidToDidDoc_DidWeb(string? did)
     {
-        Console.WriteLine($"ResolveDidToDidDoc_DidWeb: did: {did}");
+        Logger.LogTrace($"ResolveDidToDidDoc_DidWeb: did: {did}");
 
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:web:"))
         {
-            Console.WriteLine($"ResolveDidToDidDoc_DidWeb: invalid did, exiting.");
+            Logger.LogError($"ResolveDidToDidDoc_DidWeb: invalid did, exiting.");
             return null;
         }
 
         string hostname = did.Replace("did:web:", "");
         string url = $"https://{hostname}/.well-known/did.json";
-        Console.WriteLine($"ResolveDidToDidDoc_DidWeb: url: {url}");
+        Logger.LogTrace($"ResolveDidToDidDoc_DidWeb: url: {url}");
 
         var response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
@@ -273,11 +275,11 @@ public class BlueskyClient
     /// <returns>The resolved pds or null if not found.</returns>
     public static string? ResolveDidDocToPds(string? didDoc)
     {
-        Console.WriteLine($"ResolveDidDocToPds: didDoc length: {didDoc?.Length}");
+        Logger.LogTrace($"ResolveDidDocToPds: didDoc length: {didDoc?.Length}");
 
         if (string.IsNullOrEmpty(didDoc))
         {
-            Console.WriteLine("DidDoc is null or empty.");
+            Logger.LogError("DidDoc is null or empty.");
             return null;
         }
 
@@ -300,15 +302,15 @@ public class BlueskyClient
     /// <param name="actor">The actor to get the profile for.</param>
     public static JsonNode? GetProfile(string? actor)
     {
-        Console.WriteLine($"GetProfile: actor: {actor}");
+        Logger.LogTrace($"GetProfile: actor: {actor}");
         if (string.IsNullOrEmpty(actor))
         {
-            Console.WriteLine("GetProfile: Actor is null or empty. Exiting.");
+            Logger.LogError("GetProfile: Actor is null or empty. Exiting.");
             return null;
         }
 
         string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
-        Console.WriteLine($"GetProfile: url: {url}");
+        Logger.LogTrace($"GetProfile: url: {url}");
 
         JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
@@ -325,16 +327,16 @@ public class BlueskyClient
     /// <param name="repoFile"></param>
     public static void GetRepo(string? pds, string? did, string? repoFile)
     {
-        Console.WriteLine($"GetRepo: pds: {pds}, did: {did}, repoFile: {repoFile}");
+        Logger.LogTrace($"GetRepo: pds: {pds}, did: {did}, repoFile: {repoFile}");
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repoFile))
         {
-            Console.WriteLine("GetRepo: Invalid arguments. Exiting.");
+            Logger.LogError("GetRepo: Invalid arguments. Exiting.");
             return;
         }
 
         string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
-        Console.WriteLine($"GetRepo: url: {url}");
+        Logger.LogTrace($"GetRepo: url: {url}");
 
         BlueskyClient.SendRequest(url,
             HttpMethod.Get,
@@ -354,10 +356,10 @@ public class BlueskyClient
     public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100, int sleepMilliseconds = 1000)
     {
         List<string> blobs = new List<string>();
-        Console.WriteLine($"ListBlobs: pds: {pds}, did: {did}");
+        Logger.LogTrace($"ListBlobs: pds: {pds}, did: {did}");
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
-            Console.WriteLine("ListBlobs: Invalid arguments. Exiting.");
+            Logger.LogError("ListBlobs: Invalid arguments. Exiting.");
             return blobs;
         }
 
@@ -378,7 +380,7 @@ public class BlueskyClient
                 url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}";
             }
 
-            Console.WriteLine($"ListBlobs: url: {url}");
+            Logger.LogTrace($"ListBlobs: url: {url}");
 
             JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
@@ -390,8 +392,8 @@ public class BlueskyClient
 
             if (cids != null)
             {
-                Console.WriteLine($"ListBlobs: Count: {cids.Count}");
-                Console.WriteLine($"ListBlobs: Cursor: {cursor}");
+                Logger.LogTrace($"ListBlobs: Count: {cids.Count}");
+                Logger.LogTrace($"ListBlobs: Cursor: {cursor}");
 
                 foreach (var cid in cids)
                 {
@@ -408,7 +410,7 @@ public class BlueskyClient
 
         if (blobsFile != null)
         {
-            Console.WriteLine($"ListBlobs: Writing blobs to file: {blobsFile}");
+            Logger.LogTrace($"ListBlobs: Writing blobs to file: {blobsFile}");
             File.WriteAllLines(blobsFile, blobs);
         }
 
@@ -424,16 +426,16 @@ public class BlueskyClient
     /// <param name="blobFile"></param>
     public static void GetBlob(string? pds, string? did, string? cid, string? blobFile)
     {
-        Console.WriteLine($"GetBlob: pds: {pds}, did: {did}, cid: {cid}, blobFile: {blobFile}");
+        Logger.LogTrace($"GetBlob: pds: {pds}, did: {did}, cid: {cid}, blobFile: {blobFile}");
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(cid) || string.IsNullOrEmpty(blobFile))
         {
-            Console.WriteLine("GetBlob: Invalid arguments. Exiting.");
+            Logger.LogError("GetBlob: Invalid arguments. Exiting.");
             return;
         }
 
         string url = $"https://{pds}/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}";
-        Console.WriteLine($"GetBlob: url: {url}");
+        Logger.LogTrace($"GetBlob: url: {url}");
 
         BlueskyClient.SendRequest(url,
             HttpMethod.Get,
@@ -458,7 +460,7 @@ public class BlueskyClient
         // Construct url
         //
         string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
-        Console.WriteLine($"url: {url}");
+        Logger.LogTrace($"url: {url}");
 
 
         //
@@ -482,7 +484,7 @@ public class BlueskyClient
 
         if (session == null)
         {
-            Console.WriteLine("Session returned null.");
+            Logger.LogError("Session returned null.");
             return null;
         }
 
@@ -492,7 +494,6 @@ public class BlueskyClient
         //
         // Process response
         //
-        BlueskyClient.PrintJsonResponseToConsole(session);
         return session;
     }
 
@@ -511,7 +512,7 @@ public class BlueskyClient
     /// <returns></returns>
     public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
     {
-        Console.WriteLine($"SendRequest: {url}");
+        Logger.LogTrace($"SendRequest: {url}");
 
         using (HttpClient client = new HttpClient())
         {
@@ -541,7 +542,7 @@ public class BlueskyClient
                 request.Headers.UserAgent.TryParseAdd(userAgent);
             }
 
-            Console.WriteLine($"REQUEST:\n{request}");
+            Logger.LogTrace($"REQUEST: {request}");
 
             //
             // Send
@@ -550,11 +551,11 @@ public class BlueskyClient
 
             if(response == null)
             {
-                Console.WriteLine("response is null.");
+                Logger.LogTrace("response is null.");
                 return null;
             }
 
-            Console.WriteLine($"RESPONSE:\n{response}");
+            Logger.LogTrace($"RESPONSE: {response}");
 
             bool succeeded = response.StatusCode == HttpStatusCode.OK;
 
@@ -580,7 +581,7 @@ public class BlueskyClient
             //
             if (string.IsNullOrEmpty(outputFilePath) == false && succeeded)
             {
-                Console.WriteLine($"writing to: {outputFilePath}");
+                Logger.LogTrace($"writing to: {outputFilePath}");
 
                 if (parseJsonResponse)
                 {
@@ -614,7 +615,7 @@ public class BlueskyClient
     /// <returns></returns>
     public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
     {
-        Console.WriteLine($"SendRequest: {url}");
+        Logger.LogTrace($"SendRequest: {url}");
 
         using (HttpClient client = new HttpClient())
         {
@@ -645,7 +646,7 @@ public class BlueskyClient
                 request.Headers.UserAgent.TryParseAdd(userAgent);
             }
 
-            Console.WriteLine($"REQUEST:\n{request}");
+            Logger.LogTrace($"REQUEST:\n{request}");
 
             //
             // Send
@@ -654,11 +655,11 @@ public class BlueskyClient
 
             if(response == null)
             {
-                Console.WriteLine("response is null.");
+                Logger.LogTrace("response is null.");
                 return null;
             }
 
-            Console.WriteLine($"RESPONSE:\n{response}");
+            Logger.LogTrace($"RESPONSE:\n{response}");
 
 
             //
@@ -675,7 +676,7 @@ public class BlueskyClient
             //
             if (string.IsNullOrEmpty(outputFilePath) == false && !string.IsNullOrEmpty(responseText))
             {
-                Console.WriteLine($"writing to: {outputFilePath}");
+                Logger.LogTrace($"writing to: {outputFilePath}");
                 File.WriteAllText(outputFilePath, responseText);
             }
 
@@ -691,14 +692,23 @@ public class BlueskyClient
     {
         if(response == null)
         {
-            Console.WriteLine("response returned null.");
+            Logger.LogError("response returned null.");
             return;
         }
 
         var options = new JsonSerializerOptions { WriteIndented = true };
-        Console.WriteLine("");
-        Console.WriteLine("response:");
-        Console.WriteLine(response.ToJsonString(options));
-        Console.WriteLine("");
+        Logger.LogInfo(response.ToJsonString(options));
+    }
+
+    public static void LogTraceJsonResponse(JsonNode? response)
+    {
+        if(response == null)
+        {
+            Logger.LogError("response returned null.");
+            return;
+        }
+
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        Logger.LogTrace(response.ToJsonString(options));
     }
 }

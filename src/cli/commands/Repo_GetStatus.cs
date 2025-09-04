@@ -30,8 +30,8 @@ public class Repo_GetStatus : BaseCommand
         string? did = CommandLineInterface.GetArgumentValue(arguments, "did");
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
 
-        Console.WriteLine($"pds: {pds}");
-        Console.WriteLine($"did: {did}");
+        Logger.LogTrace($"pds: {pds}");
+        Logger.LogTrace($"did: {did}");
 
 
         //
@@ -39,30 +39,27 @@ public class Repo_GetStatus : BaseCommand
         //
         if(string.IsNullOrEmpty(handle) == false)
         {
-            Console.WriteLine("Resolving handle to did.");
+            Logger.LogTrace("Resolving handle to did.");
             Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
 
-            Console.WriteLine(JsonData.ConvertObjectToJsonString(handleInfo));
-            Console.WriteLine();
+            Logger.LogTrace(JsonData.ConvertObjectToJsonString(handleInfo));
 
             did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
         }
 
-        Console.WriteLine($"pds: {pds}");
-        Console.WriteLine($"did: {did}");
+        Logger.LogTrace($"pds: {pds}");
+        Logger.LogTrace($"did: {did}");
 
         string url = $"https://{pds}/xrpc/com.atproto.sync.getRepoStatus?did={did}";
-        Console.WriteLine($"url: {url}");
+        Logger.LogTrace($"url: {url}");
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
-            Console.WriteLine("Invalid arguments.");
+            Logger.LogError("Invalid arguments.");
             return;
         }
 
-        Console.WriteLine();
-        Console.WriteLine("Calling getRepoStatus.");
         JsonNode? repoStatus = BlueskyClient.SendRequest(url,
             HttpMethod.Get);
 

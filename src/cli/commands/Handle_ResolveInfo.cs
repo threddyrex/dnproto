@@ -35,7 +35,6 @@ public class Handle_ResolveInfo : BaseCommand
         }
 
         string handle = arguments["handle"];
-        Console.WriteLine($"handle: {handle}");
 
         //
         // Send request.
@@ -47,10 +46,21 @@ public class Handle_ResolveInfo : BaseCommand
         //
         // Print response.
         //
-        Console.WriteLine("");
-        Console.WriteLine(jsonData);
-        Console.WriteLine("");
+        if (string.IsNullOrEmpty(jsonData))
+        {
+            Logger.LogError("Failed to resolve handle.");
+        }
+        else
+        {
+            string? pds = resolveHandleInfo.ContainsKey("pds") ? resolveHandleInfo["pds"] : "n/a";
+            string? did = resolveHandleInfo.ContainsKey("did") ? resolveHandleInfo["did"] : "n/a";
+            string? didDoc = resolveHandleInfo.ContainsKey("didDoc") ? resolveHandleInfo["didDoc"] : "n/a";
+            Logger.LogInfo($"pds: {pds}");
+            Logger.LogInfo($"did: {did}");
+            Logger.LogInfo($"didDoc: {didDoc}");
 
-        JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
+            JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
+        }
+
     }
 }

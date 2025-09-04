@@ -39,17 +39,17 @@ namespace dnproto.cli.commands
             string? pds = JsonData.SelectString(session, "pds");
             string? did = JsonData.SelectString(session, "did");
 
-            Console.WriteLine($"pds: {pds}");
-            Console.WriteLine($"did: {did}");
+            Logger.LogInfo($"pds: {pds}");
+            Logger.LogInfo($"did: {did}");
 
             if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
             {
-                Console.WriteLine("Session not found. Please log in.");
+                Logger.LogError("Session not found. Please log in.");
                 return;
             }
 
             string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
-            Console.WriteLine($"url: {url}");
+            Logger.LogInfo($"url: {url}");
 
             //
             // Call WS

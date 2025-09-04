@@ -92,7 +92,6 @@ namespace dnproto.cli.commands
                 Console.WriteLine("Could not find merkle records for repo1.");
                 return;
             }
-            CommandLineInterface.PrintLineSeparator();
             Console.WriteLine($"-------------------------------------------------");
             Console.WriteLine($"| FIRST REPO                                    |");
             Console.WriteLine($"-------------------------------------------------");
@@ -121,7 +120,6 @@ namespace dnproto.cli.commands
                 Console.WriteLine("Could not find merkle records for repo2.");
                 return;
             }
-            CommandLineInterface.PrintLineSeparator();
             Console.WriteLine($"-------------------------------------------------");
             Console.WriteLine($"| SECOND REPO                                   |");
             Console.WriteLine($"-------------------------------------------------");

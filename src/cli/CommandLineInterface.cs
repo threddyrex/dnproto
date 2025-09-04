@@ -1,5 +1,7 @@
 using System.Reflection;
 using dnproto.cli.commands;
+using dnproto.log;
+using dnproto.ws;
 
 namespace dnproto.cli;
 
@@ -15,21 +17,53 @@ public static class CommandLineInterface
         //
         // Parse args
         //
-        PrintLineSeparator();
         var arguments = ParseArguments(args);
-        Console.WriteLine("Parsed arguments length: " + arguments.Keys.Count);
+
+
+        //
+        // Create logger
+        //
+        var logger = new ConsoleLogger();
+
+
+        //
+        // Check if they want trace logging
+        //
+        if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "trace")
+        {
+            logger.LogLevel = 0; // trace
+            logger.LogTrace("Trace logging enabled.");
+        }
+        else if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "info")
+        {
+            logger.LogLevel = 1; // info
+            logger.LogInfo("Info logging enabled.");
+        }
+        else if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "warning")
+        {
+            logger.LogLevel = 2; // warning
+            logger.LogWarning("Warning logging enabled.");
+        }
+
+        BlueskyClient.Logger = logger;
+
+
+        //
+        // Log parsed arguments
+        //
+        logger.LogTrace("Parsed arguments length: " + arguments.Keys.Count);
         if(arguments.Keys.Count > 0)
         {
-            Console.WriteLine("Parsed arguments:");
+            logger.LogTrace("Parsed arguments:");
             foreach (var kvp in arguments)
             {
                 if(kvp.Key == "password")
                 {
-                    Console.WriteLine($"    {kvp.Key}: ********");
+                    logger.LogTrace($"    {kvp.Key}: ********");
                 }
                 else
                 {
-                    Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
+                    logger.LogTrace($"    {kvp.Key}: {kvp.Value}");
                 }
             }
         }
@@ -45,15 +79,18 @@ public static class CommandLineInterface
         //
         // Do we want to debug?
         //
-        if (arguments.ContainsKey("debug") && GetArgumentValue(arguments, "debug") == "true")
+        if (arguments.ContainsKey("debugattach") && GetArgumentValue(arguments, "debugattach") == "true")
         {
-            Console.WriteLine("Waiting for debugger to attach.");
+            logger.LogLevel = 0; // trace
+
+            logger.LogTrace("Waiting for debugger to attach.");
 
             while (!System.Diagnostics.Debugger.IsAttached)
             {
                 System.Threading.Thread.Sleep(1000);
             }
         }
+
 
 
         //
@@ -63,9 +100,7 @@ public static class CommandLineInterface
 
         if (commandInstance == null)
         {
-            Console.WriteLine();
-            Console.WriteLine($"Command not found: {commandName}");
-            Console.WriteLine();
+            logger.LogError($"Command not found: {commandName}");
 
             commandInstance = CommandLineInterface.TryCreateCommandInstance("help");
 
@@ -76,30 +111,25 @@ public static class CommandLineInterface
             else
             {
                 commandInstance.DoCommand(arguments);
-                Console.WriteLine();
                 return;
             }
         }
 
+        commandInstance.Logger = logger;
 
         //
         // Check that arguments exist. If not, print arguments and return.
         //
         if(CommandLineInterface.CheckArguments(commandInstance, arguments) == false)
         {
-            PrintLineSeparator();
-            Console.WriteLine("");
-            CommandLineInterface.PrintArguments(commandName, commandInstance);
-            PrintLineSeparator();
+            CommandLineInterface.PrintUsage(commandName, commandInstance, logger);
             return;
         }
 
 
         // Do command
-        Console.WriteLine($"Running command.");
-        PrintLineSeparator();
+        logger.LogTrace($"Running command.");
         commandInstance.DoCommand(arguments);
-        PrintLineSeparator();
 
     }
 
@@ -248,9 +278,9 @@ public static class CommandLineInterface
         return true;
     }
 
-    public static void PrintArguments(string commandName, dnproto.cli.commands.BaseCommand commandInstance)
+    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, ILogger logger)
     {
-        Console.WriteLine("Usage:");
+        logger.LogInfo("Usage:");
         string usage = "    .\\dnproto.exe /command " + commandName + "";
 
         // Required arguments
@@ -265,14 +295,12 @@ public static class CommandLineInterface
             usage += " [/" + optionalArgument + " val] ";
         }
 
-        Console.WriteLine();
-        Console.WriteLine(usage);
-        Console.WriteLine();
+        logger.LogInfo(usage);
     }
 
     public static HashSet<string> GetReservedArguments()
     {
-        return new HashSet<string>(new string[] { "command", "debug" });
+        return new HashSet<string>(new string[] { "command", "debugattach", "loglevel" });
     }
 
     public static string? GetArgumentValue(Dictionary<string, string> arguments, string argumentName)
@@ -328,13 +356,6 @@ public static class CommandLineInterface
     public static bool HasArgument(Dictionary<string, string> arguments, string argumentName)
     {
         return arguments != null && arguments.ContainsKey(argumentName.ToLower());
-    }
-
-    public static void PrintLineSeparator()
-    {
-        Console.WriteLine();
-        Console.WriteLine("---------------------------------------------------------");
-        Console.WriteLine();
     }
 
 

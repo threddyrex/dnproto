@@ -45,7 +45,7 @@ public class Firehose_Consume : BaseCommand
 
         if (string.IsNullOrEmpty(pds))
         {
-            Console.WriteLine("PDS is null or empty. Cannot consume firehose.");
+            Logger.LogError("PDS is null or empty. Cannot consume firehose.");
             return;
         }
 
@@ -65,12 +65,12 @@ public class Firehose_Consume : BaseCommand
                     //
                     if (header == null || message == null)
                     {
-                        Console.WriteLine("Received empty message.");
+                        Logger.LogError("Received empty message.");
                         return false;
                     }
 
-                    Console.WriteLine($"header: {JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
-                    Console.WriteLine($"message: {JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
+                    Logger.LogInfo($"header: {JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
+                    Logger.LogInfo($"message: {JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
 
 
                     //
@@ -90,22 +90,16 @@ public class Firehose_Consume : BaseCommand
                                 blockStream,
                                 (repoHeader) =>
                                 {
-                                    Console.WriteLine($"headerJson:");
-                                    Console.WriteLine();
-                                    Console.WriteLine($"{repoHeader.JsonString}");
-                                    Console.WriteLine();
+                                    Logger.LogInfo($"headerJson:");
+                                    Logger.LogInfo($"{repoHeader.JsonString}");
                                     return true;
                                 },
                                 (repoRecord) =>
                                 {
-                                    Console.WriteLine($" -----------------------------------------------------------------------------------------------------------");
-                                    Console.WriteLine($"cid: {repoRecord.Cid.GetBase32()}");
-                                    Console.WriteLine();
-                                    Console.WriteLine();
-                                    Console.WriteLine($"blockJson:");
-                                    Console.WriteLine();
-                                    Console.WriteLine($"{repoRecord.JsonString}");
-                                    Console.WriteLine();
+                                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
+                                    Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
+                                    Logger.LogInfo($"blockJson:");
+                                    Logger.LogInfo($"{repoRecord.JsonString}");
 
                                     return true;
                                 }
@@ -114,7 +108,7 @@ public class Firehose_Consume : BaseCommand
                     }
                     else
                     {
-                        Console.WriteLine("No blocks found in message.");
+                        Logger.LogError("No blocks found in message.");
                         return false;
                     }
 
@@ -124,7 +118,7 @@ public class Firehose_Consume : BaseCommand
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Logger.LogError($"{ex.Message}");
         }
     }
 }
