@@ -15,7 +15,7 @@ public class Account_Backup : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[] { "getprefs", "getrepo", "getblobs", "blobsleepseconds", "authFactorToken" });
+        return new HashSet<string>(new string[] { "getprefs", "getrepo", "getblobs", "blobsleepseconds", "authFactorToken", "previousBackupDir" });
     }
 
     /// <summary>
@@ -38,6 +38,7 @@ public class Account_Backup : BaseCommand
         bool getRepo = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getrepo", true);
         bool getBlobs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getblobs", true);
         int blobSleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "blobsleepseconds", 1);
+        string? previousBackupDir = CommandLineInterface.GetArgumentValue(arguments, "previousBackupDir");
 
         Logger.LogInfo($"handle: {handle}");
         Logger.LogInfo($"outputDir: {outputDir}");
@@ -205,6 +206,15 @@ public class Account_Backup : BaseCommand
             foreach(string blob in blobs)
             {
                 string blobPath = Path.Combine(blobsDirectory, blob);
+
+                if(Directory.Exists(previousBackupDir) && File.Exists(Path.Combine(previousBackupDir, "blobs", blob)))
+                {
+                    Logger.LogInfo($"Found previous backup for blob: {blob}");
+                    // Copy the previous backup to the new location
+                    File.Copy(Path.Combine(previousBackupDir, "blobs", blob), blobPath, true);
+                    continue;
+                }
+
                 Logger.LogInfo($"Getting blob file: {blobPath}");
                 BlueskyClient.GetBlob(pds, did, blob, blobPath);
                 Thread.Sleep(blobSleepSeconds * 1000);
