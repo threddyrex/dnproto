@@ -1,10 +1,10 @@
 
 namespace dnproto.log;
 
-public class NullLogger : ILogger
+public class NullLogger : BaseLogger
 {
-    public void LogTrace(string? message) {}
-    public void LogInfo(string? message) {}
-    public void LogWarning(string? message) {}
-    public void LogError(string? message) {}
+    public override void LogTrace(string? message) {}
+    public override void LogInfo(string? message) {}
+    public override void LogWarning(string? message) {}
+    public override void LogError(string? message) {}
 }

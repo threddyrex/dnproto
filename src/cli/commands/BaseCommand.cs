@@ -8,7 +8,7 @@ namespace dnproto.cli.commands
     /// </summary>
     public abstract class BaseCommand
     {
-        public ILogger Logger = new NullLogger();
+        public BaseLogger Logger = new NullLogger();
 
         /// <summary>
         /// These arguments *must* be specified by the user when running the command.

@@ -9,7 +9,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
-    public class Session_GetPreferences : BaseCommand
+    public class Session_GetBookmarks : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -23,9 +23,10 @@ namespace dnproto.cli.commands
 
 
         /// <summary>
-        /// Get preferences for the current session.
+        /// Get bookmarks for the current session.
         /// Contains things like muted words, saved feeds, etc. 
-        /// https://docs.bsky.app/docs/api/app-bsky-actor-get-preferences
+        /// (no docs for it yet - just released today)
+        /// 
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>
@@ -72,7 +73,7 @@ namespace dnproto.cli.commands
                 return;
             }
 
-            string url = $"https://{pds}/xrpc/app.bsky.actor.getPreferences";
+            string url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
             Logger.LogInfo($"url: {url}");
 
             //

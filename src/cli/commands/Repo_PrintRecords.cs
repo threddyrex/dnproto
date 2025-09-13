@@ -49,13 +49,13 @@ namespace dnproto.cli.commands
                 repoFile,
                 (repoHeader) =>
                 {
-                    Logger.LogInfo($"headerJson: {repoHeader.JsonString}");
+                    Logger.LogTrace($"headerJson: {repoHeader.JsonString}");
                     return true;
                 },
                 (repoRecord) =>
                 {
-                    Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
-                    Logger.LogInfo($"blockJson: {repoRecord.JsonString}");
+                    Logger.LogTrace($"cid: {repoRecord.Cid.GetBase32()}");
+                    Logger.LogTrace($"blockJson: {repoRecord.JsonString}");
 
                     // For stats
                     totalRecords++;

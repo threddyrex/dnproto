@@ -14,7 +14,7 @@ namespace dnproto.ws;
 /// </summary>
 public class BlueskyClient
 {
-    public static ILogger Logger = new NullLogger();
+    public static BaseLogger Logger = new NullLogger();
 
     /// <summary>
     /// Finds a bunch of info for a handle. (did, didDoc, pds)
@@ -445,6 +445,26 @@ public class BlueskyClient
     }
 
 
+    /// <summary>
+    /// CreateSession. Find the pds via ResolveHandleInfo, then call CreateSession with pds.
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <param name="password"></param>
+    /// <param name="authFactorToken"></param>
+    /// <returns></returns>
+    public static JsonNode? CreateSession(string? handle, string? password, string? authFactorToken)
+    {
+        // first resolvehandleinfo, to get pds
+        Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        if (!handleInfo.ContainsKey("pds") || string.IsNullOrEmpty(handleInfo["pds"]))
+        {
+            Logger.LogError("Could not resolve handle to pds.");
+            return null;
+        }
+
+        return CreateSession(handleInfo["pds"], handle, password, authFactorToken);
+    }
+
 
     /// <summary>
     /// Create a session for the user. This is "logging in". It returns a session but the important property is accessJwt.
@@ -470,16 +490,16 @@ public class BlueskyClient
             HttpMethod.Post,
             content: string.IsNullOrEmpty(authFactorToken) ?
                 new StringContent(JsonSerializer.Serialize(new
-                    {
-                        identifier = handle,
-                        password = password
-                    })) : 
+                {
+                    identifier = handle,
+                    password = password
+                })) :
                 new StringContent(JsonSerializer.Serialize(new
-                    {
-                        identifier = handle,
-                        password = password,
-                        authFactorToken = authFactorToken
-                    }))
+                {
+                    identifier = handle,
+                    password = password,
+                    authFactorToken = authFactorToken
+                }))
         );
 
         if (session == null)

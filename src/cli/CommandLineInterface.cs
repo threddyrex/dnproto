@@ -32,17 +32,14 @@ public static class CommandLineInterface
         if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "trace")
         {
             logger.LogLevel = 0; // trace
-            logger.LogTrace("Trace logging enabled.");
         }
         else if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "info")
         {
             logger.LogLevel = 1; // info
-            logger.LogInfo("Info logging enabled.");
         }
         else if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "warning")
         {
             logger.LogLevel = 2; // warning
-            logger.LogWarning("Warning logging enabled.");
         }
 
         BlueskyClient.Logger = logger;
@@ -278,7 +275,7 @@ public static class CommandLineInterface
         return true;
     }
 
-    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, ILogger logger)
+    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, BaseLogger logger)
     {
         logger.LogInfo("Usage:");
         string usage = "    .\\dnproto.exe /command " + commandName + "";

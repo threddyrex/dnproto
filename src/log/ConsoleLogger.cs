@@ -1,16 +1,9 @@
 
 namespace dnproto.log;
 
-public class ConsoleLogger : ILogger
+public class ConsoleLogger : BaseLogger
 {
-    public int LogLevel { get; set; }
-
-    public ConsoleLogger()
-    {
-        LogLevel = 1; // default to info; caller can change it
-    }
-
-    public void LogTrace(string? message)
+    public override void LogTrace(string? message)
     {
         if (LogLevel <= 0)
         {
@@ -18,7 +11,7 @@ public class ConsoleLogger : ILogger
         }
     }
 
-    public void LogInfo(string? message)
+    public override void LogInfo(string? message)
     {
         if (LogLevel <= 1)
         {
@@ -26,7 +19,7 @@ public class ConsoleLogger : ILogger
         }
     }
 
-    public void LogWarning(string? message)
+    public override void LogWarning(string? message)
     {
         if (LogLevel <= 2)
         {
@@ -34,7 +27,7 @@ public class ConsoleLogger : ILogger
         }
     }
 
-    public void LogError(string? message)
+    public override void LogError(string? message)
     {
         Console.WriteLine($"[ERROR] {message}");
     }
