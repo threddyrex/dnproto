@@ -31,12 +31,17 @@ public class PlcDir_GetPdsHistory : BaseCommand
             Logger.LogTrace("Resolving handle to did.");
             did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
         }
-        else
+        else if (CommandLineInterface.HasArgument(arguments, "did"))
         {
             did = CommandLineInterface.GetArgumentValue(arguments, "did");
         }
+        else
+        {
+            Logger.LogError("Either handle or did must be specified.");
+            return;
+        }
 
-        if(string.IsNullOrEmpty(did))
+        if (string.IsNullOrEmpty(did))
         {
             Logger.LogError("did is empty.");
             return;
