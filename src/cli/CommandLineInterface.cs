@@ -23,7 +23,7 @@ public static class CommandLineInterface
         // Parse args
         //
         var arguments = ParseArguments(args, logger);
-        if(arguments == null)
+        if (arguments == null)
         {
             return;
         }
@@ -52,12 +52,12 @@ public static class CommandLineInterface
         // Log parsed arguments
         //
         logger.LogTrace("Parsed arguments length: " + arguments.Keys.Count);
-        if(arguments.Keys.Count > 0)
+        if (arguments.Keys.Count > 0)
         {
             logger.LogTrace("Parsed arguments:");
             foreach (var kvp in arguments)
             {
-                if(kvp.Key == "password")
+                if (kvp.Key == "password")
                 {
                     logger.LogTrace($"    {kvp.Key}: ********");
                 }
@@ -104,7 +104,7 @@ public static class CommandLineInterface
 
             commandInstance = CommandLineInterface.TryCreateCommandInstance("help");
 
-            if(commandInstance == null)
+            if (commandInstance == null)
             {
                 throw new Exception("Help command not found.");
             }
@@ -120,16 +120,35 @@ public static class CommandLineInterface
         //
         // Check that arguments exist. If not, print arguments and return.
         //
-        if(CommandLineInterface.CheckArguments(commandInstance, arguments) == false)
+        if (CommandLineInterface.CheckArguments(commandInstance, arguments) == false)
         {
             CommandLineInterface.PrintUsage(commandName, commandInstance, logger);
             return;
         }
 
 
+        //
         // Do command
+        //
         logger.LogTrace($"Running command.");
-        commandInstance.DoCommand(arguments);
+
+        try
+        {
+            commandInstance.DoCommand(arguments);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"The command threw an exception. We will print out the inner exceptions and exit. Set \"/loglevel trace\" to see the full stack traces.");
+            Exception? inner = ex;
+            int count = 1;
+            while (inner != null)
+            {
+                logger.LogError($"Exception {count}: {inner.Message}");
+                logger.LogTrace(inner.StackTrace ?? "");
+                inner = inner.InnerException;
+                count++;
+            }
+        }
 
     }
 
