@@ -10,12 +10,12 @@ public class Account_Backup : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"handle", "password", "outputDir"});
+        return new HashSet<string>(new string[]{"handle", "password", "backupDir"});
     }
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[] { "getprefs", "getrepo", "getblobs", "blobsleepseconds", "authFactorToken", "previousBackupDir" });
+        return new HashSet<string>(new string[] { "getprefs", "getrepo", "getblobs", "blobsleepseconds", "authFactorToken" });
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ public class Account_Backup : BaseCommand
         //
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-        string? outputDir = CommandLineInterface.GetArgumentValue(arguments, "outputDir");
+        string? backupDir = CommandLineInterface.GetArgumentValue(arguments, "backupDir");
         string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
         bool getPrefs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getprefs", true);
         bool getRepo = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getrepo", true);
@@ -41,39 +41,25 @@ public class Account_Backup : BaseCommand
         string? previousBackupDir = CommandLineInterface.GetArgumentValue(arguments, "previousBackupDir");
 
         Logger.LogInfo($"handle: {handle}");
-        Logger.LogInfo($"outputDir: {outputDir}");
+        Logger.LogInfo($"backupDir: {backupDir}");
         Logger.LogInfo($"getPrefs: {getPrefs}");
         Logger.LogInfo($"getRepo: {getRepo}");
         Logger.LogInfo($"getBlobs: {getBlobs}");
         Logger.LogInfo($"password length: {password?.Length}");
         Logger.LogInfo($"authFactorToken length: {authFactorToken?.Length}");
 
-        if(string.IsNullOrEmpty(outputDir) || string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(password))
+        if(string.IsNullOrEmpty(backupDir) || string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(password))
         {
             Logger.LogError("Missing required argument.");
             return;
         }
 
-        if(!Directory.Exists(outputDir))
-        {
-            Logger.LogError("Output directory does not exist.");
-            return;
-        }
-
-
-        //
-        // Get the current date and time in a format suitable for a Windows directory
-        //
-        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        string backupDir = Path.Combine(outputDir, $"{handle}_{timestamp}");
-        Logger.LogInfo($"Creating backup directory: {backupDir}");
-        Directory.CreateDirectory(backupDir);
-
         if(!Directory.Exists(backupDir))
         {
-            Logger.LogError("Failed to create backup directory.");
+            Logger.LogError("Backup directory does not exist.");
             return;
         }
+
 
 
         //
@@ -82,7 +68,6 @@ public class Account_Backup : BaseCommand
         string readmePath = Path.Combine(backupDir, "README.txt");
         string readmeContents = "Account backup for Bluesky account. Created by dnproto.\n\n";
         readmeContents += $"handle: {handle}\n";
-        readmeContents += $"outputDir: {outputDir}\n";
         readmeContents += $"backupDir: {backupDir}\n";
         readmeContents += $"getPrefs: {getPrefs}\n";
         readmeContents += $"getRepo: {getRepo}\n";
@@ -174,7 +159,7 @@ public class Account_Backup : BaseCommand
         //
         // Get blobs
         //
-        if(getBlobs)
+        if (getBlobs)
         {
             //
             // List blobs (this just gives you the blob IDs)
@@ -191,9 +176,12 @@ public class Account_Backup : BaseCommand
             //
             string blobsDirectory = Path.Combine(backupDir, "blobs");
             Logger.LogInfo($"Creating blobs directory: {blobsDirectory}");
-            Directory.CreateDirectory(blobsDirectory);
+            if (!Directory.Exists(blobsDirectory))
+            {
+                Directory.CreateDirectory(blobsDirectory);
+            }
 
-            if(!Directory.Exists(blobsDirectory))
+            if (!Directory.Exists(blobsDirectory))
             {
                 Logger.LogError("Failed to create blobs directory.");
                 return;
@@ -203,22 +191,28 @@ public class Account_Backup : BaseCommand
             //
             // Get all blobs
             //
-            foreach(string blob in blobs)
+            int blobCountDownloaded = 0;
+            int blobCountSkipped = 0;
+
+            foreach (string blob in blobs)
             {
                 string blobPath = Path.Combine(blobsDirectory, blob);
 
-                if(Directory.Exists(previousBackupDir) && File.Exists(Path.Combine(previousBackupDir, "blobs", blob)))
+                if (File.Exists(blobPath) == false)
                 {
-                    Logger.LogInfo($"Found previous backup for blob: {blob}");
-                    // Copy the previous backup to the new location
-                    File.Copy(Path.Combine(previousBackupDir, "blobs", blob), blobPath, true);
-                    continue;
+                    Logger.LogTrace($"Getting blob file: {blobPath}");
+                    BlueskyClient.GetBlob(pds, did, blob, blobPath);
+                    Thread.Sleep(blobSleepSeconds * 1000);
+                    blobCountDownloaded++;
                 }
-
-                Logger.LogInfo($"Getting blob file: {blobPath}");
-                BlueskyClient.GetBlob(pds, did, blob, blobPath);
-                Thread.Sleep(blobSleepSeconds * 1000);
+                else
+                {
+                    Logger.LogTrace($"Blob file already exists, skipping: {blobPath}");
+                    blobCountSkipped++;
+                }
             }
+            
+            Logger.LogInfo($"Downloaded {blobCountDownloaded} blobs, skipped {blobCountSkipped} blobs.");
         }
     }
 }

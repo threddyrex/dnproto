@@ -300,8 +300,10 @@ public class BlueskyClient
     /// https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
     /// </summary>
     /// <param name="actor">The actor to get the profile for.</param>
-    public static JsonNode? GetProfile(string? actor)
+    public static JsonNode? GetProfile(string? actor, string? accessJwt = null, string? pds = null)
     {
+        string hostname = pds ?? "public.api.bsky.app";
+
         Logger.LogTrace($"GetProfile: actor: {actor}");
         if (string.IsNullOrEmpty(actor))
         {
@@ -309,10 +311,10 @@ public class BlueskyClient
             return null;
         }
 
-        string url = $"https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor={actor}";
+        string url = $"https://{hostname}/xrpc/app.bsky.actor.getProfile?actor={actor}";
         Logger.LogTrace($"GetProfile: url: {url}");
 
-        JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get);
+        JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt);
 
         return profile;
     }

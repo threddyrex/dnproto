@@ -10,12 +10,12 @@ public class Profile_Get : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"actor"});
+        return new HashSet<string>(new string[]{"handle"});
     }
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"outfile"});
+        return new HashSet<string>(new string[]{"outfile", "password", "authFactorToken"});
     }
 
 
@@ -27,8 +27,31 @@ public class Profile_Get : BaseCommand
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
-        string actor = arguments["actor"];
-        JsonNode? profile = BlueskyClient.GetProfile(actor);
+        string handle = arguments["handle"];
+
+        //
+        // Find session (if the user asks).
+        //
+        JsonNode? session = null;
+        string? accessJwt = null;
+        string? pds = null;
+
+        if (CommandLineInterface.HasArgument(arguments, "password"))
+        {
+            string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
+            string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
+
+            session = BlueskyClient.CreateSession(handle, password, authFactorToken);
+
+            accessJwt = JsonData.SelectString(session, "accessJwt");
+            pds = JsonData.SelectString(session, "pds");
+        }
+
+
+        //
+        // Get profile
+        //
+        JsonNode? profile = BlueskyClient.GetProfile(handle, accessJwt, pds);
 
         BlueskyClient.PrintJsonResponseToConsole(profile);
         JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "outfile"));

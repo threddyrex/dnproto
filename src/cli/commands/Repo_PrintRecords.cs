@@ -69,7 +69,7 @@ namespace dnproto.cli.commands
                         dagCborTypeCounts[typeString] = 1;
                     }
 
-                    string recordType = repoRecord.RecordType ?? "null";
+                    string recordType = repoRecord.RecordType ?? "<null>";
 
                     if (recordTypeCounts.ContainsKey(recordType))
                     {
@@ -87,18 +87,18 @@ namespace dnproto.cli.commands
             //
             // Print stats
             //
-            Logger.LogInfo($"Stats:");
-            Logger.LogInfo($"Total records: {totalRecords}");
-            Logger.LogInfo($"");
-            Logger.LogInfo($"DagCborType counts:");
+            Logger.LogInfo($"TOTAL RECORDS:");
+            Logger.LogInfo($"   {totalRecords}");
+            Logger.LogTrace($"DAG CBOR TYPE COUNTS:");
             foreach (var kvp in dagCborTypeCounts)
             {
-                Logger.LogInfo($"    {kvp.Key} - {kvp.Value}");
+                Logger.LogTrace($"  {kvp.Key} - {kvp.Value}");
             }
-            Logger.LogInfo($"RecordType counts:");
-            foreach (var kvp in recordTypeCounts)
+            Logger.LogInfo($"RECORD TYPE COUNTS:");
+            // print in order of most common to least common
+            foreach (var kvp in recordTypeCounts.OrderByDescending(kvp => kvp.Value))
             {
-                Logger.LogInfo($"    {kvp.Key} - {kvp.Value}");
+                Logger.LogInfo($"  {kvp.Key} - {kvp.Value}");
             }
         }
    }
