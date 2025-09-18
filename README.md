@@ -169,7 +169,6 @@ dnproto /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.thredd
 If you are parsing records and for some reason the parsing code cannot understand 
 a certain record structure, it will create a DagCborObject and include a map entry 
 with the key "DNPROTO_EXCEPTION", and continue to the next record. 
-I've seen this recently with non-Bluesky record types, like the flashes app profile.
 
 
 
