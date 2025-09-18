@@ -3,6 +3,7 @@
 
 using dnproto.cli;
 using dnproto.cli.commands;
+using dnproto.log;
 
 public class CommandLineInterfaceTests
 {
@@ -10,19 +11,19 @@ public class CommandLineInterfaceTests
     [Fact]
     public void ParseArguments_OddLength()
     {
-        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one"}));
+        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one"}, new NullLogger()));
     }
 
     [Fact]
     public void ParseArguments_NoSlashes()
     {
-        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one", "two"}));
+        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one", "two"}, new NullLogger()));
     }
 
     [Fact]
     public void ParseArguments_Correct()
     {
-        var ret = CommandLineInterface.ParseArguments(new string[]{"/one", "two"});
+        var ret = CommandLineInterface.ParseArguments(new string[]{"/one", "two"}, new NullLogger());
         Assert.NotNull(ret);
         Assert.Single(ret.Keys);
         Assert.Equal("two", ret["one"]);
@@ -60,7 +61,8 @@ public class CommandLineInterfaceTests
     public void CheckArguments_UnknownThrows()
     {
         var command = new HelloWorld();
-        var args = CommandLineInterface.ParseArguments(new string[]{"/unknown", "value"});
+        var args = CommandLineInterface.ParseArguments(new string[]{"/unknown", "value"}, new NullLogger());
+        Assert.NotNull(args);
         Assert.False(CommandLineInterface.CheckArguments(command, args));
     }
 

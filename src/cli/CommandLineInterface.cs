@@ -15,15 +15,18 @@ public static class CommandLineInterface
     public static void RunMain(string[] args)
     {
         //
-        // Parse args
-        //
-        var arguments = ParseArguments(args);
-
-
-        //
         // Create logger
         //
         var logger = new ConsoleLogger();
+
+        //
+        // Parse args
+        //
+        var arguments = ParseArguments(args, logger);
+        if(arguments == null)
+        {
+            return;
+        }
 
 
         //
@@ -136,11 +139,12 @@ public static class CommandLineInterface
     /// </summary>
     /// <param name="args">Array of command line arguments.</param>
     /// <returns>A dictionary where the key is the argument name and the value is the argument value.</returns>
-    public static Dictionary<string, string> ParseArguments(string[] args)
+    public static Dictionary<string, string>? ParseArguments(string[] args, BaseLogger logger)
     {
         if(args == null)
         {
-            throw new Exception("Arguments cannot be null.");
+            logger.LogError("Arguments cannot be null.");
+            return null;
         }
         
         string formatError = "Command line arguments must be in the format '/name1 value1 /name2 value2'";
@@ -148,7 +152,8 @@ public static class CommandLineInterface
         // Check that there are an even number of arguments
         if (args.Length % 2 != 0)
         {
-            throw new Exception(formatError);
+            logger.LogError(formatError);
+            return null;
         }
 
         // Loop and turn them into key/value pairs
