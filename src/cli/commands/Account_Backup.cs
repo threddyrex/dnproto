@@ -30,15 +30,18 @@ public class Account_Backup : BaseCommand
         //
         // Get arguments.
         //
+
+        // required
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
         string? backupDir = CommandLineInterface.GetArgumentValue(arguments, "backupDir");
+
+        // optional
         string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
         bool getPrefs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getprefs", true);
         bool getRepo = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getrepo", true);
         bool getBlobs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getblobs", true);
         int blobSleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "blobsleepseconds", 1);
-        string? previousBackupDir = CommandLineInterface.GetArgumentValue(arguments, "previousBackupDir");
 
         Logger.LogInfo($"handle: {handle}");
         Logger.LogInfo($"backupDir: {backupDir}");
