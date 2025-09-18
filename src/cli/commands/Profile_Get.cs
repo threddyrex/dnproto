@@ -19,6 +19,16 @@ public class Profile_Get : BaseCommand
     }
 
 
+    private static string[] GetLabelers()
+    {
+        return [
+            "did:plc:ar7c4by46qjdydhdevvrndac"
+            ,"did:plc:e4elbtctnfqocyfcml6h2lf7"
+            ,"did:plc:wkoofae5uytcm7bjncmev6n6"
+            ,"did:plc:d2mkddsbmnrgr3domzg5qexf"
+        ];
+    }
+
 
     /// <summary>
     /// Gets user profile.
@@ -51,7 +61,7 @@ public class Profile_Get : BaseCommand
         //
         // Get profile
         //
-        JsonNode? profile = BlueskyClient.GetProfile(handle, accessJwt, pds);
+        JsonNode? profile = BlueskyClient.GetProfile(handle, accessJwt, pds, string.Join(',', GetLabelers()));
 
         BlueskyClient.PrintJsonResponseToConsole(profile);
         JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "outfile"));

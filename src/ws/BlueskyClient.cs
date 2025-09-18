@@ -300,10 +300,15 @@ public class BlueskyClient
     /// https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
     /// </summary>
     /// <param name="actor">The actor to get the profile for.</param>
-    public static JsonNode? GetProfile(string? actor, string? accessJwt = null, string? pds = null)
+    public static JsonNode? GetProfile(string? actor, string? accessJwt = null, string? hostname = null, string? labelers = null)
     {
-        string hostname = pds ?? "public.api.bsky.app";
-
+        if (string.IsNullOrEmpty(hostname))
+        {
+            // we were calling "public.api.bsky.app", but the labels weren't returning
+            // from that endpoint. Switching to "api.bsky.app" seems to work.
+            hostname = "api.bsky.app";
+        }
+        
         Logger.LogTrace($"GetProfile: actor: {actor}");
         if (string.IsNullOrEmpty(actor))
         {
@@ -314,10 +319,11 @@ public class BlueskyClient
         string url = $"https://{hostname}/xrpc/app.bsky.actor.getProfile?actor={actor}";
         Logger.LogTrace($"GetProfile: url: {url}");
 
-        JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt);
+        JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt, labelers: labelers);
 
         return profile;
     }
+
 
 
     /// <summary>
@@ -532,7 +538,7 @@ public class BlueskyClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
+    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null)
     {
         Logger.LogTrace($"SendRequest: {url}");
 
@@ -562,6 +568,11 @@ public class BlueskyClient
             if (!string.IsNullOrEmpty(userAgent))
             {
                 request.Headers.UserAgent.TryParseAdd(userAgent);
+            }
+
+            if (!string.IsNullOrEmpty(labelers))
+            {
+                request.Headers.Add("Atproto-Accept-Labelers", labelers);
             }
 
             Logger.LogTrace($"REQUEST: {request}");
