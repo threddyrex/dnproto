@@ -13,27 +13,14 @@ public class Handle_ResolveInfo : BaseCommand
         return new HashSet<string>(new string[]{"handle"});
     }
 
-    public override HashSet<string> GetOptionalArguments()
-    {
-        return new HashSet<string>(new string[]{"outfile"});
-    }
-
 
     /// <summary>
-    /// Resolves a handle to a JSON object.
+    /// Resolves a handle - gets did, didDoc, and pds.
     /// </summary>
     /// <param name="arguments"></param>
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
-        //
-        // Get arguments.
-        //
-        if(arguments.ContainsKey("handle") == false)
-        {
-            throw new ArgumentException("Missing required argument: handle");
-        }
-
         string handle = arguments["handle"];
 
         //
@@ -56,9 +43,6 @@ public class Handle_ResolveInfo : BaseCommand
             {
                 Logger.LogInfo($"{key}: {resolveHandleInfo[key]}");
             }
-
-            JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
-        }
-
+       }
     }
 }
