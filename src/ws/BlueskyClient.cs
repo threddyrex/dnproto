@@ -28,7 +28,7 @@ public class BlueskyClient
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public static Dictionary<string, string> ResolveHandleInfo(string? handle, bool useBlueskyApi = false)
+    public static Dictionary<string, string> ResolveHandleInfo(string? handle)
     {
         Dictionary<string, string> ret = new Dictionary<string, string>();
 
@@ -40,10 +40,20 @@ public class BlueskyClient
         }
 
         //
-        // 1. Resolve handle to did (bluesky or dns or http).
+        // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
         //
-        string? did = ResolveHandleToDid(handle, useBlueskyApi);
+        string? did_bsky = ResolveHandleToDid_ViaBlueskyApi(handle);
+        string? did_dns = ResolveHandleToDid_ViaDns(handle);
+        string? did_http = ResolveHandleToDid_ViaHttp(handle);
+
+        string? did = did_bsky ?? did_dns ?? did_http;
+
+        ret["did_bsky"] = did_bsky ?? "";
+        ret["did_dns"] = did_dns ?? "";
+        ret["did_http"] = did_http ?? "";
+
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
+
         ret["did"] = did;
 
 
@@ -73,44 +83,6 @@ public class BlueskyClient
 
     }
 
-
-    /// <summary>
-    /// Resolves a handle to a did.
-    /// If useBlueskyApi, it uses the public Bluesky API directly.
-    /// If not, first try DNS, and then try HTTP (.well-known)
-    /// </summary>
-    /// <param name="handle">The handle to resolve.</param>
-    /// <returns>The resolved did or null if not found.</returns>
-    public static string? ResolveHandleToDid(string? handle, bool useBlueskyApi = false)
-    {
-        string? did = null;
-
-        if (useBlueskyApi)
-        {
-            did = ResolveHandleToDid_ViaBlueskyApi(handle);
-        }
-
-        string? did_dns = ResolveHandleToDid_ViaDns(handle);
-        string? did_http = ResolveHandleToDid_ViaHttp(handle);
-
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
-        {
-            did = did_dns;
-        }
-
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
-        {
-            did = did_http;
-        }
-
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
-        {
-            Logger.LogError("ResolveHandleToDid: Could not resolve handle to did.");
-            return null;
-        }        
-
-        return did;
-    }
 
     /// <summary>
     /// Resolves a did to a didDoc.
@@ -204,7 +176,16 @@ public class BlueskyClient
         Logger.LogTrace($"ResolveHandleToDid_ViaHttp: handle: {handle}");
         Logger.LogTrace($"ResolveHandleToDid_ViaHttp: url: {url}");
 
-        var responseText = BlueskyClient.SendRequestEx(url, HttpMethod.Get);
+        string? responseText = null;
+
+        try
+        {
+            responseText = BlueskyClient.SendRequestEx(url, HttpMethod.Get);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogTrace($"ResolveHandleToDid_ViaHttp: Exception: {ex.Message}");
+        }
 
         if (responseText != null && responseText.StartsWith("did:"))
         {

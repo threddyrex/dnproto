@@ -35,7 +35,7 @@ public class Firehose_Consume : BaseCommand
         string? pds = null;
         if (arguments.ContainsKey("handle"))
         {
-            Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(arguments["handle"], useBlueskyApi: true);
+            Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(arguments["handle"]);
             pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
         }
         else if (arguments.ContainsKey("pds"))

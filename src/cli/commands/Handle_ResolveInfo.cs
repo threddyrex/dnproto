@@ -52,12 +52,10 @@ public class Handle_ResolveInfo : BaseCommand
         }
         else
         {
-            string? pds = resolveHandleInfo.ContainsKey("pds") ? resolveHandleInfo["pds"] : "n/a";
-            string? did = resolveHandleInfo.ContainsKey("did") ? resolveHandleInfo["did"] : "n/a";
-            string? didDoc = resolveHandleInfo.ContainsKey("didDoc") ? resolveHandleInfo["didDoc"] : "n/a";
-            Logger.LogInfo($"pds: {pds}");
-            Logger.LogInfo($"did: {did}");
-            Logger.LogInfo($"didDoc: {didDoc}");
+            foreach(var key in resolveHandleInfo.Keys)
+            {
+                Logger.LogInfo($"{key}: {resolveHandleInfo[key]}");
+            }
 
             JsonData.WriteJsonToFile(jsonData, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }

@@ -54,7 +54,7 @@ public class Post_ViewBlock : BaseCommand
         //
         if(! uriOriginal.Authority.StartsWith("did:"))
         {
-            string? did = BlueskyClient.ResolveHandleToDid(uriOriginal.Authority);
+            string? did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(uriOriginal.Authority);
             Logger.LogTrace($"did: {did}");
 
             if (string.IsNullOrEmpty(did))
