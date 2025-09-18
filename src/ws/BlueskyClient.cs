@@ -90,15 +90,24 @@ public class BlueskyClient
             did = ResolveHandleToDid_ViaBlueskyApi(handle);
         }
 
+        string? did_dns = ResolveHandleToDid_ViaDns(handle);
+        string? did_http = ResolveHandleToDid_ViaHttp(handle);
+
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
         {
-            did = ResolveHandleToDid_ViaDns(handle);
+            did = did_dns;
         }
 
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
         {
-            did = ResolveHandleToDid_ViaHttp(handle);
+            did = did_http;
         }
+
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:"))
+        {
+            Logger.LogError("ResolveHandleToDid: Could not resolve handle to did.");
+            return null;
+        }        
 
         return did;
     }
@@ -152,7 +161,28 @@ public class BlueskyClient
 
         if (response != null)
         {
-            did = response["Answer"]?.AsArray()?.FirstOrDefault()?.AsObject()?["data"]?.ToString().Replace("\"", "").Replace("did=", "");
+            // print response for debugging
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            Logger.LogTrace(response.ToJsonString(options));
+
+            // get did
+            foreach (var answer in response["Answer"]?.AsArray() ?? new JsonArray())
+            {
+                if(answer == null) continue;
+                var dataRaw = answer.AsObject()?["data"]?.ToString();
+                var data = dataRaw?.Replace("\"", "");
+
+                Logger.LogTrace($"dataRaw: {dataRaw}");
+                Logger.LogTrace($"data: {data}");
+
+                if (string.IsNullOrEmpty(data)) continue;
+                
+                if(data.StartsWith("did="))
+                {
+                    did = data.Replace("did=", "");
+                    break;
+                }
+            }
         }
 
         Logger.LogTrace($"ResolveHandleToDid_ViaDns: did: {did}");
@@ -176,7 +206,7 @@ public class BlueskyClient
 
         var responseText = BlueskyClient.SendRequestEx(url, HttpMethod.Get);
 
-        if (responseText != null)
+        if (responseText != null && responseText.StartsWith("did:"))
         {
             did = responseText;
         }

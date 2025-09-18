@@ -46,7 +46,7 @@ public class Handle_ResolveInfo : BaseCommand
         //
         // Print response.
         //
-        if (string.IsNullOrEmpty(jsonData))
+        if (resolveHandleInfo.Count == 0)
         {
             Logger.LogError("Failed to resolve handle.");
         }
