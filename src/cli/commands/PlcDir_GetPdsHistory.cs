@@ -53,6 +53,7 @@ public class PlcDir_GetPdsHistory : BaseCommand
 
         JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
 
+        BlueskyClient.LogTraceJsonResponse(response);
 
         //
         // Loop through children json nodes. Call pds for each, asking if it thinks the repo is still active
