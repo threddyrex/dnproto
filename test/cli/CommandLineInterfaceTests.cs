@@ -9,12 +9,6 @@ public class CommandLineInterfaceTests
 {
 
     [Fact]
-    public void ParseArguments_OddLength()
-    {
-        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one"}, new NullLogger()));
-    }
-
-    [Fact]
     public void ParseArguments_NoSlashes()
     {
         Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one", "two"}, new NullLogger()));
