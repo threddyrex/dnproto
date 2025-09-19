@@ -9,7 +9,7 @@ using dnproto.uri;
 
 namespace dnproto.cli.commands;
 
-public class Post_Browse : BaseCommand
+public class ViewPost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

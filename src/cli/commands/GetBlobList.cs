@@ -7,7 +7,7 @@ namespace dnproto.cli.commands;
 /// <summary>
 /// List blobs for did.
 /// </summary>
-public class Blob_List : BaseCommand
+public class GetBlobList : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

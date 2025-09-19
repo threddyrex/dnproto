@@ -6,7 +6,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class PlcDir_Export : BaseCommand
+public class GetPlcExport : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

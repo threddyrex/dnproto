@@ -6,7 +6,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class PlcDir_GetPdsHistory : BaseCommand
+public class GetPlcHistory : BaseCommand
 {
     public override HashSet<string> GetOptionalArguments()
     {

@@ -9,7 +9,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class Session_Delete : BaseCommand
+public class DeleteSession : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

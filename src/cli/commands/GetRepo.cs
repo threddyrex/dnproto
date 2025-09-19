@@ -8,11 +8,11 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class Repo_Get : BaseCommand
+public class GetRepo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"outfile"});
+        return new HashSet<string>(new string[]{"repofile"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -34,11 +34,11 @@ public class Repo_Get : BaseCommand
         string? pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
         string? did = CommandLineInterface.GetArgumentValue(arguments, "did");
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
-        string? outfile = CommandLineInterface.GetArgumentValue(arguments, "outfile");
+        string? repofile = CommandLineInterface.GetArgumentValue(arguments, "repofile");
 
         Logger.LogTrace($"pds: {pds}");
         Logger.LogTrace($"did: {did}");
-        Logger.LogTrace($"outfile: {outfile}");
+        Logger.LogTrace($"repofile: {repofile}");
 
         //
         // If we're resolving handle, do that now.
@@ -55,7 +55,7 @@ public class Repo_Get : BaseCommand
         Logger.LogTrace($"pds: {pds}");
         Logger.LogTrace($"did: {did}");
 
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(outfile))
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repofile))
         {
             Logger.LogError("Invalid arguments.");
             return;
@@ -65,7 +65,7 @@ public class Repo_Get : BaseCommand
         //
         // Call pds
         //
-        Logger.LogInfo($"Calling GetRepo with pds: {pds}, did: {did}, outfile: {outfile}");
-        BlueskyClient.GetRepo(pds, did, outfile);
+        Logger.LogInfo($"Calling GetRepo with pds: {pds}, did: {did}, repofile: {repofile}");
+        BlueskyClient.GetRepo(pds, did, repofile);
     }
 }

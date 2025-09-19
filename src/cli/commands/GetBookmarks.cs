@@ -9,7 +9,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
-    public class Session_GetBookmarks : BaseCommand
+    public class GetBookmarks : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

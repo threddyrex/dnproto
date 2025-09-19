@@ -7,7 +7,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
-    public class Repo_Compare : BaseCommand
+    public class PrintRepoComparison : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

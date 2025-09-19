@@ -7,7 +7,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class Firehose_Consume : BaseCommand
+public class StartFirehoseConsumer : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

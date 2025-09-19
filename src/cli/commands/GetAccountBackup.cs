@@ -6,7 +6,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class Account_Backup : BaseCommand
+public class GetAccountBackup : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

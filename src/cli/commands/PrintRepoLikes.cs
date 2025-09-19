@@ -7,7 +7,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
-    public class Repo_SummarizeLikes : BaseCommand
+    public class PrintRepoLikes : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
