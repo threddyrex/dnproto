@@ -1,4 +1,5 @@
 
+using System.Text;
 namespace dnproto.repo;
 
 
@@ -41,8 +42,8 @@ public class Repo
         var repoHeader = RepoHeader.ReadFromStream(s);
         bool keepGoing = headerCallback(repoHeader);
 
-        while(s.Position < s.Length && keepGoing)
-        { 
+        while (s.Position < s.Length && keepGoing)
+        {
             // Read data block (record)
             var repoRecord = RepoRecord.ReadFromStream(s);
             keepGoing = recordCallback(repoRecord);
@@ -53,7 +54,7 @@ public class Repo
     public static void WalkRepo(string repoFile, Func<RepoHeader, bool> headerCallback, Func<RepoRecord, bool> recordCallback)
     {
         if (string.IsNullOrEmpty(repoFile)) return;
-        using(var fs = new FileStream(repoFile, FileMode.Open))
+        using (var fs = new FileStream(repoFile, FileMode.Open))
         {
             WalkRepo(fs, headerCallback, recordCallback);
         }
@@ -89,10 +90,16 @@ public class Repo
 
                 // loop through the items
                 string? kCurrent = null;
-                foreach(DagCborObject node in e)
+                foreach (DagCborObject node in e)
                 {
                     string? v = node.SelectString(["v"]);
-                    string? k = node.SelectString(["k"]);
+
+                    object? kobj = node.SelectObject(["k"]);
+                    if (kobj == null) break;
+                    byte[]? kbytes = kobj as byte[];
+                    if (kbytes == null) break;
+                    string? k = Encoding.UTF8.GetString(kbytes);
+
                     int? p = node.SelectInt(["p"]);
 
                     if (string.IsNullOrEmpty(v)) break;
@@ -147,9 +154,9 @@ public class Repo
                 string? data = repoRecord.DataBlock.SelectString(["data"]);
                 string? version = repoRecord.DataBlock.SelectString(["version"]);
 
-                if (string.IsNullOrEmpty(did) == false 
-                    && string.IsNullOrEmpty(rev) == false 
-                    && string.IsNullOrEmpty(data) == false 
+                if (string.IsNullOrEmpty(did) == false
+                    && string.IsNullOrEmpty(rev) == false
+                    && string.IsNullOrEmpty(data) == false
                     && string.IsNullOrEmpty(version) == false)
                 {
                     ret = did;
