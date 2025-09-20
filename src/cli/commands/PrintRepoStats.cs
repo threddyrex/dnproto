@@ -4,7 +4,7 @@ using dnproto.repo;
 
 namespace dnproto.cli.commands
 {
-    public class PrintRepoCounts : BaseCommand
+    public class PrintRepoStats : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -38,6 +38,8 @@ namespace dnproto.cli.commands
             Dictionary<string, int> repostsByMonth = new Dictionary<string, int>();
             Dictionary<string, int> likesByMonth = new Dictionary<string, int>();
             Dictionary<string, int> recordsByMonth = new Dictionary<string, int>();
+            Dictionary<string, int> dagCborTypeCounts = new Dictionary<string, int>();
+            Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>();
 
             //
             // Walk repo
@@ -109,6 +111,28 @@ namespace dnproto.cli.commands
                         }
                     }
 
+                    string typeString = repoRecord.DataBlock.Type.GetMajorTypeString();
+                    if (dagCborTypeCounts.ContainsKey(typeString))
+                    {
+                        dagCborTypeCounts[typeString]++;
+                    }
+                    else
+                    {
+                        dagCborTypeCounts[typeString] = 1;
+                    }
+
+                    string recordType = repoRecord.RecordType ?? "<null>";
+
+                    if (recordTypeCounts.ContainsKey(recordType))
+                    {
+                        recordTypeCounts[recordType] = recordTypeCounts[recordType] + 1;
+                    }
+                    else
+                    {
+                        recordTypeCounts[recordType] = 1;
+                    }
+
+
                     return true;
                 }
             );
@@ -122,7 +146,7 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"reposts: {totalReposts}");
             Logger.LogInfo($"earliestDate: {earliestDate}");
             Logger.LogInfo($"latestDate: {latestDate}");
-
+            Logger.LogInfo("");
             DateTime currentDate = earliestDate;
 
             while (currentDate <= latestDate.AddMonths(1))
@@ -135,6 +159,26 @@ namespace dnproto.cli.commands
                 Logger.LogInfo($"{month}: records={recordCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}");
                 currentDate = currentDate.AddMonths(1);
             }
+
+            Logger.LogInfo("");
+            Logger.LogInfo("");
+            Logger.LogInfo($"DAG CBOR TYPE COUNTS:");
+            Logger.LogInfo("");
+            foreach (var kvp in dagCborTypeCounts)
+            {
+                Logger.LogInfo($"{kvp.Key}: {kvp.Value}");
+            }
+
+            Logger.LogInfo("");
+            Logger.LogInfo("");
+            Logger.LogInfo($"RECORD TYPE COUNTS:");
+            Logger.LogInfo("");
+            // print in order of most common to least common
+            foreach (var kvp in recordTypeCounts.OrderByDescending(kvp => kvp.Value))
+            {
+                Logger.LogInfo($"{kvp.Key}: {kvp.Value}");
+            }
+            Logger.LogInfo("");
         }
    }
 }
