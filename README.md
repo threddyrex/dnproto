@@ -54,7 +54,7 @@ Calling dnproto with no arguments will print the help.
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle) to resolve a handle.
 
 ```powershell
-dnproto /command handle_resolve /handle robtougher.com
+dnproto /command gethandleinfo /handle robtougher.com
 ```
 
 
@@ -65,7 +65,7 @@ dnproto /command handle_resolve /handle robtougher.com
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile) to get the profile.
 
 ```powershell
-dnproto /command profile_get /actor robtougher.com
+dnproto /command getprofile /actor robtougher.com
 ```
 
 
@@ -76,13 +76,9 @@ dnproto /command profile_get /actor robtougher.com
 With handle:
 
 ```powershell
-dnproto /command repo_getstatus /handle robtougher.com
+dnproto /command getrepostatus /handle robtougher.com
 ```
 
-Or with did and pds:
-```powershell
-dnproto /command repo_getstatus /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social"
-```
 
 &nbsp;
 
@@ -93,40 +89,9 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 Using handle:
 
 ```powershell
-dnproto /command repo_get /handle robtougher.com /outfile "myfile.car"
+dnproto /command getrepo /handle robtougher.com /repofile "myfile.car"
 ```
 
-Or using did and pds:
-
-```powershell
-dnproto /command repo_get /did "did:plc:watmxkxfjbwyxfuutganopfk" /pds "pds01.threddy.social" /outfile "myfile.car"
-```
-
-
-
-
-&nbsp;
-
-# Logging in and interacting as the user.
-
-You can create a session on the server. The token for the session is
-stored in a file on local disk (specified by $sessionFile).
-
-```powershell
-$sessionFile = "sessionfile.txt"
-
-# log in
-dnproto /command session_create /sessionfile $sessionFile /handle "handle" /password "password"
-
-# create a post
-dnproto /command session_post /sessionfile $sessionFile /text "text of post"
-
-# get unread notification count
-dnproto /command session_getunreadcount /sessionfile $sessionFile
-
-# log out
-dnproto /command session_delete /sessionfile $sessionFile
-```
 
 
 &nbsp;
@@ -138,37 +103,15 @@ It will print out likes, replies, reposts, and quote posts.
 
 ```powershell
 # Download first repo from Bluesky
-dnproto /command repo_get /handle "handle1.com" /repofile "handle1.car"
+dnproto /command getrepo /handle "handle1.com" /repofile "handle1.car"
 
 # Download second repo from Bluesky
-dnproto /command repo_get /handle "handle2.com" /repofile "handle2.car"
+dnproto /command getrepo /handle "handle2.com" /repofile "handle2.car"
 
 # Compare the two repo files on disk and print out interactions
-dnproto /command repo_compare /repofile1 "handle1.car" /repofile2 "handle2.car"
+dnproto /command printrepocomparison /repofile1 "handle1.car" /repofile2 "handle2.car"
 ```
 
-
-
-&nbsp;
-
-# Write json responses to disk
-
-Many of the commands are just calls to the Bluesky APIs, which return json responses. 
-These commands usually provide a "outfile" argument for writing the response to disk:
-
-```powershell
-dnproto /command repo_getstatus /did "did:web:threddyrex.org" /pds "pds01.threddy.social" /outfile "file_path_to_create"
-```
-
-
-
-&nbsp;
-
-# Exceptions
-
-If you are parsing records and for some reason the parsing code cannot understand 
-a certain record structure, it will create a DagCborObject and include a map entry 
-with the key "DNPROTO_EXCEPTION", and continue to the next record. 
 
 
 
@@ -179,9 +122,9 @@ with the key "DNPROTO_EXCEPTION", and continue to the next record.
 
 ```powershell
 # Download full CAR file from the user's PDS, and store on local disk
-dnproto /command repo_get /handle "yourhandle.com" /repofile "repo.car"
+dnproto /command getrepo /handle "yourhandle.com" /repofile "repo.car"
 # Parse local CAR file and print posts
-dnproto /command repo_printposts /repofile "repo.car" > posts.txt
+dnproto /command printrepoposts /repofile "repo.car" > posts.txt
 ```
 
 
