@@ -140,6 +140,9 @@ namespace dnproto.cli.commands
             //
             // Print stats
             //
+            Logger.LogInfo("");
+            Logger.LogInfo($"repoFile: {repoFile}");
+            Logger.LogInfo("");
             Logger.LogInfo($"records: {totalRecords}");
             Logger.LogInfo($"posts: {totalPosts}");
             Logger.LogInfo($"likes: {totalLikes}");
