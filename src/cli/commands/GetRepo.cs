@@ -12,7 +12,7 @@ public class GetRepo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"repofile"});
+        return new HashSet<string>(new string[]{"dataDir"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -31,19 +31,31 @@ public class GetRepo : BaseCommand
         //
         // Get arguments
         //
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
         string? did = CommandLineInterface.GetArgumentValue(arguments, "did");
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
-        string? repofile = CommandLineInterface.GetArgumentValue(arguments, "repofile");
 
         Logger.LogTrace($"pds: {pds}");
         Logger.LogTrace($"did: {did}");
-        Logger.LogTrace($"repofile: {repofile}");
+        Logger.LogTrace($"dataDir: {dataDir}");
+
+
+        //
+        // Get local file system
+        //
+        LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
+        if (localFileSystem == null)
+        {
+            Logger.LogError("Failed to initialize local file system.");
+            return;
+        }
+
 
         //
         // If we're resolving handle, do that now.
         //
-        if(string.IsNullOrEmpty(handle) == false)
+        if (string.IsNullOrEmpty(handle) == false)
         {
             Logger.LogTrace("Resolving handle to did.");
             Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
@@ -55,11 +67,19 @@ public class GetRepo : BaseCommand
         Logger.LogTrace($"pds: {pds}");
         Logger.LogTrace($"did: {did}");
 
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repofile))
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || did.StartsWith("did:") == false)
         {
             Logger.LogError("Invalid arguments.");
             return;
         }
+
+        string? repofile = localFileSystem.GetPath_RepoFile(handle ?? did);
+        if (string.IsNullOrEmpty(repofile))
+        {
+            Logger.LogError("Failed to get repofile path.");
+            return;
+        }
+        Logger.LogTrace($"repofile: {repofile}");
 
 
         //

@@ -80,9 +80,9 @@ public class GetPost : BaseCommand
         //
         string getPostsUrl = $"http://public.api.bsky.app/xrpc/app.bsky.feed.getPosts?uris={atUri}";
         Logger.LogTrace($"getPostsUrl: {getPostsUrl}");
-        JsonNode? response = BlueskyClient.SendRequest(getPostsUrl, HttpMethod.Get);
+        JsonNode? response = BlueskyClient.SendRequest(getPostsUrl, HttpMethod.Get, labelers: string.Join(',', GetProfile.GetLabelers()));
 
-        BlueskyClient.LogTraceJsonResponse(response);
+        BlueskyClient.PrintJsonResponseToConsole(response);
 
         //
         // Find the quoted post.

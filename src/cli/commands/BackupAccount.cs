@@ -6,11 +6,11 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class GetAccountBackup : BaseCommand
+public class BackupAccount : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"handle", "password", "backupDir"});
+        return new HashSet<string>(new string[]{"handle", "password", "dataDir"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -34,7 +34,7 @@ public class GetAccountBackup : BaseCommand
         // required
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-        string? backupDir = CommandLineInterface.GetArgumentValue(arguments, "backupDir");
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
 
         // optional
         string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
@@ -44,26 +44,45 @@ public class GetAccountBackup : BaseCommand
         int blobSleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "blobsleepseconds", 1);
 
         Logger.LogInfo($"handle: {handle}");
-        Logger.LogInfo($"backupDir: {backupDir}");
+        Logger.LogInfo($"dataDir: {dataDir}");
         Logger.LogInfo($"getPrefs: {getPrefs}");
         Logger.LogInfo($"getRepo: {getRepo}");
         Logger.LogInfo($"getBlobs: {getBlobs}");
         Logger.LogInfo($"password length: {password?.Length}");
         Logger.LogInfo($"authFactorToken length: {authFactorToken?.Length}");
 
-        if(string.IsNullOrEmpty(backupDir) || string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(password))
+        if(string.IsNullOrEmpty(dataDir) || string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(password))
         {
             Logger.LogError("Missing required argument.");
             return;
         }
 
-        if(!Directory.Exists(backupDir))
+        //
+        // Get local file system
+        //
+        LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
+        if (localFileSystem == null)
         {
-            Logger.LogError("Backup directory does not exist.");
+            Logger.LogError("Failed to initialize local file system.");
             return;
         }
 
 
+        //
+        // Get backup dir
+        //
+        string? backupDir = localFileSystem.GetPath_AccountBackupDir(handle);
+        if (string.IsNullOrEmpty(backupDir))
+        {
+            Logger.LogError("Failed to get backup directory.");
+            return;
+        }
+
+        if(Directory.Exists(backupDir) == false)
+        {
+            Logger.LogTrace($"Creating backup directory: {backupDir}");
+            Directory.CreateDirectory(backupDir);
+        }
 
         //
         // Create readme.txt
@@ -178,9 +197,9 @@ public class GetAccountBackup : BaseCommand
             // Create blobs directory
             //
             string blobsDirectory = Path.Combine(backupDir, "blobs");
-            Logger.LogInfo($"Creating blobs directory: {blobsDirectory}");
             if (!Directory.Exists(blobsDirectory))
             {
+                Logger.LogInfo($"Creating blobs directory: {blobsDirectory}");
                 Directory.CreateDirectory(blobsDirectory);
             }
 

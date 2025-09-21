@@ -89,27 +89,7 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 Using handle:
 
 ```powershell
-dnproto /command getrepo /handle robtougher.com /repofile "myfile.car"
-```
-
-
-
-&nbsp;
-
-# Comparing Two Repositories
-
-You can compare the interactions between two repos (accounts) using the following.
-It will print out likes, replies, reposts, and quote posts.
-
-```powershell
-# Download first repo from Bluesky
-dnproto /command getrepo /handle "handle1.com" /repofile "handle1.car"
-
-# Download second repo from Bluesky
-dnproto /command getrepo /handle "handle2.com" /repofile "handle2.car"
-
-# Compare the two repo files on disk and print out interactions
-dnproto /command printrepocomparison /repofile1 "handle1.car" /repofile2 "handle2.car"
+dnproto /command getrepo /handle robtougher.com /datadir "path_to_local_filesystem_dir"
 ```
 
 
@@ -122,9 +102,9 @@ dnproto /command printrepocomparison /repofile1 "handle1.car" /repofile2 "handle
 
 ```powershell
 # Download full CAR file from the user's PDS, and store on local disk
-dnproto /command getrepo /handle "yourhandle.com" /repofile "repo.car"
+dnproto /command getrepo /handle "yourhandle.com"  /datadir "path_to_local_filesystem_dir"
 # Parse local CAR file and print posts
-dnproto /command printrepoposts /repofile "repo.car" > posts.txt
+dnproto /command printrepoposts /handle "yourhandle.com"  /datadir "path_to_local_filesystem_dir" > posts.txt
 ```
 
 

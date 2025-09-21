@@ -8,7 +8,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return [.. new string[]{"repoFile"}];
+            return new HashSet<string>(new string[]{"dataDir", "handle"});
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -16,24 +16,27 @@ namespace dnproto.cli.commands
             //
             // Get arguments
             //
-            string? repoFile = CommandLineInterface.GetArgumentValue(arguments, "repoFile");
+            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
 
-            if (string.IsNullOrEmpty(repoFile))
+            //
+            // Get local file system
+            //
+            LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
+            if (localFileSystem == null)
             {
-                Logger.LogError("repoFile is empty.");
+                Logger.LogError("Failed to initialize local file system.");
                 return;
             }
 
-            bool fileExists = File.Exists(repoFile);
-
-            Logger.LogTrace($"repoFile: {repoFile}");
-            Logger.LogTrace($"fileExists: {fileExists}");
-
-            if (!fileExists)
+    
+            string? repoFile = localFileSystem.GetPath_RepoFile(handle);
+            if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
-                Logger.LogError("File does not exist.");
+                Logger.LogError($"Repo file does not exist: {repoFile}");
                 return;
             }
+
 
             //
             // For stats

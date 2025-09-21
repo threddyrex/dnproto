@@ -11,7 +11,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"repoFile"});
+            return new HashSet<string>(new string[]{"dataDir", "handle"});
         }
 
         public override HashSet<string> GetOptionalArguments()
@@ -28,33 +28,39 @@ namespace dnproto.cli.commands
             //
             // Get arguments
             //
-            string? repoFile = CommandLineInterface.GetArgumentValue(arguments, "repoFile");
+            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
             int printCount = CommandLineInterface.GetArgumentValueWithDefault(arguments, "printcount", 20);
             string createdAfter = CommandLineInterface.GetArgumentValueWithDefault(arguments, "createdafter", "2010");
             bool resolveHandles = CommandLineInterface.GetArgumentValueWithDefault(arguments, "resolvehandles", false);
             int resolveWaitSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "resolvewaitseconds", 5);
 
-            if (string.IsNullOrEmpty(repoFile))
+            //
+            // Get local file system
+            //
+            LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
+            if (localFileSystem == null)
             {
-                Logger.LogError("repoFile is empty.");
+                Logger.LogError("Failed to initialize local file system.");
                 return;
             }
 
-            bool fileExists = File.Exists(repoFile);
+    
+            string? repoFile = localFileSystem.GetPath_RepoFile(handle);
+            if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
+            {
+                Logger.LogError($"Repo file does not exist: {repoFile}");
+                return;
+            }
+
 
             Logger.LogInfo($"repoFile: {repoFile}");
-            Logger.LogInfo($"fileExists: {fileExists}");
             Logger.LogInfo($"printCount: {printCount}");
             Logger.LogInfo($"createdAfter: {createdAfter}");
             Logger.LogInfo($"resolveHandles: {resolveHandles}");
             Logger.LogInfo($"resolveWaitSeconds: {resolveWaitSeconds}");
             Logger.LogInfo($"");
 
-            if (!fileExists)
-            {
-                Logger.LogError("File does not exist.");
-                return;
-            }
 
             Dictionary<string, int> likeCountsByDid = new Dictionary<string, int>();
 
@@ -115,10 +121,10 @@ namespace dnproto.cli.commands
                 if(resolveHandles)
                 {
                     JsonNode? profile = BlueskyClient.GetProfile(kvp.Key);
-                    string? handle = JsonData.SelectString(profile, "handle");
+                    string? handle1 = JsonData.SelectString(profile, "handle");
 
                     var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                    Logger.LogInfo($"{profileUrl}   {kvp.Value} likes     ({handle})");
+                    Logger.LogInfo($"{profileUrl}   {kvp.Value} likes     ({handle1})");
 
                     // sleep 2 secs
                     Thread.Sleep(resolveWaitSeconds * 1000);

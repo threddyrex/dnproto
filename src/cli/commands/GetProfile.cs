@@ -19,7 +19,7 @@ public class GetProfile : BaseCommand
     }
 
 
-    private static string[] GetLabelers()
+    public static string[] GetLabelers()
     {
         return [
             "did:plc:ar7c4by46qjdydhdevvrndac"
