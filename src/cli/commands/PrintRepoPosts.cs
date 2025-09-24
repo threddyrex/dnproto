@@ -29,7 +29,7 @@ namespace dnproto.cli.commands
                 return;
             }
 
-    
+
             string? repoFile = localFileSystem.GetPath_RepoFile(handle);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
@@ -38,8 +38,15 @@ namespace dnproto.cli.commands
             }
 
             //
+            // Walk repo once to get cid/rkey mapping
+            //
+            Dictionary<string, string>? rkeys = Repo.FindRkeys(repoFile);
+
+            //
             // Walk repo
             //
+            List<RepoRecord> posts = new List<RepoRecord>();
+
             Repo.WalkRepo(
                 repoFile,
                 (repoHeader) =>
@@ -51,12 +58,29 @@ namespace dnproto.cli.commands
                     if (string.IsNullOrEmpty(repoRecord.RecordType)) return true;
                     if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post", StringComparison.OrdinalIgnoreCase) == false) return true;
 
-                    Console.WriteLine($"cid: {repoRecord.Cid.GetBase32()}");
-                    Console.WriteLine($"createdAt: {repoRecord.DataBlock.SelectString(["createdAt"])}");
-                    Console.WriteLine($"text: {repoRecord.DataBlock.SelectString(["text"])}");
+                    posts.Add(repoRecord);
                     return true;
                 }
             );
+
+            //
+            // Print, sorted
+            //
+            // sort by createdAt
+            var sortedPosts = posts.OrderBy(pr => pr.DataBlock.SelectString(["createdAt"]));
+            foreach (var repoRecord in sortedPosts)
+            {
+                string? rkey = rkeys != null && repoRecord.Cid != null && rkeys.TryGetValue(repoRecord.Cid.GetBase32(), out string? foundRkey) ? foundRkey : null;
+
+                if (string.IsNullOrEmpty(rkey) == false)
+                {
+                    Console.WriteLine($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{handle}/post/{rkey}");
+                }
+                else
+                {
+                    Console.WriteLine($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] {repoRecord.Cid?.GetBase32()}");
+                }
+            }
         }
    }
 }
