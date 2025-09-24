@@ -45,12 +45,14 @@ namespace dnproto.cli.commands
             int totalPosts = 0;
             int totalLikes = 0;
             int totalReposts = 0;
+            int totalFlashes = 0;
             DateTime earliestDate = DateTime.MaxValue;
             DateTime latestDate = DateTime.MinValue;
             Dictionary<string, int> postsByMonth = new Dictionary<string, int>();
             Dictionary<string, int> repostsByMonth = new Dictionary<string, int>();
             Dictionary<string, int> likesByMonth = new Dictionary<string, int>();
             Dictionary<string, int> recordsByMonth = new Dictionary<string, int>();
+            Dictionary<string, int> flashesByMonth = new Dictionary<string, int>();
             Dictionary<string, int> dagCborTypeCounts = new Dictionary<string, int>();
             Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>();
 
@@ -78,6 +80,10 @@ namespace dnproto.cli.commands
                     else if (repoRecord.RecordType == "app.bsky.feed.repost")
                     {
                         totalReposts++;
+                    }
+                    else if (repoRecord.RecordType == "blue.flashes.feed.post")
+                    {
+                        totalFlashes++;
                     }
 
                     if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))
@@ -122,6 +128,14 @@ namespace dnproto.cli.commands
                             }
                             repostsByMonth[month]++;
                         }
+                        else if (repoRecord.RecordType == "blue.flashes.feed.post")
+                        {
+                            if (flashesByMonth.ContainsKey(month) == false)
+                            {
+                                flashesByMonth[month] = 0;
+                            }
+                            flashesByMonth[month]++;
+                        }
                     }
 
                     string typeString = repoRecord.DataBlock.Type.GetMajorTypeString();
@@ -160,6 +174,7 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"posts: {totalPosts}");
             Logger.LogInfo($"likes: {totalLikes}");
             Logger.LogInfo($"reposts: {totalReposts}");
+            Logger.LogInfo($"flashes: {totalFlashes}");
             Logger.LogInfo($"earliestDate: {earliestDate}");
             Logger.LogInfo($"latestDate: {latestDate}");
             Logger.LogInfo("");
@@ -172,7 +187,8 @@ namespace dnproto.cli.commands
                 int likeCount = likesByMonth.ContainsKey(month) ? likesByMonth[month] : 0;
                 int recordCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month] : 0;
                 int repostCount = repostsByMonth.ContainsKey(month) ? repostsByMonth[month] : 0;
-                Logger.LogInfo($"{month}: records={recordCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}");
+                int flashCount = flashesByMonth.ContainsKey(month) ? flashesByMonth[month] : 0;
+                Logger.LogInfo($"{month}: records={recordCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, flashes={flashCount}");
                 currentDate = currentDate.AddMonths(1);
             }
 
