@@ -184,7 +184,15 @@ public class BlueskyClient
         }
         catch (Exception ex)
         {
-            Logger.LogTrace($"ResolveHandleToDid_ViaHttp: Exception: {ex.Message}");
+            Exception? inner = ex;
+            int count = 1;
+            while (inner != null)
+            {
+                Logger.LogError($"ResolveHandleToDid_ViaHttp: Exception {count}: {inner.Message}");
+                Logger.LogTrace(inner.StackTrace ?? "");
+                inner = inner.InnerException;
+                count++;
+            }
         }
 
         if (responseText != null && responseText.StartsWith("did:"))
