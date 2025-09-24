@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
 using dnproto.log;
+using dnproto.uri;
 
 namespace dnproto.ws;
 
@@ -597,6 +598,59 @@ public class BlueskyClient
         }
 
         BlueskyClient.LogTraceJsonResponse(response);
+    }
+
+
+    /// <summary>
+    /// Return set of bookmarks for the user.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="accessJwt"></param>
+    /// <returns></returns>
+    public static List<AtUri> GetBookmarks(string? pds, string? accessJwt)
+    {
+        List<AtUri> ret = new List<AtUri>();
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt))
+        {
+            Logger.LogError("GetBookmarks: Invalid arguments. Exiting.");
+            return ret;
+        }
+
+        string url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
+        Logger.LogTrace($"GetBookmarks: url: {url}");
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Get,
+            accessJwt: accessJwt
+        );
+
+        if (response == null)
+        {
+            Logger.LogError("GetBookmarks: response returned null.");
+            return ret;
+        }
+
+        BlueskyClient.LogTraceJsonResponse(response);
+
+        var bookmarks = response["bookmarks"]?.AsArray();
+        if (bookmarks != null)
+        {
+            foreach (var bookmark in bookmarks)
+            {
+                var uri = bookmark?["item"]?["uri"]?.ToString();
+                if (!string.IsNullOrEmpty(uri))
+                {
+                    var atUri = AtUri.FromAtUri(uri);
+                    if (atUri != null)
+                    {
+                        ret.Add(atUri);
+                    }
+                }
+            }
+        }
+
+        return ret;
     }
 
 

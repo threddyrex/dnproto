@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.repo;
 using dnproto.ws;
+using dnproto.uri;
 
 namespace dnproto.cli.commands
 {
@@ -73,22 +74,20 @@ namespace dnproto.cli.commands
                 return;
             }
 
-            string url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
-            Logger.LogInfo($"url: {url}");
 
             //
             // Call WS
             //
-            JsonNode? response = BlueskyClient.SendRequest(url,
-                HttpMethod.Get, 
-                accessJwt: accessJwt);
-
+            List<AtUri> bookmarks = BlueskyClient.GetBookmarks(pds, accessJwt);
 
             //
             // Print results
             //
-            BlueskyClient.PrintJsonResponseToConsole(response);
-            JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
+            foreach (AtUri b in bookmarks)
+            {
+                Logger.LogInfo($"Bookmark: {b.ToBskyPostUrl()}");
+            }
+
         }
     }
 }
