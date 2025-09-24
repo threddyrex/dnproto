@@ -49,7 +49,7 @@ public class AtUri
     /// </summary>
     public static AtUri? FromAtUri(string? atUri)
     {
-        if (string.IsNullOrEmpty(atUri))
+        if (string.IsNullOrEmpty(atUri) || !atUri.StartsWith("at://"))
         {
             return null;
         }

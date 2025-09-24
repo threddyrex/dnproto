@@ -13,7 +13,7 @@ public class GetPost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"url"});
+        return new HashSet<string>(new string[]{"uri"});
     }
 
     /// <summary>
@@ -27,16 +27,22 @@ public class GetPost : BaseCommand
         //
         // Get arguments
         //
-        string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
-        Logger.LogTrace($"url: {url}");
+        string? uri = CommandLineInterface.GetArgumentValue(arguments, "uri");
+        Logger.LogTrace($"uri: {uri}");
 
         //
         // Parse to AtUri
         //
-        var uriOriginal = AtUri.FromBskyPost(url);
+        AtUri? uriOriginal = AtUri.FromBskyPost(uri);
+
+        if(uriOriginal == null)
+        {
+            uriOriginal = AtUri.FromAtUri(uri);
+        }
+
         if (uriOriginal == null)
         {
-            Logger.LogError("Invalid URL format.");
+            Logger.LogError("Invalid URI format.");
             return;
         }
 

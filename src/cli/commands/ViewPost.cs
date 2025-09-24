@@ -13,7 +13,7 @@ public class ViewPost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"url"});
+        return new HashSet<string>(new string[]{"uri"});
     }
 
     /// <summary>
@@ -26,12 +26,12 @@ public class ViewPost : BaseCommand
         //
         // Get arguments
         //
-        string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
-        Logger.LogTrace($"url: {url}");
+        string? uri = CommandLineInterface.GetArgumentValue(arguments, "uri");
+        Logger.LogTrace($"uri: {uri}");
 
-        if (string.IsNullOrEmpty(url))
+        if (string.IsNullOrEmpty(uri))
         {
-            Logger.LogError("URL argument is required.");
+            Logger.LogError("URI argument is required.");
             return;
         }
 
@@ -41,29 +41,22 @@ public class ViewPost : BaseCommand
         //
         string? postUrl = null;
 
-        if (url.StartsWith("at://"))
+        if (uri.StartsWith("at://"))
         {
-            var uri = AtUri.FromAtUri(url);
-            if (uri == null)
-            {
-                Logger.LogError("Invalid at:// URL format.");
-                return;
-            }
-
-            postUrl = uri.ToBskyPostUrl();
+            postUrl = AtUri.FromAtUri(uri)?.ToBskyPostUrl();
             if (string.IsNullOrEmpty(postUrl))
             {
                 Logger.LogError("Could not convert at:// URL to Bluesky URL.");
                 return;
             }
         }
-        else if (url.Contains("bsky.app"))
+        else if (uri.Contains("bsky.app"))
         {
-            postUrl = url;
+            postUrl = uri;
         }
         else
         {
-            Logger.LogError("URL must be either an at:// URI or a bsky.app URL.");
+            Logger.LogError("URI must be either an at:// URI or a bsky.app URI.");
             return;
         }
 
