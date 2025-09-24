@@ -42,18 +42,28 @@ public class BlueskyClient
         //
         // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
         //
-        string? did_bsky = ResolveHandleToDid_ViaBlueskyApi(handle);
-        string? did_dns = ResolveHandleToDid_ViaDns(handle);
-        string? did_http = ResolveHandleToDid_ViaHttp(handle);
+        string? did = null;
 
-        string? did = did_bsky ?? did_dns ?? did_http;
+        if(handle.StartsWith("did:"))
+        {
+            did = handle;
+            Logger.LogTrace("Handle is already a did.");
+        }
+        else
+        {
+            Logger.LogTrace("Handle is not a did, resolving to did.");
+            string? did_bsky = ResolveHandleToDid_ViaBlueskyApi(handle);
+            string? did_dns = ResolveHandleToDid_ViaDns(handle);
+            string? did_http = ResolveHandleToDid_ViaHttp(handle);
 
-        ret["did_bsky"] = did_bsky ?? "";
-        ret["did_dns"] = did_dns ?? "";
-        ret["did_http"] = did_http ?? "";
+            did = did_bsky ?? did_dns ?? did_http;
+
+            ret["did_bsky"] = did_bsky ?? "";
+            ret["did_dns"] = did_dns ?? "";
+            ret["did_http"] = did_http ?? "";
+        }
 
         if (string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
-
         ret["did"] = did;
 
 
@@ -543,6 +553,51 @@ public class BlueskyClient
         //
         return session;
     }
+    
+    /// <summary>
+    /// Deletes a record.
+    /// </summary>
+    /// <param name="handleInfo"></param>
+    /// <param name="accessJwt"></param>
+    /// <param name="postUri"></param>
+    public static void DeleteRecord(string? pds, string? did, string? accessJwt, string? rkey, string? collection = "app.bsky.feed.post")
+    {
+        //
+        // Check args
+        //
+        Logger.LogTrace($"DeleteRecord: pds: {pds}, did: {did}, collection: {collection}, rkey: {rkey}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
+        {
+            Logger.LogError("DeleteRecord: Invalid arguments. Exiting.");
+            return;
+        }
+
+        //
+        // Call pds to delete
+        //
+        string url = $"https://{pds}/xrpc/com.atproto.repo.deleteRecord";
+        Logger.LogTrace($"DeleteRecord: url: {url}");
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            accessJwt: accessJwt,
+            content: new StringContent(JsonSerializer.Serialize(new
+            {
+                repo = did,
+                collection = collection,
+                rkey = rkey
+            }))
+        );
+
+        if (response == null)
+        {
+            Logger.LogError("DeletePost: response returned null.");
+            return;
+        }
+
+        BlueskyClient.LogTraceJsonResponse(response);
+    }
 
 
     /// <summary>
@@ -573,7 +628,7 @@ public class BlueskyClient
                 request.Content = content;
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
             }
-            
+
             if (accessJwt != null)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
@@ -601,7 +656,7 @@ public class BlueskyClient
             //
             var response = client.Send(request);
 
-            if(response == null)
+            if (response == null)
             {
                 Logger.LogTrace("response is null.");
                 return null;
@@ -615,13 +670,13 @@ public class BlueskyClient
             // If user wants json, parse that.
             //
             JsonNode? jsonResponse = null;
-            if(parseJsonResponse && succeeded)
+            if (parseJsonResponse && succeeded)
             {
                 using (var reader = new StreamReader(response.Content.ReadAsStream()))
                 {
                     var responseText = reader.ReadToEnd();
 
-                    if(string.IsNullOrEmpty(responseText) == false)
+                    if (string.IsNullOrEmpty(responseText) == false)
                     {
                         jsonResponse = JsonNode.Parse(responseText);
                     }
