@@ -233,7 +233,6 @@ namespace dnproto.cli.commands
 
                 if (delete)
                 {
-                    Logger.LogInfo("Calling DeleteRecord...");
                     BlueskyClient.DeleteRecord(pds, did, accessJwt, rkey, collection: record.RecordType);
                     Thread.Sleep(sleepSeconds * 1000);
                 }
