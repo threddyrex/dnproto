@@ -669,6 +669,11 @@ public class BlueskyClient
             }
 
             cursor = response?["cursor"]?.ToString();
+
+            if (keepGoing)
+            {
+                Thread.Sleep(1000);
+            }
         }
 
 
