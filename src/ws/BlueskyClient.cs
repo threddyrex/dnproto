@@ -607,9 +607,9 @@ public class BlueskyClient
     /// <param name="pds"></param>
     /// <param name="accessJwt"></param>
     /// <returns></returns>
-    public static List<AtUri> GetBookmarks(string? pds, string? accessJwt)
+    public static List<(string createdAt, AtUri uri)> GetBookmarks(string? pds, string? accessJwt)
     {
-        List<AtUri> ret = new List<AtUri>();
+        List<(string createdAt, AtUri uri)> ret = new List<(string createdAt, AtUri uri)>();
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt))
         {
@@ -639,12 +639,14 @@ public class BlueskyClient
             foreach (var bookmark in bookmarks)
             {
                 var uri = bookmark?["item"]?["uri"]?.ToString();
+                var createdAt = bookmark?["item"]?["record"]?["createdAt"]?.ToString();
+
                 if (!string.IsNullOrEmpty(uri))
                 {
                     var atUri = AtUri.FromAtUri(uri);
-                    if (atUri != null)
+                    if (atUri != null && !string.IsNullOrEmpty(createdAt))
                     {
-                        ret.Add(atUri);
+                        ret.Add(((string)createdAt, atUri));
                     }
                 }
             }

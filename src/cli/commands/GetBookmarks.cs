@@ -78,14 +78,15 @@ namespace dnproto.cli.commands
             //
             // Call WS
             //
-            List<AtUri> bookmarks = BlueskyClient.GetBookmarks(pds, accessJwt);
+            List<(string createdAt, AtUri uri)> bookmarks = BlueskyClient.GetBookmarks(pds, accessJwt);
+            var bookmarksSorted = bookmarks.OrderBy(b => b.createdAt).ToList();
 
             //
             // Print results
             //
-            foreach (AtUri b in bookmarks)
+            foreach ((string createdAt, AtUri b) in bookmarksSorted)
             {
-                Logger.LogInfo($"Bookmark: {b.ToBskyPostUrl()}");
+                Logger.LogInfo($"[{createdAt}] {b.ToBskyPostUrl()}");
             }
 
         }
