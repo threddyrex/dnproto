@@ -80,6 +80,8 @@ namespace dnproto.cli.commands
             //
             List<(string createdAt, AtUri uri)> bookmarks = BlueskyClient.GetBookmarks(pds, accessJwt);
             var bookmarksSorted = bookmarks.OrderBy(b => b.createdAt).ToList();
+            Logger.LogInfo($"bookmarks.Count {bookmarks.Count}");
+            Logger.LogInfo($"bookmarksSorted.Count {bookmarksSorted.Count}");
 
             //
             // Print results
