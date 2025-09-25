@@ -617,40 +617,60 @@ public class BlueskyClient
             return ret;
         }
 
-        string url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
-        Logger.LogTrace($"GetBookmarks: url: {url}");
-
-        var response = BlueskyClient.SendRequest(url,
-            HttpMethod.Get,
-            accessJwt: accessJwt
-        );
-
-        if (response == null)
+        bool keepGoing = true;
+        string? cursor = null;
+        while (keepGoing)
         {
-            Logger.LogError("GetBookmarks: response returned null.");
-            return ret;
-        }
+            keepGoing = false;
+            string? url = null;
 
-        BlueskyClient.LogTraceJsonResponse(response);
-
-        var bookmarks = response["bookmarks"]?.AsArray();
-        if (bookmarks != null)
-        {
-            foreach (var bookmark in bookmarks)
+            if (cursor != null)
             {
-                var uri = bookmark?["item"]?["uri"]?.ToString();
-                var createdAt = bookmark?["item"]?["record"]?["createdAt"]?.ToString();
+                url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks?cursor={cursor}";
+            }
+            else
+            {
+                url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
+            }
 
-                if (!string.IsNullOrEmpty(uri))
+            Logger.LogTrace($"GetBookmarks: url: {url}");
+
+            var response = BlueskyClient.SendRequest(url,
+                HttpMethod.Get,
+                accessJwt: accessJwt
+            );
+
+            if (response == null)
+            {
+                Logger.LogError("GetBookmarks: response returned null.");
+                return ret;
+            }
+
+            BlueskyClient.LogTraceJsonResponse(response);
+
+            var bookmarks = response["bookmarks"]?.AsArray();
+            if (bookmarks != null)
+            {
+                foreach (var bookmark in bookmarks)
                 {
-                    var atUri = AtUri.FromAtUri(uri);
-                    if (atUri != null && !string.IsNullOrEmpty(createdAt))
+                    keepGoing = true;
+                    var uri = bookmark?["item"]?["uri"]?.ToString();
+                    var createdAt = bookmark?["item"]?["record"]?["createdAt"]?.ToString();
+
+                    if (!string.IsNullOrEmpty(uri))
                     {
-                        ret.Add(((string)createdAt, atUri));
+                        var atUri = AtUri.FromAtUri(uri);
+                        if (atUri != null && !string.IsNullOrEmpty(createdAt))
+                        {
+                            ret.Add(((string)createdAt, atUri));
+                        }
                     }
                 }
             }
+
+            cursor = response?["cursor"]?.ToString();
         }
+
 
         return ret;
     }
