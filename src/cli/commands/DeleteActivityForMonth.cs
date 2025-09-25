@@ -19,7 +19,7 @@ namespace dnproto.cli.commands
 
         public override HashSet<string> GetOptionalArguments()
         {
-            return ["authFactorToken"];
+            return ["authFactorToken", "deleteLikes", "deleteReposts", "deletePosts", "sleepSeconds"];
         }
 
 
@@ -37,32 +37,26 @@ namespace dnproto.cli.commands
             string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
+            bool deleteLikes = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deleteLikes", false);
+            bool deleteReposts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deleteReposts", false);
+            bool deletePosts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deletePosts", false);
+            int sleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "sleepSeconds", 2);
+
 
             //
             // Log in.
             //
             JsonNode? session = BlueskyClient.CreateSession(handle, password, authFactorToken);
-            if (session == null)
+            string? accessJwt = JsonData.SelectString(session, "accessJwt");
+            string? pds = JsonData.SelectString(session, "pds");
+            string? did = JsonData.SelectString(session, "did");
+
+            if (session == null || string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did) || did.StartsWith("did:") == false)
             {
                 Logger.LogError("Failed to create session. Please log in.");
                 return;
             }
 
-            //
-            // Get values from session
-            //
-            string? accessJwt = JsonData.SelectString(session, "accessJwt");
-            string? pds = JsonData.SelectString(session, "pds");
-            string? did = JsonData.SelectString(session, "did");
-
-            Logger.LogInfo($"pds: {pds}");
-            Logger.LogInfo($"did: {did}");
-
-            if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
-            {
-                Logger.LogError("Session not found. Please log in.");
-                return;
-            }
 
 
             //
@@ -91,14 +85,7 @@ namespace dnproto.cli.commands
             // Initialize local file system. We'll be reading the repo from here.
             //
             LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-            if (localFileSystem == null)
-            {
-                Logger.LogError("Failed to initialize local file system.");
-                return;
-            }
-
-
-            string? repoFile = localFileSystem.GetPath_RepoFile(handle);
+            string? repoFile = localFileSystem?.GetPath_RepoFile(handle);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");
@@ -114,7 +101,7 @@ namespace dnproto.cli.commands
 
 
             //
-            // Walk repo again for posts and likes
+            // Walk repo again for posts, reposts, and likes in the specified month.
             //
             List<RepoRecord> records = new List<RepoRecord>();
 
@@ -139,13 +126,11 @@ namespace dnproto.cli.commands
                             return true;
                         }
 
-                        if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post", StringComparison.OrdinalIgnoreCase))
-                        {
-                            records.Add(repoRecord);
-                            return true;
-                        }
-
-                        if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like", StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post")
+                            || string.Equals(repoRecord.RecordType, "app.bsky.feed.like")
+                            || string.Equals(repoRecord.RecordType, "app.bsky.feed.repost")
+                            || string.Equals(repoRecord.RecordType, "blue.flashes.feed.post")
+                            )
                         {
                             records.Add(repoRecord);
                             return true;
@@ -157,45 +142,74 @@ namespace dnproto.cli.commands
                 }
             );
 
-
-            //
-            // Print, sorted
-            //
-            int likeCount = records.Where(r => string.Equals(r.RecordType, "app.bsky.feed.like", StringComparison.OrdinalIgnoreCase)).Count();
-            Logger.LogInfo($"likeCount: {likeCount}");
-
             var sortedRecords = records.OrderBy(pr => pr.DataBlock.SelectString(["createdAt"]));
+
+
+            //
+            // Loop through records and make determinations.
+            //
+            List<(RepoRecord record, string determination, bool delete)> recordsWithDeterminations = new List<(RepoRecord record, string determination, bool delete)>();
+
             foreach (var repoRecord in sortedRecords)
             {
                 string? rkey = rkeys != null && repoRecord.Cid != null && rkeys.TryGetValue(repoRecord.Cid.GetBase32(), out string? foundRkey) ? foundRkey : null;
 
-                if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(rkey))
                 {
-                    // don't log these, just skip
+                    recordsWithDeterminations.Add((repoRecord, "no rkey", false));
                     continue;
                 }
-                else if (string.IsNullOrEmpty(rkey) == false)
+
+                if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like"))
+                {
+                    recordsWithDeterminations.Add((repoRecord, $"deleteLikes:{deleteLikes}", deleteLikes));                    
+                    continue;
+                }
+                else if (string.Equals(repoRecord.RecordType, "app.bsky.feed.repost"))
+                {
+                    recordsWithDeterminations.Add((repoRecord, $"deleteReposts:{deleteReposts}", deleteReposts));
+                    continue;
+                }
+                else if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post") || string.Equals(repoRecord.RecordType, "blue.flashes.feed.post"))
                 {
                     if (bookmarkRkeys.Contains(rkey))
                     {
-                        Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{handle}/post/{rkey} (BOOKMARKED)");
+                        recordsWithDeterminations.Add((repoRecord, "bookmarked!", false));
+                        continue;
                     }
                     else
                     {
-                        Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{handle}/post/{rkey}");
+                        recordsWithDeterminations.Add((repoRecord, $"deletePosts:{deletePosts}", deletePosts));
+                        continue;
                     }
                 }
                 else
                 {
-                    Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] {repoRecord.Cid?.GetBase32()}");
+                    recordsWithDeterminations.Add((repoRecord, "unknown collection", false));
                 }
+            }
+
+
+            //
+            // Print determinations
+            //
+            foreach (var (record, determination, delete) in recordsWithDeterminations)
+            {
+                string? rkey = rkeys != null && record.Cid != null && rkeys.TryGetValue(record.Cid.GetBase32(), out string? foundRkey) ? foundRkey : null;
+                if (rkey == null)
+                {
+                    continue;
+                }
+                
+                Logger.LogInfo($"[{record.CreatedAt}] [{record.RecordType}] {determination} {(delete ? "<----------- DELETE!" : "")}");
+
             }
 
 
             //
             // Wait for user to type "yes" before continuing
             //
-            Logger.LogInfo("Please review the printed posts. Anything not marked (BOOKMARKED) will be deleted. Type 'yes' to continue...");
+            Logger.LogInfo("Please review the printed records. Anything marked for deletion will be deleted. Type 'yes' to continue...");
             string? userInput = Console.ReadLine();
             if (string.Equals(userInput, "yes", StringComparison.OrdinalIgnoreCase))
             {
@@ -204,13 +218,26 @@ namespace dnproto.cli.commands
             else
             {
                 Logger.LogInfo("exiting...");
+                return;
             }
 
 
             //
-            // To be continued...
+            // Loop again, this time doing actual deletes.
             //
+            foreach (var (record, determination, delete) in recordsWithDeterminations)
+            {
+                string? rkey = rkeys != null && record.Cid != null && rkeys.TryGetValue(record.Cid.GetBase32(), out string? foundRkey) ? foundRkey : null;
 
+                Logger.LogInfo($"[{record.CreatedAt}] [{record.RecordType}] {determination} {(delete ? "<----------- DELETE!" : "")}");
+
+                if (delete)
+                {
+                    Logger.LogInfo("Calling DeleteRecord...");
+                    BlueskyClient.DeleteRecord(pds, did, accessJwt, rkey, collection: record.RecordType);
+                    Thread.Sleep(sleepSeconds * 1000);
+                }
+            }
         }
     }
 }
