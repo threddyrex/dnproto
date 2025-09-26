@@ -205,6 +205,26 @@ namespace dnproto.cli.commands
 
             }
 
+            //
+            // Summarize determinations
+            //
+            Dictionary<string, int> deleteCountsForCollection = new Dictionary<string, int>();
+            foreach (var (record, determination, delete) in recordsWithDeterminations)
+            {
+                if (delete && string.IsNullOrEmpty(record.RecordType) == false)
+                {
+                    if (!deleteCountsForCollection.ContainsKey(record.RecordType))
+                    {
+                        deleteCountsForCollection[record.RecordType] = 0;
+                    }
+                    deleteCountsForCollection[record.RecordType]++;
+                }
+            }
+            Logger.LogInfo("Summary of records to be deleted:");
+            foreach (var kvp in deleteCountsForCollection)
+            {
+                Logger.LogInfo($"[{kvp.Key}]: deleting {kvp.Value} items");
+            }
 
             //
             // Wait for user to type "yes" before continuing
