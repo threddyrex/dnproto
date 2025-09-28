@@ -28,7 +28,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
-        foreach (string subDir in new string[] { "backups", "repos" })
+        foreach (string subDir in new string[] { "backups", "repos", "preferences" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -79,6 +79,24 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         string safeHandle = GetSafeString(handle);
         string accountBackupDir = Path.Combine(backupDir, safeHandle);
         return accountBackupDir;
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <returns></returns>
+    public string? GetPath_Preferences(string? handle)
+    {
+        if (string.IsNullOrEmpty(handle))
+        {
+            Logger.LogError("handle is null or empty.");
+            return null;
+        }
+
+        string prefsDir = Path.Combine(DataDir, "preferences");
+        string safeHandle = GetSafeString(handle);
+        string prefsFile = Path.Combine(prefsDir, $"{safeHandle}.json");
+        return prefsFile;
     }
 
 

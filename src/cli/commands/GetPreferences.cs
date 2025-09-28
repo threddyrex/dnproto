@@ -13,12 +13,12 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return [];
+            return new HashSet<string>(new string[]{"dataDir", "handle"});
         }
 
         public override HashSet<string> GetOptionalArguments()
         {
-            return ["sessionFile", "pds", "handle", "password", "authFactorToken", "outfile"];
+            return ["sessionFile", "pds", "password", "authFactorToken"];
         }
 
 
@@ -35,15 +35,16 @@ namespace dnproto.cli.commands
             // Find session.
             //
             JsonNode? session = null;
+            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
 
-            if(arguments.ContainsKey("sessionFile"))
+            if (arguments.ContainsKey("sessionFile"))
             {
                 session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
             }
             else if (CommandLineInterface.HasArgument(arguments, "handle") &&
                      CommandLineInterface.HasArgument(arguments, "password"))
             {
-                string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
                 string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
                 string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
 
@@ -75,19 +76,28 @@ namespace dnproto.cli.commands
             string url = $"https://{pds}/xrpc/app.bsky.actor.getPreferences";
             Logger.LogInfo($"url: {url}");
 
+
+            //
+            // Get local filepath
+            //
+            string? preferencesFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_Preferences(handle);
+            if (preferencesFile == null)
+            {
+                Logger.LogError("Failed to initialize local file system.");
+                return;
+            }
+
+
+
             //
             // Call WS
             //
+            Logger.LogInfo($"Writing preferences to: {preferencesFile}");
             JsonNode? response = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
-                accessJwt: accessJwt);
+                accessJwt: accessJwt,
+                outputFilePath: preferencesFile);
 
-
-            //
-            // Print results
-            //
-            BlueskyClient.PrintJsonResponseToConsole(response);
-            JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }
     }
 }
