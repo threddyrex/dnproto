@@ -20,17 +20,9 @@ namespace dnproto.cli.commands
             string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
 
             //
-            // Get local file system
+            // Get local path of repo file (assumes user called GetRepo first to pull it down).
             //
-            LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-            if (localFileSystem == null)
-            {
-                Logger.LogError("Failed to initialize local file system.");
-                return;
-            }
-
-
-            string? repoFile = localFileSystem.GetPath_RepoFile(handle);
+            string? repoFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_RepoFile(handle);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");
@@ -66,7 +58,6 @@ namespace dnproto.cli.commands
             //
             // Print, sorted
             //
-            // sort by createdAt
             var sortedPosts = posts.OrderBy(pr => pr.DataBlock.SelectString(["createdAt"]));
             foreach (var repoRecord in sortedPosts)
             {
