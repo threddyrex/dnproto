@@ -233,8 +233,23 @@ public class BackupAccount : BaseCommand
                     blobCountSkipped++;
                 }
             }
-            
-            Logger.LogInfo($"Downloaded {blobCountDownloaded} blobs, skipped {blobCountSkipped} blobs.");
+
+
+            //
+            // See how many blobs are already in that directory (the user might be deleting posts).
+            //
+            // list files in the dir
+            int blobFileCount = 0;
+            try
+            {
+                blobFileCount = Directory.GetFiles(blobsDirectory).Length;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to list files in blobs directory: {ex.Message}");
+            }
+
+            Logger.LogInfo($"Downloaded {blobCountDownloaded} blobs, skipped {blobCountSkipped} blobs. There are {blobFileCount} blob files on disk.");
         }
     }
 }
