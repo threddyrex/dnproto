@@ -209,6 +209,8 @@ namespace dnproto.cli.commands
             // Summarize determinations
             //
             Dictionary<string, int> deleteCountsForCollection = new Dictionary<string, int>();
+            Dictionary<string, int> keepCountsForCollection = new Dictionary<string, int>();
+
             foreach (var (record, determination, delete) in recordsWithDeterminations)
             {
                 if (delete && string.IsNullOrEmpty(record.RecordType) == false)
@@ -219,12 +221,29 @@ namespace dnproto.cli.commands
                     }
                     deleteCountsForCollection[record.RecordType]++;
                 }
+                else if (string.IsNullOrEmpty(record.RecordType) == false)
+                {
+                    if (!keepCountsForCollection.ContainsKey(record.RecordType))
+                    {
+                        keepCountsForCollection[record.RecordType] = 0;
+                    }
+                    keepCountsForCollection[record.RecordType]++;
+                }
             }
-            Logger.LogInfo("Summary of records to be deleted:");
+
+            Logger.LogInfo("");
+            Logger.LogInfo("Summary of records to be DELETED:");
             foreach (var kvp in deleteCountsForCollection)
             {
                 Logger.LogInfo($"[{kvp.Key}]: deleting {kvp.Value} items");
             }
+            Logger.LogInfo("");
+            Logger.LogInfo("Summary of records to be KEPT:");
+            foreach (var kvp in keepCountsForCollection)
+            {
+                Logger.LogInfo($"[{kvp.Key}]: keeping {kvp.Value} items");
+            }
+            Logger.LogInfo("");
 
             //
             // Wait for user to type "yes" before continuing
