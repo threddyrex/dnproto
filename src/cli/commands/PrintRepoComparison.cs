@@ -11,7 +11,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"repoFile1", "repoFile2"});
+            return new HashSet<string>(new string[]{"dataDir", "handle1", "handle2"});
         }
 
 
@@ -24,45 +24,25 @@ namespace dnproto.cli.commands
             //
             // Get arguments
             //
-            string? repoFile1 = CommandLineInterface.GetArgumentValue(arguments, "repoFile1");
-            string? repoFile2 = CommandLineInterface.GetArgumentValue(arguments, "repoFile2");
-
-            Console.WriteLine($"repoFile1: {repoFile1}");
-            Console.WriteLine($"repoFile2: {repoFile2}");
+            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            string? handle1 = CommandLineInterface.GetArgumentValue(arguments, "handle1");
+            string? handle2 = CommandLineInterface.GetArgumentValue(arguments, "handle2");
 
             //
-            // Validate arguments
+            // Get local files
             //
-            if (string.IsNullOrEmpty(repoFile1))
+            var lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            var repoFile1 = lfs?.GetPath_RepoFile(handle1);
+            var repoFile2 = lfs?.GetPath_RepoFile(handle2);
+
+            Logger.LogInfo($"repoFile1: {repoFile1}");
+            Logger.LogInfo($"repoFile2: {repoFile2}");
+
+            if (string.IsNullOrEmpty(repoFile1) || string.IsNullOrEmpty(repoFile2) || File.Exists(repoFile1) == false || File.Exists(repoFile2) == false)
             {
-                Console.WriteLine("repoFile1 is empty.");
+                Logger.LogError("Could not find the repo files.");
                 return;
             }
-
-            if (string.IsNullOrEmpty(repoFile2))
-            {
-                Console.WriteLine("repoFile2 is empty.");
-                return;
-            }
-
-            bool fileExists1 = File.Exists(repoFile1);
-            bool fileExists2 = File.Exists(repoFile2);
-
-
-            if (!fileExists1)
-            {
-                Console.WriteLine("File1 does not exist.");
-                return;
-            }
-
-            if (!fileExists2)
-            {
-                Console.WriteLine("File2 does not exist.");
-                return;
-            }
-
-
-            Console.WriteLine($"");
 
 
 
@@ -72,13 +52,12 @@ namespace dnproto.cli.commands
             string? did1 = Repo.FindDid(repoFile1);
             string? did2 = Repo.FindDid(repoFile2);
 
-            Console.WriteLine($"did1: {did1}");
-            Console.WriteLine($"did2: {did2}");
-            Console.WriteLine($"");
+            Logger.LogInfo($"did1: {did1}");
+            Logger.LogInfo($"did2: {did2}");
 
             if(string.IsNullOrEmpty(did1) || string.IsNullOrEmpty(did2))
             {
-                Console.WriteLine("Did not find did for repo1 or repo2.");
+                Logger.LogError("Did not find did for repo1 or repo2.");
                 return;
             }
 
@@ -89,26 +68,26 @@ namespace dnproto.cli.commands
             Dictionary<string, string>? rkeys1 = Repo.FindRkeys(repoFile1);
             if (rkeys1 == null)
             {
-                Console.WriteLine("Could not find merkle records for repo1.");
+                Logger.LogError("Could not find merkle records for repo1.");
                 return;
             }
-            Console.WriteLine($"-------------------------------------------------");
-            Console.WriteLine($"| FIRST REPO                                    |");
-            Console.WriteLine($"-------------------------------------------------");
-            Console.WriteLine($"");
-            Console.WriteLine($"USER:   {did1}");
-            Console.WriteLine($"");
-            Console.WriteLine($"");
+            Logger.LogInfo($"-------------------------------------------------");
+            Logger.LogInfo($"| FIRST REPO                                    |");
+            Logger.LogInfo($"-------------------------------------------------");
+            Logger.LogInfo($"");
+            Logger.LogInfo($"USER:   {did1}");
+            Logger.LogInfo($"");
+            Logger.LogInfo($"");
             FindLikesForRepo(repoFile1, did1, did2);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindRepliesForRepo(repoFile1, did1, did2);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindRepostsForRepo(repoFile1, did1, did2);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindQuotePostsForRepo(repoFile1, did1, did2);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindMentionsForRepo3(repoFile1, did1, did2, rkeys1);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
 
 
             //
@@ -117,33 +96,32 @@ namespace dnproto.cli.commands
             Dictionary<string, string>? rkeys2 = Repo.FindRkeys(repoFile2);
             if (rkeys2 == null)
             {
-                Console.WriteLine("Could not find merkle records for repo2.");
+                Logger.LogError("Could not find merkle records for repo2.");
                 return;
             }
-            Console.WriteLine($"-------------------------------------------------");
-            Console.WriteLine($"| SECOND REPO                                   |");
-            Console.WriteLine($"-------------------------------------------------");
-            Console.WriteLine($"");
-            Console.WriteLine($"USER:   {did2}");
-            Console.WriteLine($"");
-            Console.WriteLine($"");
+            Logger.LogInfo($"-------------------------------------------------");
+            Logger.LogInfo($"| SECOND REPO                                   |");
+            Logger.LogInfo($"-------------------------------------------------");
+            Logger.LogInfo($"");
+            Logger.LogInfo($"USER:   {did2}");
+            Logger.LogInfo($"");
+            Logger.LogInfo($"");
             FindLikesForRepo(repoFile2, did2, did1);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindRepliesForRepo(repoFile2, did2, did1);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindRepostsForRepo(repoFile2, did2, did1);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindQuotePostsForRepo(repoFile2, did2, did1);
-            Console.WriteLine($"");
+            Logger.LogInfo($"");
             FindMentionsForRepo3(repoFile2, did2, did1, rkeys2);
-            Console.WriteLine($"");
-
+            Logger.LogInfo($"");
 
         }
 
 
 
-        public static void FindLikesForRepo(string? repoFile, string? sourceDid, string? targetDid)
+        public void FindLikesForRepo(string? repoFile, string? sourceDid, string? targetDid)
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
@@ -158,7 +136,7 @@ namespace dnproto.cli.commands
                     if (uri == null || uri.Contains(targetDid) == false) return true;
 
                     string clickableUri = uri.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
-                    Console.WriteLine($"liked -->   {clickableUri}");
+                    Logger.LogInfo($"liked -->   {clickableUri}");
 
                     return true;
                 }
@@ -166,7 +144,7 @@ namespace dnproto.cli.commands
         }
 
 
-        public static void FindRepliesForRepo(string? repoFile, string? sourceDid, string? targetDid)
+        public void FindRepliesForRepo(string? repoFile, string? sourceDid, string? targetDid)
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
@@ -183,12 +161,12 @@ namespace dnproto.cli.commands
                     if (uriReply != null && uriReply.Contains(targetDid))
                     {
                         string clickableUri = uriReply.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
-                        Console.WriteLine($"replied to -->   {clickableUri}");
+                        Logger.LogInfo($"replied to -->   {clickableUri}");
                     }
                     else if (uriRoot != null && uriRoot.Contains(targetDid))
                     {
                         string clickableUri = uriRoot.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
-                        Console.WriteLine($"replied to -->   {clickableUri}");
+                        Logger.LogInfo($"replied to -->   {clickableUri}");
                     }
 
                     return true;
@@ -198,7 +176,7 @@ namespace dnproto.cli.commands
 
 
         
-        public static void FindRepostsForRepo(string? repoFile, string? sourceDid, string? targetDid)
+        public void FindRepostsForRepo(string? repoFile, string? sourceDid, string? targetDid)
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
@@ -213,7 +191,7 @@ namespace dnproto.cli.commands
                     if (uri == null || uri.Contains(targetDid) == false) return true;
 
                     string clickableUri = uri.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
-                    Console.WriteLine($"reposted -->   {clickableUri}");
+                    Logger.LogInfo($"reposted -->   {clickableUri}");
 
                     return true;
                 }
@@ -222,7 +200,7 @@ namespace dnproto.cli.commands
 
 
         
-        public static void FindQuotePostsForRepo(string? repoFile, string? sourceDid, string? targetDid)
+        public void FindQuotePostsForRepo(string? repoFile, string? sourceDid, string? targetDid)
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid)) return;
 
@@ -237,7 +215,7 @@ namespace dnproto.cli.commands
                     if (uri == null || uri.Contains(targetDid) == false) return true;
 
                     string clickableUri = uri.Replace("at://", "https://bsky.app/profile/").Replace("app.bsky.feed.post/", "post/");
-                    Console.WriteLine($"quote posted -->   {clickableUri}");
+                    Logger.LogInfo($"quote posted -->   {clickableUri}");
 
                     return true;
                 }
@@ -247,7 +225,7 @@ namespace dnproto.cli.commands
 
         
 
-        public static void FindMentionsForRepo3(string? repoFile, string? sourceDid, string? targetDid, Dictionary<string, string>? rkeys)
+        public void FindMentionsForRepo3(string? repoFile, string? sourceDid, string? targetDid, Dictionary<string, string>? rkeys)
         {
             if (string.IsNullOrEmpty(repoFile) || string.IsNullOrEmpty(sourceDid) || string.IsNullOrEmpty(targetDid) || rkeys == null) return;
 
@@ -280,25 +258,22 @@ namespace dnproto.cli.commands
 
                         if (rkey == null)
                         {
-                            Console.WriteLine($"------------------------");
-                            Console.WriteLine($"| mentioned (no rkey)  |");
-                            Console.WriteLine($"------------------------");
-                            Console.WriteLine($"{text}");
-                            Console.WriteLine("");
+                            Logger.LogInfo($"------------------------");
+                            Logger.LogInfo($"| mentioned (no rkey)  |");
+                            Logger.LogInfo($"------------------------");
+                            Logger.LogInfo($"{text}");
+                            Logger.LogInfo("");
                         }
                         else
                         {
                             string clickableUri = $"https://bsky.app/profile/{sourceDid}/post/{rkey}";
-                            Console.WriteLine($"mentioned -->   {clickableUri}");
+                            Logger.LogInfo($"mentioned -->   {clickableUri}");
                         }
                     }
 
                     return true;
                 }
             );
-
         }
-
-
    }
 }
