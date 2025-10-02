@@ -107,9 +107,10 @@ namespace dnproto.cli.commands
                 int likeCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_LIKE).Count() : 0;
                 int repostCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_REPOST).Count() : 0;
                 int followCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_FOLLOW).Count() : 0;
+                int blockCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_BLOCK).Count() : 0;
                 int flashCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.FLASHES_POST).Count() : 0;
 
-                Logger.LogInfo($"{month}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, flashes={flashCount}");
+                Logger.LogInfo($"{month}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, blocks={blockCount}, flashes={flashCount}");
                 currentDate = currentDate.AddMonths(1);
             }
 

@@ -10,5 +10,7 @@ public class RecordType
 
     public static readonly string BLUESKY_REPOST = "app.bsky.feed.repost";
 
+    public static readonly string BLUESKY_BLOCK = "app.bsky.graph.block";
+
     public static readonly string FLASHES_POST = "blue.flashes.feed.post";
 }
