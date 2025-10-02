@@ -33,22 +33,12 @@ namespace dnproto.cli.commands
             //
             // For stats
             //
-            int totalRecords = 0;
-            int totalPosts = 0;
-            int totalLikes = 0;
-            int totalReposts = 0;
-            int totalFlashes = 0;
-            int totalFollows = 0;
             DateTime earliestDate = DateTime.MaxValue;
             DateTime latestDate = DateTime.MinValue;
-            Dictionary<string, int> postsByMonth = new Dictionary<string, int>();
-            Dictionary<string, int> repostsByMonth = new Dictionary<string, int>();
-            Dictionary<string, int> likesByMonth = new Dictionary<string, int>();
-            Dictionary<string, int> recordsByMonth = new Dictionary<string, int>();
-            Dictionary<string, int> flashesByMonth = new Dictionary<string, int>();
-            Dictionary<string, int> followsByMonth = new Dictionary<string, int>();
-            Dictionary<string, int> dagCborTypeCounts = new Dictionary<string, int>();
+
             Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>();
+            Dictionary<string, List<RepoRecord>> recordsByMonth = new Dictionary<string, List<RepoRecord>>();
+
 
             //
             // Walk repo
@@ -61,29 +51,6 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
-                    // basic stats
-                    totalRecords++;
-                    if (repoRecord.RecordType == "app.bsky.feed.post")
-                    {
-                        totalPosts++;
-                    }
-                    else if (repoRecord.RecordType == "app.bsky.feed.like")
-                    {
-                        totalLikes++;
-                    }
-                    else if (repoRecord.RecordType == "app.bsky.feed.repost")
-                    {
-                        totalReposts++;
-                    }
-                    else if (repoRecord.RecordType == "blue.flashes.feed.post")
-                    {
-                        totalFlashes++;
-                    }
-                    else if (repoRecord.RecordType == "app.bsky.graph.follow")
-                    {
-                        totalFollows++;
-                    }
-
                     if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))
                     {
                         if (createdAt < earliestDate)
@@ -98,60 +65,10 @@ namespace dnproto.cli.commands
                         string month = createdAt.ToString("yyyy-MM");
                         if (recordsByMonth.ContainsKey(month) == false)
                         {
-                            recordsByMonth[month] = 0;
+                            recordsByMonth[month] = new List<RepoRecord>();
                         }
-                        recordsByMonth[month]++;
 
-                        if (repoRecord.RecordType == "app.bsky.feed.post")
-                        {
-                            if (postsByMonth.ContainsKey(month) == false)
-                            {
-                                postsByMonth[month] = 0;
-                            }
-                            postsByMonth[month]++;
-                        }
-                        else if (repoRecord.RecordType == "app.bsky.feed.like")
-                        {
-                            if (likesByMonth.ContainsKey(month) == false)
-                            {
-                                likesByMonth[month] = 0;
-                            }
-                            likesByMonth[month]++;
-                        }
-                        else if (repoRecord.RecordType == "app.bsky.feed.repost")
-                        {
-                            if (repostsByMonth.ContainsKey(month) == false)
-                            {
-                                repostsByMonth[month] = 0;
-                            }
-                            repostsByMonth[month]++;
-                        }
-                        else if (repoRecord.RecordType == "blue.flashes.feed.post")
-                        {
-                            if (flashesByMonth.ContainsKey(month) == false)
-                            {
-                                flashesByMonth[month] = 0;
-                            }
-                            flashesByMonth[month]++;
-                        }
-                        else if (repoRecord.RecordType == "app.bsky.graph.follow")
-                        {
-                            if (followsByMonth.ContainsKey(month) == false)
-                            {
-                                followsByMonth[month] = 0;
-                            }
-                            followsByMonth[month]++;
-                        }
-                    }
-
-                    string typeString = repoRecord.DataBlock.Type.GetMajorTypeString();
-                    if (dagCborTypeCounts.ContainsKey(typeString))
-                    {
-                        dagCborTypeCounts[typeString]++;
-                    }
-                    else
-                    {
-                        dagCborTypeCounts[typeString] = 1;
+                        recordsByMonth[month].Add(repoRecord);
                     }
 
                     string recordType = repoRecord.RecordType ?? "<null>";
@@ -176,12 +93,6 @@ namespace dnproto.cli.commands
             Logger.LogInfo("");
             Logger.LogInfo($"repoFile: {repoFile}");
             Logger.LogInfo("");
-            Logger.LogInfo($"records: {totalRecords}");
-            Logger.LogInfo($"posts: {totalPosts}");
-            Logger.LogInfo($"likes: {totalLikes}");
-            Logger.LogInfo($"reposts: {totalReposts}");
-            Logger.LogInfo($"follows: {totalFollows}");
-            Logger.LogInfo($"flashes: {totalFlashes}");
             Logger.LogInfo($"earliestDate: {earliestDate}");
             Logger.LogInfo($"latestDate: {latestDate}");
             Logger.LogInfo("");
@@ -190,23 +101,16 @@ namespace dnproto.cli.commands
             while (currentDate <= latestDate.AddMonths(1))
             {
                 string month = currentDate.ToString("yyyy-MM");
-                int postCount = postsByMonth.ContainsKey(month) ? postsByMonth[month] : 0;
-                int likeCount = likesByMonth.ContainsKey(month) ? likesByMonth[month] : 0;
-                int recordCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month] : 0;
-                int repostCount = repostsByMonth.ContainsKey(month) ? repostsByMonth[month] : 0;
-                int followCount = followsByMonth.ContainsKey(month) ? followsByMonth[month] : 0;
-                int flashCount = flashesByMonth.ContainsKey(month) ? flashesByMonth[month] : 0;
+
+                int recordCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Count() : 0;
+                int postCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_POST).Count() : 0;
+                int likeCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_LIKE).Count() : 0;
+                int repostCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_REPOST).Count() : 0;
+                int followCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.BLUESKY_FOLLOW).Count() : 0;
+                int flashCount = recordsByMonth.ContainsKey(month) ? recordsByMonth[month].Where(r => r.RecordType == RecordType.FLASHES_POST).Count() : 0;
+
                 Logger.LogInfo($"{month}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, flashes={flashCount}");
                 currentDate = currentDate.AddMonths(1);
-            }
-
-            Logger.LogInfo("");
-            Logger.LogInfo("");
-            Logger.LogInfo($"DAG CBOR TYPE COUNTS:");
-            Logger.LogInfo("");
-            foreach (var kvp in dagCborTypeCounts)
-            {
-                Logger.LogInfo($"{kvp.Key}: {kvp.Value}");
             }
 
             Logger.LogInfo("");
