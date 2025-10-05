@@ -158,7 +158,8 @@ public class BackupAccount : BaseCommand
             // Write to disk.
             //
             string prefsFile = Path.Combine(backupDir, "prefs.json");
-            Logger.LogInfo($"(PREFS)");
+            Logger.LogInfo("");
+            Logger.LogInfo($"----- PREFS -----");
             Logger.LogInfo($"Creating prefs file: {prefsFile}");
             JsonData.WriteJsonToFile(response, prefsFile);
 
@@ -171,7 +172,8 @@ public class BackupAccount : BaseCommand
         if(getRepo)
         {
             string repoFile = Path.Combine(backupDir, "repo.car");
-            Logger.LogInfo($"(REPO)");
+            Logger.LogInfo("");
+            Logger.LogInfo($"----- REPO -----");
             Logger.LogInfo($"Getting repo file: {repoFile}");
             BlueskyClient.GetRepo(pds, did, repoFile);
         }
@@ -188,7 +190,8 @@ public class BackupAccount : BaseCommand
             //
             List<string> blobs = BlueskyClient.ListBlobs(pds, did);
             string blobFile = Path.Combine(backupDir, "blobs.txt");
-            Logger.LogInfo($"(BLOBS)");
+            Logger.LogInfo("");
+            Logger.LogInfo($"----- BLOBS -----");
             Logger.LogInfo($"Creating blob list file: {blobFile}");
             File.WriteAllLines(blobFile, blobs);
 
@@ -250,6 +253,44 @@ public class BackupAccount : BaseCommand
             }
 
             Logger.LogInfo($"Downloaded {blobCountDownloaded} blobs, skipped {blobCountSkipped} blobs. There are {blobFileCount} blob files on disk.");
+
+
+            //
+            // Delete local blob files that are no longer used in the account.
+            //
+            string[] filesOnDisk = Directory.GetFiles(blobsDirectory);
+            HashSet<string> blobsSet = new HashSet<string>(blobs);
+
+            int deletedCount = 0;
+            foreach (string filePath in filesOnDisk)
+            {
+                string fileName = Path.GetFileName(filePath);
+                if (!blobsSet.Contains(fileName))
+                {
+                    try
+                    {
+                        Logger.LogInfo($"Deleting old blob file: {filePath}");
+                        File.Delete(filePath);
+                        deletedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Failed to delete file {filePath}: {ex.Message}");
+                    }
+                }
+            }
+
+            if (deletedCount > 0)
+            {
+                Logger.LogInfo($"Deleted {deletedCount} old blob files from disk.");
+            }
+            else
+            {
+                Logger.LogInfo("There are no blob files to delete.");
+            }
+
+            Logger.LogInfo("");
+
         }
     }
 }
