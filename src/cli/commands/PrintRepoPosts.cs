@@ -65,12 +65,18 @@ namespace dnproto.cli.commands
 
                 if (string.IsNullOrEmpty(rkey) == false)
                 {
-                    Console.WriteLine($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{handle}/post/{rkey}");
+                    Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{handle}/post/{rkey}");
                 }
                 else
                 {
-                    Console.WriteLine($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] {repoRecord.Cid?.GetBase32()}");
+                    Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] {repoRecord.Cid?.GetBase32()}");
                 }
+
+                //
+                // Print text content
+                //
+                string? text = repoRecord.DataBlock.SelectString(["text"]);
+                Logger.LogTrace(text);
             }
         }
    }
