@@ -10,7 +10,7 @@ public class GetPlcHistory : BaseCommand
 {
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"did", "handle", "outfile"});
+        return new HashSet<string>(new string[]{"handle"});
     }
 
 
@@ -25,20 +25,22 @@ public class GetPlcHistory : BaseCommand
         //
         // Identify did to use
         //
+        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? did = null;
-        if(CommandLineInterface.HasArgument(arguments, "handle"))
+
+        if (string.IsNullOrEmpty(handle))
         {
-            Logger.LogTrace("Resolving handle to did.");
-            did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
+            Logger.LogError("Please specify handle.");
+            return;
         }
-        else if(CommandLineInterface.HasArgument(arguments, "did"))
+        else if (handle.StartsWith("did:"))
         {
-            did = CommandLineInterface.GetArgumentValue(arguments, "did");
+            did = handle;
         }
         else
         {
-            Logger.LogError("Must specify either handle or did.");
-            return;
+            Logger.LogTrace("Resolving handle to did.");
+            did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(arguments["handle"]);
         }
 
         if (string.IsNullOrEmpty(did))
