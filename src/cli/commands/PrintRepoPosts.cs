@@ -11,6 +11,11 @@ namespace dnproto.cli.commands
             return new HashSet<string>(new string[]{"dataDir", "handle"});
         }
 
+        public override HashSet<string> GetOptionalArguments()
+        {
+            return new HashSet<string>(new string[]{"month"});
+        }
+
         public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
@@ -18,6 +23,7 @@ namespace dnproto.cli.commands
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+            string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
 
             //
             // Get local path of repo file (assumes user called GetRepo first to pull it down).
@@ -50,7 +56,23 @@ namespace dnproto.cli.commands
                     if (string.IsNullOrEmpty(repoRecord.RecordType)) return true;
                     if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post", StringComparison.OrdinalIgnoreCase) == false) return true;
 
-                    posts.Add(repoRecord);
+
+                    if (string.IsNullOrEmpty(month) == false)
+                    {
+                        if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))
+                        {
+                            string postMonth = createdAt.ToString("yyyy-MM");
+                            if (month.Equals(postMonth))
+                            {
+                                posts.Add(repoRecord);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        posts.Add(repoRecord);
+                    }
+
                     return true;
                 }
             );
