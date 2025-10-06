@@ -35,14 +35,9 @@ namespace dnproto.cli.commands
             //
             DateTime earliestDate = DateTime.MaxValue;
             DateTime latestDate = DateTime.MinValue;
-
-            // <type, count>
-            Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>();
-            // <month, count>
-            Dictionary<string, int> recordCountsByMonth = new Dictionary<string, int>();
-            // <month, <type, count>>
-            Dictionary<string, Dictionary<string, int>> recordTypeCountsByMonth = new Dictionary<string, Dictionary<string, int>>();
-
+            Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>(); // <type, count>
+            Dictionary<string, int> recordCountsByMonth = new Dictionary<string, int>(); // <month, count>
+            Dictionary<string, Dictionary<string, int>> recordTypeCountsByMonth = new Dictionary<string, Dictionary<string, int>>(); // <month, <type, count>>
 
 
             //
@@ -58,38 +53,33 @@ namespace dnproto.cli.commands
                 {
                     string recordType = repoRecord.RecordType ?? "<null>";
 
+                    //
                     // total counts
-                    if (recordTypeCounts.ContainsKey(recordType))
+                    //
+                    if (recordTypeCounts.ContainsKey(recordType) == false)
                     {
-                        recordTypeCounts[recordType] = recordTypeCounts[recordType] + 1;
-                    }
-                    else
-                    {
-                        recordTypeCounts[recordType] = 1;
+                        recordTypeCounts[recordType] = 0;
                     }
 
+                    recordTypeCounts[recordType] = recordTypeCounts[recordType] + 1;
 
+
+                    //
                     // counts by month
+                    //
                     if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))
                     {
-                        if (createdAt < earliestDate)
-                        {
-                            earliestDate = createdAt;
-                        }
-                        if (createdAt > latestDate)
-                        {
-                            latestDate = createdAt;
-                        }
+                        earliestDate = createdAt < earliestDate ? createdAt : earliestDate;
+                        latestDate = createdAt > latestDate ? createdAt : latestDate;
 
                         string month = createdAt.ToString("yyyy-MM");
 
+                        //
+                        // Initialize dictionaries if needed
+                        //
                         if (recordTypeCountsByMonth.ContainsKey(month) == false)
                         {
                             recordTypeCountsByMonth[month] = new Dictionary<string, int>();
-                        }
-
-                        if (recordCountsByMonth.ContainsKey(month) == false)
-                        {
                             recordCountsByMonth[month] = 0;
                         }
 
@@ -98,6 +88,9 @@ namespace dnproto.cli.commands
                             recordTypeCountsByMonth[month][recordType] = 0;
                         }
 
+                        //
+                        // Increment counts
+                        //
                         recordCountsByMonth[month] = recordCountsByMonth[month] + 1;
                         recordTypeCountsByMonth[month][recordType] = recordTypeCountsByMonth[month][recordType] + 1;
                     }
@@ -107,6 +100,12 @@ namespace dnproto.cli.commands
                     return true;
                 }
             );
+
+            if (earliestDate == DateTime.MaxValue || latestDate == DateTime.MinValue)
+            {
+                Logger.LogError($"No valid record dates found in repo: {repoFile}");
+                return;
+            }
 
             //
             // Print stats
@@ -121,25 +120,41 @@ namespace dnproto.cli.commands
 
             while (currentDate <= latestDate.AddMonths(1))
             {
-                string month = currentDate.ToString("yyyy-MM");
+                string currentDateMonth = currentDate.ToString("yyyy-MM");
 
-                int recordCount = recordCountsByMonth.ContainsKey(month) ? recordCountsByMonth[month] : 0;
-                int postCount = recordTypeCountsByMonth.ContainsKey(month) && recordTypeCountsByMonth[month].ContainsKey(RecordType.BLUESKY_POST) ? recordTypeCountsByMonth[month][RecordType.BLUESKY_POST] : 0;
-                int likeCount = recordTypeCountsByMonth.ContainsKey(month) && recordTypeCountsByMonth[month].ContainsKey(RecordType.BLUESKY_LIKE) ? recordTypeCountsByMonth[month][RecordType.BLUESKY_LIKE] : 0;
-                int repostCount = recordTypeCountsByMonth.ContainsKey(month) && recordTypeCountsByMonth[month].ContainsKey(RecordType.BLUESKY_REPOST) ? recordTypeCountsByMonth[month][RecordType.BLUESKY_REPOST] : 0;
-                int followCount = recordTypeCountsByMonth.ContainsKey(month) && recordTypeCountsByMonth[month].ContainsKey(RecordType.BLUESKY_FOLLOW) ? recordTypeCountsByMonth[month][RecordType.BLUESKY_FOLLOW] : 0;
-                int blockCount = recordTypeCountsByMonth.ContainsKey(month) && recordTypeCountsByMonth[month].ContainsKey(RecordType.BLUESKY_BLOCK) ? recordTypeCountsByMonth[month][RecordType.BLUESKY_BLOCK] : 0;
-                int flashCount = recordTypeCountsByMonth.ContainsKey(month) && recordTypeCountsByMonth[month].ContainsKey(RecordType.FLASHES_POST) ? recordTypeCountsByMonth[month][RecordType.FLASHES_POST] : 0;
+                int recordCount = 0;
+                int postCount = 0;
+                int likeCount = 0;
+                int repostCount = 0;
+                int followCount = 0;
+                int blockCount = 0;
+                int flashCount = 0;
 
-                Logger.LogInfo($"{month}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, blocks={blockCount}, flashes={flashCount}");
+                recordCount = recordCountsByMonth.TryGetValue(currentDateMonth, out int rc) ? rc : 0;
+
+                if(recordTypeCountsByMonth.TryGetValue(currentDateMonth, out var typeCounts))
+                {
+                    postCount = typeCounts.TryGetValue(RecordType.BLUESKY_POST, out int pc) ? pc : 0;
+                    likeCount = typeCounts.TryGetValue(RecordType.BLUESKY_LIKE, out int lc) ? lc : 0;
+                    repostCount = typeCounts.TryGetValue(RecordType.BLUESKY_REPOST, out int rrc) ? rrc : 0;
+                    followCount = typeCounts.TryGetValue(RecordType.BLUESKY_FOLLOW, out int fc) ? fc : 0;
+                    blockCount = typeCounts.TryGetValue(RecordType.BLUESKY_BLOCK, out int bc) ? bc : 0;
+                    flashCount = typeCounts.TryGetValue(RecordType.FLASHES_POST, out int fsc) ? fsc : 0;
+                }
+
+                Logger.LogInfo($"{currentDateMonth}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, blocks={blockCount}, flashes={flashCount}");
                 currentDate = currentDate.AddMonths(1);
             }
 
+
+
+            //
+            // Print record type counts, descending
+            //
             Logger.LogInfo("");
             Logger.LogInfo("");
             Logger.LogInfo($"RECORD TYPE COUNTS:");
             Logger.LogInfo("");
-            // print in order of most common to least common
             foreach (var kvp in recordTypeCounts.OrderByDescending(kvp => kvp.Value))
             {
                 Logger.LogInfo($"{kvp.Key}: {kvp.Value}");
