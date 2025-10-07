@@ -38,6 +38,7 @@ namespace dnproto.cli.commands
             Dictionary<string, int> recordTypeCounts = new Dictionary<string, int>(); // <type, count>
             Dictionary<string, int> recordCountsByMonth = new Dictionary<string, int>(); // <month, count>
             Dictionary<string, Dictionary<string, int>> recordTypeCountsByMonth = new Dictionary<string, Dictionary<string, int>>(); // <month, <type, count>>
+            int errorCount = 0;
 
 
             //
@@ -51,6 +52,13 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
+                    if (repoRecord.IsError)
+                    {
+                        errorCount++;
+                        Logger.LogTrace($"ERROR: {repoRecord.JsonString}");
+                        return true;
+                    }
+
                     string recordType = repoRecord.RecordType ?? "<null>";
 
                     //
@@ -116,6 +124,8 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"earliestDate: {earliestDate}");
             Logger.LogInfo($"latestDate: {latestDate}");
             Logger.LogInfo("");
+            Logger.LogInfo($"errorCount: {errorCount}");
+            Logger.LogInfo("");
             DateTime currentDate = earliestDate;
 
             while (currentDate <= latestDate.AddMonths(1))
@@ -132,7 +142,7 @@ namespace dnproto.cli.commands
 
                 recordCount = recordCountsByMonth.TryGetValue(currentDateMonth, out int rc) ? rc : 0;
 
-                if(recordTypeCountsByMonth.TryGetValue(currentDateMonth, out var typeCounts))
+                if (recordTypeCountsByMonth.TryGetValue(currentDateMonth, out var typeCounts))
                 {
                     postCount = typeCounts.TryGetValue(RecordType.BLUESKY_POST, out int pc) ? pc : 0;
                     likeCount = typeCounts.TryGetValue(RecordType.BLUESKY_LIKE, out int lc) ? lc : 0;
@@ -160,6 +170,12 @@ namespace dnproto.cli.commands
                 Logger.LogInfo($"{kvp.Key}: {kvp.Value}");
             }
             Logger.LogInfo("");
+            
+            if(errorCount > 0)
+            {
+                Logger.LogInfo($"Note: {errorCount} records could not be parsed. Use log level 'trace' to see details.");
+                Logger.LogInfo("");
+            }
         }
    }
 }

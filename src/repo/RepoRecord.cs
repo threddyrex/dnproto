@@ -20,6 +20,8 @@ public class RepoRecord
 
     public string? CreatedAt { get; set; }
 
+    public bool IsError { get; set; }
+
     public static RepoRecord ReadFromStream(Stream s)
     {
 
@@ -52,6 +54,7 @@ public class RepoRecord
         Dictionary<string, DagCborObject>? dataBlockDict = new Dictionary<string, DagCborObject>();
         string? recordType = null;
         string? createdAt = null;
+        bool isError = false;
         try
         {
             dataBlock = DagCborObject.ReadFromStream(ms, dataBlockDict);
@@ -59,6 +62,7 @@ public class RepoRecord
         }
         catch (Exception ex)
         {
+            isError = true;
             dataBlock = DagCborObject.FromException(ex, buffer, dataBlockDict);
         }
 
@@ -76,7 +80,8 @@ public class RepoRecord
             DataBlock = dataBlock,
             JsonString = recordJson,
             RecordType = recordType,
-            CreatedAt = createdAt
+            CreatedAt = createdAt,
+            IsError = isError
         };
     }
 }
