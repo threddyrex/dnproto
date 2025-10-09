@@ -97,7 +97,7 @@ namespace dnproto.cli.commands
                 //
                 // Print text content
                 //
-                string? text = repoRecord.DataBlock.SelectString(["text"]);
+                string? text = repoRecord.JsonString;
                 Logger.LogTrace(text);
             }
         }
