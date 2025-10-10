@@ -13,7 +13,7 @@ public class CreatePost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"sessionFile", "text"});
+        return new HashSet<string>(new string[]{"dataDir", "handle", "text"});
     }
     public override HashSet<string> GetOptionalArguments()
     {
@@ -30,25 +30,28 @@ public class CreatePost : BaseCommand
         //
         // Get arguments
         //
-        JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
-        string? accessJwt = JsonData.SelectString(session, "accessJwt");
-        string? pds = JsonData.SelectString(session, "pds");
-        string? did = JsonData.SelectString(session, "did");
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? text = CommandLineInterface.GetArgumentValue(arguments, "text");
         bool? skipResolve = CommandLineInterface.GetArgumentValueWithDefault(arguments, "skipResolve", false);
         bool? skipSend = CommandLineInterface.GetArgumentValueWithDefault(arguments, "skipSend", false);
         bool? parsementions = CommandLineInterface.GetArgumentValueWithDefault(arguments, "parsementions", false);
 
-
-        Logger.LogInfo($"pds: {pds}");
-        Logger.LogInfo($"did: {did}");
-        Logger.LogInfo($"text: {text}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
+        //
+        // Load session
+        //
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        SessionFile? session = lfs?.LoadSession(handle);
+        if (session == null)
         {
-            Logger.LogError("Session not found. Please log in.");
+            Logger.LogError($"Failed to load session for handle: {handle}");
             return;
         }
+
+
+        string accessJwt = session.accessJwt;
+        string pds = session.pds;
+        string did = session.did;
 
         if(string.IsNullOrEmpty(text))
         {

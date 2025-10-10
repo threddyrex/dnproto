@@ -15,7 +15,7 @@ public class GetProfile : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"outfile", "password", "authFactorToken"});
+        return new HashSet<string>(new string[]{"dataDir"});
     }
 
 
@@ -38,25 +38,28 @@ public class GetProfile : BaseCommand
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
-        string handle = arguments["handle"];
+        //
+        // Get arguments
+        //
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+
 
         //
-        // Find session (if the user asks).
+        // Load session
         //
-        JsonNode? session = null;
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        SessionFile? session = lfs?.LoadSession(handle);
+
         string? accessJwt = null;
         string? pds = null;
 
-        if (CommandLineInterface.HasArgument(arguments, "password"))
+        if(session != null)
         {
-            string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-            string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
-
-            session = BlueskyClient.CreateSession(handle, password, authFactorToken);
-
-            accessJwt = JsonData.SelectString(session, "accessJwt");
-            pds = JsonData.SelectString(session, "pds");
+            accessJwt = session.accessJwt;
+            pds = session.pds;
         }
+
 
 
         //

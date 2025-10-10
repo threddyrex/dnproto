@@ -16,10 +16,6 @@ namespace dnproto.cli.commands
             return new HashSet<string>(new string[]{"dataDir", "handle"});
         }
 
-        public override HashSet<string> GetOptionalArguments()
-        {
-            return ["sessionFile", "pds", "password", "authFactorToken"];
-        }
 
 
         /// <summary>
@@ -32,55 +28,27 @@ namespace dnproto.cli.commands
         public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
-            // Find session.
+            // Get arguments
             //
-            JsonNode? session = null;
-            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-
-            if (arguments.ContainsKey("sessionFile"))
-            {
-                session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
-            }
-            else if (CommandLineInterface.HasArgument(arguments, "handle") &&
-                     CommandLineInterface.HasArgument(arguments, "password"))
-            {
-                string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-                string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
-
-                session = BlueskyClient.CreateSession(handle, password, authFactorToken);
-            }
-            else
-            {
-                Logger.LogError("Please provide either a session file (sessionFile), or the handle/password to log in.");
-                return;
-            }
-
+            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
 
             //
-            // Get values from session
+            // Load session
             //
-            string? accessJwt = JsonData.SelectString(session, "accessJwt");
-            string? pds = JsonData.SelectString(session, "pds");
-            string? did = JsonData.SelectString(session, "did");
-
-            Logger.LogInfo($"pds: {pds}");
-            Logger.LogInfo($"did: {did}");
-
-            if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            SessionFile? session = lfs?.LoadSession(handle);
+            if (session == null)
             {
-                Logger.LogError("Session not found. Please log in.");
+                Logger.LogError($"Failed to load session for handle: {handle}");
                 return;
             }
-
-            string url = $"https://{pds}/xrpc/app.bsky.actor.getPreferences";
-            Logger.LogInfo($"url: {url}");
 
 
             //
             // Get local filepath
             //
-            string? preferencesFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_Preferences(handle);
+            string? preferencesFile = lfs?.GetPath_Preferences(handle);
             if (preferencesFile == null)
             {
                 Logger.LogError("Failed to initialize local file system.");
@@ -93,9 +61,10 @@ namespace dnproto.cli.commands
             // Call WS
             //
             Logger.LogInfo($"Writing preferences to: {preferencesFile}");
+            string url = $"https://{session.pds}/xrpc/app.bsky.actor.getPreferences";
             JsonNode? response = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
-                accessJwt: accessJwt,
+                accessJwt: session.accessJwt,
                 outputFilePath: preferencesFile);
 
         }

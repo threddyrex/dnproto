@@ -9,11 +9,11 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class DeleteSession : BaseCommand
+public class LogOut : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"sessionFilePath"});
+        return new HashSet<string>(new string[]{"dataDir", "handle"});
     }
     
     /// <summary>
@@ -27,31 +27,41 @@ public class DeleteSession : BaseCommand
         //
         // Get arguments
         //
-        string? sessionFilePath = CommandLineInterface.GetArgumentValue(arguments, "sessionFilePath");
-        JsonNode? session = JsonData.ReadJsonFromFile(sessionFilePath);
-        string? refreshJwt = JsonData.SelectString(session, "refreshJwt");
-        string? pds = JsonData.SelectString(session, "pds");
-        string? did = JsonData.SelectString(session, "did");
-        string url = $"https://{pds}/xrpc/com.atproto.server.deleteSession";
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
 
-        Logger.LogInfo($"pds: {pds}");
-        Logger.LogInfo($"did: {did}");
+        //
+        // Load session
+        //
+        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+        if (session == null)
+        {
+            Logger.LogError($"Failed to load session for handle: {handle}");
+            return;
+        }
+
+
+
+        string url = $"https://{session.pds}/xrpc/com.atproto.server.deleteSession";
+
+        Logger.LogInfo($"pds: {session.pds}");
+        Logger.LogInfo($"did: {session.did}");
         Logger.LogInfo($"url: {url}");
 
         //
         // Clear local state
         //
-        if(File.Exists(sessionFilePath))
+        if(File.Exists(session.filePath))
         {
-            Logger.LogInfo($"Deleting session file: {sessionFilePath}");
-            File.Delete(sessionFilePath);
+            Logger.LogInfo($"Deleting session file: {session.filePath}");
+            File.Delete(session.filePath);
         }
 
         //
         // Call the API.
         // (You can't delete accessJwt, but you can delete refreshJwt.)
         //
-        if (string.IsNullOrEmpty(refreshJwt))
+        if (string.IsNullOrEmpty(session.refreshJwt))
         {
             Logger.LogError("Session not found. Nothing to delete.");
             return;
@@ -59,7 +69,7 @@ public class DeleteSession : BaseCommand
 
         JsonNode? response = BlueskyClient.SendRequest(url,
             HttpMethod.Post, 
-            accessJwt: refreshJwt);
+            accessJwt: session.refreshJwt);
 
 
         //

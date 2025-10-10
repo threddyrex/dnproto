@@ -28,7 +28,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
-        foreach (string subDir in new string[] { "backups", "repos", "preferences" })
+        foreach (string subDir in new string[] { "backups", "repos", "preferences", "sessions" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -99,6 +99,70 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         return prefsFile;
     }
 
+    /// <summary>
+    /// Get the path to the session file for the given handle.
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <returns></returns>
+    public string? GetPath_SessionFile(string? handle)
+    {
+        if (string.IsNullOrEmpty(handle))
+        {
+            Logger.LogError("handle is null or empty.");
+            return null;
+        }
+
+        string sessionDir = Path.Combine(DataDir, "sessions");
+        string safeHandle = GetSafeString(handle);
+        string sessionFile = Path.Combine(sessionDir, $"{safeHandle}.json");
+        return sessionFile;
+    }
+
+    public SessionFile? LoadSession(string? handle)
+    {
+        if (string.IsNullOrEmpty(handle))
+        {
+            Logger.LogTrace("handle is null or empty.");
+            return null;
+        }
+
+        string? sessionFile = GetPath_SessionFile(handle);
+        if (string.IsNullOrEmpty(sessionFile) || File.Exists(sessionFile) == false)
+        {
+            Logger.LogTrace($"Session file is null or empty: {sessionFile}");
+            return null;
+        }
+
+        var session = JsonData.ReadJsonFromFile(sessionFile);
+        if (session == null)
+        {
+            Logger.LogTrace($"Failed to read session file: {sessionFile}");
+            return null;
+        }
+
+        string? accessJwt = JsonData.SelectString(session, "accessJwt");
+        string? refreshJwt = JsonData.SelectString(session, "refreshJwt");
+        string? pds = JsonData.SelectString(session, "pds");
+        string? did = JsonData.SelectString(session, "did");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(refreshJwt))
+        {
+            Logger.LogTrace("Session file is missing required fields.");
+            return null;
+        }
+        
+        return new SessionFile()
+        {
+            handle = handle,
+            accessJwt = accessJwt,
+            refreshJwt = refreshJwt,
+            pds = pds,
+            did = did,
+            filePath = sessionFile
+        };
+    }
+
+    
 
     /// <summary>
     /// Make a string safe for use as a file or directory name.

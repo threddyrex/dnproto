@@ -9,16 +9,16 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class CreateSession : BaseCommand
+public class LogIn : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"handle", "password", "sessionFile"});
+        return new HashSet<string>(new string[]{"dataDir", "handle", "password"});
     }
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"pds", "authFactorToken"});
+        return new HashSet<string>(new string[]{"authFactorToken"});
     }
 
 
@@ -29,29 +29,44 @@ public class CreateSession : BaseCommand
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
+        //
         // Get arguments
-        string? pds = arguments.ContainsKey("pds") ? arguments["pds"] : null;
-        string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
+        //
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
+        string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
 
-        if(handle == null || password == null)
+        if (handle == null || password == null)
         {
             Logger.LogError("Missing required argument: handle or password");
             return;
         }
 
-        // If pds is not provided, get it from the handle
-        if (string.IsNullOrEmpty(pds))
+
+        //
+        // Get local path of session file
+        //
+        string? sessionFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_SessionFile(handle);
+        if (string.IsNullOrEmpty(sessionFile))
         {
-            Logger.LogInfo("Resolving handle to get pds.");
-            var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
-            pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
+            Logger.LogError($"Session file is null or empty: {sessionFile}");
+            return;
         }
 
+
+        //
+        // Lookup handle info.
+        //
+        Logger.LogInfo("Resolving handle to get pds.");
+        var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        string pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
+
+
+        //
         // Construct url
+        //
         string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
-        Logger.LogInfo($"url: {url}");
 
 
         //
@@ -79,14 +94,15 @@ public class CreateSession : BaseCommand
             return;
         }
 
+        //
         // add pds
+        //
         session["pds"] = pds;
 
         //
-        // Process response
+        // Write to disk
         //
-        BlueskyClient.PrintJsonResponseToConsole(session);
-        JsonData.WriteJsonToFile(session, CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
+        JsonData.WriteJsonToFile(session, sessionFile);
 
     }
 }

@@ -13,12 +13,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"sessionFile"});
-        }
-
-        public override HashSet<string> GetOptionalArguments()
-        {
-            return new HashSet<string>(new string[]{"pds", "outfile"});
+            return new HashSet<string>(new string[]{"dataDir", "handle"});
         }
 
 
@@ -31,39 +26,36 @@ namespace dnproto.cli.commands
         public override void DoCommand(Dictionary<string, string> arguments)
         {
             //
-            // Find existing session on disk
+            // Get arguments
             //
-            JsonNode? session = JsonData.ReadJsonFromFile(CommandLineInterface.GetArgumentValue(arguments, "sessionFile"));
+            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
 
-            string? accessJwt = JsonData.SelectString(session, "accessJwt");
-            string? pds = JsonData.SelectString(session, "pds");
-            string? did = JsonData.SelectString(session, "did");
-
-            Logger.LogInfo($"pds: {pds}");
-            Logger.LogInfo($"did: {did}");
-
-            if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did))
+            //
+            // Load session
+            //
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            SessionFile? session = lfs?.LoadSession(handle);
+            if (session == null)
             {
-                Logger.LogError("Session not found. Please log in.");
+                Logger.LogError($"Failed to load session for handle: {handle}");
                 return;
             }
 
-            string url = $"https://{pds}/xrpc/app.bsky.notification.getUnreadCount";
-            Logger.LogInfo($"url: {url}");
 
             //
             // Call WS
             //
+            string url = $"https://{session.pds}/xrpc/app.bsky.notification.getUnreadCount";
             JsonNode? response = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
-                accessJwt: accessJwt);
+                accessJwt: session.accessJwt);
 
 
             //
             // Print results
             //
             BlueskyClient.PrintJsonResponseToConsole(response);
-            JsonData.WriteJsonToFile(response, CommandLineInterface.GetArgumentValue(arguments, "outfile"));
         }
     }
 }

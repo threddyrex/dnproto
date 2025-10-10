@@ -14,13 +14,9 @@ public class DeletePost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"url", "password"});
+        return new HashSet<string>(new string[]{"dataDir", "handle", "url"});
     }
     
-    public override HashSet<string> GetOptionalArguments()
-    {
-        return new HashSet<string>(new string[]{"authFactorToken"});
-    }
 
     /// <summary>
     /// Print out the links for this post's parent, and also quoted post (if it exists).
@@ -33,14 +29,17 @@ public class DeletePost : BaseCommand
         //
         // Get arguments
         //
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
         string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
-        string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-        string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
-        Logger.LogTrace($"url: {url}");
 
-        if (string.IsNullOrEmpty(password))
+        //
+        // Load session
+        //
+        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+        if (session == null)
         {
-            Logger.LogError("Password is required.");
+            Logger.LogError($"Failed to load session for handle: {handle}");
             return;
         }
 
@@ -71,18 +70,13 @@ public class DeletePost : BaseCommand
 
 
         //
-        // Login
-        //
-        var session = BlueskyClient.CreateSession(uriOriginal.Authority, password, authFactorToken);
-
-        //
         // Delete record
         //
         BlueskyClient.DeleteRecord(
-            pds: handleInfo["pds"],
+            pds: session.pds,
             did: handleInfo["did"],
             rkey: uriOriginal.Rkey,
-            accessJwt: JsonData.SelectString(session, "accessJwt")
+            accessJwt: session.accessJwt
         );
 
     }

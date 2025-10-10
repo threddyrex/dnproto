@@ -14,12 +14,12 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return ["dataDir", "handle", "password", "month"];
+            return ["dataDir", "handle", "month"];
         }
 
         public override HashSet<string> GetOptionalArguments()
         {
-            return ["authFactorToken", "deleteLikes", "deleteReposts", "deletePosts", "sleepSeconds"];
+            return ["deleteLikes", "deleteReposts", "deletePosts", "sleepSeconds"];
         }
 
 
@@ -32,33 +32,29 @@ namespace dnproto.cli.commands
             //
             // Get arguments
             //
-            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
-            string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
-            string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
             string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
             bool deleteLikes = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deleteLikes", false);
             bool deleteReposts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deleteReposts", false);
             bool deletePosts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deletePosts", false);
             int sleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "sleepSeconds", 2);
 
-
             //
-            // Log in.
+            // Load session
             //
-            JsonNode? session = BlueskyClient.CreateSession(handle, password, authFactorToken);
-            string? accessJwt = JsonData.SelectString(session, "accessJwt");
-            string? pds = JsonData.SelectString(session, "pds");
-            string? did = JsonData.SelectString(session, "did");
-
-            if (session == null || string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did) || did.StartsWith("did:") == false)
+            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+            if (session == null)
             {
-                Logger.LogError("Failed to create session. Please log in.");
+                Logger.LogError($"Failed to load session for handle: {handle}");
                 return;
             }
 
 
-
+            string pds = session.pds;
+            string did = session.did;
+            string accessJwt = session.accessJwt;
+            
             //
             // Get bookmarks from Bsky
             //

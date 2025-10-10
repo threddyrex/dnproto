@@ -10,12 +10,12 @@ public class BackupAccount : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"handle", "password", "dataDir"});
+        return new HashSet<string>(new string[]{"dataDir", "handle"});
     }
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[] { "getprefs", "getrepo", "getblobs", "blobsleepseconds", "authFactorToken" });
+        return new HashSet<string>(new string[] { "getprefs", "getrepo", "getblobs", "blobsleepseconds"});
     }
 
     /// <summary>
@@ -33,11 +33,9 @@ public class BackupAccount : BaseCommand
 
         // required
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
-        string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
 
         // optional
-        string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
         bool getPrefs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getprefs", true);
         bool getRepo = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getrepo", true);
         bool getBlobs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getblobs", true);
@@ -48,10 +46,9 @@ public class BackupAccount : BaseCommand
         Logger.LogInfo($"getPrefs: {getPrefs}");
         Logger.LogInfo($"getRepo: {getRepo}");
         Logger.LogInfo($"getBlobs: {getBlobs}");
-        Logger.LogInfo($"password length: {password?.Length}");
-        Logger.LogInfo($"authFactorToken length: {authFactorToken?.Length}");
+        Logger.LogInfo($"blobSleepSeconds: {blobSleepSeconds}");
 
-        if(string.IsNullOrEmpty(dataDir) || string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(password))
+        if(string.IsNullOrEmpty(dataDir) || string.IsNullOrEmpty(handle))
         {
             Logger.LogError("Missing required argument.");
             return;
@@ -67,11 +64,21 @@ public class BackupAccount : BaseCommand
             return;
         }
 
+        //
+        // Load session
+        //
+        SessionFile? session = localFileSystem?.LoadSession(handle);
+        if (session == null)
+        {
+            Logger.LogError($"Failed to load session for handle: {handle}");
+            return;
+        }
+
 
         //
         // Get backup dir
         //
-        string? backupDir = localFileSystem.GetPath_AccountBackupDir(handle);
+        string? backupDir = localFileSystem?.GetPath_AccountBackupDir(handle);
         if (string.IsNullOrEmpty(backupDir))
         {
             Logger.LogError("Failed to get backup directory.");
@@ -94,8 +101,6 @@ public class BackupAccount : BaseCommand
         readmeContents += $"getPrefs: {getPrefs}\n";
         readmeContents += $"getRepo: {getRepo}\n";
         readmeContents += $"getBlobs: {getBlobs}\n";
-        readmeContents += $"password length: {password?.Length}\n";
-        readmeContents += $"authFactorToken length: {authFactorToken?.Length}\n";
         Logger.LogInfo($"Creating readme file: {readmePath}");
         File.WriteAllText(readmePath, readmeContents);
 
@@ -129,29 +134,11 @@ public class BackupAccount : BaseCommand
         if(getPrefs)
         {
             //
-            // Create session (log in)
-            //
-            JsonNode? session = BlueskyClient.CreateSession(pds, handle, password, authFactorToken);
-
-            string? accessJwt = JsonData.SelectString(session, "accessJwt");
-
-            if (session == null || string.IsNullOrEmpty(accessJwt))
-            {
-                Logger.LogError("FAILED TO CREATE SESSION! Either handle/password is incorrect, or you need to provide the authFactor token from email.");
-                return;
-            }
-            else
-            {
-                Logger.LogInfo($"Successfully created session.");
-            }
-
-
-            //
             // Call WS
             //
-            JsonNode? response = BlueskyClient.SendRequest($"https://{pds}/xrpc/app.bsky.actor.getPreferences",
+            JsonNode? response = BlueskyClient.SendRequest($"https://{session.pds}/xrpc/app.bsky.actor.getPreferences",
                 HttpMethod.Get, 
-                accessJwt: accessJwt);
+                accessJwt: session.accessJwt);
 
 
             //
@@ -188,7 +175,7 @@ public class BackupAccount : BaseCommand
             //
             // List blobs (this just gives you the blob IDs)
             //
-            List<string> blobs = BlueskyClient.ListBlobs(pds, did);
+            List<string> blobs = BlueskyClient.ListBlobs(session.pds, session.did);
             string blobFile = Path.Combine(backupDir, "blobs.txt");
             Logger.LogInfo("");
             Logger.LogInfo($"----- BLOBS -----");
@@ -226,7 +213,7 @@ public class BackupAccount : BaseCommand
                 if (File.Exists(blobPath) == false)
                 {
                     Logger.LogTrace($"Getting blob file: {blobPath}");
-                    BlueskyClient.GetBlob(pds, did, blob, blobPath);
+                    BlueskyClient.GetBlob(session.pds, session.did, blob, blobPath);
                     Thread.Sleep(blobSleepSeconds * 1000);
                     blobCountDownloaded++;
                 }
