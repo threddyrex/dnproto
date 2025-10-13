@@ -199,7 +199,7 @@ public class BlueskyClient
             int count = 1;
             while (inner != null)
             {
-                Logger.LogError($"ResolveHandleToDid_ViaHttp: Exception {count}: {inner.Message}");
+                Logger.LogTrace($"ResolveHandleToDid_ViaHttp: Exception {count}: {inner.Message}");
                 Logger.LogTrace(inner.StackTrace ?? "");
                 inner = inner.InnerException;
                 count++;
