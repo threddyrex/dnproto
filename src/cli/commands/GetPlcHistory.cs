@@ -76,6 +76,8 @@ public class GetPlcHistory : BaseCommand
             {
                 string? pds = JsonData.SelectString(didDoc, ["operation", "services", "atproto_pds", "endpoint"]);
                 string? createdAt = JsonData.SelectString(didDoc, "createdAt");
+                JsonArray? alsoKnownAs = didDoc?["operation"]?["alsoKnownAs"] as JsonArray;
+                string? alsoKnownAsHandle = alsoKnownAs != null && alsoKnownAs.Count > 0 ? alsoKnownAs[0]?.ToString() : null;
 
                 if(string.IsNullOrEmpty(pds))
                 {
@@ -109,7 +111,7 @@ public class GetPlcHistory : BaseCommand
 
                 active = pdsStatus.ContainsKey(pds) ? pdsStatus[pds] : null;
 
-                consoleOutput.Add($"{createdAt}  pds: {pds}, active: {active}");
+                consoleOutput.Add($"{createdAt}  pds: {pds}, handle: {alsoKnownAsHandle}, active: {active}");
             }
         }
 
