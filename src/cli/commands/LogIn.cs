@@ -102,6 +102,7 @@ public class LogIn : BaseCommand
         //
         // Write to disk
         //
+        Logger.LogInfo($"Writing session to: {sessionFile}");
         JsonData.WriteJsonToFile(session, sessionFile);
 
     }
