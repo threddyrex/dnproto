@@ -118,6 +118,11 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         return sessionFile;
     }
 
+    /// <summary>
+    /// Loads a session file from disk. This has the accessJwt for connecting to the PDS.
+    /// </summary>
+    /// <param name="handle"></param>
+    /// <returns></returns>
     public SessionFile? LoadSession(string? handle)
     {
         if (string.IsNullOrEmpty(handle))
@@ -133,6 +138,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
+        Logger.LogInfo("Reading session file: " + sessionFile);
         var session = JsonData.ReadJsonFromFile(sessionFile);
         if (session == null)
         {
@@ -150,7 +156,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             Logger.LogTrace("Session file is missing required fields.");
             return null;
         }
-        
+
         return new SessionFile()
         {
             handle = handle,
