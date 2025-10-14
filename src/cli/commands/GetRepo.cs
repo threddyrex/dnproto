@@ -85,7 +85,10 @@ public class GetRepo : BaseCommand
         //
         // Call pds
         //
-        Logger.LogInfo($"Calling GetRepo with pds: {pds}, did: {did}, repofile: {repofile}");
+        Logger.LogInfo($"Calling GetRepo.");
+        Logger.LogInfo($"pds: {pds}");
+        Logger.LogInfo($"did: {did}");
+        Logger.LogInfo($"Writing repofile: {repofile}");
         BlueskyClient.GetRepo(pds, did, repofile);
     }
 }
