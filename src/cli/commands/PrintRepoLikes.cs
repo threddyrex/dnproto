@@ -1,9 +1,11 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using dnproto.repo;
 using dnproto.ws;
+using dnproto.uri;
 
 namespace dnproto.cli.commands
 {
@@ -16,7 +18,7 @@ namespace dnproto.cli.commands
 
         public override HashSet<string> GetOptionalArguments()
         {
-            return new HashSet<string>(new string[]{"printcount", "createdafter", "resolvehandles", "resolvewaitseconds"});
+            return new HashSet<string>(new string[]{"month"});
         }
 
         /// <summary>
@@ -30,23 +32,12 @@ namespace dnproto.cli.commands
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
-            int printCount = CommandLineInterface.GetArgumentValueWithDefault(arguments, "printcount", 20);
-            string createdAfter = CommandLineInterface.GetArgumentValueWithDefault(arguments, "createdafter", "2010");
-            bool resolveHandles = CommandLineInterface.GetArgumentValueWithDefault(arguments, "resolvehandles", false);
-            int resolveWaitSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "resolvewaitseconds", 5);
+            string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
 
             //
-            // Get local file system
+            // Get local path of repo file (assumes user called GetRepo first to pull it down).
             //
-            LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-            if (localFileSystem == null)
-            {
-                Logger.LogError("Failed to initialize local file system.");
-                return;
-            }
-
-    
-            string? repoFile = localFileSystem.GetPath_RepoFile(handle);
+            string? repoFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_RepoFile(handle);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");
@@ -54,19 +45,11 @@ namespace dnproto.cli.commands
             }
 
 
-            Logger.LogInfo($"repoFile: {repoFile}");
-            Logger.LogInfo($"printCount: {printCount}");
-            Logger.LogInfo($"createdAfter: {createdAfter}");
-            Logger.LogInfo($"resolveHandles: {resolveHandles}");
-            Logger.LogInfo($"resolveWaitSeconds: {resolveWaitSeconds}");
-            Logger.LogInfo($"");
-
-
-            Dictionary<string, int> likeCountsByDid = new Dictionary<string, int>();
-
             //
             // Walk repo
             //
+            List<RepoRecord> likes = new List<RepoRecord>();
+
             Repo.WalkRepo(
                 repoFile,
                 (repoHeader) => { return true; },
@@ -74,22 +57,22 @@ namespace dnproto.cli.commands
                 {
                     if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") == false) return true;
                     if (string.IsNullOrEmpty(repoRecord.CreatedAt)) return true;
-                    if ((string.Compare(repoRecord.CreatedAt, createdAfter) > 0) == false) return true;
 
-                    string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
-                    if (uri == null) return true;
-
-                    var uriParts = uri.Split('/');
-                    var likeDid = uriParts.Length > 2 ? uriParts[2] : null;
-                    if (string.IsNullOrEmpty(likeDid)) return true;
-
-                    if (likeCountsByDid.ContainsKey(likeDid))
+ 
+                    if (string.IsNullOrEmpty(month) == false)
                     {
-                        likeCountsByDid[likeDid] = likeCountsByDid[likeDid] + 1;
+                        if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))
+                        {
+                            string postMonth = createdAt.ToString("yyyy-MM");
+                            if (month.Equals(postMonth))
+                            {
+                                likes.Add(repoRecord);
+                            }
+                        }
                     }
                     else
                     {
-                        likeCountsByDid[likeDid] = 1;
+                        likes.Add(repoRecord);
                     }
 
                     return true;
@@ -98,55 +81,21 @@ namespace dnproto.cli.commands
 
 
 
-            //
-            // Get list sorted by count
-            //
-            var sortedLikeCountsByDid = likeCountsByDid.OrderByDescending(x => x.Value);
-            Logger.LogInfo("number of accounts: " + sortedLikeCountsByDid.Count());
-
 
 
             //
-            // Print top n
+            // Print, sorted
             //
-            int i = 0;
-            int sumOfTopLikes = 0;
-   
-            foreach (var kvp in sortedLikeCountsByDid)
+            var sortedLikes = likes.OrderBy(pr => pr.DataBlock.SelectString(["createdAt"]));
+            foreach (var repoRecord in sortedLikes)
             {
-                i++;
-                sumOfTopLikes += kvp.Value;
+                string? uri = repoRecord.DataBlock.SelectString(["subject", "uri"]);
+                if (uri == null) continue;
 
+                string? bskyUrl = AtUri.FromAtUri(uri)?.ToBskyPostUrl();
 
-                if(resolveHandles)
-                {
-                    JsonNode? profile = BlueskyClient.GetProfile(kvp.Key);
-                    string? handle1 = JsonData.SelectString(profile, "handle");
-
-                    var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                    Logger.LogInfo($"{profileUrl}   {kvp.Value} likes     ({handle1})");
-
-                    // sleep 2 secs
-                    Thread.Sleep(resolveWaitSeconds * 1000);
-
-                }
-                else
-                {
-                    var profileUrl = $"https://bsky.app/profile/{kvp.Key}";
-                    Logger.LogInfo($"{profileUrl}   {kvp.Value} likes");
-                }
-
-
-                if(i >= printCount)
-                {
-                    break;
-                }
+                Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] {bskyUrl}");
             }
-
-            // print sum of dictionary values
-            Logger.LogInfo($"sum of top likes: {sumOfTopLikes}");
-            Logger.LogInfo($"total number of likes: {sortedLikeCountsByDid.Sum(x => x.Value)}");
-
         }
    }
 }
