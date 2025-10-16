@@ -54,11 +54,17 @@ namespace dnproto.cli.commands
             string pds = session.pds;
             string did = session.did;
             string accessJwt = session.accessJwt;
-            
+
             //
             // Get bookmarks from Bsky
             //
             List<(string createdAt, AtUri uri)> bookmarks = BlueskyClient.GetBookmarks(pds, accessJwt);
+            if (bookmarks == null || bookmarks.Count < 50)
+            {
+                Logger.LogError($"The bookmarks don't look right. Exiting. bookmarks.Count: {bookmarks?.Count}");
+                return;
+            }
+            
             var bookmarksSorted = bookmarks.OrderBy(b => b.createdAt).ToList();
             HashSet<string> bookmarkRkeys = new HashSet<string>();
             int bookmarkCount = bookmarksSorted.Count;
