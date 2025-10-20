@@ -77,6 +77,7 @@ public class BackupAccount : BaseCommand
         //
         // Get prefs, to check session.
         //
+        Logger.LogInfo("Verifying session by calling getPreferences...");
         JsonNode? prefsTest = BlueskyClient.SendRequest($"https://{session.pds}/xrpc/app.bsky.actor.getPreferences",
             HttpMethod.Get,
             accessJwt: session.accessJwt);
@@ -153,6 +154,11 @@ public class BackupAccount : BaseCommand
                 HttpMethod.Get, 
                 accessJwt: session.accessJwt);
 
+            if (response == null)
+            {
+                Logger.LogError("Failed to get preferences.");
+                return;
+            }
 
             //
             // Write to disk.
@@ -192,6 +198,7 @@ public class BackupAccount : BaseCommand
             string blobFile = Path.Combine(backupDir, "blobs.txt");
             Logger.LogInfo("");
             Logger.LogInfo($"----- BLOBS -----");
+            Logger.LogInfo($"Found {blobs.Count} blobs.");
             Logger.LogInfo($"Creating blob list file: {blobFile}");
             File.WriteAllLines(blobFile, blobs);
 
