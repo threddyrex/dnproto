@@ -739,13 +739,19 @@ public class BlueskyClient
 
             if (response == null)
             {
-                Logger.LogTrace("response is null.");
+                Logger.LogError("In SendRequest, response is null.");
                 return null;
             }
 
             Logger.LogTrace($"RESPONSE: {response}");
 
             bool succeeded = response.StatusCode == HttpStatusCode.OK;
+
+            if (!succeeded) 
+            {
+                Logger.LogError($"Request failed with status code: {response.StatusCode}");
+                return null;
+            }
 
             //
             // If user wants json, parse that.
