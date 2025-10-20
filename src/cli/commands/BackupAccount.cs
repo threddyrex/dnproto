@@ -74,6 +74,19 @@ public class BackupAccount : BaseCommand
             return;
         }
 
+        //
+        // Get prefs, to check session.
+        //
+        JsonNode? prefsTest = BlueskyClient.SendRequest($"https://{session.pds}/xrpc/app.bsky.actor.getPreferences",
+            HttpMethod.Get,
+            accessJwt: session.accessJwt);
+            
+        if (prefsTest == null)
+        {
+            Logger.LogError("Failed to verify session with getPreferences call. Is the session still valid?");
+            return;
+        }
+
 
         //
         // Get backup dir
