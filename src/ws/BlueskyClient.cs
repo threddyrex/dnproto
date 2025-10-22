@@ -316,12 +316,21 @@ public class BlueskyClient
         JsonNode? didDocJson = JsonNode.Parse(didDoc);
         if (didDocJson == null) return null;
 
-        string? pds = didDocJson["service"]?.AsArray()?.FirstOrDefault()?["serviceEndpoint"]?.ToString();
-
-        if (string.IsNullOrEmpty(pds)) return null;
-
-        return pds.Replace("https://", "");
-
+        foreach (var service in didDocJson["service"]?.AsArray() ?? new JsonArray())
+        {
+            if (service == null) continue;
+            var serviceType = service["type"]?.ToString();
+            if (serviceType == "AtprotoPersonalDataServer")
+            {
+                var pds = service["serviceEndpoint"]?.ToString();
+                if (!string.IsNullOrEmpty(pds))
+                {
+                    return pds.Replace("https://", "").Replace("http://", "");
+                }
+            }
+        }
+        
+        return null;
     }
 
 
