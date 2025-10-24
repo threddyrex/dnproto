@@ -39,6 +39,7 @@ namespace dnproto.cli.commands
             Dictionary<string, int> recordCountsByMonth = new Dictionary<string, int>(); // <month, count>
             Dictionary<string, Dictionary<string, int>> recordTypeCountsByMonth = new Dictionary<string, Dictionary<string, int>>(); // <month, <type, count>>
             int errorCount = 0;
+            int totalRecordCount = 0;
 
 
             //
@@ -52,6 +53,8 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
+                    totalRecordCount++;
+
                     if (repoRecord.IsError)
                     {
                         errorCount++;
@@ -125,6 +128,8 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"latestDate: {latestDate}");
             Logger.LogInfo("");
             Logger.LogInfo($"errorCount: {errorCount}");
+            Logger.LogInfo("");
+            Logger.LogInfo($"totalRecordCount: {totalRecordCount}");
             Logger.LogInfo("");
             DateTime currentDate = earliestDate;
 
