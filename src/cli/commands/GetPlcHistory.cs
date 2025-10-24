@@ -49,6 +49,12 @@ public class GetPlcHistory : BaseCommand
             return;
         }
 
+        if(did.StartsWith("did:web"))
+        {
+            Logger.LogError($"'{did}' is a did:web and does not contain plc info.");
+            return;
+        }
+
 
         //
         // Call PLC dir for history
