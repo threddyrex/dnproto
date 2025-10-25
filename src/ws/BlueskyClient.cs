@@ -88,6 +88,18 @@ public class BlueskyClient
 
 
         //
+        // 4. Get handle from diddoc
+        //
+        string? handleFromDidDoc = null;
+        if (didDoc != null)
+        {
+            JsonNode? didDocJson = JsonNode.Parse(didDoc);
+            handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
+        }
+        
+        ret["handle"] = handleFromDidDoc ?? "";
+
+        //
         // return
         //
         return ret;
