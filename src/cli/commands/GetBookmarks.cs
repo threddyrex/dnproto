@@ -14,7 +14,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return ["dataDir", "handle"];
+            return ["dataDir", "actor"];
         }
 
 
@@ -32,15 +32,18 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+            string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+
+            // resolve handle
+            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
 
             //
             // Load session
             //
-            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
             if (session == null)
             {
-                Logger.LogError($"Failed to load session for handle: {handle}");
+                Logger.LogError($"Failed to load session for handle: {handleInfo.Did}");
                 return;
             }
 

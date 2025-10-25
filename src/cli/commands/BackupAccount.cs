@@ -10,7 +10,7 @@ public class BackupAccount : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "handle"});
+        return new HashSet<string>(new string[]{"dataDir", "actor"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -32,7 +32,7 @@ public class BackupAccount : BaseCommand
         //
 
         // required
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
 
         // optional
@@ -41,16 +41,26 @@ public class BackupAccount : BaseCommand
         bool getBlobs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getblobs", true);
         int blobSleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "blobsleepseconds", 1);
 
-        Logger.LogInfo($"handle: {handle}");
+        Logger.LogInfo($"actor: {actor}");
         Logger.LogInfo($"dataDir: {dataDir}");
         Logger.LogInfo($"getPrefs: {getPrefs}");
         Logger.LogInfo($"getRepo: {getRepo}");
         Logger.LogInfo($"getBlobs: {getBlobs}");
         Logger.LogInfo($"blobSleepSeconds: {blobSleepSeconds}");
 
-        if(string.IsNullOrEmpty(dataDir) || string.IsNullOrEmpty(handle))
+        if (string.IsNullOrEmpty(dataDir) || string.IsNullOrEmpty(actor))
         {
             Logger.LogError("Missing required argument.");
+            return;
+        }
+
+        //
+        // Resolve actor
+        //
+        HandleInfo handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        if (handleInfo == null)
+        {
+            Logger.LogError($"Failed to resolve actor: {actor}");
             return;
         }
 
@@ -67,10 +77,10 @@ public class BackupAccount : BaseCommand
         //
         // Load session
         //
-        SessionFile? session = localFileSystem?.LoadSession(handle);
+        SessionFile? session = localFileSystem?.LoadSession(handleInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for handle: {handle}");
+            Logger.LogError($"Failed to load session for actor: {actor}");
             return;
         }
 
@@ -92,7 +102,7 @@ public class BackupAccount : BaseCommand
         //
         // Get backup dir
         //
-        string? backupDir = localFileSystem?.GetPath_AccountBackupDir(handle);
+        string? backupDir = localFileSystem?.GetPath_AccountBackupDir(handleInfo);
         if (string.IsNullOrEmpty(backupDir))
         {
             Logger.LogError("Failed to get backup directory.");
@@ -110,7 +120,7 @@ public class BackupAccount : BaseCommand
         //
         string readmePath = Path.Combine(backupDir, "README.txt");
         string readmeContents = "Account backup for Bluesky account. Created by dnproto.\n\n";
-        readmeContents += $"handle: {handle}\n";
+        readmeContents += $"actor: {actor}\n";
         readmeContents += $"backupDir: {backupDir}\n";
         readmeContents += $"getPrefs: {getPrefs}\n";
         readmeContents += $"getRepo: {getRepo}\n";
@@ -126,9 +136,8 @@ public class BackupAccount : BaseCommand
 
 
         //
-        // Resolve handle
+        // Resolve actor
         //
-        HandleInfo handleInfo = BlueskyClient.ResolveHandleInfo(handle);
 
         string? did = handleInfo.Did;
         string? pds = handleInfo.Pds;

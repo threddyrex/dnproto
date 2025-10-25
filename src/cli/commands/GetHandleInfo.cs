@@ -10,7 +10,7 @@ public class GetHandleInfo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"handle"});
+        return new HashSet<string>(new string[]{"actor"});
     }
 
 
@@ -21,12 +21,12 @@ public class GetHandleInfo : BaseCommand
     /// <exception cref="ArgumentException"></exception>
     public override void DoCommand(Dictionary<string, string> arguments)
     {
-        string handle = arguments["handle"];
+        string actor = arguments["actor"];
 
         //
         // Send request.
         //
-        var resolveHandleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        var resolveHandleInfo = BlueskyClient.ResolveHandleInfo(actor);
         string? jsonData = resolveHandleInfo?.ToJsonString();
         Logger.LogInfo($"Resolve handle info JSON: {jsonData}");
         Logger.LogInfo($"DidDoc: {resolveHandleInfo?.DidDoc}");

@@ -14,7 +14,7 @@ public class DeletePost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "handle", "url"});
+        return new HashSet<string>(new string[]{"dataDir", "actor", "url"});
     }
     
 
@@ -30,16 +30,19 @@ public class DeletePost : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
+
+        // resolve handle
+        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
 
         //
         // Load session
         //
-        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for handle: {handle}");
+            Logger.LogError($"Failed to load session for actor: {actor}");
             return;
         }
 
@@ -61,12 +64,6 @@ public class DeletePost : BaseCommand
             Logger.LogError("Invalid URL format (missing authority or rkey).");
             return;
         }
-
-
-        //
-        // Get handle info
-        //
-        var handleInfo = BlueskyClient.ResolveHandleInfo(uriOriginal.Authority);
 
 
         //

@@ -47,37 +47,36 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public string? GetPath_RepoFile(string? handle)
+    public string? GetPath_RepoFile(HandleInfo? handleInfo)
     {
-        if (string.IsNullOrEmpty(handle))
+        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
         {
-            Logger.LogError("handle is null or empty.");
+            Logger.LogError("handleInfo is null or empty.");
             return null;
         }
 
         string repoDir = Path.Combine(DataDir, "repos");
-        string safeHandle = GetSafeString(handle);
-        string repoFile = Path.Combine(repoDir, $"{safeHandle}.car");
+        string safeDid = GetSafeString(handleInfo.Did);
+        string repoFile = Path.Combine(repoDir, $"{safeDid}.car");
         return repoFile;
     }
-
 
     /// <summary>
     /// Get path for account backups.
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public string? GetPath_AccountBackupDir(string? handle)
+    public string? GetPath_AccountBackupDir(HandleInfo? handleInfo)
     {
-        if (string.IsNullOrEmpty(handle))
+        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
         {
-            Logger.LogError("handle is null or empty.");
+            Logger.LogError("handleInfo is null or empty.");
             return null;
         }
 
         string backupDir = Path.Combine(DataDir, "backups");
-        string safeHandle = GetSafeString(handle);
-        string accountBackupDir = Path.Combine(backupDir, safeHandle);
+        string safeDid = GetSafeString(handleInfo.Did);
+        string accountBackupDir = Path.Combine(backupDir, safeDid);
         return accountBackupDir;
     }
 
@@ -85,17 +84,17 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public string? GetPath_Preferences(string? handle)
+    public string? GetPath_Preferences(HandleInfo? handleInfo)
     {
-        if (string.IsNullOrEmpty(handle))
+        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
         {
-            Logger.LogError("handle is null or empty.");
+            Logger.LogError("handleInfo is null or empty.");
             return null;
         }
 
         string prefsDir = Path.Combine(DataDir, "preferences");
-        string safeHandle = GetSafeString(handle);
-        string prefsFile = Path.Combine(prefsDir, $"{safeHandle}.json");
+        string safeDid = GetSafeString(handleInfo.Did);
+        string prefsFile = Path.Combine(prefsDir, $"{safeDid}.json");
         return prefsFile;
     }
 
@@ -104,17 +103,17 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public string? GetPath_SessionFile(string? handle)
+    public string? GetPath_SessionFile(HandleInfo? handleInfo)
     {
-        if (string.IsNullOrEmpty(handle))
+        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
         {
-            Logger.LogError("handle is null or empty.");
+            Logger.LogError("handleInfo is null or empty.");
             return null;
         }
 
         string sessionDir = Path.Combine(DataDir, "sessions");
-        string safeHandle = GetSafeString(handle);
-        string sessionFile = Path.Combine(sessionDir, $"{safeHandle}.json");
+        string safeDid = GetSafeString(handleInfo.Did);
+        string sessionFile = Path.Combine(sessionDir, $"{safeDid}.json");
         return sessionFile;
     }
 
@@ -123,15 +122,15 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public SessionFile? LoadSession(string? handle)
+    public SessionFile? LoadSession(HandleInfo? handleInfo)
     {
-        if (string.IsNullOrEmpty(handle))
+        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
         {
-            Logger.LogTrace("handle is null or empty.");
+            Logger.LogTrace("handleInfo is null or empty.");
             return null;
         }
 
-        string? sessionFile = GetPath_SessionFile(handle);
+        string? sessionFile = GetPath_SessionFile(handleInfo);
         if (string.IsNullOrEmpty(sessionFile) || File.Exists(sessionFile) == false)
         {
             Logger.LogTrace($"Session file is null or empty: {sessionFile}");
@@ -159,7 +158,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
 
         return new SessionFile()
         {
-            handle = handle,
+            HandleInfo = handleInfo,
             accessJwt = accessJwt,
             refreshJwt = refreshJwt,
             pds = pds,

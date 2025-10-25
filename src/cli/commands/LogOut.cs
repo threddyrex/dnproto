@@ -13,7 +13,7 @@ public class LogOut : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "handle"});
+        return new HashSet<string>(new string[]{"dataDir", "actor"});
     }
     
     /// <summary>
@@ -28,15 +28,25 @@ public class LogOut : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+
+        //
+        // Resolve actor
+        //
+        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        if (handleInfo == null)
+        {
+            Logger.LogError($"Failed to resolve actor: {actor}");
+            return;
+        }
 
         //
         // Load session
         //
-        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for handle: {handle}");
+            Logger.LogError($"Failed to load session for actor: {actor}");
             return;
         }
 

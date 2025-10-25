@@ -1,6 +1,7 @@
 using System.Text;
 
 using dnproto.repo;
+using dnproto.ws;
 
 namespace dnproto.cli.commands
 {
@@ -8,7 +9,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"dataDir", "handle"});
+            return new HashSet<string>(new string[]{"dataDir", "actor"});
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -17,7 +18,10 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+            string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+
+            // resolve handle
+            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
 
             //
             // Get local file system
@@ -30,7 +34,7 @@ namespace dnproto.cli.commands
             }
 
     
-            string? repoFile = localFileSystem.GetPath_RepoFile(handle);
+            string? repoFile = localFileSystem.GetPath_RepoFile(handleInfo);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");

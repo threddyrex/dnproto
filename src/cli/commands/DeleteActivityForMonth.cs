@@ -14,7 +14,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return ["dataDir", "handle", "month"];
+            return ["dataDir", "actor", "month"];
         }
 
         public override HashSet<string> GetOptionalArguments()
@@ -33,20 +33,23 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-            string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+            string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
             string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
             bool deleteLikes = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deleteLikes", false);
             bool deleteReposts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deleteReposts", false);
             bool deletePosts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deletePosts", false);
             int sleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "sleepSeconds", 2);
 
+            // resolve handle
+            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+
             //
             // Load session
             //
-            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handle);
+            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
             if (session == null)
             {
-                Logger.LogError($"Failed to load session for handle: {handle}");
+                Logger.LogError($"Failed to load session for handle: {handleInfo.Handle}");
                 return;
             }
 
@@ -59,7 +62,7 @@ namespace dnproto.cli.commands
             // Get bookmarks from Bsky
             //
             List<(string createdAt, AtUri uri)> bookmarks = BlueskyClient.GetBookmarks(pds, accessJwt);
-            if (bookmarks == null || bookmarks.Count < 50)
+            if (bookmarks == null || bookmarks.Count < 1)
             {
                 Logger.LogError($"The bookmarks don't look right. Exiting. bookmarks.Count: {bookmarks?.Count}");
                 return;
@@ -87,7 +90,7 @@ namespace dnproto.cli.commands
             // Initialize local file system. We'll be reading the repo from here.
             //
             LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-            string? repoFile = localFileSystem?.GetPath_RepoFile(handle);
+            string? repoFile = localFileSystem?.GetPath_RepoFile(handleInfo);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");

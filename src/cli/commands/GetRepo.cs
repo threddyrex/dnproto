@@ -12,13 +12,9 @@ public class GetRepo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir"});
+        return new HashSet<string>(new string[]{"dataDir", "actor"});
     }
 
-    public override HashSet<string> GetOptionalArguments()
-    {
-        return new HashSet<string>(new string[]{"handle", "pds", "did"});
-    }
 
 
     /// <summary>
@@ -32,13 +28,14 @@ public class GetRepo : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? pds = CommandLineInterface.GetArgumentValue(arguments, "pds");
-        string? did = CommandLineInterface.GetArgumentValue(arguments, "did");
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
-        Logger.LogTrace($"pds: {pds}");
-        Logger.LogTrace($"did: {did}");
         Logger.LogTrace($"dataDir: {dataDir}");
+        Logger.LogTrace($"actor: {actor}");
+
+
+        // resolve handle
+        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
 
 
         //
@@ -55,25 +52,16 @@ public class GetRepo : BaseCommand
         //
         // If we're resolving handle, do that now.
         //
-        if (string.IsNullOrEmpty(handle) == false)
-        {
-            Logger.LogTrace("Resolving handle to did.");
-            var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        Logger.LogTrace($"pds: {handleInfo.Pds}");
+        Logger.LogTrace($"did: {handleInfo.Did}");
 
-            did = handleInfo.Did;
-            pds = handleInfo.Pds;
-        }
-
-        Logger.LogTrace($"pds: {pds}");
-        Logger.LogTrace($"did: {did}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || did.StartsWith("did:") == false)
+        if (string.IsNullOrEmpty(handleInfo.Pds) || string.IsNullOrEmpty(handleInfo.Did) || handleInfo.Did.StartsWith("did:") == false)
         {
             Logger.LogError("Invalid arguments.");
             return;
         }
 
-        string? repofile = localFileSystem.GetPath_RepoFile(handle ?? did);
+        string? repofile = localFileSystem.GetPath_RepoFile(handleInfo);
         if (string.IsNullOrEmpty(repofile))
         {
             Logger.LogError("Failed to get repofile path.");
@@ -86,9 +74,9 @@ public class GetRepo : BaseCommand
         // Call pds
         //
         Logger.LogInfo($"Calling GetRepo.");
-        Logger.LogInfo($"pds: {pds}");
-        Logger.LogInfo($"did: {did}");
+        Logger.LogInfo($"pds: {handleInfo.Pds}");
+        Logger.LogInfo($"did: {handleInfo.Did}");
         Logger.LogInfo($"Writing repofile: {repofile}");
-        BlueskyClient.GetRepo(pds, did, repofile);
+        BlueskyClient.GetRepo(handleInfo.Pds, handleInfo.Did, repofile);
     }
 }

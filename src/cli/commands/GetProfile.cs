@@ -10,7 +10,7 @@ public class GetProfile : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"handle"});
+        return new HashSet<string>(new string[]{"actor"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -42,15 +42,17 @@ public class GetProfile : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? sessionHandle = CommandLineInterface.GetArgumentValue(arguments, "sessionHandle");
 
+        // resolve handle
+        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
 
         //
         // Load session
         //
         LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        SessionFile? session = lfs?.LoadSession(sessionHandle);
+        SessionFile? session = lfs?.LoadSession(handleInfo);
 
         string? accessJwt = null;
         string? pds = null;
@@ -66,7 +68,7 @@ public class GetProfile : BaseCommand
         //
         // Get profile
         //
-        JsonNode? profile = BlueskyClient.GetProfile(handle, accessJwt, pds, string.Join(',', GetLabelers()));
+        JsonNode? profile = BlueskyClient.GetProfile(actor, accessJwt, pds, string.Join(',', GetLabelers()));
 
         BlueskyClient.PrintJsonResponseToConsole(profile);
         JsonData.WriteJsonToFile(profile, CommandLineInterface.GetArgumentValue(arguments, "outfile"));

@@ -1,6 +1,6 @@
 public class SessionFile
 {
-    public required string handle { get; set; }
+    public required HandleInfo HandleInfo { get; set; }
 
     public required string pds { get; set; }
 

@@ -13,7 +13,7 @@ public class LogIn : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "handle", "password"});
+        return new HashSet<string>(new string[]{"dataDir", "actor", "password"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -33,24 +33,13 @@ public class LogIn : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
         string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
 
-        if (handle == null || password == null)
+        if (string.IsNullOrEmpty(actor) || string.IsNullOrEmpty(password))
         {
-            Logger.LogError("Missing required argument: handle or password");
-            return;
-        }
-
-
-        //
-        // Get local path of session file
-        //
-        string? sessionFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_SessionFile(handle);
-        if (string.IsNullOrEmpty(sessionFile))
-        {
-            Logger.LogError($"Session file is null or empty: {sessionFile}");
+            Logger.LogError("Missing required argument: actor or password");
             return;
         }
 
@@ -59,8 +48,19 @@ public class LogIn : BaseCommand
         // Lookup handle info.
         //
         Logger.LogInfo("Resolving handle to get pds.");
-        var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
         string pds = string.IsNullOrEmpty(handleInfo.Pds) ? "bsky.social" : handleInfo.Pds;
+
+
+        //
+        // Get local path of session file
+        //
+        string? sessionFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_SessionFile(handleInfo);
+        if (string.IsNullOrEmpty(sessionFile))
+        {
+            Logger.LogError($"Session file is null or empty: {sessionFile}");
+            return;
+        }
 
 
         //
@@ -77,12 +77,12 @@ public class LogIn : BaseCommand
             content: string.IsNullOrEmpty(authFactorToken) ?
                 new StringContent(JsonSerializer.Serialize(new
                     {
-                        identifier = handle,
+                        identifier = actor,
                         password = password
                     })) : 
                 new StringContent(JsonSerializer.Serialize(new
                     {
-                        identifier = handle,
+                        identifier = actor,
                         password = password,
                         authFactorToken = authFactorToken
                     }))

@@ -13,7 +13,7 @@ public class CreatePost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "handle", "text"});
+        return new HashSet<string>(new string[]{"dataDir", "actor", "text"});
     }
     public override HashSet<string> GetOptionalArguments()
     {
@@ -31,20 +31,24 @@ public class CreatePost : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? text = CommandLineInterface.GetArgumentValue(arguments, "text");
         bool? skipResolve = CommandLineInterface.GetArgumentValueWithDefault(arguments, "skipResolve", false);
         bool? skipSend = CommandLineInterface.GetArgumentValueWithDefault(arguments, "skipSend", false);
         bool? parsementions = CommandLineInterface.GetArgumentValueWithDefault(arguments, "parsementions", false);
 
+
+        // resolve handle
+        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+
         //
         // Load session
         //
         LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        SessionFile? session = lfs?.LoadSession(handle);
+        SessionFile? session = lfs?.LoadSession(handleInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for handle: {handle}");
+            Logger.LogError($"Failed to load session for handle: {handleInfo.Handle}");
             return;
         }
 

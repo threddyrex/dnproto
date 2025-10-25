@@ -11,7 +11,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"dataDir", "handle1", "handle2"});
+            return new HashSet<string>(new string[]{"dataDir", "actor1", "actor2"});
         }
 
 
@@ -25,15 +25,19 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-            string? handle1 = CommandLineInterface.GetArgumentValue(arguments, "handle1");
-            string? handle2 = CommandLineInterface.GetArgumentValue(arguments, "handle2");
+            string? actor1 = CommandLineInterface.GetArgumentValue(arguments, "actor1");
+            string? actor2 = CommandLineInterface.GetArgumentValue(arguments, "actor2");
+
+            // resolve handle
+            var handleInfo1 = BlueskyClient.ResolveHandleInfo(actor1);
+            var handleInfo2 = BlueskyClient.ResolveHandleInfo(actor2);
 
             //
             // Get local files
             //
             var lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            var repoFile1 = lfs?.GetPath_RepoFile(handle1);
-            var repoFile2 = lfs?.GetPath_RepoFile(handle2);
+            var repoFile1 = lfs?.GetPath_RepoFile(handleInfo1);
+            var repoFile2 = lfs?.GetPath_RepoFile(handleInfo2);
 
             Logger.LogInfo($"repoFile1: {repoFile1}");
             Logger.LogInfo($"repoFile2: {repoFile2}");
