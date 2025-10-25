@@ -15,7 +15,7 @@ public class GetProfile : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir"});
+        return new HashSet<string>(new string[]{"dataDir", "sessionHandle"});
     }
 
 
@@ -43,13 +43,14 @@ public class GetProfile : BaseCommand
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? handle = CommandLineInterface.GetArgumentValue(arguments, "handle");
+        string? sessionHandle = CommandLineInterface.GetArgumentValue(arguments, "sessionHandle");
 
 
         //
         // Load session
         //
         LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        SessionFile? session = lfs?.LoadSession(handle);
+        SessionFile? session = lfs?.LoadSession(sessionHandle);
 
         string? accessJwt = null;
         string? pds = null;
