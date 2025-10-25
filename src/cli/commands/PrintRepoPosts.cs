@@ -26,13 +26,16 @@ namespace dnproto.cli.commands
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
             string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
 
-            // resolve handle
-            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+            //
+            // Load lfs
+            //
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
             //
             // Get local path of repo file (assumes user called GetRepo first to pull it down).
             //
-            string? repoFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_RepoFile(handleInfo);
+            string? repoFile = lfs?.GetPath_RepoFile(actorInfo);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");
@@ -91,7 +94,7 @@ namespace dnproto.cli.commands
 
                 if (string.IsNullOrEmpty(rkey) == false)
                 {
-                    Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{handleInfo.Did}/post/{rkey}");
+                    Logger.LogInfo($"[{repoRecord.DataBlock.SelectString(["createdAt"])}] https://bsky.app/profile/{actorInfo?.Did}/post/{rkey}");
                 }
                 else
                 {

@@ -26,7 +26,7 @@ public class GetHandleInfo : BaseCommand
         //
         // Send request.
         //
-        var resolveHandleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        var resolveHandleInfo = BlueskyClient.ResolveActorInfo(actor);
         string? jsonData = resolveHandleInfo?.ToJsonString();
         Logger.LogInfo($"Resolve handle info JSON: {jsonData}");
         Logger.LogInfo($"DidDoc: {resolveHandleInfo?.DidDoc}");

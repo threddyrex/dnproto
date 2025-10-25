@@ -54,33 +54,28 @@ public class BackupAccount : BaseCommand
             return;
         }
 
-        //
-        // Resolve actor
-        //
-        HandleInfo handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-        if (handleInfo == null)
-        {
-            Logger.LogError($"Failed to resolve actor: {actor}");
-            return;
-        }
 
         //
-        // Get local file system
+        // Get local file system and actor info
         //
-        LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-        if (localFileSystem == null)
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+
+        if (lfs == null)
         {
             Logger.LogError("Failed to initialize local file system.");
             return;
         }
 
+
+
         //
         // Load session
         //
-        SessionFile? session = localFileSystem?.LoadSession(handleInfo);
+        SessionFile? session = lfs?.LoadSession(actorInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for actor: {actor}");
+            Logger.LogError($"Failed to load session for actor: {actor}. Please log in to your account.");
             return;
         }
 
@@ -102,7 +97,7 @@ public class BackupAccount : BaseCommand
         //
         // Get backup dir
         //
-        string? backupDir = localFileSystem?.GetPath_AccountBackupDir(handleInfo);
+        string? backupDir = lfs?.GetPath_AccountBackupDir(actorInfo);
         if (string.IsNullOrEmpty(backupDir))
         {
             Logger.LogError("Failed to get backup directory.");
@@ -139,12 +134,12 @@ public class BackupAccount : BaseCommand
         // Resolve actor
         //
 
-        string? did = handleInfo.Did;
-        string? pds = handleInfo.Pds;
+        string? did = actorInfo?.Did;
+        string? pds = actorInfo?.Pds;
 
         if(string.IsNullOrEmpty(did) || string.IsNullOrEmpty(pds))
         {
-            Logger.LogError("Failed to resolve handle to did and pds.");
+            Logger.LogError("Failed to resolve actor to did and pds.");
             return;
         }
 

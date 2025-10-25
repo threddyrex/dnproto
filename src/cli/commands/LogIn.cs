@@ -43,19 +43,25 @@ public class LogIn : BaseCommand
             return;
         }
 
+        //
+        // Load lfs
+        //
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
-        //
-        // Lookup handle info.
-        //
         Logger.LogInfo("Resolving handle to get pds.");
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-        string pds = string.IsNullOrEmpty(handleInfo.Pds) ? "bsky.social" : handleInfo.Pds;
+        string? pds = string.IsNullOrEmpty(actorInfo?.Pds) ? "bsky.social" : actorInfo?.Pds;
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("Failed to resolve pds.");
+            return;
+        }
 
 
         //
         // Get local path of session file
         //
-        string? sessionFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_SessionFile(handleInfo);
+        string? sessionFile = lfs?.GetPath_SessionFile(actorInfo);
         if (string.IsNullOrEmpty(sessionFile))
         {
             Logger.LogError($"Session file is null or empty: {sessionFile}");

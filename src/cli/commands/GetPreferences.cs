@@ -33,17 +33,16 @@ namespace dnproto.cli.commands
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
-            // resolve handle
-            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-
             //
-            // Load session
+            // Load lfs
             //
             LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            SessionFile? session = lfs?.LoadSession(handleInfo);
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+            SessionFile? session = lfs?.LoadSession(actorInfo);
+
             if (session == null)
             {
-                Logger.LogError($"Failed to load session for actor: {handleInfo.Did}");
+                Logger.LogError($"Failed to load session for actor: {actorInfo?.Did}");
                 return;
             }
 
@@ -51,7 +50,7 @@ namespace dnproto.cli.commands
             //
             // Get local filepath
             //
-            string? preferencesFile = lfs?.GetPath_Preferences(handleInfo);
+            string? preferencesFile = lfs?.GetPath_Preferences(actorInfo);
             if (preferencesFile == null)
             {
                 Logger.LogError("Failed to initialize local file system.");

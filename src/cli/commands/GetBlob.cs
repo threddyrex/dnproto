@@ -11,7 +11,7 @@ public class GetBlob : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[] { "handle", "outdir" });
+        return new HashSet<string>(new string[] { "dataDir", "actor", "outdir" });
     }
 
 
@@ -20,10 +20,11 @@ public class GetBlob : BaseCommand
         //
         // Get parameters
         //
-        string? handle = arguments.ContainsKey("handle") ? arguments["handle"] : null;
+        string? dataDir = arguments.ContainsKey("dataDir") ? arguments["dataDir"] : null;
+        string? actor = arguments.ContainsKey("actor") ? arguments["actor"] : null;
         string? outdir = arguments.ContainsKey("outdir") ? arguments["outdir"] : null;
 
-        if (string.IsNullOrEmpty(handle) || string.IsNullOrEmpty(outdir))
+        if (string.IsNullOrEmpty(actor) || string.IsNullOrEmpty(outdir))
         {
             Logger.LogError("Missing required arguments.");
             return;
@@ -35,18 +36,22 @@ public class GetBlob : BaseCommand
             return;
         }
 
+        //
+        // Load lfs
+        //
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
 
         //
         // Resolve handle
         //
-        var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
-        string? pds = handleInfo.Pds;
-        string? did = handleInfo.Did;
+        string? pds = actorInfo?.Pds;
+        string? did = actorInfo?.Did;
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
-            Logger.LogError("Could not resolve PDS or DID for the handle.");
+            Logger.LogError("Could not resolve PDS or DID for the actor.");
             return;
         }
 

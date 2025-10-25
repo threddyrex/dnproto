@@ -28,7 +28,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
-        foreach (string subDir in new string[] { "backups", "repos", "preferences", "sessions" })
+        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -41,22 +41,61 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         return new LocalFileSystem(dataDir, logger);
     }
 
+    /// <summary>
+    /// Resolve actor info for the given actor (handle or did).
+    /// </summary>
+    /// <param name="actor"></param>
+    /// <returns></returns>
+    public ActorInfo? ResolveActorInfo(string? actor)
+    {
+        if (string.IsNullOrEmpty(actor))
+        {
+            Logger.LogError("actor is null or empty.");
+            return null;
+        }
+
+        string actorFile = Path.Combine(DataDir, "actors", GetSafeString(actor) + ".json");
+
+        if (File.Exists(actorFile))
+        {
+            Logger.LogInfo($"Loading actor info from file: {actorFile}");
+            string actorJson = File.ReadAllText(actorFile);
+            Logger.LogTrace($"file text: {actorJson}");
+            var info = ActorInfo.FromJsonString(actorJson);
+            return info;
+        }
+
+        Logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
+        var actorInfo = BlueskyClient.ResolveActorInfo(actor);
+
+        if (actorInfo == null)
+        {
+            Logger.LogError("Failed to resolve actor info.");
+            return null;
+        }
+
+        Logger.LogTrace($"Saving actor info to file: {actorFile}");
+        File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
+
+        return actorInfo;
+    }
+
 
     /// <summary>
     /// Get the path to the repo file for the given handle.
     /// </summary>
-    /// <param name="handle"></param>
+    /// <param name="actorInfo"></param>
     /// <returns></returns>
-    public string? GetPath_RepoFile(HandleInfo? handleInfo)
+    public string? GetPath_RepoFile(ActorInfo? actorInfo)
     {
-        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
+        if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("handleInfo is null or empty.");
+            Logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
         string repoDir = Path.Combine(DataDir, "repos");
-        string safeDid = GetSafeString(handleInfo.Did);
+        string safeDid = GetSafeString(actorInfo.Did);
         string repoFile = Path.Combine(repoDir, $"{safeDid}.car");
         return repoFile;
     }
@@ -64,36 +103,36 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// <summary>
     /// Get path for account backups.
     /// </summary>
-    /// <param name="handle"></param>
+    /// <param name="actorInfo"></param>
     /// <returns></returns>
-    public string? GetPath_AccountBackupDir(HandleInfo? handleInfo)
+    public string? GetPath_AccountBackupDir(ActorInfo? actorInfo)
     {
-        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
+        if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("handleInfo is null or empty.");
+            Logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
         string backupDir = Path.Combine(DataDir, "backups");
-        string safeDid = GetSafeString(handleInfo.Did);
+        string safeDid = GetSafeString(actorInfo.Did);
         string accountBackupDir = Path.Combine(backupDir, safeDid);
         return accountBackupDir;
     }
 
     /// <summary>
     /// </summary>
-    /// <param name="handle"></param>
+    /// <param name="actorInfo"></param>
     /// <returns></returns>
-    public string? GetPath_Preferences(HandleInfo? handleInfo)
+    public string? GetPath_Preferences(ActorInfo? actorInfo)
     {
-        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
+        if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("handleInfo is null or empty.");
+            Logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
         string prefsDir = Path.Combine(DataDir, "preferences");
-        string safeDid = GetSafeString(handleInfo.Did);
+        string safeDid = GetSafeString(actorInfo.Did);
         string prefsFile = Path.Combine(prefsDir, $"{safeDid}.json");
         return prefsFile;
     }
@@ -101,18 +140,18 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// <summary>
     /// Get the path to the session file for the given handle.
     /// </summary>
-    /// <param name="handle"></param>
+    /// <param name="actorInfo"></param>
     /// <returns></returns>
-    public string? GetPath_SessionFile(HandleInfo? handleInfo)
+    public string? GetPath_SessionFile(ActorInfo? actorInfo)
     {
-        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
+        if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("handleInfo is null or empty.");
+            Logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
         string sessionDir = Path.Combine(DataDir, "sessions");
-        string safeDid = GetSafeString(handleInfo.Did);
+        string safeDid = GetSafeString(actorInfo.Did);
         string sessionFile = Path.Combine(sessionDir, $"{safeDid}.json");
         return sessionFile;
     }
@@ -120,17 +159,17 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// <summary>
     /// Loads a session file from disk. This has the accessJwt for connecting to the PDS.
     /// </summary>
-    /// <param name="handle"></param>
+    /// <param name="actorInfo"></param>
     /// <returns></returns>
-    public SessionFile? LoadSession(HandleInfo? handleInfo)
+    public SessionFile? LoadSession(ActorInfo? actorInfo)
     {
-        if (handleInfo == null || string.IsNullOrEmpty(handleInfo.Did))
+        if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogTrace("handleInfo is null or empty.");
+            Logger.LogTrace("actorInfo is null or empty.");
             return null;
         }
 
-        string? sessionFile = GetPath_SessionFile(handleInfo);
+        string? sessionFile = GetPath_SessionFile(actorInfo);
         if (string.IsNullOrEmpty(sessionFile) || File.Exists(sessionFile) == false)
         {
             Logger.LogTrace($"Session file is null or empty: {sessionFile}");
@@ -158,7 +197,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
 
         return new SessionFile()
         {
-            HandleInfo = handleInfo,
+            ActorInfo = actorInfo,
             accessJwt = accessJwt,
             refreshJwt = refreshJwt,
             pds = pds,

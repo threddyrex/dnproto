@@ -28,16 +28,15 @@ namespace dnproto.cli.commands
             string? actor1 = CommandLineInterface.GetArgumentValue(arguments, "actor1");
             string? actor2 = CommandLineInterface.GetArgumentValue(arguments, "actor2");
 
-            // resolve handle
-            var handleInfo1 = BlueskyClient.ResolveHandleInfo(actor1);
-            var handleInfo2 = BlueskyClient.ResolveHandleInfo(actor2);
 
             //
             // Get local files
             //
             var lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            var repoFile1 = lfs?.GetPath_RepoFile(handleInfo1);
-            var repoFile2 = lfs?.GetPath_RepoFile(handleInfo2);
+            var actorInfo1 = lfs?.ResolveActorInfo(actor1);
+            var actorInfo2 = lfs?.ResolveActorInfo(actor2);
+            var repoFile1 = lfs?.GetPath_RepoFile(actorInfo1);
+            var repoFile2 = lfs?.GetPath_RepoFile(actorInfo2);
 
             Logger.LogInfo($"repoFile1: {repoFile1}");
             Logger.LogInfo($"repoFile2: {repoFile2}");

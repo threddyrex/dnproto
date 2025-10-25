@@ -1,8 +1,11 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
 using dnproto.repo;
 
-public class HandleInfo
+public class ActorInfo
 {
-    public string? Query { get; set; }
+    public string? Actor { get; set; }
 
     public string? Handle { get; set; }
 
@@ -20,11 +23,13 @@ public class HandleInfo
 
     public string? ToJsonString()
     {
-        return JsonData.ConvertObjectToJsonString(this);
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        return JsonSerializer.Serialize(this, options);
     }
 
-    public static HandleInfo? FromJsonString(string json)
+    public static ActorInfo? FromJsonString(string json)
     {
-        return JsonData.ConvertJsonStringToObject(json) as HandleInfo;
+        if(string.IsNullOrEmpty(json)) return null;
+        return JsonSerializer.Deserialize<ActorInfo>(json);    
     }
 }

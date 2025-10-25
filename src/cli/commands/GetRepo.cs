@@ -34,34 +34,31 @@ public class GetRepo : BaseCommand
         Logger.LogTrace($"actor: {actor}");
 
 
-        // resolve handle
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-
-
         //
-        // Get local file system
+        // Load lfs
         //
-        LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-        if (localFileSystem == null)
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+
+        if (actorInfo == null)
         {
-            Logger.LogError("Failed to initialize local file system.");
+            Logger.LogError("Failed to resolve actor info.");
             return;
         }
-
 
         //
         // If we're resolving handle, do that now.
         //
-        Logger.LogTrace($"pds: {handleInfo.Pds}");
-        Logger.LogTrace($"did: {handleInfo.Did}");
+        Logger.LogTrace($"pds: {actorInfo.Pds}");
+        Logger.LogTrace($"did: {actorInfo.Did}");
 
-        if (string.IsNullOrEmpty(handleInfo.Pds) || string.IsNullOrEmpty(handleInfo.Did) || handleInfo.Did.StartsWith("did:") == false)
+        if (string.IsNullOrEmpty(actorInfo.Pds) || string.IsNullOrEmpty(actorInfo.Did) || actorInfo.Did.StartsWith("did:") == false)
         {
             Logger.LogError("Invalid arguments.");
             return;
         }
 
-        string? repofile = localFileSystem.GetPath_RepoFile(handleInfo);
+        string? repofile = lfs?.GetPath_RepoFile(actorInfo);
         if (string.IsNullOrEmpty(repofile))
         {
             Logger.LogError("Failed to get repofile path.");
@@ -74,9 +71,9 @@ public class GetRepo : BaseCommand
         // Call pds
         //
         Logger.LogInfo($"Calling GetRepo.");
-        Logger.LogInfo($"pds: {handleInfo.Pds}");
-        Logger.LogInfo($"did: {handleInfo.Did}");
+        Logger.LogInfo($"pds: {actorInfo.Pds}");
+        Logger.LogInfo($"did: {actorInfo.Did}");
         Logger.LogInfo($"Writing repofile: {repofile}");
-        BlueskyClient.GetRepo(handleInfo.Pds, handleInfo.Did, repofile);
+        BlueskyClient.GetRepo(actorInfo.Pds, actorInfo.Did, repofile);
     }
 }

@@ -46,7 +46,7 @@ public class GetProfile : BaseCommand
         string? sessionHandle = CommandLineInterface.GetArgumentValue(arguments, "sessionHandle");
 
         // resolve handle
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        var handleInfo = BlueskyClient.ResolveActorInfo(actor);
 
         //
         // Load session

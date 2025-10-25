@@ -30,7 +30,7 @@ public class GetPlcHistory : BaseCommand
         //
         // resolve handle
         //
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        var handleInfo = BlueskyClient.ResolveActorInfo(actor);
 
 
         //

@@ -20,21 +20,13 @@ namespace dnproto.cli.commands
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
-            // resolve handle
-            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-
             //
-            // Get local file system
+            // Load lfs
             //
-            LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-            if (localFileSystem == null)
-            {
-                Logger.LogError("Failed to initialize local file system.");
-                return;
-            }
-
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
     
-            string? repoFile = localFileSystem.GetPath_RepoFile(handleInfo);
+            string? repoFile = lfs?.GetPath_RepoFile(actorInfo);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");

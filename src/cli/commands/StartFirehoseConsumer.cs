@@ -35,7 +35,7 @@ public class StartFirehoseConsumer : BaseCommand
         string? pds = null;
         if (arguments.ContainsKey("handle"))
         {
-            HandleInfo handleInfo = BlueskyClient.ResolveHandleInfo(arguments["handle"]);
+            ActorInfo handleInfo = BlueskyClient.ResolveActorInfo(arguments["handle"]);
             pds = handleInfo.Pds;
         }
         else if (arguments.ContainsKey("pds"))

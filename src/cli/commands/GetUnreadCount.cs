@@ -31,28 +31,21 @@ namespace dnproto.cli.commands
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
-            // resolve handle
-            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-
             //
-            // Load session
+            // Load lfs
             //
             LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            SessionFile? session = lfs?.LoadSession(handleInfo);
-            if (session == null)
-            {
-                Logger.LogError($"Failed to load session for handle: {handleInfo.Handle}");
-                return;
-            }
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+            SessionFile? session = lfs?.LoadSession(actorInfo);
 
 
             //
             // Call WS
             //
-            string url = $"https://{session.pds}/xrpc/app.bsky.notification.getUnreadCount";
+            string url = $"https://{session?.pds}/xrpc/app.bsky.notification.getUnreadCount";
             JsonNode? response = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
-                accessJwt: session.accessJwt);
+                accessJwt: session?.accessJwt);
 
 
             //

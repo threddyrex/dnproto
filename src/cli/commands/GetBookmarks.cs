@@ -34,16 +34,16 @@ namespace dnproto.cli.commands
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
-            // resolve handle
-            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+            //
+            // Load lfs
+            //
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+            SessionFile? session = lfs?.LoadSession(actorInfo);
 
-            //
-            // Load session
-            //
-            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
             if (session == null)
             {
-                Logger.LogError($"Failed to load session for handle: {handleInfo.Did}");
+                Logger.LogError($"Failed to load session for actor: {actorInfo?.Did}");
                 return;
             }
 

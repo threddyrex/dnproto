@@ -31,19 +31,15 @@ public class LogOut : BaseCommand
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
         //
-        // Resolve actor
+        // Load lfs
         //
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
-        if (handleInfo == null)
-        {
-            Logger.LogError($"Failed to resolve actor: {actor}");
-            return;
-        }
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
         //
         // Load session
         //
-        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
+        SessionFile? session = lfs?.LoadSession(actorInfo);
         if (session == null)
         {
             Logger.LogError($"Failed to load session for actor: {actor}");

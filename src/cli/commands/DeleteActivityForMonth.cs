@@ -40,16 +40,16 @@ namespace dnproto.cli.commands
             bool deletePosts = CommandLineInterface.GetArgumentValueWithDefault(arguments, "deletePosts", false);
             int sleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "sleepSeconds", 2);
 
-            // resolve handle
-            var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+            //
+            // Load lfs
+            //
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+            SessionFile? session = lfs?.LoadSession(actorInfo);
 
-            //
-            // Load session
-            //
-            SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
             if (session == null)
             {
-                Logger.LogError($"Failed to load session for handle: {handleInfo.Handle}");
+                Logger.LogError($"Failed to load session for actor: {actor}");
                 return;
             }
 
@@ -87,10 +87,9 @@ namespace dnproto.cli.commands
 
 
             //
-            // Initialize local file system. We'll be reading the repo from here.
+            // Load lfs
             //
-            LocalFileSystem? localFileSystem = LocalFileSystem.Initialize(dataDir, Logger);
-            string? repoFile = localFileSystem?.GetPath_RepoFile(handleInfo);
+            string? repoFile = lfs?.GetPath_RepoFile(actorInfo);
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");

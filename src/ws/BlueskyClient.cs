@@ -29,34 +29,33 @@ public class BlueskyClient
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public static HandleInfo ResolveHandleInfo(string? query)
+    public static ActorInfo ResolveActorInfo(string? actor)
     {
-        var ret = new HandleInfo();
-        ret.Query = query;
+        var ret = new ActorInfo();
+        ret.Actor = actor;
 
-        Logger.LogTrace($"ResolveHandleInfo: query: {query}");
-        if (string.IsNullOrEmpty(query))
+        Logger.LogTrace($"ResolveActorInfo: actor: {actor}");
+        if (string.IsNullOrEmpty(actor))
         {
-            Logger.LogTrace("ResolveHandleInfo: query is null or empty. Exiting.");
+            Logger.LogTrace("ResolveActorInfo: actor is null or empty. Exiting.");
             return ret;
         }
 
         //
         // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
         //
-        if(query.StartsWith("did:"))
+        if(actor.StartsWith("did:"))
         {
-            ret.Did = query;
-            Logger.LogTrace("Query is already a did.");
+            ret.Did = actor;
+            Logger.LogTrace("Actor is already a did.");
         }
         else
         {
-            ret.Handle = query;
-            Logger.LogTrace("Query is not a did, resolving to did.");
-            ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(query);
-            ret.Did_Dns = ResolveHandleToDid_ViaDns(query);
-            ret.Did_Http = ResolveHandleToDid_ViaHttp(query);
-
+            ret.Handle = actor;
+            Logger.LogTrace("Actor is not a did, resolving to did.");
+            ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(actor);
+            ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
+            ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
             ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
         }
 
@@ -507,7 +506,7 @@ public class BlueskyClient
     public static JsonNode? CreateSession(string? handle, string? password, string? authFactorToken)
     {
         // first resolvehandleinfo, to get pds
-        var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        var handleInfo = BlueskyClient.ResolveActorInfo(handle);
         if (string.IsNullOrEmpty(handleInfo.Pds))
         {
             Logger.LogError("Could not resolve handle to pds.");

@@ -38,17 +38,19 @@ public class CreatePost : BaseCommand
         bool? parsementions = CommandLineInterface.GetArgumentValueWithDefault(arguments, "parsementions", false);
 
 
-        // resolve handle
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        //
+        // Get local file system and actor info
+        //
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
         //
         // Load session
         //
-        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        SessionFile? session = lfs?.LoadSession(handleInfo);
+        SessionFile? session = lfs?.LoadSession(actorInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for handle: {handleInfo.Handle}");
+            Logger.LogError($"Failed to load session for actor: {actor}");
             return;
         }
 

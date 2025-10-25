@@ -33,13 +33,14 @@ public class DeletePost : BaseCommand
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
 
-        // resolve handle
-        var handleInfo = BlueskyClient.ResolveHandleInfo(actor);
+        //
+        // Load lfs
+        //
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+        SessionFile? session = lfs?.LoadSession(actorInfo);
 
-        //
-        // Load session
-        //
-        SessionFile? session = LocalFileSystem.Initialize(dataDir, Logger)?.LoadSession(handleInfo);
+
         if (session == null)
         {
             Logger.LogError($"Failed to load session for actor: {actor}");
@@ -71,7 +72,7 @@ public class DeletePost : BaseCommand
         //
         BlueskyClient.DeleteRecord(
             pds: session.pds,
-            did: handleInfo.Did,
+            did: actorInfo?.Did,
             rkey: uriOriginal.Rkey,
             accessJwt: session.accessJwt
         );

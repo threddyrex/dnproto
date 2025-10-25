@@ -40,7 +40,7 @@ public class GetRepoStatus : BaseCommand
         if(string.IsNullOrEmpty(handle) == false)
         {
             Logger.LogTrace("Resolving handle to did.");
-            var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+            var handleInfo = BlueskyClient.ResolveActorInfo(handle);
 
             Logger.LogTrace(JsonData.ConvertObjectToJsonString(handleInfo));
 
