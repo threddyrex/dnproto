@@ -128,10 +128,10 @@ public class BackupAccount : BaseCommand
         //
         // Resolve handle
         //
-        Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        HandleInfo handleInfo = BlueskyClient.ResolveHandleInfo(handle);
 
-        string? did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
-        string? pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
+        string? did = handleInfo.Did;
+        string? pds = handleInfo.Pds;
 
         if(string.IsNullOrEmpty(did) || string.IsNullOrEmpty(pds))
         {

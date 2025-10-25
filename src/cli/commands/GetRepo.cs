@@ -58,10 +58,10 @@ public class GetRepo : BaseCommand
         if (string.IsNullOrEmpty(handle) == false)
         {
             Logger.LogTrace("Resolving handle to did.");
-            Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+            var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
 
-            did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
-            pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
+            did = handleInfo.Did;
+            pds = handleInfo.Pds;
         }
 
         Logger.LogTrace($"pds: {pds}");

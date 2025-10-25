@@ -60,7 +60,7 @@ public class LogIn : BaseCommand
         //
         Logger.LogInfo("Resolving handle to get pds.");
         var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
-        string pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : "bsky.social";
+        string pds = string.IsNullOrEmpty(handleInfo.Pds) ? "bsky.social" : handleInfo.Pds;
 
 
         //

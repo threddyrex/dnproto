@@ -66,7 +66,7 @@ public class DeletePost : BaseCommand
         //
         // Get handle info
         //
-        Dictionary<string, string>? handleInfo = BlueskyClient.ResolveHandleInfo(uriOriginal.Authority);
+        var handleInfo = BlueskyClient.ResolveHandleInfo(uriOriginal.Authority);
 
 
         //
@@ -74,7 +74,7 @@ public class DeletePost : BaseCommand
         //
         BlueskyClient.DeleteRecord(
             pds: session.pds,
-            did: handleInfo["did"],
+            did: handleInfo.Did,
             rkey: uriOriginal.Rkey,
             accessJwt: session.accessJwt
         );

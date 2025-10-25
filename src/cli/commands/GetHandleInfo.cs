@@ -26,23 +26,9 @@ public class GetHandleInfo : BaseCommand
         //
         // Send request.
         //
-        Dictionary<string, string> resolveHandleInfo = BlueskyClient.ResolveHandleInfo(handle);
-        string? jsonData = JsonData.ConvertObjectToJsonString(resolveHandleInfo);
-
-
-        //
-        // Print response.
-        //
-        if (resolveHandleInfo.Count == 0)
-        {
-            Logger.LogError("Failed to resolve handle.");
-        }
-        else
-        {
-            foreach(var key in resolveHandleInfo.Keys)
-            {
-                Logger.LogInfo($"{key}: {resolveHandleInfo[key]}");
-            }
-       }
+        var resolveHandleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        string? jsonData = resolveHandleInfo?.ToJsonString();
+        Logger.LogInfo($"Resolve handle info JSON: {jsonData}");
+        Logger.LogInfo($"DidDoc: {resolveHandleInfo?.DidDoc}");
     }
 }

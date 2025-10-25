@@ -29,75 +29,68 @@ public class BlueskyClient
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public static Dictionary<string, string> ResolveHandleInfo(string? handle)
+    public static HandleInfo ResolveHandleInfo(string? query)
     {
-        Dictionary<string, string> ret = new Dictionary<string, string>();
+        var ret = new HandleInfo();
+        ret.Query = query;
 
-        Logger.LogTrace($"ResolveHandleInfo: handle: {handle}");
-        if (string.IsNullOrEmpty(handle))
+        Logger.LogTrace($"ResolveHandleInfo: query: {query}");
+        if (string.IsNullOrEmpty(query))
         {
-            Logger.LogTrace("ResolveHandleInfo: Handle is null or empty. Exiting.");
+            Logger.LogTrace("ResolveHandleInfo: query is null or empty. Exiting.");
             return ret;
         }
 
         //
         // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
         //
-        string? did = null;
-
-        if(handle.StartsWith("did:"))
+        if(query.StartsWith("did:"))
         {
-            did = handle;
-            Logger.LogTrace("Handle is already a did.");
+            ret.Did = query;
+            Logger.LogTrace("Query is already a did.");
         }
         else
         {
-            Logger.LogTrace("Handle is not a did, resolving to did.");
-            string? did_bsky = ResolveHandleToDid_ViaBlueskyApi(handle);
-            string? did_dns = ResolveHandleToDid_ViaDns(handle);
-            string? did_http = ResolveHandleToDid_ViaHttp(handle);
+            ret.Handle = query;
+            Logger.LogTrace("Query is not a did, resolving to did.");
+            ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(query);
+            ret.Did_Dns = ResolveHandleToDid_ViaDns(query);
+            ret.Did_Http = ResolveHandleToDid_ViaHttp(query);
 
-            did = did_bsky ?? did_dns ?? did_http;
-
-            ret["did_bsky"] = did_bsky ?? "";
-            ret["did_dns"] = did_dns ?? "";
-            ret["did_http"] = did_http ?? "";
+            ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
         }
 
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:")) return ret;
-        ret["did"] = did;
+        if (string.IsNullOrEmpty(ret.Did) || !ret.Did.StartsWith("did:")) return ret;
 
 
         //
         // 2. Resolve did to didDoc. (did:plc or did:web)
         //
-        string? didDoc = ResolveDidToDidDoc(did);
-        if (string.IsNullOrEmpty(didDoc)) return ret;
-        ret["didDoc"] = didDoc;
+        ret.DidDoc = ResolveDidToDidDoc(ret.Did);
+        if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
 
-        Logger.LogTrace("didDoc length: " + didDoc?.Length);
+        Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
 
 
         //
         // 3. Resolve didDoc to pds.
         //
-        string? pds = BlueskyClient.ResolveDidDocToPds(didDoc);
+        ret.Pds = BlueskyClient.ResolveDidDocToPds(ret.DidDoc);
 
-        if (string.IsNullOrEmpty(pds)) return ret;
-        ret["pds"] = pds.Replace("https://", "");
+        if (string.IsNullOrEmpty(ret.Pds)) return ret;
+        ret.Pds = ret.Pds.Replace("https://", "");
 
 
         //
         // 4. Get handle from diddoc
         //
-        string? handleFromDidDoc = null;
-        if (didDoc != null)
+        if (ret.DidDoc != null && string.IsNullOrEmpty(ret.Handle))
         {
-            JsonNode? didDocJson = JsonNode.Parse(didDoc);
+            string? handleFromDidDoc = null;
+            JsonNode? didDocJson = JsonNode.Parse(ret.DidDoc);
             handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
+            ret.Handle = handleFromDidDoc;
         }
-        
-        ret["handle"] = handleFromDidDoc ?? "";
 
         //
         // return
@@ -514,14 +507,14 @@ public class BlueskyClient
     public static JsonNode? CreateSession(string? handle, string? password, string? authFactorToken)
     {
         // first resolvehandleinfo, to get pds
-        Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
-        if (!handleInfo.ContainsKey("pds") || string.IsNullOrEmpty(handleInfo["pds"]))
+        var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        if (string.IsNullOrEmpty(handleInfo.Pds))
         {
             Logger.LogError("Could not resolve handle to pds.");
             return null;
         }
 
-        return CreateSession(handleInfo["pds"], handle, password, authFactorToken);
+        return CreateSession(handleInfo.Pds, handle, password, authFactorToken);
     }
 
 

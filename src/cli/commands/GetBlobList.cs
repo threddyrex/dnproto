@@ -38,9 +38,9 @@ public class GetBlobList : BaseCommand
         //
         // Resolve handle
         //
-        Dictionary<string, string> handleInfo = BlueskyClient.ResolveHandleInfo(handle);
-        string? pds = handleInfo.ContainsKey("pds") ? handleInfo["pds"] : null;
-        string? did = handleInfo.ContainsKey("did") ? handleInfo["did"] : null;
+        var handleInfo = BlueskyClient.ResolveHandleInfo(handle);
+        string? pds = handleInfo.Pds;
+        string? did = handleInfo.Did;
 
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
         {
