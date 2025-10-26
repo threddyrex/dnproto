@@ -56,6 +56,9 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
 
         string actorFile = Path.Combine(DataDir, "actors", GetSafeString(actor) + ".json");
 
+        //
+        // If the file exists, use that.
+        //
         if (File.Exists(actorFile))
         {
             Logger.LogInfo($"Loading actor info from file: {actorFile}");
@@ -65,6 +68,9 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return info;
         }
 
+        //
+        // Otherwise, resolve and save to file.
+        //
         Logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
         var actorInfo = BlueskyClient.ResolveActorInfo(actor);
 
@@ -77,6 +83,9 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         Logger.LogTrace($"Saving actor info to file: {actorFile}");
         File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
 
+        //
+        // return the actor info.
+        //
         return actorInfo;
     }
 

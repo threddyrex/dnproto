@@ -25,7 +25,8 @@ public class BlueskyClient
     ///     1. Resolve handle to did (dns or http).
     ///     2. Resolve did to didDoc. (did:plc or did:web)
     ///     3. Resolve didDoc to pds.
-    ///     
+    ///     4. Get handle from diddoc (if not already known).
+    ///
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
