@@ -9,7 +9,12 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"dataDir", "actor"});
+            return new HashSet<string>(new string[] { "dataDir", "actor" });
+        }
+        
+        public override HashSet<string> GetOptionalArguments()
+        {
+            return new HashSet<string>(new string[] { "collection" });
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -19,6 +24,7 @@ namespace dnproto.cli.commands
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+            string? collection = CommandLineInterface.GetArgumentValue(arguments, "collection");
 
             //
             // Load lfs
@@ -53,6 +59,17 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
+                    string recordType = repoRecord.RecordType ?? "<null>";
+
+                    // If collection specified, skip non-matching records
+                    if (string.IsNullOrEmpty(collection) == false)
+                    {
+                        if (string.Equals(repoRecord.RecordType, collection) == false)
+                        {
+                            return true;
+                        }
+                    }
+
                     Logger.LogTrace($"cid: {repoRecord.Cid.GetBase32()}");
                     Logger.LogTrace($"blockJson: {repoRecord.JsonString}");
 
@@ -67,8 +84,6 @@ namespace dnproto.cli.commands
                     {
                         dagCborTypeCounts[typeString] = 1;
                     }
-
-                    string recordType = repoRecord.RecordType ?? "<null>";
 
                     if (recordTypeCounts.ContainsKey(recordType))
                     {
