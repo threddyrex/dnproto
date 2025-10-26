@@ -28,7 +28,13 @@ public class GetHandleInfo : BaseCommand
         //
         var resolveHandleInfo = BlueskyClient.ResolveActorInfo(actor);
         string? jsonData = resolveHandleInfo?.ToJsonString();
-        Logger.LogInfo($"Resolve handle info JSON: {jsonData}");
-        Logger.LogInfo($"DidDoc: {resolveHandleInfo?.DidDoc}");
+        Logger.LogInfo($"actor: {resolveHandleInfo?.Actor}");
+        Logger.LogInfo($"did: {resolveHandleInfo?.Did}");
+        Logger.LogInfo($"did_bsky: {resolveHandleInfo?.Did_Bsky}");
+        Logger.LogInfo($"did_http: {resolveHandleInfo?.Did_Http}");
+        Logger.LogInfo($"did_dns: {resolveHandleInfo?.Did_Dns}");
+        Logger.LogInfo($"handle: {resolveHandleInfo?.Handle}");
+        Logger.LogInfo($"pds: {resolveHandleInfo?.Pds}");
+        Logger.LogInfo($"did doc: {resolveHandleInfo?.DidDoc}");
     }
 }
