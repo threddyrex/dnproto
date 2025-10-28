@@ -11,12 +11,7 @@ public class StartFirehoseConsumer : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>();
-    }
-
-    public override HashSet<string> GetOptionalArguments()
-    {
-        return new HashSet<string>(new string[] { "handle", "pds" });
+        return new HashSet<string>(["dataDir", "actor"]);
     }
 
 
@@ -30,27 +25,32 @@ public class StartFirehoseConsumer : BaseCommand
     public override void DoCommand(Dictionary<string, string> arguments)
     {
         //
-        // Figure out which pds to connect to.
+        // Args
         //
-        string? pds = null;
-        if (arguments.ContainsKey("handle"))
-        {
-            ActorInfo handleInfo = BlueskyClient.ResolveActorInfo(arguments["handle"]);
-            pds = handleInfo.Pds;
-        }
-        else if (arguments.ContainsKey("pds"))
-        {
-            pds = arguments["pds"];
-        }
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
 
-        if (string.IsNullOrEmpty(pds))
+
+        //
+        // Load lfs
+        //
+        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+
+        if (actorInfo == null)
         {
-            Logger.LogError("PDS is null or empty. Cannot consume firehose.");
+            Logger.LogError("Failed to resolve actor info.");
             return;
         }
 
+
+
+        string? pds = actorInfo.Pds;
+
         string url = $"wss://{pds}/xrpc/com.atproto.sync.subscribeRepos";
 
+        Logger.LogInfo($"Connecting to firehose at: {url}");
+        
         //
         // Listen on firehose
         //
