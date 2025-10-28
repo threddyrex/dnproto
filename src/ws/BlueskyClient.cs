@@ -399,6 +399,32 @@ public class BlueskyClient
 
 
     /// <summary>
+    /// List repos.
+    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-repos
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <param name="repoFile"></param>
+    public static JsonNode? ListRepos(string? pds)
+    {
+        Logger.LogTrace($"DescribeRepos: pds: {pds}");
+
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("ListRepos: Invalid arguments. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.listRepos";
+        Logger.LogTrace($"ListRepos: url: {url}");
+
+        return BlueskyClient.SendRequest(url,
+            HttpMethod.Get);
+
+    }
+
+
+    /// <summary>
     /// List blobs for did.
     /// https://docs.bsky.app/docs/api/com-atproto-sync-list-blobs
     /// </summary>
