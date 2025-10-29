@@ -6,7 +6,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class GetHandleInfo : BaseCommand
+public class GetActorInfo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
