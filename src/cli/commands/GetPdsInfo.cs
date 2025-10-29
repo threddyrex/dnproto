@@ -8,7 +8,7 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class PdsInfo : BaseCommand
+public class GetPdsInfo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
