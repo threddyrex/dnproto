@@ -423,6 +423,41 @@ public class BlueskyClient
 
     }
 
+    public static JsonNode? PdsHealth(string? pds)
+    {
+        Logger.LogTrace($"PdsHealth: pds: {pds}");
+
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("PdsHealth: Invalid arguments. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/_health";
+        Logger.LogTrace($"PdsHealth: url: {url}");
+
+        return BlueskyClient.SendRequest(url,
+            HttpMethod.Get);
+
+    }
+
+    public static JsonNode? PdsDescribeServer(string? pds)
+    {
+        Logger.LogTrace($"PdsDescribeServer: pds: {pds}");
+
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("PdsDescribeServer: Invalid arguments. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.server.describeServer";
+        Logger.LogTrace($"PdsDescribeServer: url: {url}");
+
+        return BlueskyClient.SendRequest(url,
+            HttpMethod.Get);
+
+    }
 
     /// <summary>
     /// List blobs for did.
