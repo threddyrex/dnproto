@@ -105,9 +105,22 @@ public static class JsonData
     /// <returns></returns>
     public static JsonNode? ReadJsonFromFile(string? inputFilePath)
     {
+        if (string.IsNullOrEmpty(inputFilePath)) return null;
+        if (!System.IO.File.Exists(inputFilePath)) return null;
+        var jsonString = System.IO.File.ReadAllText(inputFilePath);
+        return JsonNode.Parse(jsonString);
+    }
+    
+    /// <summary>
+    /// Reads json object from file.
+    /// </summary>
+    /// <param name="inputFilePath"></param>
+    /// <returns></returns>
+    public static JsonObject? ReadJsonObjectFromFile(string? inputFilePath)
+    {
         if(string.IsNullOrEmpty(inputFilePath)) return null;
         if(!System.IO.File.Exists(inputFilePath)) return null;
         var jsonString = System.IO.File.ReadAllText(inputFilePath);
-        return JsonNode.Parse(jsonString);
+        return JsonObject.Parse(jsonString)?.AsObject();
     }
 }
