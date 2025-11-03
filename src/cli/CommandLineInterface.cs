@@ -79,7 +79,7 @@ public static class CommandLineInterface
         //
         // Do we want to debug?
         //
-        if (arguments.ContainsKey("debugattach") && GetArgumentValue(arguments, "debugattach") == "true")
+        if (arguments.ContainsKey("debugattach") && GetArgumentValue(arguments, "debugattach")?.ToLower() == "true")
         {
             logger.LogLevel = 0; // trace
 
