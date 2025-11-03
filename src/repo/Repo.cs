@@ -37,6 +37,7 @@ public class Repo
     public static void WalkRepo(Stream s, Func<RepoHeader, bool> headerCallback, Func<RepoRecord, bool> recordCallback)
     {
         if (s == null) return;
+        if (s.Length == 0) return;
 
         // Read header
         var repoHeader = RepoHeader.ReadFromStream(s);
