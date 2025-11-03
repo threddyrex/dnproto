@@ -91,20 +91,30 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
 
 
     /// <summary>
-    /// Get the path to the repo file for the given handle.
+    /// Get the path to the repo file for the given ActorInfo.
     /// </summary>
     /// <param name="actorInfo"></param>
     /// <returns></returns>
     public string? GetPath_RepoFile(ActorInfo? actorInfo)
     {
-        if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
+        return GetPath_RepoFile(actorInfo?.Did);
+    }
+
+    /// <summary>
+    /// Get the path to the repo file for the given did.
+    /// </summary>
+    /// <param name="did"></param>
+    /// <returns></returns>
+    public string? GetPath_RepoFile(string? did)
+    {
+        if (did == null || string.IsNullOrEmpty(did))
         {
-            Logger.LogError("actorInfo is null or empty.");
+            Logger.LogError("did is null or empty.");
             return null;
         }
 
         string repoDir = Path.Combine(DataDir, "repos");
-        string safeDid = GetSafeString(actorInfo.Did);
+        string safeDid = GetSafeString(did);
         string repoFile = Path.Combine(repoDir, $"{safeDid}.car");
         return repoFile;
     }
