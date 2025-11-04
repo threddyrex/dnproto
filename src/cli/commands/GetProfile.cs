@@ -27,6 +27,7 @@ public class GetProfile : BaseCommand
             ,"did:plc:wkoofae5uytcm7bjncmev6n6"
             ,"did:plc:d2mkddsbmnrgr3domzg5qexf"
             ,"did:plc:vfibt4bgozsdx6rnnnpha3x7"
+            ,"did:plc:uyauirpjzk6le4ygqzatcwnq"
         ];
     }
 
