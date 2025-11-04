@@ -236,7 +236,7 @@ public class BackupAccount : BaseCommand
 
                 if (File.Exists(blobPath) == false)
                 {
-                    Logger.LogTrace($"Getting blob file: {blobPath}");
+                    Logger.LogInfo($"Downloading blob: {blobPath}");
                     BlueskyClient.GetBlob(session.pds, session.did, blob, blobPath);
                     Thread.Sleep(blobSleepSeconds * 1000);
                     blobCountDownloaded++;
