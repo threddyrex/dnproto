@@ -41,12 +41,12 @@ public class BackupAccount : BaseCommand
         bool getBlobs = CommandLineInterface.GetArgumentValueWithDefault(arguments, "getblobs", true);
         int blobSleepSeconds = CommandLineInterface.GetArgumentValueWithDefault(arguments, "blobsleepseconds", 1);
 
-        Logger.LogInfo($"actor: {actor}");
-        Logger.LogInfo($"dataDir: {dataDir}");
-        Logger.LogInfo($"getPrefs: {getPrefs}");
-        Logger.LogInfo($"getRepo: {getRepo}");
-        Logger.LogInfo($"getBlobs: {getBlobs}");
-        Logger.LogInfo($"blobSleepSeconds: {blobSleepSeconds}");
+        Logger.LogTrace($"actor: {actor}");
+        Logger.LogTrace($"dataDir: {dataDir}");
+        Logger.LogTrace($"getPrefs: {getPrefs}");
+        Logger.LogTrace($"getRepo: {getRepo}");
+        Logger.LogTrace($"getBlobs: {getBlobs}");
+        Logger.LogTrace($"blobSleepSeconds: {blobSleepSeconds}");
 
         if (string.IsNullOrEmpty(dataDir) || string.IsNullOrEmpty(actor))
         {

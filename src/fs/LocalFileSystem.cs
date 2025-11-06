@@ -61,11 +61,20 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         //
         if (File.Exists(actorFile))
         {
-            Logger.LogInfo($"Loading actor info from file: {actorFile}");
-            string actorJson = File.ReadAllText(actorFile);
-            Logger.LogTrace($"file text: {actorJson}");
-            var info = ActorInfo.FromJsonString(actorJson);
-            return info;
+            // if the file is older than an hour, don't use it
+            FileInfo fileInfo = new FileInfo(actorFile);
+            if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddHours(-1))
+            {
+                Logger.LogInfo($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
+            }
+            else
+            {
+                Logger.LogInfo($"Actor info file exists and is recent, loading: {actorFile}");
+                string actorJson = File.ReadAllText(actorFile);
+                Logger.LogTrace($"file text: {actorJson}");
+                var info = ActorInfo.FromJsonString(actorJson);
+                return info;
+            }
         }
 
         //
@@ -80,7 +89,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
-        Logger.LogTrace($"Saving actor info to file: {actorFile}");
+        Logger.LogInfo($"Saving actor info to file: {actorFile}");
         File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
 
         //
@@ -188,18 +197,28 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
+        // no file? return
         string? sessionFile = GetPath_SessionFile(actorInfo);
         if (string.IsNullOrEmpty(sessionFile) || File.Exists(sessionFile) == false)
         {
-            Logger.LogTrace($"Session file is null or empty: {sessionFile}");
+            Logger.LogWarning($"Session file is null or empty: {sessionFile}");
             return null;
         }
 
+        // if session file is older than an hour, don't use it
+        FileInfo fileInfo = new FileInfo(sessionFile);
+        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddHours(-1))
+        {
+            Logger.LogWarning($"Session file is older than 1 hour, will not use: {sessionFile}");
+            return null;
+        }
+
+        // can't read json? return
         Logger.LogInfo("Reading session file: " + sessionFile);
         var session = JsonData.ReadJsonFromFile(sessionFile);
         if (session == null)
         {
-            Logger.LogTrace($"Failed to read session file: {sessionFile}");
+            Logger.LogWarning($"Failed to read session file: {sessionFile}");
             return null;
         }
 
@@ -208,12 +227,14 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         string? pds = JsonData.SelectString(session, "pds");
         string? did = JsonData.SelectString(session, "did");
 
+        // incorrect values? return
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(refreshJwt))
         {
-            Logger.LogTrace("Session file is missing required fields.");
+            Logger.LogWarning("Session file is missing required fields.");
             return null;
         }
 
+        // if we've gotten this far, return the session file.
         return new SessionFile()
         {
             ActorInfo = actorInfo,
