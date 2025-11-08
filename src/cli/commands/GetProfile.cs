@@ -15,7 +15,7 @@ public class GetProfile : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "sessionHandle"});
+        return new HashSet<string>(new string[]{"dataDir", "sessionActor"});
     }
 
 
@@ -44,24 +44,30 @@ public class GetProfile : BaseCommand
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
-        string? sessionHandle = CommandLineInterface.GetArgumentValue(arguments, "sessionHandle");
+        string? sessionActor = CommandLineInterface.GetArgumentValue(arguments, "sessionActor");
 
-        // resolve handle
-        var handleInfo = BlueskyClient.ResolveActorInfo(actor);
 
         //
-        // Load session
+        // Load actor info and session
         //
         LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        SessionFile? session = lfs?.LoadSession(handleInfo);
+        var actorInfo_actor = lfs?.ResolveActorInfo(actor);
+        var actorInfo_session = string.IsNullOrEmpty(sessionActor) == false ? lfs?.ResolveActorInfo(sessionActor) : null;
+        SessionFile? session = string.IsNullOrEmpty(sessionActor) == false ? lfs?.LoadSession(actorInfo_session) : null;
+
 
         string? accessJwt = null;
         string? pds = null;
 
-        if(session != null)
+        if (session != null)
         {
-            accessJwt = session.accessJwt;
-            pds = session.pds;
+            Logger.LogInfo($"Using session for actor {actorInfo_session?.Actor} from PDS {session?.pds}.");
+            accessJwt = session?.accessJwt;
+            pds = session?.pds;
+        }
+        else
+        {
+            Logger.LogInfo($"No login session found. Using unauthenticated requests.");
         }
 
 

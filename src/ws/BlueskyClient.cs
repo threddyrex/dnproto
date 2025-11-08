@@ -824,7 +824,7 @@ public class BlueskyClient
 
             if (!succeeded) 
             {
-                Logger.LogError($"Request failed with status code: {response.StatusCode}");
+                Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
                 return null;
             }
 

@@ -50,7 +50,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     {
         if (string.IsNullOrEmpty(actor))
         {
-            Logger.LogError("actor is null or empty.");
+            Logger.LogError("lfs.ResolveActorInfo: actor is null or empty.");
             return null;
         }
 
