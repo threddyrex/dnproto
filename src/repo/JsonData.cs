@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -64,6 +65,8 @@ public static class JsonData
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
+    [RequiresUnreferencedCode("PublishTrimmmed is false")]
+    [RequiresDynamicCode("PublishTrimmmed is false")]
     public static string? ConvertObjectToJsonString(object? obj)
     {
         if (obj == null) return null;
@@ -71,6 +74,8 @@ public static class JsonData
         return JsonSerializer.Serialize(obj, options);
     }
 
+    [RequiresUnreferencedCode("PublishTrimmmed is false")]
+    [RequiresDynamicCode("PublishTrimmmed is false")]
     public static object? ConvertJsonStringToObject(string? jsonString)
     {
         if(string.IsNullOrEmpty(jsonString)) return null;

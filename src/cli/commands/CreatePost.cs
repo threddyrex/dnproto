@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -25,6 +26,8 @@ public class CreatePost : BaseCommand
     /// </summary>
     /// <param name="arguments"></param>
     /// <exception cref="ArgumentException"></exception>
+    [RequiresUnreferencedCode("PublishTrimmed is false")]
+    [RequiresDynamicCode("PublishTrimmed is false")]
     public override void DoCommand(Dictionary<string, string> arguments)
     {
         //

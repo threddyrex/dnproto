@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- Explicitly disable trimming and AOT at the repo level -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+    <!-- Optional: disable the trim analyzer if present -->
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+  </PropertyGroup>
+</Project>
