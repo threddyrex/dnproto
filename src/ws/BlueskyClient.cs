@@ -167,8 +167,13 @@ public class BlueskyClient
                 
                 if(data.StartsWith("did="))
                 {
+                    if(string.IsNullOrEmpty(did) == false)
+                    {
+                        Logger.LogError("Multiple DID records found in DNS TXT records.");
+                        return did;
+                    }
+
                     did = data.Replace("did=", "");
-                    break;
                 }
             }
         }
