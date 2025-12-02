@@ -88,7 +88,7 @@ public class GetPost : BaseCommand
         Logger.LogTrace($"getPostsUrl: {getPostsUrl}");
         JsonNode? response = BlueskyClient.SendRequest(getPostsUrl, HttpMethod.Get, labelers: string.Join(',', GetProfile.GetLabelers()));
 
-        BlueskyClient.PrintJsonResponseToConsole(response);
+        BlueskyClient.LogTraceJsonResponse(response);
 
         //
         // Find the quoted post.
