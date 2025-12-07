@@ -12,12 +12,11 @@ namespace dnproto.repo;
 /// </summary>
 public class VarInt
 {
-    public int Length { get; set; }
     public int Value { get; set; }
 
     public override string ToString()
     {
-        return $"{Value} (length:{Length} hex:0x{Value:X})";
+        return $"{Value} (hex:0x{Value:X})";
     }
 
     /// <summary>
@@ -27,14 +26,12 @@ public class VarInt
     {
         VarInt ret = new VarInt();
         ret.Value = 0;
-        ret.Length = 0;
 
         int shift = 0;
         byte b;
         
         do
         {
-            ret.Length++;
             b = (byte) fs.ReadByte();
             ret.Value |= (b & 0x7F) << shift;
             shift += 7;
@@ -44,6 +41,24 @@ public class VarInt
         while ((b & 0x80) != 0);
 
         return ret;
+    }
+
+    /// <summary>
+    /// Write a varint to a stream.
+    /// </summary>
+    public static void WriteVarInt(Stream fs, VarInt varInt)
+    {
+        int value = varInt.Value;
+        
+        while (value >= 0x80)
+        {
+            // Write the lower 7 bits with the high bit set (continuation flag)
+            fs.WriteByte((byte)((value & 0x7F) | 0x80));
+            value >>= 7;
+        }
+        
+        // Write the final byte without the high bit set
+        fs.WriteByte((byte)value);
     }
 
 }
