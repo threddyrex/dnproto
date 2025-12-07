@@ -34,7 +34,7 @@ public class RepoRecord
         //
         // Use the block length to read the entire block into a memory stream.
         //
-        int l = blockLength.Value;
+        int l = (int)blockLength.Value;
         byte[] buffer = new byte[l];
         int bytesRead = s.Read(buffer, 0, l);
         if (bytesRead != l)

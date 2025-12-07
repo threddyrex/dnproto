@@ -53,14 +53,14 @@ public class CidV1
         }
 
         byte[] digestBytes = new byte[digestSize.Value];
-        int cidDigestBytesRead = s.Read(digestBytes, 0, digestSize.Value);
+        int cidDigestBytesRead = s.Read(digestBytes, 0, (int)digestSize.Value);
 
         var ms = new MemoryStream();
         ms.WriteByte((byte)version.Value);
         ms.WriteByte((byte)multicodec.Value);
         ms.WriteByte((byte)hashFunction.Value);
         ms.WriteByte((byte)digestSize.Value);
-        ms.Write(digestBytes, 0, digestSize.Value);
+        ms.Write(digestBytes, 0, (int)digestSize.Value);
         byte[] allBytes = ms.ToArray();
 
         string base32 = "b" + Base32Encoding.BytesToBase32(allBytes);

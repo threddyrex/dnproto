@@ -12,7 +12,7 @@ namespace dnproto.repo;
 /// </summary>
 public class VarInt
 {
-    public int Value { get; set; }
+    public long Value { get; set; }
 
     public override string ToString()
     {
@@ -33,7 +33,7 @@ public class VarInt
         do
         {
             b = (byte) fs.ReadByte();
-            ret.Value |= (b & 0x7F) << shift;
+            ret.Value |= (long)(b & 0x7F) << shift;
             shift += 7;
         } 
         // check if the high bit is set.
@@ -48,7 +48,7 @@ public class VarInt
     /// </summary>
     public static void WriteVarInt(Stream fs, VarInt varInt)
     {
-        int value = varInt.Value;
+        long value = varInt.Value;
         
         while (value >= 0x80)
         {
