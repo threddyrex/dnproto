@@ -77,6 +77,15 @@ public class CidV1
         };
     } 
 
+    public static void WriteCid(Stream s, CidV1 cid)
+    {
+        VarInt.WriteVarInt(s, cid.Version);
+        VarInt.WriteVarInt(s, cid.Multicodec);
+        VarInt.WriteVarInt(s, cid.HashFunction);
+        VarInt.WriteVarInt(s, cid.DigestSize);
+        s.Write(cid.DigestBytes, 0, cid.DigestBytes.Length);
+    }
+
     public byte[] GetBytes()
     {
         return AllBytes;
