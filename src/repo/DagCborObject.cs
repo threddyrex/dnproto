@@ -117,6 +117,189 @@ public class DagCborObject
         }
     }
 
+    /// <summary>
+    /// Write a DagCbor object to a stream. Recursively writes maps and arrays.
+    /// This is the mirror operation to ReadFromStream.
+    /// </summary>
+    /// <param name="obj">The DagCborObject to write</param>
+    /// <param name="s">The stream to write to</param>
+    /// <exception cref="Exception"></exception>
+    public static void WriteToStream(DagCborObject obj, Stream s)
+    {
+        switch(obj.Type.MajorType)
+        {
+            case DagCborType.TYPE_MAP:
+                Dictionary<string, DagCborObject>? dict = obj.Value as Dictionary<string, DagCborObject>;
+                if(dict == null)
+                {
+                    throw new Exception("Expected Dictionary for TYPE_MAP");
+                }
+                
+                WriteLengthToStream(DagCborType.TYPE_MAP, dict.Count, s);
+                
+                foreach(var kvp in dict)
+                {
+                    // Write key as text string
+                    DagCborObject keyObj = new DagCborObject 
+                    { 
+                        Type = new DagCborType 
+                        { 
+                            MajorType = DagCborType.TYPE_TEXT, 
+                            AdditionalInfo = kvp.Key.Length,
+                            OriginalByte = 0
+                        }, 
+                        Value = kvp.Key 
+                    };
+                    WriteToStream(keyObj, s);
+                    
+                    // Write value
+                    WriteToStream(kvp.Value, s);
+                }
+                break;
+
+            case DagCborType.TYPE_ARRAY:
+                List<DagCborObject>? list = obj.Value as List<DagCborObject>;
+                if(list == null)
+                {
+                    throw new Exception("Expected List for TYPE_ARRAY");
+                }
+                
+                WriteLengthToStream(DagCborType.TYPE_ARRAY, list.Count, s);
+                
+                foreach(var item in list)
+                {
+                    WriteToStream(item, s);
+                }
+                break;
+
+            case DagCborType.TYPE_TEXT:
+                string? text = obj.Value as string;
+                if(text == null)
+                {
+                    throw new Exception("Expected string for TYPE_TEXT");
+                }
+                
+                byte[] textBytes = Encoding.UTF8.GetBytes(text);
+                WriteLengthToStream(DagCborType.TYPE_TEXT, textBytes.Length, s);
+                s.Write(textBytes, 0, textBytes.Length);
+                break;
+
+            case DagCborType.TYPE_TAG:
+                // Write tag type and tag number (42 for CID)
+                byte tagByte = (byte)((DagCborType.TYPE_TAG << 5) | 24); // tag with 1-byte uint
+                s.WriteByte(tagByte);
+                s.WriteByte(42); // CID tag
+                
+                CidV1? cid = obj.Value as CidV1;
+                if(cid == null)
+                {
+                    throw new Exception("Expected CidV1 for TYPE_TAG");
+                }
+                
+                // Calculate the total length needed for the byte string
+                // This includes the version, multicodec, hash function, digest size, and digest bytes
+                // Plus one byte for the multibase prefix (0)
+                using (var tempStream = new MemoryStream())
+                {
+                    CidV1.WriteCid(tempStream, cid);
+                    byte[] cidBytes = tempStream.ToArray();
+                    
+                    // Write byte string type for CID (with 0 prefix)
+                    WriteLengthToStream(DagCborType.TYPE_BYTE_STRING, cidBytes.Length + 1, s);
+                    s.WriteByte(0); // multibase prefix
+                    s.Write(cidBytes, 0, cidBytes.Length);
+                }
+                break;
+
+            case DagCborType.TYPE_UNSIGNED_INT:
+                int? intValue = obj.Value as int?;
+                if(intValue == null)
+                {
+                    throw new Exception("Expected int for TYPE_UNSIGNED_INT");
+                }
+                
+                WriteLengthToStream(DagCborType.TYPE_UNSIGNED_INT, intValue.Value, s);
+                break;
+
+            case DagCborType.TYPE_BYTE_STRING:
+                byte[]? byteString = obj.Value as byte[];
+                if(byteString == null)
+                {
+                    throw new Exception("Expected byte[] for TYPE_BYTE_STRING");
+                }
+                
+                WriteLengthToStream(DagCborType.TYPE_BYTE_STRING, byteString.Length, s);
+                s.Write(byteString, 0, byteString.Length);
+                break;
+
+            case DagCborType.TYPE_SIMPLE_VALUE:
+                byte simpleByte;
+                if(obj.Value as string == "null")
+                {
+                    simpleByte = (byte)((DagCborType.TYPE_SIMPLE_VALUE << 5) | 0x16);
+                }
+                else if(obj.Value is bool boolVal)
+                {
+                    if(boolVal)
+                    {
+                        simpleByte = (byte)((DagCborType.TYPE_SIMPLE_VALUE << 5) | 0x15);
+                    }
+                    else
+                    {
+                        simpleByte = (byte)((DagCborType.TYPE_SIMPLE_VALUE << 5) | 0x14);
+                    }
+                }
+                else
+                {
+                    throw new Exception("Unknown simple value: " + obj.Value);
+                }
+                s.WriteByte(simpleByte);
+                break;
+
+            default:
+                throw new Exception("Unknown major type: " + obj.Type.MajorType);
+        }
+    }
+
+    /// <summary>
+    /// Write the length value to the stream with appropriate encoding.
+    /// </summary>
+    /// <param name="majorType">The CBOR major type</param>
+    /// <param name="length">The length or value to encode</param>
+    /// <param name="s">The stream to write to</param>
+    private static void WriteLengthToStream(int majorType, int length, Stream s)
+    {
+        byte firstByte;
+        
+        if(length < 24)
+        {
+            firstByte = (byte)((majorType << 5) | length);
+            s.WriteByte(firstByte);
+        }
+        else if(length < 256)
+        {
+            firstByte = (byte)((majorType << 5) | 24);
+            s.WriteByte(firstByte);
+            s.WriteByte((byte)length);
+        }
+        else if(length < 65536)
+        {
+            firstByte = (byte)((majorType << 5) | 25);
+            s.WriteByte(firstByte);
+            s.WriteByte((byte)(length >> 8));
+            s.WriteByte((byte)(length & 0xFF));
+        }
+        else
+        {
+            firstByte = (byte)((majorType << 5) | 26);
+            s.WriteByte(firstByte);
+            s.WriteByte((byte)(length >> 24));
+            s.WriteByte((byte)((length >> 16) & 0xFF));
+            s.WriteByte((byte)((length >> 8) & 0xFF));
+            s.WriteByte((byte)(length & 0xFF));
+        }
+    }
+
 
     /// <summary>
     /// Read the next length value from the stream.
