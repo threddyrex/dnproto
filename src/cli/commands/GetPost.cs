@@ -55,22 +55,14 @@ public class GetPost : BaseCommand
         }
 
         //
-        // If a handle was used, find the did.
-        // The "getPosts" endpoint requires a did.
+        // make sure did
         //
-        if(! uriOriginal.Authority.StartsWith("did:"))
+        ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(uriOriginal.Authority);
+        uriOriginal.Authority = actorInfo.Did;
+        if (string.IsNullOrEmpty(actorInfo.Did))
         {
-            string? did = BlueskyClient.ResolveHandleToDid_ViaBlueskyApi(uriOriginal.Authority);
-            Logger.LogTrace($"did: {did}");
-
-            if (string.IsNullOrEmpty(did))
-            {
-                Logger.LogError("Could not resolve handle to did.");
-                return;
-            }
-
-            uriOriginal.Authority = did;
-            Logger.LogTrace("uriOriginal: " + uriOriginal.ToDebugString());
+            Logger.LogError("Could not resolve handle to did.");
+            return;
         }
 
 
@@ -90,39 +82,45 @@ public class GetPost : BaseCommand
 
         BlueskyClient.LogTraceJsonResponse(response);
 
-        //
-        // Find the quoted post.
-        //
-        string? quoteAtUri = response?["posts"]?[0]?["embed"]?["record"]?["uri"]?.ToString();
-        string? quoteBskUrl = AtUri.FromAtUri(quoteAtUri)?.ToBskyPostUrl();
 
-        if(!string.IsNullOrEmpty(quoteBskUrl))
+        // loop through entire jsonnode response and print out any item that is "uri"
+        Logger.LogInfo("All URIs found in response:");
+        FindAndPrintUris(response);
+    }
+
+
+    /// <summary>
+    /// Recursively traverse a JsonNode and print all properties named "uri"
+    /// </summary>
+    private void FindAndPrintUris(JsonNode? node)
+    {
+        if (node == null)
+            return;
+
+        if (node is JsonObject obj)
         {
-            Logger.LogInfo("QUOTE:");
-            Logger.LogInfo($"{quoteAtUri}");
-            Logger.LogInfo($"{quoteBskUrl}");
+            foreach (var property in obj)
+            {
+                if (property.Key.Equals("uri", StringComparison.OrdinalIgnoreCase))
+                {
+                    string? url = AtUri.FromAtUri(property.Value?.ToString())?.ToBskyPostUrl();
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        Logger.LogInfo($"{url}");
+                    }
+                }
+                
+                // Recursively check the property value
+                FindAndPrintUris(property.Value);
+            }
         }
-
-        string? parentAtUri = response?["posts"]?[0]?["record"]?["reply"]?["parent"]?["uri"]?.ToString();
-        string? parentBskUrl = AtUri.FromAtUri(parentAtUri)?.ToBskyPostUrl();
-
-        if(!string.IsNullOrEmpty(parentBskUrl))
+        else if (node is JsonArray array)
         {
-            Logger.LogInfo("PARENT:");
-            Logger.LogInfo($"{parentAtUri}");
-            Logger.LogInfo($"{parentBskUrl}");
+            for (int i = 0; i < array.Count; i++)
+            {
+                FindAndPrintUris(array[i]);
+            }
         }
-
-        string? rootAtUri = response?["posts"]?[0]?["record"]?["reply"]?["root"]?["uri"]?.ToString();
-        string? rootBskUrl = AtUri.FromAtUri(rootAtUri)?.ToBskyPostUrl();
-
-        if(!string.IsNullOrEmpty(rootBskUrl))
-        {
-            Logger.LogInfo("ROOT:");
-            Logger.LogInfo($"{rootAtUri}");
-            Logger.LogInfo($"{rootBskUrl}");
-        }
-
     }
 
 }
