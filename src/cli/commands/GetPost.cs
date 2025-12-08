@@ -85,6 +85,7 @@ public class GetPost : BaseCommand
 
         // loop through entire jsonnode response and print out any item that is "uri"
         Logger.LogInfo("All URIs found in response:");
+        Logger.LogInfo("");
         FindAndPrintUris(response);
     }
 
@@ -92,7 +93,7 @@ public class GetPost : BaseCommand
     /// <summary>
     /// Recursively traverse a JsonNode and print all properties named "uri"
     /// </summary>
-    private void FindAndPrintUris(JsonNode? node)
+    private void FindAndPrintUris(JsonNode? node, string path = "")
     {
         if (node == null)
             return;
@@ -101,24 +102,29 @@ public class GetPost : BaseCommand
         {
             foreach (var property in obj)
             {
+                string currentPath = string.IsNullOrEmpty(path) ? property.Key : $"{path}.{property.Key}";
+                
                 if (property.Key.Equals("uri", StringComparison.OrdinalIgnoreCase))
                 {
                     string? url = AtUri.FromAtUri(property.Value?.ToString())?.ToBskyPostUrl();
                     if (!string.IsNullOrEmpty(url))
                     {
+                        Logger.LogInfo(currentPath);
                         Logger.LogInfo($"{url}");
+                        Logger.LogInfo("");
                     }
                 }
                 
                 // Recursively check the property value
-                FindAndPrintUris(property.Value);
+                FindAndPrintUris(property.Value, currentPath);
             }
         }
         else if (node is JsonArray array)
         {
             for (int i = 0; i < array.Count; i++)
             {
-                FindAndPrintUris(array[i]);
+                string currentPath = $"{path}[{i}]";
+                FindAndPrintUris(array[i], currentPath);
             }
         }
     }
