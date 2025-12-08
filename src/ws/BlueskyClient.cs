@@ -775,7 +775,7 @@ public class BlueskyClient
     /// <returns></returns>
     public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null)
     {
-        Logger.LogTrace($"SendRequest: {url}");
+        Logger.LogInfo($"SendRequest: {url}");
 
         using (HttpClient client = new HttpClient())
         {
@@ -889,7 +889,7 @@ public class BlueskyClient
     /// <returns></returns>
     public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
     {
-        Logger.LogTrace($"SendRequest: {url}");
+        Logger.LogInfo($"SendRequest: {url}");
 
         using (HttpClient client = new HttpClient())
         {
