@@ -23,12 +23,16 @@ public class ConsoleLogger : BaseLogger
     {
         if (LogLevel <= 2)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"[WARNING] {message}");
+            Console.ResetColor();
         }
     }
 
     public override void LogError(string? message)
     {
+        Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine($"[ERROR] {message}");
+        Console.ResetColor();
     }
 }
