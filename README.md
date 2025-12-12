@@ -54,7 +54,7 @@ Calling dnproto with no arguments will print the help.
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle) to resolve a handle.
 
 ```powershell
-dnproto /command gethandleinfo /actor threddy.org
+dnproto /command gethandleinfo /actor threddyrex.com
 ```
 
 
@@ -65,7 +65,7 @@ dnproto /command gethandleinfo /actor threddy.org
 This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile) to get the profile.
 
 ```powershell
-dnproto /command getprofile /actor threddy.org
+dnproto /command getprofile /actor threddyrex.com
 ```
 
 
@@ -76,7 +76,7 @@ dnproto /command getprofile /actor threddy.org
 With handle:
 
 ```powershell
-dnproto /command getrepostatus /actor threddy.org
+dnproto /command getrepostatus /actor threddyrex.com
 ```
 
 
@@ -89,7 +89,7 @@ Calls getRepo for the user, and writes the file to repoFilePath.
 Using handle:
 
 ```powershell
-dnproto /command getrepo /actor threddy.org /datadir "path_to_local_filesystem_dir"
+dnproto /command getrepo /actor threddyrex.com /datadir "path_to_local_filesystem_dir"
 ```
 
 
