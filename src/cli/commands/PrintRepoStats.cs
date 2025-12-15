@@ -151,6 +151,7 @@ namespace dnproto.cli.commands
                 int followCount = 0;
                 int blockCount = 0;
                 int flashCount = 0;
+                int verificationCount = 0;
 
                 recordCount = recordCountsByMonth.TryGetValue(currentDateMonth, out int rc) ? rc : 0;
 
@@ -162,9 +163,10 @@ namespace dnproto.cli.commands
                     followCount = typeCounts.TryGetValue(RecordType.BLUESKY_FOLLOW, out int fc) ? fc : 0;
                     blockCount = typeCounts.TryGetValue(RecordType.BLUESKY_BLOCK, out int bc) ? bc : 0;
                     flashCount = typeCounts.TryGetValue(RecordType.FLASHES_POST, out int fsc) ? fsc : 0;
+                    verificationCount = typeCounts.TryGetValue(RecordType.VERIFICATION, out int vc) ? vc : 0;
                 }
 
-                Logger.LogInfo($"{currentDateMonth}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, blocks={blockCount}, flashes={flashCount}");
+                Logger.LogInfo($"{currentDateMonth}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, blocks={blockCount}, flashes={flashCount}, verifications={verificationCount}");
                 currentDate = currentDate.AddMonths(1);
             }
 
