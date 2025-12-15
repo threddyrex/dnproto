@@ -14,7 +14,7 @@ namespace dnproto.cli.commands
         
         public override HashSet<string> GetOptionalArguments()
         {
-            return new HashSet<string>(new string[] { "collection" });
+            return new HashSet<string>(new string[] { "collection", "month" });
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -25,6 +25,7 @@ namespace dnproto.cli.commands
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
             string? collection = CommandLineInterface.GetArgumentValue(arguments, "collection");
+            string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
 
             //
             // Load lfs
@@ -66,6 +67,24 @@ namespace dnproto.cli.commands
                     {
                         if (string.Equals(repoRecord.RecordType, collection) == false)
                         {
+                            return true;
+                        }
+                    }
+
+                    // If month specified, skip non-matching records
+                    if (string.IsNullOrEmpty(month) == false)
+                    {
+                        if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))
+                        {
+                            string recordMonth = createdAt.ToString("yyyy-MM");
+                            if (month.Equals(recordMonth) == false)
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            // Skip records without valid CreatedAt when month filter is active
                             return true;
                         }
                     }
