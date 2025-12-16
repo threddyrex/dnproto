@@ -14,6 +14,7 @@ There are a few classes that are reusable in C# programs:
   - [Repo.cs](/src/repo/Repo.cs) - entry point
   - [DagCborObject.cs](/src/repo/DagCborObject.cs) - decoding/encoding dag cbor
   - [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
+  - [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
 - [Firehose.cs](/src/firehose/Firehose.cs) - listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
 - [BlueskyClient.cs](/src/ws/BlueskyClient.cs) - calling the Bluesky API.
 
