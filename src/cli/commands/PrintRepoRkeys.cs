@@ -38,7 +38,7 @@ namespace dnproto.cli.commands
             //
             // Print rkeys
             //
-            Dictionary<string, string>? rkeys = Repo.FindRkeys(repoFile);
+            Dictionary<string, string>? rkeys = RepoUtils.FindRkeys(repoFile);
 
             if (rkeys == null || rkeys.Count == 0)
             {

@@ -100,7 +100,7 @@ namespace dnproto.cli.commands
             //
             // Walk repo once to get cid/rkey mapping
             //
-            Dictionary<string, string>? rkeys = Repo.FindRkeys(repoFile);
+            Dictionary<string, string>? rkeys = RepoUtils.FindRkeys(repoFile);
             Logger.LogInfo($"Repo.FindRkeys() Count: {rkeys?.Count}");
 
 

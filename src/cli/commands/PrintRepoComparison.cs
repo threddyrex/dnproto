@@ -52,8 +52,8 @@ namespace dnproto.cli.commands
             //
             // Find did for repos
             //
-            string? did1 = Repo.FindDid(repoFile1);
-            string? did2 = Repo.FindDid(repoFile2);
+            string? did1 = RepoUtils.FindDid(repoFile1);
+            string? did2 = RepoUtils.FindDid(repoFile2);
 
             Logger.LogInfo($"did1: {did1}");
             Logger.LogInfo($"did2: {did2}");
@@ -68,7 +68,7 @@ namespace dnproto.cli.commands
             //
             // repo1 --> did2
             //
-            Dictionary<string, string>? rkeys1 = Repo.FindRkeys(repoFile1);
+            Dictionary<string, string>? rkeys1 = RepoUtils.FindRkeys(repoFile1);
             if (rkeys1 == null)
             {
                 Logger.LogError("Could not find merkle records for repo1.");
@@ -96,7 +96,7 @@ namespace dnproto.cli.commands
             //
             // repo2 --> did1
             //
-            Dictionary<string, string>? rkeys2 = Repo.FindRkeys(repoFile2);
+            Dictionary<string, string>? rkeys2 = RepoUtils.FindRkeys(repoFile2);
             if (rkeys2 == null)
             {
                 Logger.LogError("Could not find merkle records for repo2.");
