@@ -1,8 +1,14 @@
+
 # dnproto - an ATProto/Bluesky tool written in dotnet
 
-This is a tool written in C# for interacting with ATProto and Bluesky. It's a work in progress.
+This is a tool written in C# for interacting with ATProto and Bluesky.
 
-Besides being a command line tool, there are a few classes that are reusable in C# programs:
+
+&nbsp;
+
+# Source code
+
+There are a few classes that are reusable in C# programs:
 
 - [Repo.cs](/src/repo/Repo.cs) - repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc. You'll need the entire "repo" directory.
 - [Firehose.cs](/src/firehose/Firehose.cs) - listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
@@ -11,101 +17,59 @@ Besides being a command line tool, there are a few classes that are reusable in 
 
 &nbsp;
 
-# Building dnproto
+# Using the command line tool
 
-To get started, change into the root directory and build. I also like to set an alias.
+The following steps show how to use the command line tool on Windows in PowerShell.
+Requires .NET 10.
+
+To get started, change into the root directory and build.
 
 ```powershell
 dotnet build
-Set-Alias dnproto (Resolve-Path .\src\bin\Debug\net9.0\dnproto.exe).Path
 ```
 
-
-&nbsp;
-
-# Showing the help
-
-You can view help for the utility by calling it with no arguments.
+Next, change into the scripts directory, and list the files:
 
 ```powershell
-dnproto
+cd scripts
+ls
 ```
 
-
-&nbsp;
-
-# Running a command
-
-Each feature of the utility is a "command". You can specify which command you want when running the tool, along with arguments.
-
-To run one of the commands:
+Most of the files in this directory represent one "command" of the tool. Here are some that I call most often:
 
 ```powershell
-dnproto /command <commandname> /arg1 value1 /arg2 value2...
+.\GetActorInfo.ps1 -actor <handle or did> # resolves the handle or did
+.\GetRepo.ps1 -actor <handle or did> # downloads the user's repo and stores in the data directory
+.\PrintRepoStats.ps1 -actor <handle or did> # prints stats for the downloaded repo
 ```
-
-Calling dnproto with no arguments will print the help.
-
-
-&nbsp;
-
-# Resolving a Bluesky handle
-
-This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle) to resolve a handle.
-
-```powershell
-dnproto /command gethandleinfo /actor threddyrex.com
-```
-
-
-&nbsp;
-
-# Getting a Bluesky profile
-
-This calls the [Bluesky public API](https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile) to get the profile.
-
-```powershell
-dnproto /command getprofile /actor threddyrex.com
-```
-
-
-&nbsp;
-
-# Getting repo status
-
-With handle:
-
-```powershell
-dnproto /command getrepostatus /actor threddyrex.com
-```
-
-
-&nbsp;
-
-# Downloading a user's repo
-
-Calls getRepo for the user, and writes the file to repoFilePath.
-
-Using handle:
-
-```powershell
-dnproto /command getrepo /actor threddyrex.com /datadir "path_to_local_filesystem_dir"
-```
-
 
 
 
 &nbsp;
 
-# Download repo and print posts
+# The data directory
+
+When you are using the command line tool, it uses a local directory to stored cached data.
+By default, it uses the "data" directory in the repo. You can change this in the _Defaults.ps1 file.
 
 
-```powershell
-# Download full CAR file from the user's PDS, and store on local disk
-dnproto /command getrepo /handle "yourhandle.com"  /datadir "path_to_local_filesystem_dir"
-# Parse local CAR file and print posts
-dnproto /command printrepoposts /handle "yourhandle.com"  /datadir "path_to_local_filesystem_dir" > posts.txt
-```
+
+&nbsp;
+
+# Debugging a user
+
+When someone is having issues with their account, I like to run the following commands:
+
+- GetActorInfo - just check their DID, DID doc, etc
+- GetPdsInfo - lists things on their PDS
+- GetPlcHistory - checks their PLC history - make sure that the account isn't active in multiple places
+- StartFirehoseConsumer - make sure you can connect to their PDS (I've seen this fail)
+
+Also you can query the DID for moderation labels:
+
+https://mod.bsky.app/xrpc/com.atproto.label.queryLabels?uriPatterns=<did here>
+
+
 
 
 
