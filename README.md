@@ -53,7 +53,7 @@ Most of the files in this directory represent one "command" of the tool. Here ar
 
 # The data directory
 
-When you are using the command line tool, it uses a local directory to stored cached data.
+When you are using the command line tool, it uses a local directory to store cached data.
 By default, it uses the "data" directory in the repo. You can change this in the _Defaults.ps1 file.
 
 
