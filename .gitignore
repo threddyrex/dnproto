@@ -1,4 +1,8 @@
-data/
+data/actors
+data/backups
+data/preferences
+data/repos
+data/sessions
 src/bin/
 src/obj/
 test/bin/
