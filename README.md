@@ -67,7 +67,7 @@ When someone is having issues with their account, I like to run the following co
 
 Also you can query the DID for moderation labels:
 
-https://mod.bsky.app/xrpc/com.atproto.label.queryLabels?uriPatterns=<did here>
+https://mod.bsky.app/xrpc/com.atproto.label.queryLabels?uriPatterns=USERS_DID
 
 
 
