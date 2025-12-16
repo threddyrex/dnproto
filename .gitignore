@@ -1,8 +1,5 @@
-data/actors
-data/backups
-data/preferences
-data/repos
-data/sessions
+data/
+!data/README.md
 src/bin/
 src/obj/
 test/bin/
