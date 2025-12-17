@@ -6,7 +6,8 @@ namespace dnproto.pds;
 
 public class PdsConfig
 {
-    public string Host { get; set; } = "localhost";
+    public required string Version { get; set; }
+    public required string Host { get; set; }
     public int Port { get; set; }
 
     public required string Did { get; set; }
@@ -39,6 +40,7 @@ public class PdsConfig
         //
         // Parse fields
         //
+        string? version = JsonData.SelectString(pdsConfigJson, "version");
         string? host = JsonData.SelectString(pdsConfigJson, "host");
         string? port = JsonData.SelectString(pdsConfigJson, "port");
         string? did = JsonData.SelectString(pdsConfigJson, "did");
@@ -62,6 +64,11 @@ public class PdsConfig
         //
         // Validate required fields
         //
+        if(string.IsNullOrEmpty(version))
+        {
+            logger.LogError("PDS config file is missing 'version' field.");
+            return null;
+        }
         if(string.IsNullOrEmpty(host))
         {
             logger.LogError("PDS config file is missing 'host' field.");
@@ -101,6 +108,8 @@ public class PdsConfig
         //
         return new PdsConfig()
         {
+            Version = version,
+            Host = host,
             Port = int.Parse(port),
             Did = did,
             AvailableUserDomains = availableUserDomains,
