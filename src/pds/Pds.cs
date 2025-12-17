@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using dnproto.log;
+using dnproto.pds.xrpc;
 
 namespace dnproto.pds
 {
@@ -68,9 +69,11 @@ namespace dnproto.pds
             //
             // Map endpoints
             //
-            Xrpc.MapEndpoints(app);
+            XrpcEndpoints.MapEndpoints(app, Logger, pdsConfig);
 
-            // run            
+            //
+            // run
+            //
             Logger.LogInfo($"Server running, check health: https://localhost:{pdsConfig.Port}/xrpc/_health");
             app.Run();
         }

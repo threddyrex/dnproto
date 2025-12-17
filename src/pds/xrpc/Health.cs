@@ -1,11 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace dnproto.pds;
+namespace dnproto.pds.xrpc;
 
-public class Xrpc_Health
+public class Health : BaseXrpcCommand
 {
-    public static string GetResponse()
+    public override string GetResponse()
     {
         var health = new HealthResponse
         {
