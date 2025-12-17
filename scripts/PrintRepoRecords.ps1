@@ -2,6 +2,7 @@ param (
     [string]$dnprotoPath = $null,
     [string]$logLevel = $null,
     [string]$dataDir = $null,
+    [Parameter(Position = 0)]
     [string]$actor = $null,
     [string]$collection = $null,
     [string]$month = $null
