@@ -44,6 +44,7 @@ namespace dnproto.pds
             //
             // Load config
             //
+            Logger.LogInfo($"Loading PDS config from: {pdsConfigPath}");
             PdsConfig? pdsConfig = PdsConfig.LoadFromFile(Logger, pdsConfigPath);
             if (pdsConfig == null)
             {

@@ -248,7 +248,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
 
     public string? GetPath_PdsConfig()
     {
-        string configFilePath = Path.Combine(DataDir, "pds", "config.json");
+        string configFilePath = Path.Combine(DataDir, "pds", "pds-config.json");
         return configFilePath;
     }
     
