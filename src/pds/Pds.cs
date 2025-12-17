@@ -2,7 +2,6 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using dnproto.log;
 
 namespace dnproto.pds
@@ -60,15 +59,23 @@ namespace dnproto.pds
             builder.WebHost.UseUrls($"https://localhost:{pdsConfig.Port}");            
             var app = builder.Build();
 
+            //
             // Enable HTTPS redirection
+            //
             app.UseHttpsRedirection();
 
-            // Define the /hello endpoint
-            app.MapGet("/hello", () => "world");
 
-            Logger.LogInfo($"Server running at https://localhost:{pdsConfig.Port}/hello");
-            
+            //
+            // Map endpoints
+            //
+            Xrpc.MapEndpoints(app);
+
+            // run            
+            Logger.LogInfo($"Server running, check health: https://localhost:{pdsConfig.Port}/xrpc/_health");
             app.Run();
         }
+
+
     }
+
 }
