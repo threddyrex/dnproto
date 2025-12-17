@@ -52,10 +52,13 @@ public class ListRepos : BaseCommand
         //
         Logger.LogInfo($"Calling ListRepos.");
         Logger.LogInfo($"pds: {actorInfo.Pds}");
-        JsonNode? response = BlueskyClient.ListRepos(actorInfo.Pds);
+        List<JsonNode> response = BlueskyClient.ListRepos(actorInfo.Pds);
 
 
-        BlueskyClient.PrintJsonResponseToConsole(response);
+        foreach (JsonNode repo in response)
+        {
+            BlueskyClient.PrintJsonResponseToConsole(repo);
+        }
     }
 
 }

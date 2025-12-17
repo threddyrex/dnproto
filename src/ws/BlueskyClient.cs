@@ -408,24 +408,66 @@ public class BlueskyClient
     /// https://docs.bsky.app/docs/api/com-atproto-sync-list-repos
     /// </summary>
     /// <param name="pds"></param>
-    /// <param name="did"></param>
-    /// <param name="repoFile"></param>
-    public static JsonNode? ListRepos(string? pds)
+    /// <param name="limit"></param>
+    /// <param name="sleepMilliseconds"></param>
+    /// <returns></returns>
+    public static List<JsonNode> ListRepos(string? pds, int limit = 100, int sleepMilliseconds = 1000)
     {
-        Logger.LogTrace($"DescribeRepos: pds: {pds}");
+        List<JsonNode> repos = new List<JsonNode>();
+        Logger.LogTrace($"ListRepos: pds: {pds}");
 
         if (string.IsNullOrEmpty(pds))
         {
             Logger.LogError("ListRepos: Invalid arguments. Exiting.");
-            return null;
+            return repos;
         }
 
-        string url = $"https://{pds}/xrpc/com.atproto.sync.listRepos";
-        Logger.LogTrace($"ListRepos: url: {url}");
+        bool keepGoing = true;
+        string? cursor = null;
 
-        return BlueskyClient.SendRequest(url,
-            HttpMethod.Get);
+        // We call the api in batches of 100 (or whatever limit is set).
+        while (keepGoing)
+        {
+            string? url = null;
 
+            if (cursor != null)
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listRepos?limit={limit}&cursor={cursor}";
+            }
+            else
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listRepos?limit={limit}";
+            }
+
+            Logger.LogTrace($"ListRepos: url: {url}");
+
+            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
+
+            var reposArray = response?["repos"]?.AsArray();
+
+            keepGoing = reposArray != null && reposArray.Count == limit;
+
+            cursor = response?["cursor"]?.ToString();
+
+            if (reposArray != null)
+            {
+                Logger.LogTrace($"ListRepos: Count: {reposArray.Count}");
+                Logger.LogTrace($"ListRepos: Cursor: {cursor}");
+
+                foreach (var repo in reposArray)
+                {
+                    if (repo == null) continue;
+                    repos.Add(repo);
+                }
+            }
+
+            if (keepGoing)
+            {
+                Thread.Sleep(sleepMilliseconds);
+            }
+        }
+
+        return repos;
     }
 
     public static JsonNode? PdsHealth(string? pds)

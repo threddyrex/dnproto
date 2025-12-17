@@ -64,8 +64,12 @@ public class GetPdsInfo : BaseCommand
         BlueskyClient.PrintJsonResponseToConsole(response);
 
         Logger.LogInfo($"LIST REPOS");
-        response = BlueskyClient.ListRepos(actorInfo.Pds);
-        BlueskyClient.PrintJsonResponseToConsole(response);
+        List<JsonNode> repos = BlueskyClient.ListRepos(actorInfo.Pds);
+        Logger.LogInfo($"repo count: {repos.Count}");
+        foreach (JsonNode repo in repos)
+        {
+            BlueskyClient.PrintJsonResponseToConsole(repo);
+        }
     }
 
 }
