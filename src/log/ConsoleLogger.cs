@@ -3,11 +3,16 @@ namespace dnproto.log;
 
 public class ConsoleLogger : BaseLogger
 {
+    private readonly object _consoleLock = new object();
+
     public override void LogTrace(string? message)
     {
         if (LogLevel <= 0)
         {
-            Console.WriteLine($"[TRACE] {message}");
+            lock (_consoleLock)
+            {
+                Console.WriteLine($"[TRACE] {message}");
+            }
         }
     }
 
@@ -15,7 +20,10 @@ public class ConsoleLogger : BaseLogger
     {
         if (LogLevel <= 1)
         {
-            Console.WriteLine($"[INFO] {message}");
+            lock (_consoleLock)
+            {
+                Console.WriteLine($"[INFO] {message}");
+            }
         }
     }
 
@@ -23,16 +31,22 @@ public class ConsoleLogger : BaseLogger
     {
         if (LogLevel <= 2)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"[WARNING] {message}");
-            Console.ResetColor();
+            lock (_consoleLock)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"[WARNING] {message}");
+                Console.ResetColor();
+            }
         }
     }
 
     public override void LogError(string? message)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"[ERROR] {message}");
-        Console.ResetColor();
+        lock (_consoleLock)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[ERROR] {message}");
+            Console.ResetColor();
+        }
     }
 }
