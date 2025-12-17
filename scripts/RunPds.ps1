@@ -1,10 +1,10 @@
 param (
     [string]$dnprotoPath = $null,
     [string]$logLevel = $null,
-    [string]$port = "5001"
+    [string]$dataDir = $null
 )
 
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command RunPds /port $port /logLevel $logLevel
+& $dnprotoPath /command RunPds /dataDir $dataDir /logLevel $logLevel

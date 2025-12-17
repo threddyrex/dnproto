@@ -28,7 +28,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
-        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions" })
+        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -246,6 +246,11 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         };
     }
 
+    public string? GetPath_PdsConfig()
+    {
+        string configFilePath = Path.Combine(DataDir, "pds", "config.json");
+        return configFilePath;
+    }
     
 
     /// <summary>
