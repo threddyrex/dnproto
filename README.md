@@ -42,9 +42,37 @@ ls
 Most of the files in this directory represent one "command" of the tool. Here are some that I call most often:
 
 ```powershell
-.\GetActorInfo.ps1 -actor <handle or did> # resolves the handle or did
-.\GetRepo.ps1 -actor <handle or did> # downloads the user's repo and stores in the data directory
-.\PrintRepoStats.ps1 -actor <handle or did> # prints stats for the downloaded repo
+# resolve actor info and retrieve did, did doc
+.\GetActorInfo.ps1 -actor <handle or did>
+
+# get plc dir history for actor
+.\GetPlcHistory.ps1 -actor <handle or did>
+
+# download the user's repo and store in the data directory
+.\GetRepo.ps1 -actor <handle or did>
+
+# print stats for the downloaded repo
+.\PrintRepoStats.ps1 -actor <handle or did>
+
+# print records for the downloaded repo
+.\PrintRepoRecords.ps1 -actor <handle or did>
+
+# print posts for the downloaded repo
+.\PrintRepoPosts.ps1
+
+# log in to the account. stores session locally
+.\LogIn.ps1 -actor <handle or did> -password <password>
+
+# get unread count for logged in session
+.\GetUnreadCount.ps1
+
+# create new post for logged in session
+.\CreatePost.ps1 -text "hello world"
+
+# log out of account
+.\LogOut.ps1 -actor <handle or did>
+
+
 ```
 
 
