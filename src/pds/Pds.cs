@@ -57,7 +57,7 @@ namespace dnproto.pds
             //
             Logger.LogInfo($"Starting minimal API with HTTPS on port {pdsConfig.Port}...");
             var builder = WebApplication.CreateBuilder();
-            builder.WebHost.UseUrls($"https://localhost:{pdsConfig.Port}");            
+            builder.WebHost.UseUrls($"https://{pdsConfig.Host}:{pdsConfig.Port}");
             var app = builder.Build();
 
             //
@@ -74,7 +74,6 @@ namespace dnproto.pds
             //
             // run
             //
-            Logger.LogInfo($"Server running, check health: https://localhost:{pdsConfig.Port}/xrpc/_health");
             app.Run();
         }
 

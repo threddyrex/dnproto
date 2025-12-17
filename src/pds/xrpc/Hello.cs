@@ -1,12 +1,14 @@
 
 
+using Microsoft.AspNetCore.Http;
+
 namespace dnproto.pds.xrpc;
 
 
 public class Hello : BaseXrpcCommand
 {
-    public override string GetResponse()
+    public override IResult GetResponse()
     {
-        return "world";
+        return Results.Text("world");
     }
 }

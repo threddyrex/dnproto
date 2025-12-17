@@ -1,5 +1,6 @@
 
 using dnproto.log;
+using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
 
@@ -9,6 +10,6 @@ public abstract class BaseXrpcCommand
 
     public required PdsConfig PdsConfig;
 
-    public abstract string GetResponse();
+    public abstract IResult GetResponse();
 
 }

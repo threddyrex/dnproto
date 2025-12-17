@@ -45,6 +45,24 @@ public static class JsonData
         return SelectString(node, [propertyName]);
     }
 
+    public static List<string> SelectStringArray(JsonNode? node, string propertyName)
+    {
+        var selectedNode = SelectNode(node, [propertyName]);
+        var result = new List<string>();
+        if(selectedNode == null) return result;
+        if(selectedNode is JsonArray jsonArray)
+        {
+            foreach(var item in jsonArray)
+            {
+                if(item != null)
+                {
+                    result.Add(item.ToString());
+                }
+            }
+        }
+        return result;
+    }
+
 
 
     /// <summary>

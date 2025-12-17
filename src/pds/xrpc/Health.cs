@@ -1,18 +1,19 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
 
 public class Health : BaseXrpcCommand
 {
-    public override string GetResponse()
+    public override IResult GetResponse()
     {
         var health = new HealthResponse
         {
             Version = "0.0.001"
         };
         
-        return JsonSerializer.Serialize(health);
+        return Results.Json(health, contentType: "application/json");
     }
 }
 
