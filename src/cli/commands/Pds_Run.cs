@@ -27,14 +27,13 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            if (lfs == null)
+            var pds = Pds.InitializePds(dataDir, Logger);
+            if (pds == null)
             {
-                Logger.LogError("Failed to initialize LocalFileSystem.");
+                Logger.LogError("Failed to initialize PDS.");
                 return;
             }
-
-            new Pds(Logger, lfs).Run();
+            pds.Run();
         }
     }
 }

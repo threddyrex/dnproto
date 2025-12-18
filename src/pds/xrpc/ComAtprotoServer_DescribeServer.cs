@@ -10,34 +10,34 @@ public class ComAtprotoServer_DescribeServer : BaseXrpcCommand
     {
         var response = new DescribeServerResponse
         {
-            InviteCodeRequired = PdsConfig.InviteCodeRequired,
-            PhoneVerificationRequired = PdsConfig.PhoneVerificationRequired,
-            AvailableUserDomains = PdsConfig.AvailableUserDomains,
-            Did = PdsConfig.Did
+            InviteCodeRequired = Pds.PdsConfig.InviteCodeRequired,
+            PhoneVerificationRequired = Pds.PdsConfig.PhoneVerificationRequired,
+            AvailableUserDomains = Pds.PdsConfig.AvailableUserDomains,
+            Did = Pds.PdsConfig.Did
         };
 
         // Add links if privacy policy or terms of service are configured
-        if (!string.IsNullOrEmpty(PdsConfig.PrivacyPolicy) || !string.IsNullOrEmpty(PdsConfig.TermsOfService))
+        if (!string.IsNullOrEmpty(Pds.PdsConfig.PrivacyPolicy) || !string.IsNullOrEmpty(Pds.PdsConfig.TermsOfService))
         {
             response.Links = new Links();
             
-            if (!string.IsNullOrEmpty(PdsConfig.PrivacyPolicy))
+            if (!string.IsNullOrEmpty(Pds.PdsConfig.PrivacyPolicy))
             {
-                response.Links.PrivacyPolicy = PdsConfig.PrivacyPolicy;
+                response.Links.PrivacyPolicy = Pds.PdsConfig.PrivacyPolicy;
             }
             
-            if (!string.IsNullOrEmpty(PdsConfig.TermsOfService))
+            if (!string.IsNullOrEmpty(Pds.PdsConfig.TermsOfService))
             {
-                response.Links.TermsOfService = PdsConfig.TermsOfService;
+                response.Links.TermsOfService = Pds.PdsConfig.TermsOfService;
             }
         }
 
         // Add contact if email is configured
-        if (!string.IsNullOrEmpty(PdsConfig.ContactEmail))
+        if (!string.IsNullOrEmpty(Pds.PdsConfig.ContactEmail))
         {
             response.Contact = new Contact
             {
-                Email = PdsConfig.ContactEmail
+                Email = Pds.PdsConfig.ContactEmail
             };
         }
         

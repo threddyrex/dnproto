@@ -883,7 +883,8 @@ public class BlueskyClient
                 request.Headers.Add("Atproto-Accept-Labelers", labelers);
             }
 
-            Logger.LogTrace($"REQUEST: {request}");
+            Logger.LogTrace($"REQUEST:\n{request}");
+            
 
             //
             // Send

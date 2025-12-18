@@ -6,6 +6,7 @@ using dnproto.sdk.log;
 using dnproto.sdk.fs;
 using dnproto.pds.db;
 using dnproto.pds.xrpc;
+using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds
 {
@@ -14,63 +15,89 @@ namespace dnproto.pds
     /// </summary>
     public class Pds
     {
-        private readonly BaseLogger Logger;
+        public required PdsConfig PdsConfig;
 
-        private readonly LocalFileSystem lfs;
+        public required BaseLogger Logger;
 
-        public Pds(BaseLogger logger, LocalFileSystem lfs)
+        public required LocalFileSystem LocalFileSystem;
+
+        public required PdsDb PdsDb;
+
+        public required WebApplication App;
+
+
+        public static Pds? InitializePds(string? dataDir, BaseLogger logger)
         {
-            Logger = logger;
-            this.lfs = lfs;
-        }
+            //
+            // Get local file system
+            //
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, logger);
+            if (lfs == null)
+            {
+                logger.LogError("Failed to initialize LocalFileSystem.");
+                return null;
+            }
 
 
-        public void Run()
-        {
             //
             // Get PDS config path
             //
             string? pdsConfigPath = lfs.GetPath_PdsConfig();
             if (string.IsNullOrEmpty(pdsConfigPath))
             {
-                Logger.LogError("PDS config path is null or empty.");
-                return;
+                logger.LogError("PDS config path is null or empty.");
+                return null;
             }
 
             if (File.Exists(pdsConfigPath) == false)
             {
-                Logger.LogError($"PDS config file does not exist: {pdsConfigPath}");
-                return;
+                logger.LogError($"PDS config file does not exist: {pdsConfigPath}");
+                return null;
             }
 
             //
             // Load config
             //
-            Logger.LogInfo($"Loading PDS config from: {pdsConfigPath}");
-            PdsConfig? pdsConfig = PdsConfig.LoadFromFile(Logger, pdsConfigPath);
+            logger.LogInfo($"Loading PDS config from: {pdsConfigPath}");
+            PdsConfig? pdsConfig = PdsConfig.LoadFromFile(logger, pdsConfigPath);
             if (pdsConfig == null)
             {
-                Logger.LogError("Failed to load PDS config.");
-                return;
+                logger.LogError("Failed to load PDS config.");
+                return null;
             }
 
-            //
+                //
             // Initialize PdsDb
             //
-            PdsDb? pdsDb = PdsDb.InitializePdsDb(lfs.DataDir, Logger);
+            PdsDb? pdsDb = PdsDb.InitializePdsDb(pdsConfig, lfs.DataDir, logger);
             if (pdsDb == null)
             {
-                Logger.LogError("Failed to initialize PDS database.");
-                return;
+                logger.LogError("Failed to initialize PDS database.");
+                return null;
             }
+
 
             //
             // Configure to listen on specified port with HTTPS
             //
-            Logger.LogInfo($"Starting minimal API with HTTPS on port {pdsConfig.Port}...");
+            logger.LogInfo($"Starting minimal API with HTTPS on port {pdsConfig.Port}...");
             var builder = WebApplication.CreateBuilder();
             builder.WebHost.UseUrls($"https://{pdsConfig.Host}:{pdsConfig.Port}");
             var app = builder.Build();
+
+            //
+            // Construct pds object
+            //
+            var pds = new Pds()
+            {
+                PdsConfig = pdsConfig,
+                Logger = logger,
+                LocalFileSystem = lfs,
+                PdsDb = pdsDb,
+                App = app
+            };
+
+
 
             //
             // Enable HTTPS redirection
@@ -81,15 +108,39 @@ namespace dnproto.pds
             //
             // Map endpoints
             //
-            XrpcEndpoints.MapEndpoints(app, Logger, pdsConfig);
+            pds.MapEndpoints();
 
             //
-            // run
+            // return
             //
-            app.Run();
+            return pds;
         }
+        
+        public void Run()
+        {
+            Logger.LogInfo("Running PDS...");
+            App.Run();
+        }
+        
 
+        private void MapEndpoints()
+        {
+            App.MapGet("/hello", (HttpContext context) => new Hello(){Pds = this, HttpContext = context}.GetResponse());
+            App.MapGet("/xrpc/_health", (HttpContext context) => new Health(){Pds = this, HttpContext = context}.GetResponse());
+            App.MapGet("/xrpc/com.atproto.server.describeServer", (HttpContext context) => new ComAtprotoServer_DescribeServer(){Pds = this, HttpContext = context}.GetResponse());
+            App.MapGet("/xrpc/com.atproto.identity.resolveHandle", (HttpContext context) => new ComAtprotoIdentity_ResolveHandle(){Pds = this, HttpContext = context}.GetResponse());
+            App.MapPost("/xrpc/com.atproto.server.createInviteCode", (HttpContext context) => new ComAtprotoServer_CreateInviteCode(){Pds = this, HttpContext = context}.GetResponse());
 
+            Logger.LogInfo("");
+            Logger.LogInfo("Mapped XRPC endpoints:");
+            Logger.LogInfo("");
+            Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/hello");
+            Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/_health");
+            Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.describeServer");
+            Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.identity.resolveHandle");
+            Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.createInviteCode");
+            Logger.LogInfo("");
+        }
     }
 
 }
