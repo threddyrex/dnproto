@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
 
-public class DescribeServer : BaseXrpcCommand
+public class ComAtprotoServer_DescribeServer : BaseXrpcCommand
 {
     public override IResult GetResponse()
     {

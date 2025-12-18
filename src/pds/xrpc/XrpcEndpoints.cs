@@ -10,7 +10,7 @@ public class XrpcEndpoints
     {
         app.MapGet("/hello", () => new Hello(){Logger = logger, PdsConfig = pdsConfig}.GetResponse());
         app.MapGet("/xrpc/_health", () => new Health(){Logger = logger, PdsConfig = pdsConfig}.GetResponse());
-        app.MapGet("/xrpc/com.atproto.server.describeServer", () => new DescribeServer(){Logger = logger, PdsConfig = pdsConfig}.GetResponse());
+        app.MapGet("/xrpc/com.atproto.server.describeServer", () => new ComAtprotoServer_DescribeServer(){Logger = logger, PdsConfig = pdsConfig}.GetResponse());
 
         logger.LogInfo("");
         logger.LogInfo("Mapped XRPC endpoints:");
