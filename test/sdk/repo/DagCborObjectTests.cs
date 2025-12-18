@@ -1,4 +1,4 @@
-namespace dnproto.tests.repo;
+namespace dnproto.tests.sdk.repo;
 
 using dnproto.sdk.repo;
 using System.Text;
