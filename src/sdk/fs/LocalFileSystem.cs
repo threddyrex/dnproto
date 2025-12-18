@@ -40,7 +40,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             }
         }
 
-        foreach (string pdsSubDir in new string[] { "db"})
+        foreach (string pdsSubDir in new string[] { "accounts"})
         {
             string fullSubDir = Path.Combine(dataDir, "pds", pdsSubDir);
             if (Directory.Exists(fullSubDir) == false)

@@ -10,21 +10,27 @@ public class PdsDb
 
 
     /// <summary>
-    /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir),
-    /// creates a new SQLite file named "pds.db", and creates the InviteCodes table if it doesn't already exist.
+    /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
+    /// It will create the database file and tables if they do not already exist.
     /// </summary>
     public static PdsDb? InitializePdsDb(string dataDir, BaseLogger logger)
     {
-        // Check that the pds/db folder exists
-        string dbDir = Path.Combine(dataDir, "pds", "db");
-        
+        //
+        // Check that the pds/db folder exists.
+        //
+        string dbDir = Path.Combine(dataDir, "pds");
+
         if (!Directory.Exists(dbDir))
         {
             logger.LogError($"PDS database directory does not exist: {dbDir}");
             return null;
         }
-        
-        // Create connection string for the SQLite database
+
+
+        //
+        // Create connection string for the SQLite database.
+        // It will create the db if it doesn't exist.
+        //
         string dbPath = Path.Combine(dbDir, "pds.db");
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
@@ -32,8 +38,12 @@ public class PdsDb
         }.ToString();
         
         logger.LogInfo($"Initializing database at: {dbPath}");
-        
-        // Create the database and table
+
+
+        //
+        // Run through the initialize statements.
+        // If the db already exists, these will be a no-op.
+        //
         using (var connection = new SqliteConnection(connectionString))
         {
             connection.Open();
@@ -53,6 +63,10 @@ public class PdsDb
         
         logger.LogInfo("Database initialization complete.");
 
+
+        //
+        // Return PdsDb instance.
+        //
         return new PdsDb
         {
             _dataDir = dataDir,
