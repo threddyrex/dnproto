@@ -12,15 +12,21 @@ The source code is broken down into three main areas:
 
 - cli - the command line interface for the console program
 - sdk - classes that are reusable in other C# programs
-- pds - an implementation of a PDS
+- pds - an (in-progress) implementation of a PDS
 
-Here are links to some sdk classes:
+For CAR repo parsing, see these classes:
 
 - [Repo.cs](/src/sdk/repo/Repo.cs) - repo parsing code. entry point
 - [DagCborObject.cs](/src/sdk/repo/DagCborObject.cs) - decoding/encoding dag cbor
 - [VarInt.cs](/src/sdk/repo/VarInt.cs) - decoding/encoding varint
 - [CidV1.cs](/src/sdk/repo/CidV1.cs) - decoding/encoding cid
+
+You can consume the firehose with this class:
+
 - [Firehose.cs](/src/sdk/firehose/Firehose.cs) - listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
+
+And for general Bluesky WS calls, see:
+
 - [BlueskyClient.cs](/src/sdk/ws/BlueskyClient.cs) - calling the Bluesky API.
 
 
