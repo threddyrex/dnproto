@@ -97,6 +97,23 @@ public class GenerateDidWebDoc : BaseCommand
         var jsonString = JsonSerializer.Serialize(didWebDoc, options);
         jsonString = jsonString.Replace("\"context\":", "\"@context\":");
 
+        // write to scratch dir
+        string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "datadir");
+        if (!string.IsNullOrEmpty(dataDir))
+        {
+            var lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            if (lfs != null)
+            {
+                string? scratchDir = lfs.GetPath_ScratchDir();
+                if (!string.IsNullOrEmpty(scratchDir))
+                {
+                    string outputFile = Path.Combine(scratchDir, "did.json");
+                    File.WriteAllText(outputFile, jsonString);
+                    Logger.LogInfo($"Wrote DID Web document to: {outputFile}");
+                }
+            }
+        }
+
         Logger.LogInfo("\n" + jsonString);
     }
 }

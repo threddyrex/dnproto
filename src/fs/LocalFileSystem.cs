@@ -28,7 +28,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
             return null;
         }
 
-        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds" })
+        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -163,6 +163,12 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
         string safeDid = GetSafeString(actorInfo.Did);
         string prefsFile = Path.Combine(prefsDir, $"{safeDid}.json");
         return prefsFile;
+    }
+
+    public string? GetPath_ScratchDir()
+    {
+        string scratchDir = Path.Combine(DataDir, "scratch");
+        return scratchDir;
     }
 
     /// <summary>
