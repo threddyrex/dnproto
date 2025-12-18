@@ -10,17 +10,16 @@ This is a tool written in C# for interacting with ATProto and Bluesky.
 
 The source code is broken down into three main areas:
 
-- [cli](/src/cli/) - the command line interface for the console program
-- [sdk](/src/sdk/) - classes that are reusable in other C# programs
-- [pds](/src/pds/) - an implementation of a PDS
+- cli - the command line interface for the console program
+- sdk - classes that are reusable in other C# programs
+- pds - an implementation of a PDS
 
-Here are some links to sdk classes:
+Here are links to some sdk classes:
 
-- [repo](/src/sdk/repo/) - repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc. The main files are the following:
-  - [Repo.cs](/src/sdk/repo/Repo.cs) - entry point
-  - [DagCborObject.cs](/src/sdk/repo/DagCborObject.cs) - decoding/encoding dag cbor
-  - [VarInt.cs](/src/sdk/repo/VarInt.cs) - decoding/encoding varint
-  - [CidV1.cs](/src/sdk/repo/CidV1.cs) - decoding/encoding cid
+- [Repo.cs](/src/sdk/repo/Repo.cs) - repo parsing code. entry point
+- [DagCborObject.cs](/src/sdk/repo/DagCborObject.cs) - decoding/encoding dag cbor
+- [VarInt.cs](/src/sdk/repo/VarInt.cs) - decoding/encoding varint
+- [CidV1.cs](/src/sdk/repo/CidV1.cs) - decoding/encoding cid
 - [Firehose.cs](/src/sdk/firehose/Firehose.cs) - listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
 - [BlueskyClient.cs](/src/sdk/ws/BlueskyClient.cs) - calling the Bluesky API.
 
