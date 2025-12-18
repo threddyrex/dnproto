@@ -29,6 +29,9 @@ And for general Bluesky WS calls, see:
 
 - [BlueskyClient.cs](/src/sdk/ws/BlueskyClient.cs) - calling the Bluesky API.
 
+The GitHub copilot-instructions file has more information about working with the code:
+
+- [copilot-instructions.md](/.github/copilot-instructions.md)
 
 &nbsp;
 
