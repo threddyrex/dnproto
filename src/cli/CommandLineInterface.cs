@@ -263,6 +263,7 @@ public static class CommandLineInterface
         {
             if (userArguments.ContainsKey(requiredArgument) == false)
             {
+                command.Logger.LogError($"Required argument missing: {requiredArgument}");
                 return false;
             }
         }
@@ -272,6 +273,7 @@ public static class CommandLineInterface
         {
             if (reservedArguments.Contains(requiredArgument))
             {
+                command.Logger.LogError($"Required argument '{requiredArgument}' cannot be a reserved argument.");
                 return false;
             }
         }
@@ -283,6 +285,7 @@ public static class CommandLineInterface
                 && optionalArguments.Contains(userArgument.Key) == false 
                 && reservedArguments.Contains(userArgument.Key) == false)
             {
+                command.Logger.LogError($"Unknown argument: {userArgument.Key}");
                 return false;
             }
         }
@@ -292,6 +295,7 @@ public static class CommandLineInterface
         {
             if (reservedArguments.Contains(optionalArgument))
             {
+                command.Logger.LogError($"Optional argument '{optionalArgument}' cannot be a reserved argument.");
                 return false;
             }
         }
