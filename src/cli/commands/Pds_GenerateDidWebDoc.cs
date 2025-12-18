@@ -6,7 +6,7 @@ using dnproto.sdk.fs;
 
 namespace dnproto.cli.commands;
 
-public class GenerateDidWebDoc : BaseCommand
+public class Pds_GenerateDidWebDoc : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

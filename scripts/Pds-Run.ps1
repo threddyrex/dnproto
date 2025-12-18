@@ -7,4 +7,4 @@ param (
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command RunPds /dataDir $dataDir /logLevel $logLevel
+& $dnprotoPath /command Pds_Run /dataDir $dataDir /logLevel $logLevel

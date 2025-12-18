@@ -3,7 +3,7 @@ using dnproto.sdk.repo;
 
 namespace dnproto.sdk.key;
 
-public class Key
+public class KeyPair
 {
     public required string KeyType { get; set; }
     public required string KeyTypeName { get; set; }
@@ -15,8 +15,8 @@ public class Key
     /// Generates a new cryptographic key pair.
     /// </summary>
     /// <param name="keyType">The type of key to generate: "p256" (default) or "secp256k1"</param>
-    /// <returns>A Key object containing the generated key pair</returns>
-    public static Key Generate(string keyType)
+    /// <returns>A KeyPair object containing the generated key pair</returns>
+    public static KeyPair Generate(string keyType)
     {
 
         byte[] privateKeyBytes;
@@ -86,7 +86,7 @@ public class Key
         string privateKeyMultibase = Base58BtcEncoding.EncodeMultibase(privateKeyWithPrefix);
         string publicKeyMultibase = Base58BtcEncoding.EncodeMultibase(publicKeyWithPrefix);
 
-        return new Key
+        return new KeyPair
         {
             KeyType = keyType.ToLower(),
             KeyTypeName = keyTypeName,

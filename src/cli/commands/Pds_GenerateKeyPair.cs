@@ -6,7 +6,7 @@ using dnproto.sdk.fs;
 namespace dnproto.cli.commands;
 
 
-public class GenerateKey : BaseCommand
+public class Pds_GenerateKeyPair : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
@@ -38,7 +38,7 @@ public class GenerateKey : BaseCommand
         {
             keyType = KeyTypes.P256; // default
         }
-        Key generatedKey = Key.Generate(keyType);
+        KeyPair generatedKey = KeyPair.Generate(keyType);
 
         //
         // Display the key information

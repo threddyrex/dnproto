@@ -1,6 +1,6 @@
 namespace dnproto.tests.repo;
 
-using dnproto.repo;
+using dnproto.sdk.repo;
 using System.Text;
 
 public class DagCborObjectTests
