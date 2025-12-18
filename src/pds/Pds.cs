@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using dnproto.log;
+using dnproto.pds.db;
 using dnproto.pds.xrpc;
 
 namespace dnproto.pds
@@ -49,6 +50,16 @@ namespace dnproto.pds
             if (pdsConfig == null)
             {
                 Logger.LogError("Failed to load PDS config.");
+                return;
+            }
+
+            //
+            // Initialize PdsDb
+            //
+            PdsDb? pdsDb = PdsDb.InitializePdsDb(lfs.DataDir, Logger);
+            if (pdsDb == null)
+            {
+                Logger.LogError("Failed to initialize PDS database.");
                 return;
             }
 
