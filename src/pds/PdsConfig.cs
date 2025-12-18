@@ -1,6 +1,6 @@
 using System.Text.Json;
-using dnproto.log;
-using dnproto.repo;
+using dnproto.sdk.log;
+using dnproto.sdk.repo;
 
 namespace dnproto.pds;
 

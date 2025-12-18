@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace dnproto.repo;
+namespace dnproto.sdk.repo;
 
 /// <summary>
 /// Provides Base58BTC encoding functionality using the Bitcoin alphabet.

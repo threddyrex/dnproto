@@ -1,9 +1,11 @@
-using dnproto.log;
-using dnproto.repo;
-using dnproto.ws;
+using dnproto.sdk.log;
+using dnproto.sdk.repo;
+using dnproto.sdk.ws;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+
+namespace dnproto.sdk.fs;
 
 /// <summary>
 /// Provides access to the local file system for storing repos and backups.

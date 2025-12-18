@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 
-using dnproto.log;
+using dnproto.sdk.log;
 
 namespace dnproto.pds.xrpc;
 

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace dnproto.uri;
+namespace dnproto.sdk.uri;
 
 /// <summary>
 /// Represents an AT URI

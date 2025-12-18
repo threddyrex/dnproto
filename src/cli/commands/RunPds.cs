@@ -3,6 +3,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
+using dnproto.sdk.log;
+using dnproto.sdk.repo;
+using dnproto.sdk.ws;
+using dnproto.sdk.fs;
+
+
 namespace dnproto.cli.commands
 {
     /// <summary>

@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-using dnproto.repo;
+using dnproto.sdk.repo;
+
+namespace dnproto.sdk.ws;
 
 public class ActorInfo
 {

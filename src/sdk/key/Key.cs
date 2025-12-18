@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using dnproto.repo;
+using dnproto.sdk.repo;
 
-namespace dnproto.key;
+namespace dnproto.sdk.key;
 
 public class Key
 {

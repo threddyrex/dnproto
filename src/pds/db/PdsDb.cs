@@ -1,4 +1,4 @@
-using dnproto.log;
+using dnproto.sdk.log;
 using Microsoft.Data.Sqlite;
 
 namespace dnproto.pds.db;

@@ -1,5 +1,6 @@
 
-namespace dnproto.repo;
+
+namespace dnproto.sdk.repo;
 
 /// <summary>
 /// Represents a cid in atproto. Only cid version 1 is supported.

@@ -1,8 +1,8 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.repo;
-using dnproto.ws;
+using dnproto.sdk.repo;
+using dnproto.sdk.ws;
 
 namespace dnproto.cli.commands;
 

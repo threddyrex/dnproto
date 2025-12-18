@@ -4,8 +4,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.ws;
-using dnproto.uri;
+using dnproto.sdk.ws;
+using dnproto.sdk.uri;
 
 namespace dnproto.cli.commands;
 

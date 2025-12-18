@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace dnproto.repo;
+namespace dnproto.sdk.repo;
 
 /// <summary>
 /// Just some helpers for working with json.

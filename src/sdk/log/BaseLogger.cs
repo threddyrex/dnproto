@@ -1,5 +1,5 @@
 
-namespace dnproto.log;
+namespace dnproto.sdk.log;
 
 public abstract class BaseLogger
 {

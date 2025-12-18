@@ -1,5 +1,5 @@
 
-namespace dnproto.repo;
+namespace dnproto.sdk.repo;
 
 /// <summary>
 /// The header for a dag cbor file.

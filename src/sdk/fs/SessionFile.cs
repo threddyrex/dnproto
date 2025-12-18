@@ -1,3 +1,8 @@
+
+using dnproto.sdk.ws;
+namespace dnproto.sdk.fs;
+
+
 public class SessionFile
 {
     public required ActorInfo ActorInfo { get; set; }

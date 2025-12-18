@@ -1,5 +1,5 @@
 
-using dnproto.log;
+using dnproto.sdk.log;
 
 namespace dnproto.cli.commands
 {
