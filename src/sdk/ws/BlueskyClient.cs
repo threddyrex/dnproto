@@ -724,6 +724,32 @@ public class BlueskyClient
 
 
     /// <summary>
+    /// Create an invite code.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="adminPassword"></param>
+    /// <param name="useCount"></param>
+    /// <returns></returns>
+    public static JsonNode? CreateInviteCode(string? pds, string? adminPassword, int useCount)
+    {
+        string? basicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"admin:{adminPassword}"));
+        string url = $"https://{pds}/xrpc/com.atproto.server.createInviteCode";
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            basicAuth: basicAuth,
+            content: new StringContent(JsonSerializer.Serialize(new
+            {
+                useCount = useCount
+            }))
+        );
+
+        return response;        
+    }
+
+
+
+    /// <summary>
     /// Return set of bookmarks for the user.
     /// </summary>
     /// <param name="pds"></param>
@@ -815,7 +841,7 @@ public class BlueskyClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null)
+    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null, string? basicAuth = null)
     {
         Logger.LogInfo($"SendRequest: {url}");
 
@@ -835,6 +861,11 @@ public class BlueskyClient
             if (accessJwt != null)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            }
+
+            if (!string.IsNullOrEmpty(basicAuth))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
             }
 
             if (!string.IsNullOrEmpty(acceptHeader))
@@ -929,7 +960,7 @@ public class BlueskyClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto")
+    public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? basicAuth = null)
     {
         Logger.LogInfo($"SendRequest: {url}");
 
@@ -950,6 +981,11 @@ public class BlueskyClient
             if (accessJwt != null)
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            }
+
+            if (!string.IsNullOrEmpty(basicAuth))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
             }
 
             if (!string.IsNullOrEmpty(acceptHeader))
