@@ -8,15 +8,21 @@ This is a tool written in C# for interacting with ATProto and Bluesky.
 
 # Source code
 
-There are a few classes that are reusable in C# programs:
+The source code is broken down into three main areas:
 
-- [repo](/src/repo/) - repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc. The main files are the following:
-  - [Repo.cs](/src/repo/Repo.cs) - entry point
-  - [DagCborObject.cs](/src/repo/DagCborObject.cs) - decoding/encoding dag cbor
-  - [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
-  - [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
-- [Firehose.cs](/src/firehose/Firehose.cs) - listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
-- [BlueskyClient.cs](/src/ws/BlueskyClient.cs) - calling the Bluesky API.
+- [cli](/src/cli/) - the command line interface for the console program
+- [sdk](/src/sdk/) - classes that are reusable in other C# programs
+- [pds](/src/pds/) - an implementation of a PDS
+
+Here are some links to sdk classes:
+
+- [repo](/src/sdk/repo/) - repo parsing code. This code allows you to read a CAR file, which is the format for a Bluesky repo. You can read the posts, follows, likes, etc. The main files are the following:
+  - [Repo.cs](/src/sdk/repo/Repo.cs) - entry point
+  - [DagCborObject.cs](/src/sdk/repo/DagCborObject.cs) - decoding/encoding dag cbor
+  - [VarInt.cs](/src/sdk/repo/VarInt.cs) - decoding/encoding varint
+  - [CidV1.cs](/src/sdk/repo/CidV1.cs) - decoding/encoding cid
+- [Firehose.cs](/src/sdk/firehose/Firehose.cs) - listening to the firehose. Uses the repo parser for decoding the records coming over the wire.
+- [BlueskyClient.cs](/src/sdk/ws/BlueskyClient.cs) - calling the Bluesky API.
 
 
 &nbsp;
