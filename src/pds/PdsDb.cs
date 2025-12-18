@@ -1,7 +1,7 @@
 using dnproto.sdk.log;
 using Microsoft.Data.Sqlite;
 
-namespace dnproto.pds.db;
+namespace dnproto.pds;
 
 public class PdsDb
 {

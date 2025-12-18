@@ -4,6 +4,9 @@ using dnproto.sdk.repo;
 
 namespace dnproto.pds;
 
+/// <summary>
+/// C# representation of the config file in the data directory.
+/// </summary>
 public class PdsConfig
 {
     public required string Version { get; set; }
