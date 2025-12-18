@@ -10,6 +10,8 @@ public abstract class BaseXrpcCommand
 
     public required PdsConfig PdsConfig;
 
+    public required HttpContext HttpContext;
+
     public abstract IResult GetResponse();
 
 }

@@ -30,7 +30,7 @@ public class BlueskyClient
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public static ActorInfo ResolveActorInfo(string? actor)
+    public static ActorInfo ResolveActorInfo(string? actor, bool useBsky = true, bool resolveDidDoc = true)
     {
         var ret = new ActorInfo();
         ret.Actor = actor;
@@ -54,7 +54,7 @@ public class BlueskyClient
         {
             ret.Handle = actor;
             Logger.LogTrace("Actor is not a did, resolving to did.");
-            ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(actor);
+            ret.Did_Bsky = useBsky ? ResolveHandleToDid_ViaBlueskyApi(actor) : null;
             ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
             ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
             ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
@@ -66,7 +66,7 @@ public class BlueskyClient
         //
         // 2. Resolve did to didDoc. (did:plc or did:web)
         //
-        ret.DidDoc = ResolveDidToDidDoc(ret.Did);
+        ret.DidDoc = resolveDidDoc ? ResolveDidToDidDoc(ret.Did) : null;
         if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
 
         Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
