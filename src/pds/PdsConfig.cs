@@ -24,6 +24,8 @@ public class PdsConfig
 
     public string ContactEmail { get; set; } = string.Empty;
 
+    public string AdminPassword { get; set; } = string.Empty;
+
     public static PdsConfig? LoadFromFile(BaseLogger logger, string filePath)
     {
         //
@@ -60,6 +62,7 @@ public class PdsConfig
         string? privacyPolicy = JsonData.SelectString(pdsConfigJson, "privacyPolicy") ?? string.Empty;
         string? termsOfService = JsonData.SelectString(pdsConfigJson, "termsOfService") ?? string.Empty;
         string? contactEmail = JsonData.SelectString(pdsConfigJson, "contactEmail") ?? string.Empty;
+        string? adminPassword = JsonData.SelectString(pdsConfigJson, "adminPassword") ?? string.Empty;
 
         //
         // Validate required fields
@@ -101,6 +104,12 @@ public class PdsConfig
             logger.LogWarning("PDS config file is missing 'phoneVerificationRequired' field. Defaulting to true.");
         }
 
+        if(string.IsNullOrEmpty(adminPassword))
+        {
+            logger.LogError("PDS config file is missing 'adminPassword' field. An admin password is required.");
+            return null;
+        }
+
 
 
         //
@@ -117,7 +126,8 @@ public class PdsConfig
             PhoneVerificationRequired = phoneVerificationRequired,
             PrivacyPolicy = privacyPolicy,
             TermsOfService = termsOfService,
-            ContactEmail = contactEmail
+            ContactEmail = contactEmail,
+            AdminPassword = adminPassword
         };
     }
 }
