@@ -15,6 +15,11 @@ public class StartFirehoseConsumer : BaseCommand
         return new HashSet<string>(["dataDir", "actor"]);
     }
 
+    public override HashSet<string> GetOptionalArguments()
+    {
+        return new HashSet<string>(["cursor"]);
+    }
+
 
     /// <summary>
     /// Listens to firehose and prints out what it sees.
@@ -30,6 +35,7 @@ public class StartFirehoseConsumer : BaseCommand
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+        string? cursorStr = CommandLineInterface.GetArgumentValue(arguments, "cursor");
 
 
         //
@@ -49,6 +55,12 @@ public class StartFirehoseConsumer : BaseCommand
         string? pds = actorInfo.Pds;
 
         string url = $"wss://{pds}/xrpc/com.atproto.sync.subscribeRepos";
+
+        if(!string.IsNullOrEmpty(cursorStr) && int.TryParse(cursorStr, out int cursor))
+        {
+            url += $"?cursor={cursorStr}";
+        }
+
 
         Logger.LogInfo($"Connecting to firehose at: {url}");
         
