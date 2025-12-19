@@ -2,48 +2,34 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
+using dnproto.sdk.repo;
+using dnproto.sdk.log;
 
 namespace dnproto.sdk.crypto;
 
 /// <summary>
-/// Signs JWT tokens using RSA or ECDSA cryptographic keys.
+/// Signs and validates JWT tokens using RSA or ECDSA cryptographic keys.
 /// </summary>
-public class Signer
+public static class Signer
 {
-    private readonly string _publicKey;
-    private readonly string _privateKey;
-    private readonly string _issuer;
-    private readonly string _audience;
-
-    /// <summary>
-    /// Initializes a new instance of the Signer class.
-    /// </summary>
-    /// <param name="publicKey">The public key in PEM format</param>
-    /// <param name="privateKey">The private key in PEM format</param>
-    /// <param name="issuer">The JWT issuer claim</param>
-    /// <param name="audience">The JWT audience claim</param>
-    public Signer(string publicKey, string privateKey, string issuer, string audience)
-    {
-        _publicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
-        _privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
-        _issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
-        _audience = audience ?? throw new ArgumentNullException(nameof(audience));
-    }
-
     /// <summary>
     /// Signs a JWT token with the specified claims and optional expiration time.
     /// </summary>
+    /// <param name="publicKey">The public key in hex or PEM format</param>
+    /// <param name="privateKey">The private key in hex or PEM format</param>
+    /// <param name="issuer">The JWT issuer claim</param>
+    /// <param name="audience">The JWT audience claim</param>
     /// <param name="claims">Additional claims to include in the token (optional)</param>
-    /// <param name="expiresInMinutes">Token expiration time in minutes (default: 60)</param>
+    /// <param name="expiresInSeconds">Token expiration time in seconds (default: 180)</param>
     /// <returns>A signed JWT token string</returns>
-    public string SignToken(Dictionary<string, string>? claims = null, int expiresInSeconds = 180)
+    public static string SignToken(string publicKey, string privateKey, string issuer, string audience, Dictionary<string, string>? claims = null, int expiresInSeconds = 180)
     {
         // Create a list of claims
         var claimsList = new List<Claim>
         {
             new("lxm", "com.atproto.server.createAccount"),
-            new(JwtRegisteredClaimNames.Iss, _issuer),
-            new(JwtRegisteredClaimNames.Aud, _audience),
+            new(JwtRegisteredClaimNames.Iss, issuer),
+            new(JwtRegisteredClaimNames.Aud, audience),
         };
 
         // Add any additional claims
@@ -58,7 +44,7 @@ public class Signer
         // Try to parse as RSA key first, then fall back to ECDSA
         SigningCredentials signingCredentials;
         
-        bool isHexFormat = !_privateKey.Contains("-----BEGIN");
+        bool isHexFormat = !privateKey.Contains("-----BEGIN");
         
         try
         {
@@ -66,8 +52,8 @@ public class Signer
             {
                 // Hex format - raw key bytes, assume ECDSA P-256
                 var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-                var privateKeyBytes = Convert.FromHexString(_privateKey);
-                var publicKeyBytes = Convert.FromHexString(_publicKey);
+                var privateKeyBytes = Convert.FromHexString(privateKey);
+                var publicKeyBytes = Convert.FromHexString(publicKey);
                 
                 // Handle compressed or uncompressed public key
                 ECPoint publicPoint;
@@ -110,7 +96,7 @@ public class Signer
                 try
                 {
                     var rsa = RSA.Create();
-                    rsa.ImportFromPem(_privateKey);
+                    rsa.ImportFromPem(privateKey);
                     var rsaKey = new RsaSecurityKey(rsa.ExportParameters(true));
                     signingCredentials = new SigningCredentials(rsaKey, SecurityAlgorithms.RsaSha256);
                 }
@@ -118,7 +104,7 @@ public class Signer
                 {
                     // Try ECDSA
                     var ecdsa = ECDsa.Create();
-                    ecdsa.ImportFromPem(_privateKey);
+                    ecdsa.ImportFromPem(privateKey);
                     var ecdsaKey = new ECDsaSecurityKey(ecdsa);
                     signingCredentials = new SigningCredentials(ecdsaKey, SecurityAlgorithms.EcdsaSha256);
                 }
@@ -145,6 +131,176 @@ public class Signer
         var token = tokenHandler.CreateToken(tokenDescriptor);
         
         return tokenHandler.WriteToken(token);
+    }
+
+    /// <summary>
+    /// Validates an incoming JWT token from an Authorization header.
+    /// Caller needs to look up user's public key in did doc.
+    /// </summary>
+    /// <param name="token">The JWT token string (without "Bearer " prefix)</param>
+    /// <param name="issuerPublicKey">The public key of the expected issuer in multibase, hex, or PEM format</param>
+    /// <param name="expectedIssuer">The expected issuer (iss claim)</param>
+    /// <param name="expectedAudience">The expected audience (aud claim)</param>
+    /// <param name="logger">Optional logger for error reporting</param>
+    /// <returns>A ClaimsPrincipal if valid, null if validation fails</returns>
+    public static ClaimsPrincipal? ValidateToken(string token, string issuerPublicKey, string expectedIssuer, string expectedAudience, BaseLogger? logger = null)
+    {
+        try
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            
+            // Create security key from public key
+            SecurityKey securityKey;
+        
+        // Determine format: multibase (starts with 'z'), PEM (contains -----BEGIN), or hex
+        if (issuerPublicKey.StartsWith('z'))
+        {
+            // Multibase format (from DID document)
+            var publicKeyBytes = Base58BtcEncoding.DecodeMultibase(issuerPublicKey);
+            
+            // Remove multicodec prefix (first 2 bytes for P-256: 0x80 0x24)
+            byte[] keyBytes;
+            if (publicKeyBytes.Length > 2 && publicKeyBytes[0] == 0x80 && publicKeyBytes[1] == 0x24)
+            {
+                keyBytes = publicKeyBytes.Skip(2).ToArray();
+            }
+            else
+            {
+                keyBytes = publicKeyBytes;
+            }
+            
+            var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            
+            // Handle compressed or uncompressed public key
+            ECPoint publicPoint;
+            if (keyBytes.Length == 33 && (keyBytes[0] == 0x02 || keyBytes[0] == 0x03))
+            {
+                var x = keyBytes.Skip(1).Take(32).ToArray();
+                var y = DecompressPublicKey(x, keyBytes[0] == 0x03);
+                publicPoint = new ECPoint { X = x, Y = y };
+            }
+            else if (keyBytes.Length == 65 && keyBytes[0] == 0x04)
+            {
+                publicPoint = new ECPoint
+                {
+                    X = keyBytes.Skip(1).Take(32).ToArray(),
+                    Y = keyBytes.Skip(33).Take(32).ToArray()
+                };
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid public key format. Expected 33 or 65 bytes, got {keyBytes.Length}.");
+            }
+            
+            var parameters = new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                Q = publicPoint
+            };
+            
+            ecdsa.ImportParameters(parameters);
+            securityKey = new ECDsaSecurityKey(ecdsa);
+        }
+        else if (issuerPublicKey.Contains("-----BEGIN"))
+        {
+            // PEM format - try RSA first, then ECDSA
+            try
+            {
+                var rsa = RSA.Create();
+                rsa.ImportFromPem(issuerPublicKey);
+                securityKey = new RsaSecurityKey(rsa);
+            }
+            catch
+            {
+                var ecdsa = ECDsa.Create();
+                ecdsa.ImportFromPem(issuerPublicKey);
+                securityKey = new ECDsaSecurityKey(ecdsa);
+            }
+        }
+        else
+        {
+            // Hex format - assume ECDSA P-256
+            var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            var publicKeyBytes = Convert.FromHexString(issuerPublicKey);
+            
+            // Handle compressed or uncompressed public key
+            ECPoint publicPoint;
+            if (publicKeyBytes.Length == 33 && (publicKeyBytes[0] == 0x02 || publicKeyBytes[0] == 0x03))
+            {
+                var x = publicKeyBytes.Skip(1).Take(32).ToArray();
+                var y = DecompressPublicKey(x, publicKeyBytes[0] == 0x03);
+                publicPoint = new ECPoint { X = x, Y = y };
+            }
+            else if (publicKeyBytes.Length == 65 && publicKeyBytes[0] == 0x04)
+            {
+                publicPoint = new ECPoint
+                {
+                    X = publicKeyBytes.Skip(1).Take(32).ToArray(),
+                    Y = publicKeyBytes.Skip(33).Take(32).ToArray()
+                };
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid public key format.");
+            }
+            
+            var parameters = new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                Q = publicPoint
+            };
+            
+            ecdsa.ImportParameters(parameters);
+            securityKey = new ECDsaSecurityKey(ecdsa);
+        }
+        
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = expectedIssuer,
+            ValidateAudience = true,
+            ValidAudience = expectedAudience,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = securityKey,
+            ClockSkew = TimeSpan.FromMinutes(5) // Allow 5 minute clock skew
+        };
+        
+            return tokenHandler.ValidateToken(token, validationParameters, out _);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError($"JWT validation failed: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Extracts claims from a validated JWT token without validation.
+    /// Use ValidateToken first to ensure the token is valid.
+    /// </summary>
+    /// <param name="token">The JWT token string</param>
+    /// <returns>Dictionary of claim types to values</returns>
+    public static Dictionary<string, string> GetClaims(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var jwtToken = tokenHandler.ReadJwtToken(token);
+        
+        return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
+    }
+
+    /// <summary>
+    /// Extracts a specific claim value from a JWT token without validation.
+    /// </summary>
+    /// <param name="token">The JWT token string</param>
+    /// <param name="claimType">The claim type to extract (e.g., "lxm", "iss", "aud")</param>
+    /// <returns>The claim value, or null if not found</returns>
+    public static string? GetClaim(string token, string claimType)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var jwtToken = tokenHandler.ReadJwtToken(token);
+        
+        return jwtToken.Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
     }
 
     /// <summary>

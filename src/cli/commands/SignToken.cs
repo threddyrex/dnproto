@@ -31,8 +31,7 @@ public class SignToken : BaseCommand
         //
         // Call signer
         //
-        var signer = new Signer(publicKey, privateKey, issuer, audience);
-        string token = signer.SignToken();
+        string token = Signer.SignToken(publicKey, privateKey, issuer, audience);
         Logger.LogInfo($"Signed Token:\n{token}");
     }
 }
