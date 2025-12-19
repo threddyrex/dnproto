@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using dnproto.sdk.repo;
 
-namespace dnproto.sdk.crypto;
+namespace dnproto.sdk.auth;
 
 public class KeyPair
 {

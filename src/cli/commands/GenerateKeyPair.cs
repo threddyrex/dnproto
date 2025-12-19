@@ -1,5 +1,5 @@
 
-using dnproto.sdk.crypto;
+using dnproto.sdk.auth;
 using dnproto.sdk.ws;
 using dnproto.sdk.fs;
 
