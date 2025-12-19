@@ -8,7 +8,9 @@ public class KeyPair
     public required string KeyType { get; set; }
     public required string KeyTypeName { get; set; }
     public required string PublicKeyMultibase { get; set; }
+    public required string PublicKeyHex { get; set; }
     public required string PrivateKeyMultibase { get; set; }
+    public required string PrivateKeyHex { get; set; }
     public required string DidKey { get; set; }
 
     /// <summary>
@@ -86,12 +88,18 @@ public class KeyPair
         string privateKeyMultibase = Base58BtcEncoding.EncodeMultibase(privateKeyWithPrefix);
         string publicKeyMultibase = Base58BtcEncoding.EncodeMultibase(publicKeyWithPrefix);
 
+        // Convert keys to hex strings
+        string privateKeyHex = Convert.ToHexString(privateKeyBytes).ToLowerInvariant();
+        string publicKeyHex = Convert.ToHexString(publicKeyBytes).ToLowerInvariant();
+
         return new KeyPair
         {
             KeyType = keyType.ToLower(),
             KeyTypeName = keyTypeName,
             PublicKeyMultibase = publicKeyMultibase,
+            PublicKeyHex = publicKeyHex,
             PrivateKeyMultibase = privateKeyMultibase,
+            PrivateKeyHex = privateKeyHex,
             DidKey = $"did:key:z{Base58BtcEncoding.Encode(publicKeyWithPrefix)}"
         };
     }

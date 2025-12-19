@@ -46,11 +46,14 @@ public class GenerateKeyPair : BaseCommand
         Logger.LogInfo("");
         Logger.LogInfo($"Key Type: {generatedKey.KeyTypeName}");
         Logger.LogInfo("");
-        Logger.LogInfo("Secret Key (Multibase Syntax): save this securely (eg, add to password manager)");
-        Logger.LogInfo($"        {generatedKey.PrivateKeyMultibase}");
+        Logger.LogInfo("PRIVATE KEY: save this securely (eg, add to password manager)");
+        Logger.LogInfo($"        (Multibase syntax) {generatedKey.PrivateKeyMultibase}");
+        Logger.LogInfo($"        (Hex syntax) {generatedKey.PrivateKeyHex}");
         Logger.LogInfo("");
-        Logger.LogInfo("Public Key (DID Key Syntax): share or publish this (eg, in DID document)");
-        Logger.LogInfo($"        {generatedKey.DidKey}");
+        Logger.LogInfo("PUBLIC KEY: share or publish this (eg, in DID document)");
+        Logger.LogInfo($"        (DID Key Syntax) {generatedKey.DidKey}");
+        Logger.LogInfo($"        (Multibase syntax) {generatedKey.PublicKeyMultibase}");
+        Logger.LogInfo($"        (Hex syntax) {generatedKey.PublicKeyHex}");
         Logger.LogInfo("");
     }
 }
