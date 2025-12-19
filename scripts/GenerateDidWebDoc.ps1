@@ -14,4 +14,4 @@ param (
 
 . .\_Defaults.ps1
 
-& $dnprotoPath /command Pds_GenerateDidWebDoc /logLevel $logLevel /dataDir $dataDir /did "$did" /handle "$handle" /publicKeyMultibase "$publicKeyMultibase" /pds "$pds"
+& $dnprotoPath /command GenerateDidWebDoc /logLevel $logLevel /dataDir $dataDir /did "$did" /handle "$handle" /publicKeyMultibase "$publicKeyMultibase" /pds "$pds"

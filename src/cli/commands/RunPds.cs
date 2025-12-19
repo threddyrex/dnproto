@@ -1,12 +1,6 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+
 
 using dnproto.pds;
-using dnproto.sdk.log;
-using dnproto.sdk.repo;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
 
 
 namespace dnproto.cli.commands
@@ -14,7 +8,7 @@ namespace dnproto.cli.commands
     /// <summary>
     /// A minimal ASP.NET Core web API that responds to /hello with "world"
     /// </summary>
-    public class Pds_Run : BaseCommand
+    public class RunPds : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {

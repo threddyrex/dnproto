@@ -6,7 +6,7 @@ using dnproto.sdk.fs;
 namespace dnproto.cli.commands;
 
 
-public class Pds_GenerateKeyPair : BaseCommand
+public class GenerateKeyPair : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

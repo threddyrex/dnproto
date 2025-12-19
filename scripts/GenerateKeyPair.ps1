@@ -7,4 +7,4 @@ param (
 
 . .\_Defaults.ps1
 
-& $dnprotoPath /command Pds_GenerateKey /logLevel $logLevel /dataDir $dataDir /keytype $keyType
+& $dnprotoPath /command GenerateKeyPair /logLevel $logLevel /dataDir $dataDir /keytype $keyType
