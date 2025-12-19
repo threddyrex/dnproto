@@ -21,6 +21,8 @@ public class ComAtprotoServer_CreateAccount : BaseXrpcCommand
             || ! CheckRequestBodyParam(requestBody, "inviteCode", out inviteCode)
             || ! CheckRequestBodyParam(requestBody, "password", out password)
             || string.IsNullOrEmpty(inviteCode)
+            || string.IsNullOrEmpty(handle)
+            || string.IsNullOrEmpty(did)
         )
         {
             return Results.Json(new { error = "InvalidRequest", message = "Error: invalid params." }, statusCode: 400);
@@ -30,16 +32,17 @@ public class ComAtprotoServer_CreateAccount : BaseXrpcCommand
         // See if we have a valid invite code
         //
         int inviteCodeUseCount = Pds.PdsDb.GetInviteCodeCount(inviteCode);
-        if(inviteCodeUseCount < 1)
-        {
-            return Results.Json(new { error = "InvalidRequest", message = "Error: invalid invite code." }, statusCode: 400);            
-        }
 
+
+        //
+        // See if account exists
+        //
+        bool accountExists = Pds.PdsDb.AccountExists(handle, did);
 
 
         //
         // Return info
         //
-        return Results.Json(new { status = "good so far...to be continued..." }, statusCode: 200);
+        return Results.Json(new { inviteCodeUseCount = inviteCodeUseCount, accountExists = accountExists }, statusCode: 200);
     }
 }

@@ -65,6 +65,21 @@ CREATE TABLE IF NOT EXISTS InviteCodes (
             command.ExecuteNonQuery();
 
 
+            //
+            // Accounts table
+            //
+            logger.LogInfo("table: Accounts");
+            command = connection.CreateCommand();
+            command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Accounts (
+    Handle TEXT NOT NULL,
+    Did TEXT NOT NULL,
+    HashedPassword TEXT NOT NULL
+)
+            ";
+            
+            command.ExecuteNonQuery();
+
 
         }
         
@@ -190,5 +205,20 @@ CREATE TABLE IF NOT EXISTS InviteCodes (
             var result = command.ExecuteScalar();
             return result != null ? Convert.ToInt32(result) : 0;
         }
+    }
+
+    public bool AccountExists(string handle, string did)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM Accounts WHERE Handle = @handle OR Did = @did";
+            command.Parameters.AddWithValue("@handle", handle);
+            command.Parameters.AddWithValue("@did", did);
+            
+            var result = command.ExecuteScalar();
+            return (result != null ? Convert.ToInt32(result) : 0) > 0;
+        }
+        
     }
 }
