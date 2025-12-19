@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using dnproto.sdk.auth;
 using dnproto.sdk.ws;
 using Microsoft.AspNetCore.Http;
 
@@ -35,15 +36,29 @@ public class ComAtprotoServer_CreateAccount : BaseXrpcCommand
 
 
         //
-        // See if account exists
+        // See if account already exists
         //
-        bool accountExists = Pds.PdsDb.AccountExists(handle, did);
+        bool accountAlreadyExists = Pds.PdsDb.AccountExists(handle, did);
 
         //
         // Resolve actor and check public key multibase.
         //
         ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(handle, useBsky: false);
         string? publicKeyMultibase = actorInfo?.PublicKeyMultibase;
+
+        //
+        // Hash password
+        //
+        string passwordHash = PasswordHasher.HashPassword(password!);
+
+
+        //
+        // Create account
+        //
+        if(!accountAlreadyExists)
+        {
+            Pds.PdsDb.CreateAccount(handle!, did!, passwordHash);
+        }
 
 
         //
@@ -52,8 +67,9 @@ public class ComAtprotoServer_CreateAccount : BaseXrpcCommand
         return Results.Json(new 
         { 
             inviteCodeUseCount = inviteCodeUseCount, 
-            accountExists = accountExists, 
-            publicKeyMultibase = publicKeyMultibase 
+            accountAlreadyExists = accountAlreadyExists, 
+            publicKeyMultibase = publicKeyMultibase,
+            passwordHash = passwordHash
         }, 
         statusCode: 200);
     }

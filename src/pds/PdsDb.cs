@@ -219,6 +219,13 @@ CREATE TABLE IF NOT EXISTS Accounts (
             var result = command.ExecuteScalar();
             return (result != null ? Convert.ToInt32(result) : 0) > 0;
         }
-        
+    }
+
+    public void CreateAccount(string handle, string did, string hashedPassword)
+    {
+        ExecuteNonQuery($@"
+            INSERT INTO Accounts (Handle, Did, HashedPassword)
+            VALUES ('{handle}', '{did}', '{hashedPassword}')
+        ");
     }
 }
