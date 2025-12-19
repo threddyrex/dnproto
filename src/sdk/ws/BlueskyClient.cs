@@ -774,6 +774,25 @@ public class BlueskyClient
     }
 
 
+    public static JsonNode? CreateAccount(string? pds, string? handle, string? did, string? inviteCode, string? password)
+    {
+        string url = $"https://{pds}/xrpc/com.atproto.server.createAccount";
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            content: new StringContent(JsonSerializer.Serialize(new
+            {
+                handle = handle,
+                did = did,
+                inviteCode = inviteCode,
+                password = password
+            }))
+        );
+
+        return response;        
+    }
+
+
     /// <summary>
     /// Return set of bookmarks for the user.
     /// </summary>
@@ -929,14 +948,13 @@ public class BlueskyClient
             if (!succeeded) 
             {
                 Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
-                return null;
             }
 
             //
             // If user wants json, parse that.
             //
             JsonNode? jsonResponse = null;
-            if (parseJsonResponse && succeeded)
+            if (parseJsonResponse)
             {
                 using (var reader = new StreamReader(response.Content.ReadAsStream()))
                 {
@@ -944,7 +962,14 @@ public class BlueskyClient
 
                     if (string.IsNullOrEmpty(responseText) == false)
                     {
-                        jsonResponse = JsonNode.Parse(responseText);
+                        try
+                        {
+                            jsonResponse = JsonNode.Parse(responseText);                            
+                        }
+                        catch
+                        {
+                            //
+                        }
                     }
                 }
             }

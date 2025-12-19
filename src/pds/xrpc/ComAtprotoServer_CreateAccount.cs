@@ -1,0 +1,45 @@
+using System.Text.Json.Nodes;
+using dnproto.sdk.ws;
+using Microsoft.AspNetCore.Http;
+
+namespace dnproto.pds.xrpc;
+
+
+public class ComAtprotoServer_CreateAccount : BaseXrpcCommand
+{
+    public override IResult GetResponse()
+    {
+
+        //
+        // Get body input
+        //
+        JsonNode? requestBody = GetRequestBodyAsJson();
+        string? handle, did, inviteCode, password;
+
+        if(!CheckRequestBodyParam(requestBody, "handle", out handle)
+            || ! CheckRequestBodyParam(requestBody, "did", out did)
+            || ! CheckRequestBodyParam(requestBody, "inviteCode", out inviteCode)
+            || ! CheckRequestBodyParam(requestBody, "password", out password)
+            || string.IsNullOrEmpty(inviteCode)
+        )
+        {
+            return Results.Json(new { error = "InvalidRequest", message = "Error: invalid params." }, statusCode: 400);
+        }
+
+        //
+        // See if we have a valid invite code
+        //
+        int inviteCodeUseCount = Pds.PdsDb.GetInviteCodeCount(inviteCode);
+        if(inviteCodeUseCount < 1)
+        {
+            return Results.Json(new { error = "InvalidRequest", message = "Error: invalid invite code." }, statusCode: 400);            
+        }
+
+
+
+        //
+        // Return info
+        //
+        return Results.Json(new { status = "good so far...to be continued..." }, statusCode: 200);
+    }
+}

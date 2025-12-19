@@ -106,4 +106,23 @@ public abstract class BaseXrpcCommand
 
         return true;
     }
+
+    protected bool CheckRequestBodyParam(JsonNode? requestBody, string paramName, out string? value)
+    {
+        value = null;
+
+        if(requestBody == null)
+        {
+            return false;
+        }
+
+        value = requestBody[paramName]?.ToString();
+
+        if(string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

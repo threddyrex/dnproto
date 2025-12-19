@@ -48,8 +48,11 @@ public class PdsDb
         using (var connection = new SqliteConnection(connectionString))
         {
             connection.Open();
-            
-            // Create InviteCodes table if it doesn't exist
+
+            //
+            // InviteCodes table
+            //
+            logger.LogInfo("table: InviteCodes");
             var command = connection.CreateCommand();
             command.CommandText = @"
 CREATE TABLE IF NOT EXISTS InviteCodes (
@@ -60,7 +63,9 @@ CREATE TABLE IF NOT EXISTS InviteCodes (
             ";
             
             command.ExecuteNonQuery();
-            logger.LogInfo("InviteCodes table created or already exists.");
+
+
+
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -103,6 +108,39 @@ CREATE TABLE IF NOT EXISTS InviteCodes (
 
 
     /// <summary>
+    /// Executes a query and returns the result rows as a list of dictionaries.
+    /// Each dictionary represents a row with column names as keys.
+    /// </summary>
+    /// <param name="sql">The SQL query to execute</param>
+    /// <returns>List of dictionaries containing the query results</returns>
+    public List<Dictionary<string, object?>> ExecuteQuery(string sql)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = sql;
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var row = new Dictionary<string, object?>();
+                    for(int i = 0; i < reader.FieldCount; i++)
+                    {
+                        row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                    }
+                    results.Add(row);
+                }
+            }
+        }
+        
+        return results;
+    }
+
+
+
+    /// <summary>
     /// Creates invite code, adds to db, and returns value.
     /// </summary>
     /// <param name="useCount"></param>
@@ -124,5 +162,33 @@ CREATE TABLE IF NOT EXISTS InviteCodes (
         ");
 
         return inviteCode;
+    }
+
+    public bool IsInviteCodeValid(string inviteCode)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT 1 FROM InviteCodes WHERE InviteCode = @inviteCode AND UseCount > 0";
+            command.Parameters.AddWithValue("@inviteCode", inviteCode);
+            
+            using(var reader = command.ExecuteReader())
+            {
+                return reader.Read();
+            }
+        }
+    }
+
+    public int GetInviteCodeCount(string inviteCode)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT UseCount FROM InviteCodes WHERE InviteCode = @inviteCode";
+            command.Parameters.AddWithValue("@inviteCode", inviteCode);
+            
+            var result = command.ExecuteScalar();
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
     }
 }
