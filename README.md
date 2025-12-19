@@ -8,12 +8,6 @@ This is a tool written in C# for interacting with ATProto and Bluesky.
 
 # Source code
 
-The source code is broken down into three main areas:
-
-- cli - the command line interface for the console program
-- sdk - classes that are reusable in other C# programs
-- pds - an (in-progress) implementation of a PDS
-
 For CAR repo parsing, see these classes:
 
 - [Repo.cs](/src/sdk/repo/Repo.cs) - repo parsing code. entry point
