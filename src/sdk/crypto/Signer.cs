@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 
-namespace dnproto.sdk.key;
+namespace dnproto.sdk.crypto;
 
 /// <summary>
 /// Signs JWT tokens using RSA or ECDSA cryptographic keys.

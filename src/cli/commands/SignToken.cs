@@ -1,3 +1,6 @@
+
+using dnproto.sdk.crypto;
+
 namespace dnproto.cli.commands;
 
 
@@ -28,7 +31,7 @@ public class SignToken : BaseCommand
         //
         // Call signer
         //
-        var signer = new dnproto.sdk.key.Signer(publicKey, privateKey, issuer, audience);
+        var signer = new Signer(publicKey, privateKey, issuer, audience);
         string token = signer.SignToken();
         Logger.LogInfo($"Signed Token:\n{token}");
     }
