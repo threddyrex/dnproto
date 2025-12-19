@@ -60,7 +60,7 @@ public static class CommandLineInterface
         bool logToDataDir = GetArgumentValueWithDefault(arguments, "logtodatadir", false);
         if (logToDataDir && localFileSystem != null)
         {
-            var fileLogDestination = FileLogDestination.CreateFromDataDir(localFileSystem.DataDir);
+            var fileLogDestination = FileLogDestination.CreateFromDataDir(localFileSystem.DataDir, GetArgumentValueWithDefault(arguments, "command", "dnproto"));
 
             if (fileLogDestination != null)
             {
