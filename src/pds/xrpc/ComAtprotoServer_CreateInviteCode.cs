@@ -21,22 +21,10 @@ public class ComAtprotoServer_CreateInviteCode : BaseXrpcCommand
         // Get body input
         //
         JsonNode? requestBody = GetRequestBodyAsJson();
-        if(requestBody == null)
-        {
-            return Results.Json(new { error = "InvalidRequest", message = "Error: Request body is not valid JSON" }, statusCode: 400);
-        }
-
-        string? useCountStr = requestBody["useCount"]?.ToString();
-
         int useCount = 0;
-        if(string.IsNullOrEmpty(useCountStr) || !int.TryParse(useCountStr, out useCount))
+        if(CheckRequestBodyParamInt(requestBody, "useCount", out useCount, minValue: 1, maxValue: 10) == false)
         {
-            return Results.Json(new { error = "InvalidRequest", message = "Error: Request body must have a valid \"useCount\" property" }, statusCode: 400);
-        }
-
-        if(useCount < 1 || useCount > 10)
-        {
-            return Results.Json(new { error = "InvalidRequest", message = "Error: \"useCount\" must be between 1 and 10" }, statusCode: 400);
+            return Results.Json(new { error = "InvalidRequest", message = "Error: Request body must have a valid \"useCount\" property between 1 and 10" }, statusCode: 400);
         }
 
 

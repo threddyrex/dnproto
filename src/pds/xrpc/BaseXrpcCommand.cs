@@ -73,4 +73,37 @@ public abstract class BaseXrpcCommand
             }
         }
     }
+
+    /// <summary>
+    /// Helper for getting int in request body.
+    /// </summary>
+    /// <param name="requestBody"></param>
+    /// <param name="paramName"></param>
+    /// <param name="value"></param>
+    /// <param name="minValue"></param>
+    /// <param name="maxValue"></param>
+    /// <returns></returns>
+    protected bool CheckRequestBodyParamInt(JsonNode? requestBody, string paramName, out int value, int minValue = int.MinValue, int maxValue = int.MaxValue)
+    {
+        value = 0;
+
+        if(requestBody == null)
+        {
+            return false;
+        }
+
+        string? valueStr = requestBody[paramName]?.ToString();
+
+        if(string.IsNullOrEmpty(valueStr) || !int.TryParse(valueStr, out value))
+        {
+            return false;
+        }
+
+        if(value < minValue || value > maxValue)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
