@@ -35,6 +35,7 @@ public class GetActorInfo : BaseCommand
         Logger.LogInfo($"did_dns: {resolveHandleInfo?.Did_Dns}");
         Logger.LogInfo($"handle: {resolveHandleInfo?.Handle}");
         Logger.LogInfo($"pds: {resolveHandleInfo?.Pds}");
+        Logger.LogInfo($"public key (multibase): {resolveHandleInfo?.PublicKeyMultibase}");
         Logger.LogInfo($"did doc: {resolveHandleInfo?.DidDoc}");
     }
 }

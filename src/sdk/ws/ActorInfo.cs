@@ -23,6 +23,8 @@ public class ActorInfo
 
     public string? Pds { get; set; }
 
+    public string? PublicKeyMultibase { get; set; }
+
     public string? ToJsonString()
     {
         var options = new JsonSerializerOptions { WriteIndented = true };

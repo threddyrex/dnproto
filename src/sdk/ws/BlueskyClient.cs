@@ -84,13 +84,36 @@ public class BlueskyClient
         //
         // 4. Get handle from diddoc
         //
-        if (ret.DidDoc != null && string.IsNullOrEmpty(ret.Handle))
+        if (ret.DidDoc != null)
         {
-            string? handleFromDidDoc = null;
             JsonNode? didDocJson = JsonNode.Parse(ret.DidDoc);
-            handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
-            ret.Handle = handleFromDidDoc;
+
+            if(string.IsNullOrEmpty(ret.Handle))
+            {
+                string? handleFromDidDoc = null;
+                handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
+                ret.Handle = handleFromDidDoc;
+            }
+
+
+            //
+            // 5. Get public key from diddoc
+            //
+            if (string.IsNullOrEmpty(ret.PublicKeyMultibase))
+            {
+                foreach (var verificationMethod in didDocJson?["verificationMethod"]?.AsArray() ?? new JsonArray())
+                {
+                    if (verificationMethod == null) continue;
+                    var vmId = verificationMethod["id"]?.ToString();
+                    if (vmId != null && vmId.EndsWith("#atproto"))
+                    {
+                        ret.PublicKeyMultibase = verificationMethod["publicKeyMultibase"]?.ToString();
+                        break;
+                    }
+                }
+            }
         }
+
 
         //
         // return
