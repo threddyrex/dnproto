@@ -25,29 +25,17 @@ public class CreateInviteCode : BaseCommand
         string? adminPassword = arguments.ContainsKey("adminpassword") ? arguments["adminpassword"] : null;
         string? useCountStr = arguments.ContainsKey("usecount") ? arguments["usecount"] : null;
 
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(adminPassword) || string.IsNullOrEmpty(useCountStr))
+        int useCount;
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(adminPassword) || string.IsNullOrEmpty(useCountStr) || !int.TryParse(useCountStr, out useCount))
         {
             Logger.LogError("Missing required arguments.");
             return;
         }
 
-        int useCount;
-        if (!int.TryParse(useCountStr, out useCount))
-        {
-            Logger.LogError("Invalid usecount argument.");
-            return;
-        }
-
-
         //
         // Call pds
         //
         JsonNode? result = BlueskyClient.CreateInviteCode(pds, adminPassword, useCount);
-        if (result == null)
-        {
-            Logger.LogError("Error: No response from PDS.");
-            return;
-        }
         BlueskyClient.PrintJsonResponseToConsole(result);
         
     }
