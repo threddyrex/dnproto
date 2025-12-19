@@ -15,7 +15,7 @@ public class GenerateDidWebDoc : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[] { "datadir" });
+        return new HashSet<string>(new string[] { });
     }
 
     /// <summary>

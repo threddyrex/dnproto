@@ -12,7 +12,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"dataDir"});
+            return new HashSet<string>(new string[]{});
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)

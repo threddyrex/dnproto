@@ -12,7 +12,7 @@ public class GetBlob : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[] { "dataDir", "actor", "outdir" });
+        return new HashSet<string>(new string[] { "actor", "outdir" });
     }
 
 

@@ -15,7 +15,7 @@ public class DeletePost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "actor", "url"});
+        return new HashSet<string>(new string[]{"actor", "url"});
     }
     
 

@@ -15,7 +15,7 @@ public class LogIn : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "actor", "password"});
+        return new HashSet<string>(new string[]{"actor", "password"});
     }
 
     public override HashSet<string> GetOptionalArguments()

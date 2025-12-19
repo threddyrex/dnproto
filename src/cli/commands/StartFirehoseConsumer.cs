@@ -12,7 +12,7 @@ public class StartFirehoseConsumer : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(["dataDir", "actor"]);
+        return new HashSet<string>(["actor"]);
     }
 
     public override HashSet<string> GetOptionalArguments()

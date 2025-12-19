@@ -10,7 +10,7 @@ public class GenerateKeyPair : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir"});
+        return new HashSet<string>(new string[]{});
     }
 
     public override HashSet<string> GetOptionalArguments()

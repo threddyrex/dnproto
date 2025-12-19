@@ -16,7 +16,7 @@ public class GetProfile : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "sessionActor"});
+        return new HashSet<string>(new string[]{"sessionActor"});
     }
 
 

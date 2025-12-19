@@ -14,7 +14,7 @@ public class GetRepo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "actor"});
+        return new HashSet<string>(new string[]{"actor"});
     }
 
 

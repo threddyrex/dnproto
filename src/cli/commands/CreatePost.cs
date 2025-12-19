@@ -15,7 +15,7 @@ public class CreatePost : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "actor", "text"});
+        return new HashSet<string>(new string[]{"actor", "text"});
     }
     public override HashSet<string> GetOptionalArguments()
     {

@@ -14,7 +14,7 @@ public class LogOut : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "actor"});
+        return new HashSet<string>(new string[]{"actor"});
     }
     
     /// <summary>

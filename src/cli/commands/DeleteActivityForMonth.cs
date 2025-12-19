@@ -15,7 +15,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return ["dataDir", "actor", "month"];
+            return ["actor", "month"];
         }
 
         public override HashSet<string> GetOptionalArguments()

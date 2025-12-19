@@ -30,7 +30,7 @@ public class LocalFileSystem(string dataDir, ILogger logger)
             return null;
         }
 
-        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch" })
+        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch", "logs" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)

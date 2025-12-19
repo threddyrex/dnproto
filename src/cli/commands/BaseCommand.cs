@@ -1,4 +1,5 @@
 
+using dnproto.sdk.fs;
 using dnproto.sdk.log;
 
 namespace dnproto.cli.commands
@@ -9,6 +10,8 @@ namespace dnproto.cli.commands
     public abstract class BaseCommand
     {
         public ILogger Logger = new Logger();
+
+        public LocalFileSystem? LocalFileSystem = null;
 
         /// <summary>
         /// These arguments *must* be specified by the user when running the command.

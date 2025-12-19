@@ -1,5 +1,6 @@
 using System.Reflection;
 using dnproto.cli.commands;
+using dnproto.sdk.fs;
 using dnproto.sdk.log;
 using dnproto.sdk.ws;
 
@@ -39,6 +40,34 @@ public static class CommandLineInterface
         }
 
         BlueskyClient.Logger = logger;
+
+
+        //
+        // See if they set datadir
+        //
+        LocalFileSystem? localFileSystem = null;
+        string? dataDir = GetArgumentValue(arguments, "datadir");
+        if (string.IsNullOrEmpty(dataDir) == false)
+        {
+            localFileSystem = LocalFileSystem.Initialize(dataDir, logger);
+            logger.LogTrace($"Using data directory: {dataDir}");
+        }
+
+
+        //
+        // See if they want to log to data dir
+        //
+        bool logToDataDir = GetArgumentValueWithDefault(arguments, "logtodatadir", false);
+        if (logToDataDir && localFileSystem != null)
+        {
+            var fileLogDestination = FileLogDestination.CreateFromDataDir(localFileSystem.DataDir);
+
+            if (fileLogDestination != null)
+            {
+                logger.AddDestination(fileLogDestination);
+                logger.LogInfo($"Logging to data dir enabled. path: {fileLogDestination.FilePath}");
+            }
+        }
 
 
         //
@@ -108,7 +137,13 @@ public static class CommandLineInterface
             }
         }
 
+
+        //
+        // Add some common services to the command
+        //
         commandInstance.Logger = logger;
+        commandInstance.LocalFileSystem = localFileSystem;
+
 
         //
         // Check that arguments exist. If not, print arguments and return.
@@ -318,7 +353,7 @@ public static class CommandLineInterface
 
     public static HashSet<string> GetReservedArguments()
     {
-        return new HashSet<string>(new string[] { "command", "debugattach", "loglevel" });
+        return new HashSet<string>(new string[] { "command", "debugattach", "loglevel", "logtodatadir", "datadir" });
     }
 
     public static string? GetArgumentValue(Dictionary<string, string> arguments, string argumentName)

@@ -8,7 +8,7 @@ public class SignToken : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"dataDir", "publickey", "privatekey", "issuer", "audience"});
+        return new HashSet<string>(new string[]{"publickey", "privatekey", "issuer", "audience"});
     }
 
 

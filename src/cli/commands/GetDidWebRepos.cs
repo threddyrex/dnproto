@@ -16,7 +16,7 @@ public class GetDidWebRepos : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[] { "dataDir", "stateJsonFile" });
+        return new HashSet<string>(new string[] { "stateJsonFile" });
     }
 
 
