@@ -39,10 +39,22 @@ public class ComAtprotoServer_CreateAccount : BaseXrpcCommand
         //
         bool accountExists = Pds.PdsDb.AccountExists(handle, did);
 
+        //
+        // Resolve actor and check public key multibase.
+        //
+        ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(handle, useBsky: false);
+        string? publicKeyMultibase = actorInfo?.PublicKeyMultibase;
+
 
         //
         // Return info
         //
-        return Results.Json(new { inviteCodeUseCount = inviteCodeUseCount, accountExists = accountExists }, statusCode: 200);
+        return Results.Json(new 
+        { 
+            inviteCodeUseCount = inviteCodeUseCount, 
+            accountExists = accountExists, 
+            publicKeyMultibase = publicKeyMultibase 
+        }, 
+        statusCode: 200);
     }
 }
