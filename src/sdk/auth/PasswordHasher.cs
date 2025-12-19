@@ -46,16 +46,16 @@ namespace dnproto.sdk.auth
         /// <param name="hashedPassword">The stored hash (base64-encoded).</param>
         /// <param name="password">The password to verify.</param>
         /// <returns>True if the password matches the hash, otherwise false.</returns>
-        public static bool VerifyPassword(string hashedPassword, string password)
+        public static bool VerifyPassword(string? hashedPassword, string? password)
         {
             if (string.IsNullOrEmpty(hashedPassword))
             {
-                throw new ArgumentException("Hashed password cannot be null or empty.", nameof(hashedPassword));
+                return false;
             }
 
             if (string.IsNullOrEmpty(password))
             {
-                throw new ArgumentException("Password cannot be null or empty.", nameof(password));
+                return false;
             }
 
             try

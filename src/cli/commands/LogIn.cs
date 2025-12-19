@@ -115,5 +115,7 @@ public class LogIn : BaseCommand
         Logger.LogInfo($"Writing session file: {sessionFile}");
         JsonData.WriteJsonToFile(session, sessionFile);
 
+        BlueskyClient.PrintJsonResponseToConsole(session);
+
     }
 }

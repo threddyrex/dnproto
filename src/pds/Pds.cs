@@ -137,6 +137,7 @@ public class Pds
         App.MapGet("/xrpc/com.atproto.identity.resolveHandle", (HttpContext context) => new ComAtprotoIdentity_ResolveHandle(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.server.createInviteCode", (HttpContext context) => new ComAtprotoServer_CreateInviteCode(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.server.createAccount", (HttpContext context) => new ComAtprotoServer_CreateAccount(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/xrpc/com.atproto.server.createSession", (HttpContext context) => new ComAtprotoServer_CreateSession(){Pds = this, HttpContext = context}.GetResponse());
 
         Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
@@ -147,6 +148,7 @@ public class Pds
         Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.identity.resolveHandle");
         Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.createInviteCode");
         Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.createAccount");
+        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.createSession");
         Logger.LogInfo("");
     }
 }

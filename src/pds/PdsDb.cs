@@ -228,4 +228,22 @@ CREATE TABLE IF NOT EXISTS Accounts (
             VALUES ('{handle}', '{did}', '{hashedPassword}')
         ");
     }
+
+    public string? GetAccountHashedPassword(string? did)
+    {
+        if (string.IsNullOrEmpty(did))
+        {
+            return null;
+        }
+        
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT HashedPassword FROM Accounts WHERE Did = @did";
+            command.Parameters.AddWithValue("@did", did);
+            
+            var result = command.ExecuteScalar();
+            return result != null ? result.ToString() ?? null : null;
+        }
+    }
 }

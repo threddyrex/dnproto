@@ -16,6 +16,11 @@ public class LocalFileSystem(string dataDir, ILogger logger)
 
     public ILogger Logger = logger;
 
+    private readonly object _lock = new object();
+
+    private int cacheExpiryMinutes = 60;
+
+
     /// <summary>
     /// Ensure that the root dir exists, and creates subdirs if needed.
     /// </summary>
@@ -60,54 +65,57 @@ public class LocalFileSystem(string dataDir, ILogger logger)
     /// <returns></returns>
     public ActorInfo? ResolveActorInfo(string? actor)
     {
-        if (string.IsNullOrEmpty(actor))
+        lock (_lock)
         {
-            Logger.LogError("lfs.ResolveActorInfo: actor is null or empty.");
-            return null;
-        }
-
-        string actorFile = Path.Combine(DataDir, "actors", GetSafeString(actor) + ".json");
-
-        //
-        // If the file exists, use that.
-        //
-        if (File.Exists(actorFile))
-        {
-            // if the file is older than an hour, don't use it
-            FileInfo fileInfo = new FileInfo(actorFile);
-            if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddHours(-1))
+            if (string.IsNullOrEmpty(actor))
             {
-                Logger.LogInfo($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
+                Logger.LogError("lfs.ResolveActorInfo: actor is null or empty.");
+                return null;
             }
-            else
+
+            string actorFile = Path.Combine(DataDir, "actors", GetSafeString(actor) + ".json");
+
+            //
+            // If the file exists, use that.
+            //
+            if (File.Exists(actorFile))
             {
-                Logger.LogInfo($"Actor info file exists and is recent, loading: {actorFile}");
-                string actorJson = File.ReadAllText(actorFile);
-                Logger.LogTrace($"file text: {actorJson}");
-                var info = ActorInfo.FromJsonString(actorJson);
-                return info;
+                // if the file is older than an hour, don't use it
+                FileInfo fileInfo = new FileInfo(actorFile);
+                if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
+                {
+                    Logger.LogInfo($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
+                }
+                else
+                {
+                    Logger.LogInfo($"Actor info file exists and is recent, loading: {actorFile}");
+                    string actorJson = File.ReadAllText(actorFile);
+                    Logger.LogTrace($"file text: {actorJson}");
+                    var info = ActorInfo.FromJsonString(actorJson);
+                    return info;
+                }
             }
+
+            //
+            // Otherwise, resolve and save to file.
+            //
+            Logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
+            var actorInfo = BlueskyClient.ResolveActorInfo(actor);
+
+            if (actorInfo == null)
+            {
+                Logger.LogError("Failed to resolve actor info.");
+                return null;
+            }
+
+            Logger.LogInfo($"Saving actor info to file: {actorFile}");
+            File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
+
+            //
+            // return the actor info.
+            //
+            return actorInfo;
         }
-
-        //
-        // Otherwise, resolve and save to file.
-        //
-        Logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
-        var actorInfo = BlueskyClient.ResolveActorInfo(actor);
-
-        if (actorInfo == null)
-        {
-            Logger.LogError("Failed to resolve actor info.");
-            return null;
-        }
-
-        Logger.LogInfo($"Saving actor info to file: {actorFile}");
-        File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
-
-        //
-        // return the actor info.
-        //
-        return actorInfo;
     }
 
 
@@ -225,7 +233,7 @@ public class LocalFileSystem(string dataDir, ILogger logger)
 
         // if session file is older than an hour, don't use it
         FileInfo fileInfo = new FileInfo(sessionFile);
-        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddHours(-1))
+        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
         {
             Logger.LogWarning($"Session file is older than 1 hour, will not use: {sessionFile}");
             return null;
