@@ -747,6 +747,31 @@ public class BlueskyClient
         return response;        
     }
 
+    /// <summary>
+    /// Create multiple invite codes.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="adminPassword"></param>
+    /// <param name="codeCount"></param>
+    /// <param name="useCount"></param>
+    /// <returns></returns>
+    public static JsonNode? CreateInviteCodes(string? pds, string? adminPassword, int codeCount, int useCount)
+    {
+        string? basicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"admin:{adminPassword}"));
+        string url = $"https://{pds}/xrpc/com.atproto.server.createInviteCodes";
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            basicAuth: basicAuth,
+            content: new StringContent(JsonSerializer.Serialize(new
+            {
+                codeCount = codeCount,
+                useCount = useCount
+            }))
+        );
+
+        return response;        
+    }
 
 
     /// <summary>
