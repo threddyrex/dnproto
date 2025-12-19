@@ -15,9 +15,10 @@ public static class CommandLineInterface
     public static void RunMain(string[] args)
     {
         //
-        // Create logger
+        // Create logger and add console destination
         //
-        var logger = new ConsoleLogger();
+        var logger = new Logger();
+        logger.AddDestination(new ConsoleLogDestination());
 
         //
         // Parse args
@@ -28,21 +29,13 @@ public static class CommandLineInterface
             return;
         }
 
-
         //
-        // Check if they want trace logging
+        // See if they asked for a different type of logging.
         //
-        if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "trace")
+        string? logLevel = GetArgumentValue(arguments, "loglevel");
+        if (string.IsNullOrEmpty(logLevel) == false)
         {
-            logger.LogLevel = 0; // trace
-        }
-        else if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "info")
-        {
-            logger.LogLevel = 1; // info
-        }
-        else if (arguments.ContainsKey("loglevel") && GetArgumentValue(arguments, "loglevel") == "warning")
-        {
-            logger.LogLevel = 2; // warning
+            logger.SetLogLevel(logLevel);
         }
 
         BlueskyClient.Logger = logger;
@@ -81,7 +74,7 @@ public static class CommandLineInterface
         //
         if (arguments.ContainsKey("debugattach") && GetArgumentValue(arguments, "debugattach")?.ToLower() == "true")
         {
-            logger.LogLevel = 0; // trace
+            logger.SetLogLevel("trace");
 
             logger.LogTrace("Waiting for debugger to attach.");
 
@@ -158,7 +151,7 @@ public static class CommandLineInterface
     /// </summary>
     /// <param name="args">Array of command line arguments.</param>
     /// <returns>A dictionary where the key is the argument name and the value is the argument value.</returns>
-    public static Dictionary<string, string>? ParseArguments(string[] args, BaseLogger logger)
+    public static Dictionary<string, string>? ParseArguments(string[] args, ILogger logger)
     {
         if(args == null)
         {
@@ -303,7 +296,7 @@ public static class CommandLineInterface
         return true;
     }
 
-    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, BaseLogger logger)
+    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, ILogger logger)
     {
         logger.LogInfo("Usage:");
         string usage = "    .\\dnproto.exe /command " + commandName + "";

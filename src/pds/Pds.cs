@@ -17,7 +17,7 @@ public class Pds
 {
     public required PdsConfig PdsConfig;
 
-    public required BaseLogger Logger;
+    public required ILogger Logger;
 
     public required LocalFileSystem LocalFileSystem;
 
@@ -32,7 +32,7 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds? InitializePds(string? dataDir, BaseLogger logger)
+    public static Pds? InitializePds(string? dataDir, ILogger logger)
     {
         //
         // Get local file system

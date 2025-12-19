@@ -11,13 +11,13 @@ public class CommandLineInterfaceTests
     [Fact]
     public void ParseArguments_NoSlashes()
     {
-        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one", "two"}, new NullLogger()));
+        Assert.Throws<Exception>(() => CommandLineInterface.ParseArguments(new string[]{"one", "two"}, new Logger()));
     }
 
     [Fact]
     public void ParseArguments_Correct()
     {
-        var ret = CommandLineInterface.ParseArguments(new string[]{"/one", "two"}, new NullLogger());
+        var ret = CommandLineInterface.ParseArguments(new string[]{"/one", "two"}, new Logger());
         Assert.NotNull(ret);
         Assert.Single(ret.Keys);
         Assert.Equal("two", ret["one"]);
@@ -55,7 +55,7 @@ public class CommandLineInterfaceTests
     public void CheckArguments_UnknownThrows()
     {
         var command = new HelloWorld();
-        var args = CommandLineInterface.ParseArguments(new string[]{"/unknown", "value"}, new NullLogger());
+        var args = CommandLineInterface.ParseArguments(new string[]{"/unknown", "value"}, new Logger());
         Assert.NotNull(args);
         Assert.False(CommandLineInterface.CheckArguments(command, args));
     }

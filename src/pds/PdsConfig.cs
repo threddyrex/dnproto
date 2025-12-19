@@ -29,7 +29,7 @@ public class PdsConfig
 
     public string AdminPassword { get; set; } = string.Empty;
 
-    public static PdsConfig? LoadFromFile(BaseLogger logger, string filePath)
+    public static PdsConfig? LoadFromFile(ILogger logger, string filePath)
     {
         //
         // Read JSON file

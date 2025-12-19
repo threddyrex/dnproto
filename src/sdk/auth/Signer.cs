@@ -143,7 +143,7 @@ public static class Signer
     /// <param name="expectedAudience">The expected audience (aud claim)</param>
     /// <param name="logger">Optional logger for error reporting</param>
     /// <returns>A ClaimsPrincipal if valid, null if validation fails</returns>
-    public static ClaimsPrincipal? ValidateToken(string token, string issuerPublicKey, string expectedIssuer, string expectedAudience, BaseLogger? logger = null)
+    public static ClaimsPrincipal? ValidateToken(string token, string issuerPublicKey, string expectedIssuer, string expectedAudience, ILogger? logger = null)
     {
         try
         {

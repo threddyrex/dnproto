@@ -10,11 +10,11 @@ namespace dnproto.sdk.fs;
 /// <summary>
 /// Provides access to the local file system for storing repos and backups.
 /// </summary>
-public class LocalFileSystem(string dataDir, BaseLogger logger)
+public class LocalFileSystem(string dataDir, ILogger logger)
 {
     public string DataDir = dataDir;
 
-    public BaseLogger Logger = logger;
+    public ILogger Logger = logger;
 
     /// <summary>
     /// Ensure that the root dir exists, and creates subdirs if needed.
@@ -22,7 +22,7 @@ public class LocalFileSystem(string dataDir, BaseLogger logger)
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static LocalFileSystem? Initialize(string? dataDir, BaseLogger logger)
+    public static LocalFileSystem? Initialize(string? dataDir, ILogger logger)
     {
         if (string.IsNullOrEmpty(dataDir) || Directory.Exists(dataDir) == false)
         {

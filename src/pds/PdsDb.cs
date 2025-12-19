@@ -7,14 +7,14 @@ public class PdsDb
 {
     public required PdsConfig PdsConfig;
     public required string _dataDir;
-    public required BaseLogger _logger;
+    public required ILogger _logger;
 
 
     /// <summary>
     /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
     /// It will create the database file and tables if they do not already exist.
     /// </summary>
-    public static PdsDb? InitializePdsDb(PdsConfig pdsConfig, string dataDir, BaseLogger logger)
+    public static PdsDb? InitializePdsDb(PdsConfig pdsConfig, string dataDir, ILogger logger)
     {
         //
         // Check that the pds/db folder exists.
