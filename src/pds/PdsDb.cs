@@ -52,10 +52,11 @@ public class PdsDb
             // Create InviteCodes table if it doesn't exist
             var command = connection.CreateCommand();
             command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS InviteCodes (
-                    InviteCode TEXT PRIMARY KEY NOT NULL,
-                    UseCount INTEGER NOT NULL DEFAULT 0
-                )
+CREATE TABLE IF NOT EXISTS InviteCodes (
+    Account TEXT NOT NULL,
+    InviteCode TEXT PRIMARY KEY NOT NULL,
+    UseCount INTEGER NOT NULL DEFAULT 0
+)
             ";
             
             command.ExecuteNonQuery();
@@ -106,20 +107,20 @@ public class PdsDb
     /// </summary>
     /// <param name="useCount"></param>
     /// <returns></returns>
-    public string CreateInviteCode(int useCount)
+    public string CreateInviteCode(string account, int useCount)
     {
         //
         // Generate a unique invite code.
         //
         string inviteCode = PdsConfig.Host.Replace(".", "-") + "-" + Guid.NewGuid().ToString("N");
-        _logger.LogTrace($"Generated invite code: {inviteCode} with use count: {useCount}");
+        _logger.LogTrace($"Generated invite code: {account}, {inviteCode}, {useCount}");
 
         //
         // Insert into InviteCodes table.
         //
         ExecuteNonQuery($@"
-            INSERT INTO InviteCodes (InviteCode, UseCount)
-            VALUES ('{inviteCode}', {useCount})
+            INSERT INTO InviteCodes (Account, InviteCode, UseCount)
+            VALUES ('{account}', '{inviteCode}', {useCount})
         ");
 
         return inviteCode;

@@ -31,7 +31,7 @@ public class ComAtprotoServer_CreateInviteCode : BaseXrpcCommand
         //
         // Create invite code
         //
-        string? inviteCode = Pds.PdsDb.CreateInviteCode(useCount);
+        string? inviteCode = Pds.PdsDb.CreateInviteCode("admin", useCount);
         if(string.IsNullOrEmpty(inviteCode))
         {
             return Results.Json(new { error = "ServerError", message = "Error: Could not create invite code" }, statusCode: 500);
