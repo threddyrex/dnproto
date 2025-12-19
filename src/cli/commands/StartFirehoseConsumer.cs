@@ -64,6 +64,7 @@ public class StartFirehoseConsumer : BaseCommand
                     //
                     // Check header and message
                     //
+                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
                     if (header == null || message == null)
                     {
                         Logger.LogError("Received empty message.");
@@ -97,7 +98,6 @@ public class StartFirehoseConsumer : BaseCommand
                                 },
                                 (repoRecord) =>
                                 {
-                                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
                                     Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
                                     Logger.LogInfo($"blockJson:");
                                     Logger.LogInfo($"{repoRecord.JsonString}");
@@ -109,8 +109,7 @@ public class StartFirehoseConsumer : BaseCommand
                     }
                     else
                     {
-                        Logger.LogError("No blocks found in message.");
-                        return false;
+                        Logger.LogInfo("No blocks found in message.");
                     }
 
                     return true;
