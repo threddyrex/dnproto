@@ -29,6 +29,8 @@ public class PdsConfig
 
     public string AdminPassword { get; set; } = string.Empty;
 
+    public string JwtSecret { get; set; } = string.Empty;
+
     public static PdsConfig? LoadFromFile(ILogger logger, string filePath)
     {
         //
@@ -66,6 +68,7 @@ public class PdsConfig
         string? termsOfService = JsonData.SelectString(pdsConfigJson, "termsOfService") ?? string.Empty;
         string? contactEmail = JsonData.SelectString(pdsConfigJson, "contactEmail") ?? string.Empty;
         string? adminPassword = JsonData.SelectString(pdsConfigJson, "adminPassword") ?? string.Empty;
+        string? jwtSecret = JsonData.SelectString(pdsConfigJson, "jwtSecret") ?? string.Empty;
 
         //
         // Validate required fields
@@ -113,6 +116,12 @@ public class PdsConfig
             return null;
         }
 
+        if(string.IsNullOrEmpty(jwtSecret))
+        {
+            logger.LogError("PDS config file is missing 'jwtSecret' field. A JWT secret is required for session tokens.");
+            return null;
+        }
+
 
 
         //
@@ -130,7 +139,8 @@ public class PdsConfig
             PrivacyPolicy = privacyPolicy,
             TermsOfService = termsOfService,
             ContactEmail = contactEmail,
-            AdminPassword = adminPassword
+            AdminPassword = adminPassword,
+            JwtSecret = jwtSecret
         };
     }
 }

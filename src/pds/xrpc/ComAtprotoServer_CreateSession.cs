@@ -33,20 +33,35 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(identifier, useBsky: false);
         bool actorExists = actorInfo != null;
 
+
         //
         // Get account hashed password
         //
         string? storedHashedPassword = Pds.PdsDb.GetAccountHashedPassword(actorInfo?.Did);
         bool passwordMatches = PasswordHasher.VerifyPassword(storedHashedPassword, password);
 
+
         //
-        // Return info
+        // Generate JWT tokens
+        //
+        string? accessJwt = null;
+        string? refreshJwt = null;
+        if(actorExists && passwordMatches)
+        {
+            accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.PdsConfig.Did, Pds.PdsConfig.JwtSecret);
+            refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.PdsConfig.Did, Pds.PdsConfig.JwtSecret);
+        }
+
+
+        //
+        // Return session info
         //
         return Results.Json(new 
         {
-            actorExists = actorExists,
-            hashedPassword = storedHashedPassword,
-            passwordMatches = passwordMatches
+            did = actorInfo?.Did,
+            handle = actorInfo?.Handle,
+            accessJwt = accessJwt,
+            refreshJwt = refreshJwt
         }, 
         statusCode: 200);
     }
