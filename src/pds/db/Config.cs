@@ -26,4 +26,6 @@ public class Config
     public string UserDid { get; set; } = string.Empty;
 
     public string UserHashedPassword { get; set; } = string.Empty;
+
+    public string UserEmail { get; set; } = string.Empty;
 }

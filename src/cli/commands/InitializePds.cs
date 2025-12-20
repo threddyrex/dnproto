@@ -14,7 +14,7 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"pdshostname", "availableuserdomain", "userHandle", "userDid"});
+            return new HashSet<string>(new string[]{"pdshostname", "availableuserdomain", "userHandle", "userDid", "userEmail"});
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -27,6 +27,7 @@ namespace dnproto.cli.commands
             string? availableUserDomain = CommandLineInterface.GetArgumentValue(arguments, "availableuserdomain");
             string? userHandle = CommandLineInterface.GetArgumentValue(arguments, "userHandle");
             string? userDid = CommandLineInterface.GetArgumentValue(arguments, "userDid");
+            string? userEmail = CommandLineInterface.GetArgumentValue(arguments, "userEmail");
 
             //
             // Verify params
@@ -56,6 +57,11 @@ namespace dnproto.cli.commands
                 Logger.LogError("userDid argument is required.");
                 return;
             }
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                Logger.LogError("userEmail argument is required.");
+                return;
+            }
 
 
             //
@@ -65,6 +71,38 @@ namespace dnproto.cli.commands
             if (pdsDb == null)
             {
                 Logger.LogError("Failed to initialize PDS database.");
+
+                Logger.LogInfo("type 'Y' to delete the existing database and re-initialize (all data will be lost), or any other key to abort:");
+                string? input = Console.ReadLine();
+                if (input != null && input.ToUpper() == "Y")
+                {
+                    //
+                    // Delete existing database file
+                    //
+                    string dbDir = Path.Combine(dataDir!, "pds");
+                    string dbPath = Path.Combine(dbDir, "pds.db");
+                    try
+                    {
+                        File.Delete(dbPath);
+                        Logger.LogInfo("Deleted existing database file.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Failed to delete existing database file: {ex.Message}");
+                        return;
+                    }
+
+                    //
+                    // Try again to initialize
+                    //
+                    pdsDb = PdsDb.InitializePdsDb(dataDir!, Logger);
+                    if (pdsDb == null)
+                    {
+                        Logger.LogError("Failed to initialize PDS database after deleting existing database file.");
+                        return;
+                    }
+                }
+                else
                 return;
             }
 
@@ -86,6 +124,7 @@ namespace dnproto.cli.commands
             config.UserDid = userDid!;
             var userPassword = PasswordHasher.CreateNewAdminPassword();
             config.UserHashedPassword = PasswordHasher.HashPassword(userPassword!);
+            config.UserEmail = userEmail!;
 
 
             //
