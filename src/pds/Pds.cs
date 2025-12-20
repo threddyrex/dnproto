@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using dnproto.sdk.log;
 using dnproto.sdk.fs;
+using dnproto.pds.db;
 using dnproto.pds.xrpc;
 using Microsoft.AspNetCore.Http;
 
@@ -15,7 +16,7 @@ namespace dnproto.pds;
 /// </summary>
 public class Pds
 {
-    public required PdsConfig PdsConfig;
+    public required Config Config;
 
     public required ILogger Logger;
 
@@ -44,35 +45,7 @@ public class Pds
             return null;
         }
 
-
         //
-        // Get PDS config path
-        //
-        string? pdsConfigPath = lfs.GetPath_PdsConfig();
-        if (string.IsNullOrEmpty(pdsConfigPath))
-        {
-            logger.LogError("PDS config path is null or empty.");
-            return null;
-        }
-
-        if (File.Exists(pdsConfigPath) == false)
-        {
-            logger.LogError($"PDS config file does not exist: {pdsConfigPath}");
-            return null;
-        }
-
-        //
-        // Load config
-        //
-        logger.LogInfo($"Loading PDS config from: {pdsConfigPath}");
-        PdsConfig? pdsConfig = PdsConfig.LoadFromFile(logger, pdsConfigPath);
-        if (pdsConfig == null)
-        {
-            logger.LogError("Failed to load PDS config.");
-            return null;
-        }
-
-            //
         // Initialize PdsDb
         //
         PdsDb? pdsDb = PdsDb.ConnectPdsDb(lfs.DataDir, logger);
@@ -82,13 +55,23 @@ public class Pds
             return null;
         }
 
+        //
+        // Get PDS config from db
+        //
+        var config = pdsDb.GetConfig();
+        if (config == null)
+        {
+            logger.LogError("Failed to get PDS config from database.");
+            return null;
+        }
+
 
         //
         // Configure to listen on specified port with HTTPS
         //
-        logger.LogInfo($"Starting minimal API with HTTPS on port {pdsConfig.Port}...");
+        logger.LogInfo($"Starting minimal API with HTTPS on port {config.ListenPort}...");
         var builder = WebApplication.CreateBuilder();
-        builder.WebHost.UseUrls($"https://{pdsConfig.Host}:{pdsConfig.Port}");
+        builder.WebHost.UseUrls($"https://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 
         //
@@ -96,7 +79,7 @@ public class Pds
         //
         var pds = new Pds()
         {
-            PdsConfig = pdsConfig,
+            Config = config,
             Logger = logger,
             LocalFileSystem = lfs,
             PdsDb = pdsDb,
@@ -141,12 +124,12 @@ public class Pds
         Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
         Logger.LogInfo("");
-        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/hello");
-        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/_health");
-        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.describeServer");
-        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.identity.resolveHandle");
-        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.createSession");
-        Logger.LogInfo($"https://{PdsConfig.Host}:{PdsConfig.Port}/xrpc/com.atproto.server.refreshSession");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/hello");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
         Logger.LogInfo("");
     }
 }

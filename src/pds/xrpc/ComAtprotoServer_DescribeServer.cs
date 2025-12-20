@@ -10,36 +10,12 @@ public class ComAtprotoServer_DescribeServer : BaseXrpcCommand
     {
         var response = new DescribeServerResponse
         {
-            InviteCodeRequired = Pds.PdsConfig.InviteCodeRequired,
-            PhoneVerificationRequired = Pds.PdsConfig.PhoneVerificationRequired,
-            AvailableUserDomains = Pds.PdsConfig.AvailableUserDomains,
-            Did = Pds.PdsConfig.Did
+            InviteCodeRequired = true,
+            PhoneVerificationRequired = true,
+            AvailableUserDomains = new [] { Pds.Config.AvailableUserDomain }.ToList(),
+            Did = Pds.Config.PdsDid
         };
 
-        // Add links if privacy policy or terms of service are configured
-        if (!string.IsNullOrEmpty(Pds.PdsConfig.PrivacyPolicy) || !string.IsNullOrEmpty(Pds.PdsConfig.TermsOfService))
-        {
-            response.Links = new Links();
-            
-            if (!string.IsNullOrEmpty(Pds.PdsConfig.PrivacyPolicy))
-            {
-                response.Links.PrivacyPolicy = Pds.PdsConfig.PrivacyPolicy;
-            }
-            
-            if (!string.IsNullOrEmpty(Pds.PdsConfig.TermsOfService))
-            {
-                response.Links.TermsOfService = Pds.PdsConfig.TermsOfService;
-            }
-        }
-
-        // Add contact if email is configured
-        if (!string.IsNullOrEmpty(Pds.PdsConfig.ContactEmail))
-        {
-            response.Contact = new Contact
-            {
-                Email = Pds.PdsConfig.ContactEmail
-            };
-        }
         
         // add response header of "application/json"
         return Results.Json(response, contentType: "application/json");

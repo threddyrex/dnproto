@@ -1,6 +1,6 @@
 
 using System.Text.Json.Nodes;
-using dnproto.sdk.log;
+using dnproto.sdk.auth;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
@@ -44,7 +44,9 @@ public abstract class BaseXrpcCommand
         string username = parts[0];
         string password = parts[1];
 
-        if(username != "admin" || password != Pds.PdsConfig.AdminPassword)
+        bool verifyPassword = PasswordHasher.VerifyPassword(Pds.Config.AdminHashedPassword, password);
+
+        if(username != "admin" || !verifyPassword)
         {
             return false;
         }

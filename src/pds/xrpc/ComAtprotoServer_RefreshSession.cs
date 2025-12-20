@@ -20,7 +20,7 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
 
         if(!string.IsNullOrEmpty(refreshJwt))
         {
-            ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(refreshJwt, Pds.PdsConfig.JwtSecret);
+            ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(refreshJwt, Pds.Config.JwtSecret);
             claimsPrincipalExists = claimsPrincipal != null;
         }
 

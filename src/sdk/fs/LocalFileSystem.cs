@@ -82,7 +82,16 @@ public class LocalFileSystem(string dataDir, ILogger logger)
                     string actorJson = File.ReadAllText(actorFile);
                     Logger.LogTrace($"file text: {actorJson}");
                     var info = ActorInfo.FromJsonString(actorJson);
-                    return info;
+
+                    if(info == null || info?.Did == null || string.IsNullOrEmpty(info?.Did))
+                    {
+                        Logger.LogWarning("Actor info loaded from file is missing DID, will re-resolve.");
+                        // fall through to re-resolve
+                    }
+                    else
+                    {
+                        return info;                        
+                    }
                 }
             }
 

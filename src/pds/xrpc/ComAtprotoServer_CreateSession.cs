@@ -37,7 +37,7 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         //
         // Get account hashed password
         //
-        string? storedHashedPassword = Pds.PdsDb.GetAccountHashedPassword(actorInfo?.Did);
+        string? storedHashedPassword = Pds.Config.UserHashedPassword;
         bool passwordMatches = PasswordHasher.VerifyPassword(storedHashedPassword, password);
 
 
@@ -48,8 +48,8 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         string? refreshJwt = null;
         if(actorExists && passwordMatches)
         {
-            accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.PdsConfig.Did, Pds.PdsConfig.JwtSecret);
-            refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.PdsConfig.Did, Pds.PdsConfig.JwtSecret);
+            accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+            refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
         }
 
 

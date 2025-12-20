@@ -9,6 +9,42 @@ namespace dnproto.sdk.auth
         private const int Iterations = 100000; // OWASP recommendation (minimum)
 
         /// <summary>
+        /// Creates a new cryptographically secure random password suitable for admin accounts.
+        /// </summary>
+        /// <returns>A 32-character password with uppercase, lowercase, numbers, and special characters.</returns>
+        public static string CreateNewAdminPassword()
+        {
+            const int passwordLength = 32;
+            const string uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+            const string numberChars = "0123456789";
+            const string specialChars = "!@#$%^&*()-_=+[]{}|;:,.<>?";
+            const string allChars = uppercaseChars + lowercaseChars + numberChars + specialChars;
+
+            // Ensure at least one character from each category
+            char[] password = new char[passwordLength];
+            password[0] = uppercaseChars[RandomNumberGenerator.GetInt32(uppercaseChars.Length)];
+            password[1] = lowercaseChars[RandomNumberGenerator.GetInt32(lowercaseChars.Length)];
+            password[2] = numberChars[RandomNumberGenerator.GetInt32(numberChars.Length)];
+            password[3] = specialChars[RandomNumberGenerator.GetInt32(specialChars.Length)];
+
+            // Fill the rest with random characters from all categories
+            for (int i = 4; i < passwordLength; i++)
+            {
+                password[i] = allChars[RandomNumberGenerator.GetInt32(allChars.Length)];
+            }
+
+            // Shuffle the password to randomize position of guaranteed characters
+            for (int i = passwordLength - 1; i > 0; i--)
+            {
+                int j = RandomNumberGenerator.GetInt32(i + 1);
+                (password[i], password[j]) = (password[j], password[i]);
+            }
+
+            return new string(password);
+        }
+
+        /// <summary>
         /// Hashes a password using PBKDF2 with SHA256.
         /// </summary>
         /// <param name="password">The password to hash.</param>
