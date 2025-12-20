@@ -5,16 +5,10 @@ namespace dnproto.pds;
 
 public class PdsDb
 {
-    public required PdsConfig PdsConfig;
     public required string _dataDir;
     public required ILogger _logger;
 
-
-    /// <summary>
-    /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
-    /// It will create the database file and tables if they do not already exist.
-    /// </summary>
-    public static PdsDb? InitializePdsDb(PdsConfig pdsConfig, string dataDir, ILogger logger)
+    public static PdsDb? ConnectPdsDb(string dataDir, ILogger logger)
     {
         //
         // Check that the pds/db folder exists.
@@ -25,6 +19,35 @@ public class PdsDb
         {
             logger.LogError($"PDS database directory does not exist: {dbDir}");
             return null;
+        }
+
+        //
+        // Return PdsDb instance.
+        //
+        return new PdsDb
+        {
+            _dataDir = dataDir,
+            _logger = logger
+        };
+    }
+
+
+
+    /// <summary>
+    /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
+    /// It will create the database file and tables if they do not already exist.
+    /// </summary>
+    public static bool InitializePdsDb(PdsConfig pdsConfig, string dataDir, ILogger logger)
+    {
+        //
+        // Check that the pds/db folder exists.
+        //
+        string dbDir = Path.Combine(dataDir, "pds");
+
+        if (!Directory.Exists(dbDir))
+        {
+            logger.LogError($"PDS database directory does not exist: {dbDir}");
+            return false;
         }
 
 
@@ -65,22 +88,6 @@ CREATE TABLE IF NOT EXISTS InviteCodes (
             command.ExecuteNonQuery();
 
 
-            //
-            // Accounts table
-            //
-            logger.LogInfo("table: Accounts");
-            command = connection.CreateCommand();
-            command.CommandText = @"
-CREATE TABLE IF NOT EXISTS Accounts (
-    Handle TEXT NOT NULL,
-    Did TEXT NOT NULL,
-    HashedPassword TEXT NOT NULL
-)
-            ";
-            
-            command.ExecuteNonQuery();
-
-
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -89,12 +96,7 @@ CREATE TABLE IF NOT EXISTS Accounts (
         //
         // Return PdsDb instance.
         //
-        return new PdsDb
-        {
-            PdsConfig = pdsConfig,
-            _dataDir = dataDir,
-            _logger = logger
-        };
+        return true;
     }
 
     public SqliteConnection GetConnection()
@@ -153,81 +155,6 @@ CREATE TABLE IF NOT EXISTS Accounts (
         return results;
     }
 
-
-
-    /// <summary>
-    /// Creates invite code, adds to db, and returns value.
-    /// </summary>
-    /// <param name="useCount"></param>
-    /// <returns></returns>
-    public string CreateInviteCode(string account, int useCount)
-    {
-        //
-        // Generate a unique invite code.
-        //
-        string inviteCode = PdsConfig.Host.Replace(".", "-") + "-" + Guid.NewGuid().ToString("N");
-        _logger.LogTrace($"Generated invite code: {account}, {inviteCode}, {useCount}");
-
-        //
-        // Insert into InviteCodes table.
-        //
-        ExecuteNonQuery($@"
-            INSERT INTO InviteCodes (Account, InviteCode, UseCount)
-            VALUES ('{account}', '{inviteCode}', {useCount})
-        ");
-
-        return inviteCode;
-    }
-
-    public bool IsInviteCodeValid(string inviteCode)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT 1 FROM InviteCodes WHERE InviteCode = @inviteCode AND UseCount > 0";
-            command.Parameters.AddWithValue("@inviteCode", inviteCode);
-            
-            using(var reader = command.ExecuteReader())
-            {
-                return reader.Read();
-            }
-        }
-    }
-
-    public int GetInviteCodeCount(string inviteCode)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT UseCount FROM InviteCodes WHERE InviteCode = @inviteCode";
-            command.Parameters.AddWithValue("@inviteCode", inviteCode);
-            
-            var result = command.ExecuteScalar();
-            return result != null ? Convert.ToInt32(result) : 0;
-        }
-    }
-
-    public bool AccountExists(string handle, string did)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT COUNT(*) FROM Accounts WHERE Handle = @handle OR Did = @did";
-            command.Parameters.AddWithValue("@handle", handle);
-            command.Parameters.AddWithValue("@did", did);
-            
-            var result = command.ExecuteScalar();
-            return (result != null ? Convert.ToInt32(result) : 0) > 0;
-        }
-    }
-
-    public void CreateAccount(string handle, string did, string hashedPassword)
-    {
-        ExecuteNonQuery($@"
-            INSERT INTO Accounts (Handle, Did, HashedPassword)
-            VALUES ('{handle}', '{did}', '{hashedPassword}')
-        ");
-    }
 
     public string? GetAccountHashedPassword(string? did)
     {
