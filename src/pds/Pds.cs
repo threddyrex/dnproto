@@ -120,6 +120,8 @@ public class Pds
         App.MapGet("/xrpc/com.atproto.identity.resolveHandle", (HttpContext context) => new ComAtprotoIdentity_ResolveHandle(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.server.createSession", (HttpContext context) => new ComAtprotoServer_CreateSession(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.server.refreshSession", (HttpContext context) => new ComAtprotoServer_RefreshSession(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/com.atproto.server.getSession", (HttpContext context) => new ComAtprotoServer_GetSession(){Pds = this, HttpContext = context}.GetResponse());
+
 
         Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
@@ -130,6 +132,7 @@ public class Pds
         Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
         Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
         Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
+        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
         Logger.LogInfo("");
     }
 }
