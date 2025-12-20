@@ -69,7 +69,7 @@ Most of the files in this directory represent one "command" of the tool. Here ar
 .\PrintRepoPosts.ps1
 
 # log in to the account. stores session locally
-.\LogIn.ps1 -actor <handle or did> -password <password>
+.\CreateSession.ps1 -actor <handle or did> -password <password>
 
 # get unread count for logged in session
 .\GetUnreadCount.ps1
@@ -78,7 +78,7 @@ Most of the files in this directory represent one "command" of the tool. Here ar
 .\CreatePost.ps1 -text "hello world"
 
 # log out of account
-.\LogOut.ps1 -actor <handle or did>
+.\DeleteSession.ps1 -actor <handle or did>
 
 
 ```

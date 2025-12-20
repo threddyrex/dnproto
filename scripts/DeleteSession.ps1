@@ -8,4 +8,4 @@ param (
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command LogOut /actor $actor /logLevel $logLevel /dataDir $dataDir
+& $dnprotoPath /command DeleteSession /actor $actor /logLevel $logLevel /dataDir $dataDir

@@ -10,7 +10,7 @@ using dnproto.sdk.fs;
 
 namespace dnproto.cli.commands;
 
-public class LogOut : BaseCommand
+public class DeleteSession : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

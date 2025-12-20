@@ -11,7 +11,7 @@ using dnproto.sdk.fs;
 
 namespace dnproto.cli.commands;
 
-public class LogIn : BaseCommand
+public class CreateSession : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {

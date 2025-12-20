@@ -12,9 +12,9 @@ param (
 
 if([string]::isnullorempty($authFactorToken))
 {
-    & $dnprotoPath /command LogIn /actor $actor /password $password /logLevel $logLevel /dataDir $dataDir
+    & $dnprotoPath /command CreateSession /actor $actor /password $password /logLevel $logLevel /dataDir $dataDir
 }
 else
 {
-    & $dnprotoPath /command LogIn /actor $actor /password $password /logLevel $logLevel /dataDir $dataDir /authFactorToken $authFactorToken 
+    & $dnprotoPath /command CreateSession /actor $actor /password $password /logLevel $logLevel /dataDir $dataDir /authFactorToken $authFactorToken 
 }
