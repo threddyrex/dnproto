@@ -52,6 +52,24 @@ public abstract class BaseXrpcCommand
         return true;
     }
 
+    protected string? GetAccessJwt()
+    {
+        if(!HttpContext.Request.Headers.ContainsKey("Authorization"))
+        {
+            return null;
+        }
+
+        string? authHeader = HttpContext.Request.Headers["Authorization"];
+
+        if(string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+        {
+            return null;
+        }
+
+        return authHeader.Substring("Bearer ".Length).Trim();
+    }
+    
+
     protected JsonNode? GetRequestBodyAsJson()
     {
         using(StreamReader reader = new StreamReader(HttpContext.Request.Body))

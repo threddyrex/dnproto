@@ -107,4 +107,68 @@ public class JwtSecret
         
         return tokenHandler.WriteToken(jwtToken);
     }
+
+    /// <summary>
+    /// Verify a refresh JWT token.
+    /// Validates the signature, expiration, and scope of the refresh token.
+    /// </summary>
+    /// <param name="refreshJwt">The refresh JWT token from the client</param>
+    /// <param name="jwtSecret">The JWT secret from PdsConfig</param>
+    /// <returns>ClaimsPrincipal if valid, null if invalid</returns>
+    public static ClaimsPrincipal? VerifyRefreshJwt(string refreshJwt, string jwtSecret)
+    {
+        if (string.IsNullOrEmpty(refreshJwt) || string.IsNullOrEmpty(jwtSecret))
+        {
+            return null;
+        }
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(jwtSecret);
+
+        try
+        {
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false, // We don't set an issuer
+                ValidateAudience = false, // We validate audience manually if needed
+                ValidateLifetime = true, // Ensure token hasn't expired
+                ClockSkew = TimeSpan.Zero // No clock skew tolerance
+            };
+
+            var principal = tokenHandler.ValidateToken(refreshJwt, validationParameters, out SecurityToken validatedToken);
+
+            // Verify it's a JWT token
+            if (validatedToken is not JwtSecurityToken jwtToken)
+            {
+                return null;
+            }
+
+            // Verify the algorithm is HMAC SHA256
+            if (!jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            // Verify the scope is for refresh tokens
+            var scopeClaim = principal.FindFirst("scope")?.Value;
+            if (scopeClaim != "com.atproto.refresh")
+            {
+                return null;
+            }
+
+            return principal;
+        }
+        catch (SecurityTokenException)
+        {
+            // Token validation failed (expired, invalid signature, etc.)
+            return null;
+        }
+        catch (Exception)
+        {
+            // Any other exception during validation
+            return null;
+        }
+    }
 }
