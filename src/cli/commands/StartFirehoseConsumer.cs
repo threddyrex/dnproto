@@ -77,15 +77,17 @@ public class StartFirehoseConsumer : BaseCommand
                     // Check header and message
                     //
                     Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
+                    Logger.LogInfo($" Received new frame from the firehose.");
                     if (header == null || message == null)
                     {
                         Logger.LogError("Received empty message.");
                         return false;
                     }
 
-                    Logger.LogInfo($"header: {JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
-                    Logger.LogInfo($"message: {JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
+                    Logger.LogInfo($"DAG CBOR OBJECT 1 (HEADER):\n{JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
+                    Logger.LogInfo($"DAG CBOR OBJECT 2 (MESSAGE):\n{JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
 
+                    Logger.LogInfo("The following are the repo records contained in the 'blocks' key of the message object:");
 
                     //
                     // Ok now that we have the message, let's look for a "blocks" key.
@@ -104,15 +106,15 @@ public class StartFirehoseConsumer : BaseCommand
                                 blockStream,
                                 (repoHeader) =>
                                 {
-                                    Logger.LogInfo($"headerJson:");
-                                    Logger.LogInfo($"{repoHeader.JsonString}");
+                                    Logger.LogInfo($"REPO HEADER:");
+                                    Logger.LogInfo($"\n{repoHeader.JsonString}");
                                     return true;
                                 },
                                 (repoRecord) =>
                                 {
                                     Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
-                                    Logger.LogInfo($"blockJson:");
-                                    Logger.LogInfo($"{repoRecord.JsonString}");
+                                    Logger.LogInfo($"BLOCK JSON:");
+                                    Logger.LogInfo($"\n{repoRecord.JsonString}");
 
                                     return true;
                                 }
