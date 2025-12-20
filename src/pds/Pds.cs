@@ -32,7 +32,7 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds? InitializePds(string? dataDir, ILogger logger)
+    public static Pds? RunPds(string? dataDir, ILogger logger)
     {
         //
         // Get local file system

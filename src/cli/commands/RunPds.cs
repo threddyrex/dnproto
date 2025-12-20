@@ -21,7 +21,7 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-            var pds = Pds.InitializePds(dataDir, Logger);
+            var pds = Pds.RunPds(dataDir, Logger);
             if (pds == null)
             {
                 Logger.LogError("Failed to initialize PDS.");
