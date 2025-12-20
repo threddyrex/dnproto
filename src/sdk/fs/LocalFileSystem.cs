@@ -45,16 +45,6 @@ public class LocalFileSystem(string dataDir, ILogger logger)
             }
         }
 
-        foreach (string pdsSubDir in new string[] { "accounts"})
-        {
-            string fullSubDir = Path.Combine(dataDir, "pds", pdsSubDir);
-            if (Directory.Exists(fullSubDir) == false)
-            {
-                logger.LogTrace($"Creating subDir: {fullSubDir}");
-                Directory.CreateDirectory(fullSubDir);
-            }
-        }
-
         return new LocalFileSystem(dataDir, logger);
     }
 
