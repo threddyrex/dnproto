@@ -34,6 +34,7 @@ namespace dnproto.cli.commands
             // Load actor and session
             //
             ActorInfo? actorInfo = LocalFileSystem?.ResolveActorInfo(actor);
+            string? sessionFile = LocalFileSystem?.GetPath_SessionFile(actorInfo);
             SessionFile? session = LocalFileSystem?.LoadSession(actorInfo);
 
             if(session == null)
@@ -46,15 +47,32 @@ namespace dnproto.cli.commands
             // Call WS
             //
             string url = $"https://{session?.pds}/xrpc/com.atproto.server.refreshSession";
-            JsonNode? response = BlueskyClient.SendRequest(url,
+            JsonNode? newSession = BlueskyClient.SendRequest(url,
                 HttpMethod.Post, 
                 accessJwt: session?.refreshJwt);
+
+            if (newSession == null)
+            {
+                Logger.LogError("New session returned null.");
+                return;
+            }
+
+            //
+            // add pds
+            //
+            newSession["pds"] = session?.pds;
+
+            //
+            // Write to disk
+            //
+            Logger.LogInfo($"Writing session file: {sessionFile}");
+            JsonData.WriteJsonToFile(newSession, sessionFile);
 
 
             //
             // Print results
             //
-            BlueskyClient.PrintJsonResponseToConsole(response);
+            BlueskyClient.PrintJsonResponseToConsole(newSession);
         }
     }
 }
