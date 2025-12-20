@@ -115,7 +115,7 @@ public class JwtSecret
     /// <param name="refreshJwt">The refresh JWT token from the client</param>
     /// <param name="jwtSecret">The JWT secret from PdsConfig</param>
     /// <returns>ClaimsPrincipal if valid, null if invalid</returns>
-    public static ClaimsPrincipal? VerifyRefreshJwt(string refreshJwt, string jwtSecret)
+    public static ClaimsPrincipal? VerifyRefreshJwt(string? refreshJwt, string jwtSecret)
     {
         if (string.IsNullOrEmpty(refreshJwt) || string.IsNullOrEmpty(jwtSecret))
         {
@@ -179,7 +179,7 @@ public class JwtSecret
     /// <param name="accessJwt">The access JWT token from the client</param>
     /// <param name="jwtSecret">The JWT secret from PdsConfig</param>
     /// <returns>ClaimsPrincipal if valid, null if invalid</returns>
-    public static ClaimsPrincipal? VerifyAccessJwt(string accessJwt, string jwtSecret)
+    public static ClaimsPrincipal? VerifyAccessJwt(string? accessJwt, string jwtSecret)
     {
         if (string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(jwtSecret))
         {
@@ -235,4 +235,33 @@ public class JwtSecret
             return null;
         }
     }
+
+    public static string? GetDidFromClaimsPrincipal(ClaimsPrincipal? claimsPrincipal)
+    {
+        if(claimsPrincipal == null)
+        {
+            return null;
+        }
+
+        // JwtSecurityTokenHandler maps "sub" to ClaimTypes.NameIdentifier by default
+        var subClaim = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)
+                    ?? claimsPrincipal.FindFirst(JwtRegisteredClaimNames.Sub);
+        
+        if(subClaim == null)
+        {
+            return null;
+        }
+
+        if(string.IsNullOrEmpty(subClaim.Value))
+        {
+            return null;
+        }
+
+        if(!subClaim.Value.StartsWith("did:"))
+        {
+            return null;
+        }
+
+        return subClaim.Value;
+    }   
 }

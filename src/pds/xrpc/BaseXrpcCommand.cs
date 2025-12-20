@@ -1,4 +1,5 @@
 
+using System.Security.Claims;
 using System.Text.Json.Nodes;
 using dnproto.sdk.auth;
 using Microsoft.AspNetCore.Http;
@@ -70,7 +71,7 @@ public abstract class BaseXrpcCommand
 
         return authHeader.Substring("Bearer ".Length).Trim();
     }
-    
+
 
     protected JsonNode? GetRequestBodyAsJson()
     {

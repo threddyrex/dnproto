@@ -15,13 +15,25 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         //
         // Get the jwt from the caller's Authorization header
         //
-        string? refreshJwt = GetAccessJwt();
-        bool claimsPrincipalExists = false;
+        string? originalRefreshJwt = GetAccessJwt();
+        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(originalRefreshJwt, Pds.Config.JwtSecret);
+        bool claimsPrincipalExists = claimsPrincipal != null;
+        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
+        bool didMatches = userDid == Pds.Config.UserDid;
+        string? handle = null;
 
-        if(!string.IsNullOrEmpty(refreshJwt))
+        if(didMatches)
         {
-            ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(refreshJwt, Pds.Config.JwtSecret);
-            claimsPrincipalExists = claimsPrincipal != null;
+            handle = Pds.Config.UserHandle;
+        }
+
+        string? accessJwt = null;
+        string? newRefreshJwt = null;
+
+        if(claimsPrincipalExists && didMatches)
+        {
+            accessJwt = JwtSecret.GenerateAccessJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+            newRefreshJwt = JwtSecret.GenerateRefreshJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
         }
 
         //
@@ -29,8 +41,12 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         //
         return Results.Json(new 
         {
-            inputRefreshJwt = refreshJwt,
-            claimsPrincipalExists = claimsPrincipalExists
+            did = userDid,
+            handle = handle,
+            accessJwt = accessJwt,
+            refreshJwt = newRefreshJwt,
+            claimsPrincipalExists = claimsPrincipalExists,
+            didMatches = didMatches
         },
         statusCode: 200);
     }
