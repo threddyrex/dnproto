@@ -171,4 +171,68 @@ public class JwtSecret
             return null;
         }
     }
+
+    /// <summary>
+    /// Verify an access JWT token.
+    /// Validates the signature, expiration, and scope of the access token.
+    /// </summary>
+    /// <param name="accessJwt">The access JWT token from the client</param>
+    /// <param name="jwtSecret">The JWT secret from PdsConfig</param>
+    /// <returns>ClaimsPrincipal if valid, null if invalid</returns>
+    public static ClaimsPrincipal? VerifyAccessJwt(string accessJwt, string jwtSecret)
+    {
+        if (string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(jwtSecret))
+        {
+            return null;
+        }
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(jwtSecret);
+
+        try
+        {
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false, // We don't set an issuer
+                ValidateAudience = false, // We validate audience manually if needed
+                ValidateLifetime = true, // Ensure token hasn't expired
+                ClockSkew = TimeSpan.Zero // No clock skew tolerance
+            };
+
+            var principal = tokenHandler.ValidateToken(accessJwt, validationParameters, out SecurityToken validatedToken);
+
+            // Verify it's a JWT token
+            if (validatedToken is not JwtSecurityToken jwtToken)
+            {
+                return null;
+            }
+
+            // Verify the algorithm is HMAC SHA256
+            if (!jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            // Verify the scope is for access tokens
+            var scopeClaim = principal.FindFirst("scope")?.Value;
+            if (scopeClaim != "com.atproto.access")
+            {
+                return null;
+            }
+
+            return principal;
+        }
+        catch (SecurityTokenException)
+        {
+            // Token validation failed (expired, invalid signature, etc.)
+            return null;
+        }
+        catch (Exception)
+        {
+            // Any other exception during validation
+            return null;
+        }
+    }
 }
