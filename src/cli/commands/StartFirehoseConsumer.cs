@@ -77,7 +77,8 @@ public class StartFirehoseConsumer : BaseCommand
                     // Check header and message
                     //
                     Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
-                    Logger.LogInfo($" Received new frame from the firehose.");
+                    Logger.LogInfo($" NEW FIREHOSE FRAME");
+                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
                     if (header == null || message == null)
                     {
                         Logger.LogError("Received empty message.");
@@ -87,7 +88,9 @@ public class StartFirehoseConsumer : BaseCommand
                     Logger.LogInfo($"DAG CBOR OBJECT 1 (HEADER):\n{JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
                     Logger.LogInfo($"DAG CBOR OBJECT 2 (MESSAGE):\n{JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
 
-                    Logger.LogInfo("The following are the repo records contained in the 'blocks' key of the message object:");
+                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
+                    Logger.LogInfo(" PARSING BLOCKS");
+                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
 
                     //
                     // Ok now that we have the message, let's look for a "blocks" key.
