@@ -73,4 +73,79 @@ public class Base32Encoding
 
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Decode a base32 string back to bytes.
+    /// This is the inverse of BytesToBase32.
+    /// </summary>
+    /// <param name="base32String">The base32 encoded string</param>
+    /// <returns>The decoded bytes</returns>
+    public static byte[] Base32ToBytes(string base32String)
+    {
+        if (string.IsNullOrEmpty(base32String))
+        {
+            return Array.Empty<byte>();
+        }
+
+        string charMap = "abcdefghijklmnopqrstuvwxyz234567";
+        
+        // Calculate output size: 5 bits per character, pack into 8-bit bytes
+        int bitCount = base32String.Length * 5;
+        int byteCount = (bitCount + 7) / 8; // Round up
+        byte[] result = new byte[byteCount];
+
+        int currentByte = 0;
+        int bitsInCurrentByte = 0;
+
+        foreach (char c in base32String)
+        {
+            // Get the 5-bit value for this character
+            int value = charMap.IndexOf(char.ToLower(c));
+            if (value == -1)
+            {
+                throw new ArgumentException($"Invalid base32 character: {c}");
+            }
+
+            // We have 5 bits to add to our output
+            int bitsToAdd = 5;
+
+            while (bitsToAdd > 0)
+            {
+                int bitsAvailableInCurrentByte = 8 - bitsInCurrentByte;
+
+                if (bitsToAdd >= bitsAvailableInCurrentByte)
+                {
+                    // We can fill the current byte (or more)
+                    int bitsToTake = bitsAvailableInCurrentByte;
+                    int shift = bitsToAdd - bitsToTake;
+                    int mask = (1 << bitsToTake) - 1;
+                    int bitsValue = (value >> shift) & mask;
+
+                    result[currentByte] |= (byte)(bitsValue << (8 - bitsInCurrentByte - bitsToTake));
+
+                    bitsInCurrentByte += bitsToTake;
+                    bitsToAdd -= bitsToTake;
+
+                    if (bitsInCurrentByte == 8)
+                    {
+                        currentByte++;
+                        bitsInCurrentByte = 0;
+                    }
+                }
+                else
+                {
+                    // We can't fill the current byte, just add what we have
+                    int mask = (1 << bitsToAdd) - 1;
+                    int bitsValue = value & mask;
+
+                    result[currentByte] |= (byte)(bitsValue << (8 - bitsInCurrentByte - bitsToAdd));
+
+                    bitsInCurrentByte += bitsToAdd;
+                    bitsToAdd = 0;
+                }
+            }
+        }
+
+        return result;
+    }
 }
