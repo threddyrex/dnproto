@@ -104,6 +104,7 @@ When someone is having issues with their account, I like to run the following co
 - GetPdsInfo - lists things on their PDS
 - GetPlcHistory - checks their PLC history - make sure that the account isn't active in multiple places
 - StartFirehoseConsumer - make sure you can connect to their PDS (I've seen this fail)
+- DescribeRepo - check that it looks ok
 
 Also you can query the DID for moderation labels:
 
