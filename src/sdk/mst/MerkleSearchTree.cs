@@ -316,54 +316,48 @@ public class MerkleSearchTree
             return null;
         }
 
-        int keyDepth = MstNode.GetKeyDepth(key);
-
-        if (keyDepth == depth)
+        // Check left subtree first
+        if (node.LeftCid != null && _nodeCache.TryGetValue(node.LeftCid.Base32, out var leftNode))
         {
-            byte[] prefix = Array.Empty<byte>();
-            
-            foreach (var entry in node.Entries)
+            var leftResult = GetCid(leftNode, key, depth + 1);
+            if (leftResult != null)
             {
-                byte[] entryKey = entry.GetFullKey(prefix);
-                
-                if (CompareKeys(key, entryKey) == 0)
-                {
-                    return entry.ValueCid;
-                }
-                
-                prefix = entryKey;
+                return leftResult;
             }
         }
-        else
+
+        // Check entries at this level
+        byte[] prevKey = Array.Empty<byte>();
+        
+        foreach (var entry in node.Entries)
         {
-            // Search in subtrees
-            int pos = 0;
-            byte[] prefix = Array.Empty<byte>();
-
-            for (int i = 0; i < node.Entries.Count; i++)
+            // Reconstruct the entry's full key using PrefixLength
+            byte[] entryPrefix = new byte[entry.PrefixLength];
+            if (entry.PrefixLength > 0 && prevKey.Length >= entry.PrefixLength)
             {
-                var entry = node.Entries[i];
-                byte[] entryKey = entry.GetFullKey(prefix);
-                
-                if (CompareKeys(key, entryKey) < 0)
-                {
-                    break;
-                }
-                
-                prefix = entryKey;
-                pos = i + 1;
+                Array.Copy(prevKey, 0, entryPrefix, 0, entry.PrefixLength);
             }
-
-            if (pos == 0 && node.LeftCid != null && _nodeCache.TryGetValue(node.LeftCid.Base32, out var leftNode))
+            
+            // Build full key from prefix + suffix
+            byte[] entryKey = new byte[entryPrefix.Length + entry.KeySuffix.Length];
+            Array.Copy(entryPrefix, 0, entryKey, 0, entryPrefix.Length);
+            Array.Copy(entry.KeySuffix, 0, entryKey, entryPrefix.Length, entry.KeySuffix.Length);
+            
+            if (CompareKeys(key, entryKey) == 0)
             {
-                return GetCid(leftNode, key, depth + 1);
+                // Found exact match!
+                return entry.ValueCid;
             }
-            else if (pos > 0)
+            
+            prevKey = entryKey;
+
+            // Check right subtree of this entry
+            if (entry.TreeCid != null && _nodeCache.TryGetValue(entry.TreeCid.Base32, out var treeNode))
             {
-                var entry = node.Entries[pos - 1];
-                if (entry.TreeCid != null && _nodeCache.TryGetValue(entry.TreeCid.Base32, out var treeNode))
+                var treeResult = GetCid(treeNode, key, depth + 1);
+                if (treeResult != null)
                 {
-                    return GetCid(treeNode, key, depth + 1);
+                    return treeResult;
                 }
             }
         }
@@ -394,17 +388,29 @@ public class MerkleSearchTree
             ListKeysRecursive(leftNode, prefix, keys);
         }
 
-        // Visit entries
+        // Visit entries - track the previous key for prefix compression
+        byte[] prevKey = prefix;
         foreach (var entry in node.Entries)
         {
-            byte[] entryKey = entry.GetFullKey(prefix);
+            // Use PrefixLength to get the right amount from previous key
+            byte[] entryPrefix = new byte[entry.PrefixLength];
+            if (entry.PrefixLength > 0 && prevKey.Length >= entry.PrefixLength)
+            {
+                Array.Copy(prevKey, 0, entryPrefix, 0, entry.PrefixLength);
+            }
+            
+            // Build full key from prefix + suffix
+            byte[] entryKey = new byte[entryPrefix.Length + entry.KeySuffix.Length];
+            Array.Copy(entryPrefix, 0, entryKey, 0, entryPrefix.Length);
+            Array.Copy(entry.KeySuffix, 0, entryKey, entryPrefix.Length, entry.KeySuffix.Length);
+            
             keys.Add(Encoding.UTF8.GetString(entryKey));
-            prefix = entryKey;
+            prevKey = entryKey;
 
             // Visit right subtree
             if (entry.TreeCid != null && _nodeCache.TryGetValue(entry.TreeCid.Base32, out var treeNode))
             {
-                ListKeysRecursive(treeNode, prefix, keys);
+                ListKeysRecursive(treeNode, entryKey, keys);
             }
         }
     }

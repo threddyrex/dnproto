@@ -116,7 +116,7 @@ namespace dnproto.cli.commands
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             //Logger.LogTrace($"Error parsing record: {ex.Message}");
                         }
