@@ -120,10 +120,22 @@ public class GetPlcHistory : BaseCommand
         //
         // Print out the results.
         //
+        Logger.LogInfo("");
         Logger.LogInfo($"PDS History for {did}:");
         foreach(string line in consoleOutput)
         {
             Logger.LogInfo(line);
+        }
+        Logger.LogInfo("");
+
+        //
+        // Check if account is active on multiple PDSs
+        //
+        int activePdsCount = pdsStatus.Values.Count(status => status.Equals("True", StringComparison.OrdinalIgnoreCase));
+        if (activePdsCount > 1)
+        {
+            Logger.LogError($"Account is active on {activePdsCount} PDSs. Expected at most 1.");
+            Logger.LogInfo("");
         }
     }
 }

@@ -46,7 +46,24 @@ public class FileLogDestination : ILogDestination, IDisposable
         return new FileLogDestination(fullPath);
     }
 
-    public void WriteMessage(string? message)
+    public void WriteTrace(string? message)
+    {
+        WriteMessage(message);
+    }
+    public void WriteInfo(string? message)
+    {
+        WriteMessage(message);
+    }
+    public void WriteWarning(string? message)
+    {
+        WriteMessage(message);
+    }
+    public void WriteError(string? message)
+    {
+        WriteMessage(message);
+    }
+
+    private void WriteMessage(string? message)
     {
         if (_disposed)
         {

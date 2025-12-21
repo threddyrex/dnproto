@@ -55,7 +55,7 @@ public class Logger : ILogger
 
                 foreach(ILogDestination destination in _destinations)
                 {
-                    destination.WriteMessage(fullMessage);
+                    destination.WriteTrace(fullMessage);
                 }
             }
         }
@@ -71,7 +71,7 @@ public class Logger : ILogger
 
                 foreach(ILogDestination destination in _destinations)
                 {
-                    destination.WriteMessage(fullMessage);
+                    destination.WriteInfo(fullMessage);
                 }
             }
         }
@@ -87,7 +87,7 @@ public class Logger : ILogger
 
                 foreach(ILogDestination destination in _destinations)
                 {
-                    destination.WriteMessage(fullMessage);
+                    destination.WriteWarning(fullMessage);
                 }
             }
         }
@@ -101,7 +101,7 @@ public class Logger : ILogger
 
             foreach(ILogDestination destination in _destinations)
             {
-                destination.WriteMessage(fullMessage);
+                destination.WriteError(fullMessage);
             }
         }
     }
