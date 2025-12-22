@@ -319,4 +319,26 @@ public class MstRepository
         
         return (nodes.Count, records.Count);
     }
+
+    /// <summary>
+    /// Get the CAR file version used by this repository.
+    /// AT Protocol uses CAR version 1.
+    /// </summary>
+    public int GetCarVersion()
+    {
+        return 1;
+    }
+
+    /// <summary>
+    /// Get the CAR file roots (CIDs that serve as entry points).
+    /// For AT Protocol repositories, this is typically just the commit CID.
+    /// </summary>
+    public CidV1[] GetRoots()
+    {
+        if (CurrentCommit?.CommitCid != null)
+        {
+            return new[] { CurrentCommit.CommitCid };
+        }
+        return Array.Empty<CidV1>();
+    }
 }
