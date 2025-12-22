@@ -55,6 +55,17 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"number of MST nodes: {mstRepo.Mst.GetAllNodes().Count}");
             Logger.LogInfo($"root entries count: {mstRepo.Mst.Root?.Entries.Count ?? 0}");
 
+            // Calculate and display maximum depth
+            if (mstRepo.Mst.Root != null)
+            {
+                int maxDepth = CalculateMaxDepth(mstRepo, mstRepo.Mst.Root, 0);
+                Logger.LogInfo($"maximum tree depth: {maxDepth}");
+            }
+            else
+            {
+                Logger.LogInfo($"maximum tree depth: 0");
+            }
+
             // traverse tree and print it out, with each level indented by one space
             if (mstRepo.Mst.Root != null)
             {
@@ -68,6 +79,37 @@ namespace dnproto.cli.commands
             }
 
         }
+
+        int CalculateMaxDepth(MstRepository mstRepo, MstNode node, int currentDepth)
+        {
+            int maxDepth = currentDepth;
+
+            // Check left child
+            if (node.LeftCid != null)
+            {
+                MstNode? leftChild = mstRepo.Mst.GetNodeByCid(node.LeftCid.Base32);
+                if (leftChild != null)
+                {
+                    maxDepth = Math.Max(maxDepth, CalculateMaxDepth(mstRepo, leftChild, currentDepth + 1));
+                }
+            }
+
+            // Check tree children in entries
+            foreach (var entry in node.Entries)
+            {
+                if (entry.TreeCid != null)
+                {
+                    MstNode? childNode = mstRepo.Mst.GetNodeByCid(entry.TreeCid.Base32);
+                    if (childNode != null)
+                    {
+                        maxDepth = Math.Max(maxDepth, CalculateMaxDepth(mstRepo, childNode, currentDepth + 1));
+                    }
+                }
+            }
+
+            return maxDepth;
+        }
+
         void PrintMstNode(MstRepository mstRepo, MstNode node, string prefix, byte[] currentPrefix, Dictionary<string, byte[]> recordCache)
         {
             // Handle left child (keys before all entries in this node)
