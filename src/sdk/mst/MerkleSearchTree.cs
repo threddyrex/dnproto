@@ -225,12 +225,21 @@ public class MerkleSearchTree
         if (keyDepth == depth)
         {
             // Find and remove the entry
-            byte[] prefix = Array.Empty<byte>();
+            byte[] prevKey = Array.Empty<byte>();
             
             for (int i = 0; i < node.Entries.Count; i++)
             {
                 var entry = node.Entries[i];
-                byte[] entryKey = entry.GetFullKey(prefix);
+                
+                // Reconstruct the entry's full key properly
+                byte[] entryPrefix = new byte[entry.PrefixLength];
+                if (entry.PrefixLength > 0 && prevKey.Length >= entry.PrefixLength)
+                {
+                    Array.Copy(prevKey, 0, entryPrefix, 0, entry.PrefixLength);
+                }
+                byte[] entryKey = new byte[entryPrefix.Length + entry.KeySuffix.Length];
+                Array.Copy(entryPrefix, 0, entryKey, 0, entryPrefix.Length);
+                Array.Copy(entry.KeySuffix, 0, entryKey, entryPrefix.Length, entry.KeySuffix.Length);
                 
                 if (CompareKeys(key, entryKey) == 0)
                 {
@@ -245,7 +254,7 @@ public class MerkleSearchTree
                     return node;
                 }
                 
-                prefix = entryKey;
+                prevKey = entryKey;
             }
         }
         else
@@ -274,7 +283,15 @@ public class MerkleSearchTree
                 if (node.LeftCid != null && _nodeCache.TryGetValue(node.LeftCid.Base32, out var leftNode))
                 {
                     var newLeft = DeleteEntry(leftNode, key, depth + 1);
-                    node.LeftCid = newLeft?.ComputeCid();
+                    if (newLeft != null)
+                    {
+                        node.LeftCid = newLeft.ComputeCid();
+                        _nodeCache[node.LeftCid.Base32] = newLeft;
+                    }
+                    else
+                    {
+                        node.LeftCid = null;
+                    }
                 }
             }
             else
@@ -284,7 +301,15 @@ public class MerkleSearchTree
                 if (entry.TreeCid != null && _nodeCache.TryGetValue(entry.TreeCid.Base32, out var treeNode))
                 {
                     var newTree = DeleteEntry(treeNode, key, depth + 1);
-                    entry.TreeCid = newTree?.ComputeCid();
+                    if (newTree != null)
+                    {
+                        entry.TreeCid = newTree.ComputeCid();
+                        _nodeCache[entry.TreeCid.Base32] = newTree;
+                    }
+                    else
+                    {
+                        entry.TreeCid = null;
+                    }
                 }
             }
         }
@@ -374,11 +399,11 @@ public class MerkleSearchTree
     public List<string> ListKeys()
     {
         var keys = new List<string>();
-        ListKeysRecursive(Root, Array.Empty<byte>(), keys);
+        ListKeysRecursive(Root, keys);
         return keys;
     }
 
-    private void ListKeysRecursive(MstNode? node, byte[] prefix, List<string> keys)
+    private void ListKeysRecursive(MstNode? node, List<string> keys)
     {
         if (node == null)
         {
@@ -388,11 +413,11 @@ public class MerkleSearchTree
         // Visit left subtree
         if (node.LeftCid != null && _nodeCache.TryGetValue(node.LeftCid.Base32, out var leftNode))
         {
-            ListKeysRecursive(leftNode, prefix, keys);
+            ListKeysRecursive(leftNode, keys);
         }
 
         // Visit entries - track the previous key for prefix compression
-        byte[] prevKey = prefix;
+        byte[] prevKey = Array.Empty<byte>();
         foreach (var entry in node.Entries)
         {
             // Use PrefixLength to get the right amount from previous key
@@ -413,7 +438,7 @@ public class MerkleSearchTree
             // Visit right subtree
             if (entry.TreeCid != null && _nodeCache.TryGetValue(entry.TreeCid.Base32, out var treeNode))
             {
-                ListKeysRecursive(treeNode, entryKey, keys);
+                ListKeysRecursive(treeNode, keys);
             }
         }
     }
@@ -505,9 +530,18 @@ public class MerkleSearchTree
         for (int i = startPos; i < node.Entries.Count; i++)
         {
             var entry = node.Entries[i];
-            byte[] fullKey = entry.GetFullKey(prefix);
             
-            // Recalculate prefix length
+            // Reconstruct the full key using the entry's PrefixLength
+            byte[] entryPrefix = new byte[entry.PrefixLength];
+            if (entry.PrefixLength > 0 && prefix.Length >= entry.PrefixLength)
+            {
+                Array.Copy(prefix, 0, entryPrefix, 0, entry.PrefixLength);
+            }
+            byte[] fullKey = new byte[entryPrefix.Length + entry.KeySuffix.Length];
+            Array.Copy(entryPrefix, 0, fullKey, 0, entryPrefix.Length);
+            Array.Copy(entry.KeySuffix, 0, fullKey, entryPrefix.Length, entry.KeySuffix.Length);
+            
+            // Recalculate prefix length based on previous key
             if (i > 0)
             {
                 int prefixLen = GetCommonPrefixLength(prefix, fullKey);
