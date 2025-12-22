@@ -71,8 +71,11 @@ public class MerkleSearchTree
         // Insert into tree
         Root = PutEntry(Root ?? new MstNode(), keyBytes, recordCid, 0);
         
-        // Recompute root CID
-        return Root.ComputeCid();
+        // Recompute root CID and add to cache
+        var rootCid = Root.ComputeCid();
+        _nodeCache[rootCid.Base32] = Root;
+        
+        return rootCid;
     }
 
     /// <summary>
