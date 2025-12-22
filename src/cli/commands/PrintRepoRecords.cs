@@ -10,12 +10,12 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[] { "actor" });
+            return new HashSet<string>(new string[]{});
         }
-        
+
         public override HashSet<string> GetOptionalArguments()
         {
-            return new HashSet<string>(new string[] { "collection", "month" });
+            return new HashSet<string>(new string[]{"collection", "month", "actor", "repofile"});
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -27,14 +27,21 @@ namespace dnproto.cli.commands
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
             string? collection = CommandLineInterface.GetArgumentValue(arguments, "collection");
             string? month = CommandLineInterface.GetArgumentValue(arguments, "month");
+            string? repoFileArg = CommandLineInterface.GetArgumentValue(arguments, "repofile");
+
 
             //
-            // Load lfs
+            // Find repo file
             //
-            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
-    
-            string? repoFile = lfs?.GetPath_RepoFile(actorInfo);
+            string? repoFile = repoFileArg;
+
+            if(string.IsNullOrEmpty(repoFileArg) && string.IsNullOrEmpty(actor) == false)
+            {
+                LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+                ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+                repoFile = lfs?.GetPath_RepoFile(actorInfo);
+            }
+
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");

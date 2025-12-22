@@ -10,7 +10,12 @@ namespace dnproto.cli.commands
     {
         public override HashSet<string> GetRequiredArguments()
         {
-            return new HashSet<string>(new string[]{"actor"});
+            return new HashSet<string>(new string[]{});
+        }
+
+        public override HashSet<string> GetOptionalArguments()
+        {
+            return new HashSet<string>(new string[]{"actor", "repofile"});
         }
 
         public override void DoCommand(Dictionary<string, string> arguments)
@@ -20,17 +25,21 @@ namespace dnproto.cli.commands
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+            string? repoFileArg = CommandLineInterface.GetArgumentValue(arguments, "repofile");
+
 
             //
-            // Load lfs
+            // Find repo file
             //
-            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+            string? repoFile = repoFileArg;
 
-            //
-            // Get local repo file
-            //
-            string? repoFile = LocalFileSystem.Initialize(dataDir, Logger)?.GetPath_RepoFile(actorInfo);
+            if(string.IsNullOrEmpty(repoFileArg) && string.IsNullOrEmpty(actor) == false)
+            {
+                LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+                ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+                repoFile = lfs?.GetPath_RepoFile(actorInfo);
+            }
+
             if (string.IsNullOrEmpty(repoFile) || File.Exists(repoFile) == false)
             {
                 Logger.LogError($"Repo file does not exist: {repoFile}");
@@ -120,11 +129,8 @@ namespace dnproto.cli.commands
                 }
             );
 
-            if (earliestDate == DateTime.MaxValue || latestDate == DateTime.MinValue)
-            {
-                Logger.LogError($"No valid record dates found in repo: {repoFile}");
-                return;
-            }
+            string earliestDateStr = earliestDate == DateTime.MaxValue ? "<none>" : earliestDate.ToString();
+            string latestDateStr = latestDate == DateTime.MinValue ? "<none>" : latestDate.ToString();
 
             //
             // Print stats
@@ -132,8 +138,8 @@ namespace dnproto.cli.commands
             Logger.LogInfo("");
             Logger.LogInfo($"repoFile: {repoFile}");
             Logger.LogInfo("");
-            Logger.LogInfo($"earliestDate: {earliestDate}");
-            Logger.LogInfo($"latestDate: {latestDate}");
+            Logger.LogInfo($"earliestDate: {earliestDateStr}");
+            Logger.LogInfo($"latestDate: {latestDateStr}");
             Logger.LogInfo("");
             Logger.LogInfo($"errorCount: {errorCount}");
             Logger.LogInfo("");
