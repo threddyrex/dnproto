@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using dnproto.sdk.auth;
 using dnproto.sdk.fs;
+using dnproto.sdk.log;
+using dnproto.sdk.mst;
 using dnproto.pds.db;
 using dnproto.pds.xrpc;
 using Microsoft.AspNetCore.Http;
@@ -28,6 +30,8 @@ public class Pds
     public required WebApplication App;
 
     public required Func<byte[], byte[]> CommitSigningFunction;
+
+    public required MstRepository Repo;
 
 
     /// <summary>
@@ -79,6 +83,21 @@ public class Pds
         }
 
 
+        //
+        // Load repo
+        //
+        logger.LogInfo("Loading user MST repo...");
+        var repoPath = Path.Combine(lfs.DataDir, "pds", "repo.car");
+        var dnprotoRepo = MstRepository.LoadFromFile(repoPath);
+
+        if (dnprotoRepo == null)
+        {
+            logger.LogError("Failed to load user MST repo.");
+            return null;
+        }
+
+        logger.LogInfo($"Current commit: {dnprotoRepo.CurrentCommit?.CommitCid?.ToString() ?? "null"}");
+
 
         //
         // Configure to listen on specified port with HTTPS
@@ -93,6 +112,7 @@ public class Pds
         builder.WebHost.UseUrls($"https://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 
+
         //
         // Construct pds object
         //
@@ -103,7 +123,8 @@ public class Pds
             LocalFileSystem = lfs,
             PdsDb = pdsDb,
             App = app,
-            CommitSigningFunction = commitSigningFunction
+            CommitSigningFunction = commitSigningFunction,
+            Repo = dnprotoRepo
         };
 
 
@@ -272,21 +293,54 @@ public class Pds
                 return;
             }
 
+            //
+            // Create commit signing function
+            //
+            var commitSigningFunction = sdk.auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
+            if (commitSigningFunction == null)
+            {
+                Logger.LogError("Failed to create commit signing function.");
+                return;
+            }
 
+
+            //
+            // Create new mst repo
+            //
+            var dnprotoRepo = MstRepository.CreateForNewUser(userDid, commitSigningFunction);
+            if (dnprotoRepo == null)
+            {
+                Logger.LogError("Failed to create new MST repository for user.");
+                return;
+            }
+
+            // write to disk
+            var repoPath = Path.Combine(dataDir!, "pds", "repo.car");
+            Logger.LogInfo($"Writing new MST repo to {repoPath}...");
+            dnprotoRepo.SaveToFile(repoPath);
+
+            if(! File.Exists(repoPath))
+            {
+                Logger.LogError("Failed to save MST repository to disk.");
+                return;
+            }
 
 
             //
             // Print out stuff that the user will need.
             //
             Logger.LogInfo("PDS initialized successfully.");
-            Logger.LogInfo($"Admin password: {adminPassword}");
-            Logger.LogInfo($"User password: {userPassword}");
             Logger.LogInfo("");
-            Logger.LogInfo("User signing keypair (for DID document and commit signing):");
-            Logger.LogInfo($"  Public key (multibase):  {userKeyPair.PublicKeyMultibase}");
-            Logger.LogInfo($"  Private key (multibase): {userKeyPair.PrivateKeyMultibase}");
-            Logger.LogInfo($"  DID Key:                 {userKeyPair.DidKey}");
-
+            Logger.LogInfo("Important stuff to remember:");
+            Logger.LogInfo("");
+            Logger.LogInfo($"   Admin password: {adminPassword}");
+            Logger.LogInfo($"   User password: {userPassword}");
+            Logger.LogInfo("");
+            Logger.LogInfo("    User signing keypair (for DID document and commit signing):");
+            Logger.LogInfo($"       Public key (multibase):  {userKeyPair.PublicKeyMultibase}");
+            Logger.LogInfo($"       Private key (multibase): {userKeyPair.PrivateKeyMultibase}");
+            Logger.LogInfo($"       DID Key:                 {userKeyPair.DidKey}");
+            Logger.LogInfo("");
             Logger.LogInfo($"Copy this powershell:\n\n$adminPassword = '{adminPassword}';\n$userHandle = '{userHandle}';\n$userPassword = '{userPassword}';\n\n to set the admin and user passwords in your environment for use with powershell.\n");
         
     }
