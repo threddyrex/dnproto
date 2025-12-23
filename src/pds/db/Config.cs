@@ -28,4 +28,8 @@ public class Config
     public string UserHashedPassword { get; set; } = string.Empty;
 
     public string UserEmail { get; set; } = string.Empty;
+
+    public string UserPublicKeyMultibase { get; set; } = string.Empty;
+
+    public string UserPrivateKeyMultibase { get; set; } = string.Empty;
 }

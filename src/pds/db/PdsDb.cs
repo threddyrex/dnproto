@@ -79,7 +79,9 @@ CREATE TABLE IF NOT EXISTS Config (
     UserHandle TEXT NOT NULL,
     UserDid TEXT NOT NULL,
     UserHashedPassword TEXT NOT NULL,
-    UserEmail TEXT NOT NULL
+    UserEmail TEXT NOT NULL,
+    UserPublicKeyMultibase TEXT NOT NULL,
+    UserPrivateKeyMultibase TEXT NOT NULL
 )
             ";
             
@@ -164,8 +166,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (Version, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail)
-VALUES (@Version, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail)
+INSERT INTO Config (Version, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase)
+VALUES (@Version, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase)
             ";
             command.Parameters.AddWithValue("@Version", config.Version);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
@@ -179,6 +181,8 @@ VALUES (@Version, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUse
             command.Parameters.AddWithValue("@UserDid", config.UserDid);
             command.Parameters.AddWithValue("@UserHashedPassword", config.UserHashedPassword);
             command.Parameters.AddWithValue("@UserEmail", config.UserEmail);
+            command.Parameters.AddWithValue("@UserPublicKeyMultibase", config.UserPublicKeyMultibase);
+            command.Parameters.AddWithValue("@UserPrivateKeyMultibase", config.UserPrivateKeyMultibase);
 
             command.ExecuteNonQuery();
         }
@@ -211,6 +215,8 @@ VALUES (@Version, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUse
                     config.UserDid = reader.GetString(reader.GetOrdinal("UserDid"));
                     config.UserHashedPassword = reader.GetString(reader.GetOrdinal("UserHashedPassword"));
                     config.UserEmail = reader.GetString(reader.GetOrdinal("UserEmail"));
+                    config.UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase"));
+                    config.UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase"));
                 }
             }
         }

@@ -125,6 +125,11 @@ namespace dnproto.cli.commands
             var userPassword = PasswordHasher.CreateNewAdminPassword();
             config.UserHashedPassword = PasswordHasher.HashPassword(userPassword!);
             config.UserEmail = userEmail!;
+            
+            // Generate user keypair for signing commits
+            var userKeyPair = dnproto.sdk.auth.KeyPair.Generate(dnproto.sdk.auth.KeyTypes.P256);
+            config.UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase;
+            config.UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase;
 
 
             //
@@ -145,6 +150,11 @@ namespace dnproto.cli.commands
             Logger.LogInfo("PDS initialized successfully.");
             Logger.LogInfo($"Admin password: {adminPassword}");
             Logger.LogInfo($"User password: {userPassword}");
+            Logger.LogInfo("");
+            Logger.LogInfo("User signing keypair (for DID document and commit signing):");
+            Logger.LogInfo($"  Public key (multibase):  {userKeyPair.PublicKeyMultibase}");
+            Logger.LogInfo($"  Private key (multibase): {userKeyPair.PrivateKeyMultibase}");
+            Logger.LogInfo($"  DID Key:                 {userKeyPair.DidKey}");
 
             Logger.LogInfo($"Copy this powershell:\n\n$adminPassword = '{adminPassword}';\n$userHandle = '{userHandle}';\n$userPassword = '{userPassword}';\n\n to set the admin and user passwords in your environment for use with powershell.\n");
         }

@@ -956,7 +956,18 @@ public class BlueskyClient
             //
             // Send
             //
-            var response = client.Send(request);
+            HttpResponseMessage? response = null;
+
+            try
+            {
+                response = client.Send(request);                
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Exception sending request: {ex.Message}");
+                return null;
+            }
 
             if (response == null)
             {
