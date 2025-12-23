@@ -26,6 +26,8 @@ public class Pds
 
     public required WebApplication App;
 
+    public required Func<byte[], byte[]> CommitSigningFunction;
+
 
     /// <summary>
     /// Initializes the PDS. Loads config, initializes database, and sets up endpoints.
@@ -65,6 +67,17 @@ public class Pds
             return null;
         }
 
+        //
+        // Create commit signing function
+        //
+        var commitSigningFunction = sdk.auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
+        if (commitSigningFunction == null)
+        {
+            logger.LogError("Failed to create commit signing function.");
+            return null;
+        }
+
+
 
         //
         // Configure to listen on specified port with HTTPS
@@ -83,7 +96,8 @@ public class Pds
             Logger = logger,
             LocalFileSystem = lfs,
             PdsDb = pdsDb,
-            App = app
+            App = app,
+            CommitSigningFunction = commitSigningFunction
         };
 
 

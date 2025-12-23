@@ -348,5 +348,152 @@ public static class Signer
         // For P-256, p ≡ 3 (mod 4), so we can use the simple formula: sqrt(a) = a^((p+1)/4) mod p
         return System.Numerics.BigInteger.ModPow(a, (p + 1) / 4, p);
     }
+
+    /// <summary>
+    /// Creates a signing function for repository commits from a private key in multibase format.
+    /// This function can be used with MstRepository.CreateForNewUser() and MstRepository.Commit().
+    /// </summary>
+    /// <param name="privateKeyMultibase">The private key in multibase format (starts with 'z')</param>
+    /// <param name="publicKeyMultibase">The public key in multibase format (optional, used for validation)</param>
+    /// <returns>A signing function that takes a byte array (hash) and returns a signature</returns>
+    /// <exception cref="ArgumentException">Thrown when the key format is invalid</exception>
+    /// <example>
+    /// Usage with PDS config:
+    /// <code>
+    /// var config = db.GetConfig();
+    /// var signingFunction = Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
+    /// var repo = MstRepository.CreateForNewUser(config.UserDid, signingFunction);
+    /// </code>
+    /// </example>
+    public static Func<byte[], byte[]> CreateCommitSigningFunction(string privateKeyMultibase, string? publicKeyMultibase = null)
+    {
+        // Decode the multibase private key
+        var privateKeyWithPrefix = Base58BtcEncoding.DecodeMultibase(privateKeyMultibase);
+        
+        // Determine key type from multicodec prefix
+        byte[]? privateKeyBytes = null;
+        byte[]? publicKeyBytes = null;
+        ECCurve curve;
+        
+        if (privateKeyWithPrefix.Length >= 2)
+        {
+            // Check for P-256 private key prefix (0x86 0x26)
+            if (privateKeyWithPrefix[0] == 0x86 && privateKeyWithPrefix[1] == 0x26)
+            {
+                // P-256 key
+                privateKeyBytes = privateKeyWithPrefix.Skip(2).ToArray();
+                curve = ECCurve.NamedCurves.nistP256;
+                
+                // Decode public key if provided (public key uses 0x80 0x24)
+                if (!string.IsNullOrEmpty(publicKeyMultibase))
+                {
+                    var publicKeyWithPrefix = Base58BtcEncoding.DecodeMultibase(publicKeyMultibase);
+                    if (publicKeyWithPrefix.Length >= 2 && publicKeyWithPrefix[0] == 0x80 && publicKeyWithPrefix[1] == 0x24)
+                    {
+                        publicKeyBytes = publicKeyWithPrefix.Skip(2).ToArray();
+                    }
+                }
+            }
+            // Check for secp256k1 private key prefix (0x81 0x26)
+            else if (privateKeyWithPrefix[0] == 0x81 && privateKeyWithPrefix[1] == 0x26)
+            {
+                // secp256k1 key
+                privateKeyBytes = privateKeyWithPrefix.Skip(2).ToArray();
+                curve = ECCurve.CreateFromFriendlyName("secp256k1");
+                
+                // Decode public key if provided (public key uses 0xE7 0x01)
+                if (!string.IsNullOrEmpty(publicKeyMultibase))
+                {
+                    var publicKeyWithPrefix = Base58BtcEncoding.DecodeMultibase(publicKeyMultibase);
+                    if (publicKeyWithPrefix.Length >= 2 && publicKeyWithPrefix[0] == 0xE7 && publicKeyWithPrefix[1] == 0x01)
+                    {
+                        publicKeyBytes = publicKeyWithPrefix.Skip(2).ToArray();
+                    }
+                }
+            }
+            else
+            {
+                throw new ArgumentException($"Unsupported key type. Expected P-256 private (0x86 0x26) or secp256k1 private (0x81 0x26) prefix, got 0x{privateKeyWithPrefix[0]:X2} 0x{privateKeyWithPrefix[1]:X2}");
+            }
+        }
+        else
+        {
+            throw new ArgumentException("Invalid private key format. Key too short to contain multicodec prefix.");
+        }
+        
+        if (privateKeyBytes == null || privateKeyBytes.Length != 32)
+        {
+            throw new ArgumentException($"Invalid private key length. Expected 32 bytes, got {privateKeyBytes?.Length ?? 0}");
+        }
+        
+        // Create the ECDSA instance and import parameters
+        var ecdsa = ECDsa.Create(curve);
+        
+        ECParameters parameters;
+        if (publicKeyBytes != null)
+        {
+            // Import with both private and public key
+            ECPoint publicPoint;
+            
+            // Handle compressed or uncompressed public key
+            if (publicKeyBytes.Length == 33 && (publicKeyBytes[0] == 0x02 || publicKeyBytes[0] == 0x03))
+            {
+                // Compressed format
+                var x = publicKeyBytes.Skip(1).Take(32).ToArray();
+                var y = DecompressPublicKey(x, publicKeyBytes[0] == 0x03);
+                publicPoint = new ECPoint { X = x, Y = y };
+            }
+            else if (publicKeyBytes.Length == 65 && publicKeyBytes[0] == 0x04)
+            {
+                // Uncompressed format
+                publicPoint = new ECPoint
+                {
+                    X = publicKeyBytes.Skip(1).Take(32).ToArray(),
+                    Y = publicKeyBytes.Skip(33).Take(32).ToArray()
+                };
+            }
+            else
+            {
+                throw new ArgumentException($"Invalid public key format. Expected 33 or 65 bytes, got {publicKeyBytes.Length}");
+            }
+            
+            parameters = new ECParameters
+            {
+                Curve = curve,
+                D = privateKeyBytes,
+                Q = publicPoint
+            };
+        }
+        else
+        {
+            // Import with private key only (will compute public key)
+            parameters = new ECParameters
+            {
+                Curve = curve,
+                D = privateKeyBytes
+            };
+        }
+        
+        ecdsa.ImportParameters(parameters);
+        
+        // Return the signing function
+        return (hash) =>
+        {
+            // Sign the hash
+            var signature = ecdsa.SignHash(hash);
+            return signature;
+        };
+    }
+
+    /// <summary>
+    /// Creates a signing function for repository commits from a KeyPair object.
+    /// This is a convenience wrapper around CreateCommitSigningFunction.
+    /// </summary>
+    /// <param name="keyPair">The KeyPair object containing the private key</param>
+    /// <returns>A signing function that takes a byte array (hash) and returns a signature</returns>
+    public static Func<byte[], byte[]> CreateCommitSigningFunction(KeyPair keyPair)
+    {
+        return CreateCommitSigningFunction(keyPair.PrivateKeyMultibase, keyPair.PublicKeyMultibase);
+    }
 }
 
