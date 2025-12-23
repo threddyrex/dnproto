@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using dnproto.sdk.log;
+using Microsoft.Extensions.Logging;
 using dnproto.sdk.fs;
 using dnproto.pds.db;
 using dnproto.pds.xrpc;
@@ -18,7 +18,7 @@ public class Pds
 {
     public required Config Config;
 
-    public required ILogger Logger;
+    public required dnproto.sdk.log.ILogger Logger;
 
     public required LocalFileSystem LocalFileSystem;
 
@@ -35,7 +35,7 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds? RunPds(string? dataDir, ILogger logger)
+    public static Pds? RunPds(string? dataDir, dnproto.sdk.log.ILogger logger)
     {
         //
         // Get local file system
@@ -84,6 +84,11 @@ public class Pds
         //
         logger.LogInfo($"Starting minimal API with HTTPS on port {config.ListenPort}...");
         var builder = WebApplication.CreateBuilder();
+        
+        // Clear default logging providers and add custom logger
+        builder.Logging.ClearProviders();
+        builder.Logging.AddProvider(new CustomLoggerProvider(logger));
+        
         builder.WebHost.UseUrls($"https://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 
