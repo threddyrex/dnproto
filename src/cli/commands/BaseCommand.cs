@@ -9,7 +9,7 @@ namespace dnproto.cli.commands
     /// </summary>
     public abstract class BaseCommand
     {
-        public ILogger Logger = new Logger();
+        public IDnProtoLogger Logger = new Logger();
 
         public LocalFileSystem? LocalFileSystem = null;
 

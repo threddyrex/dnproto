@@ -7,7 +7,7 @@ namespace dnproto.sdk.log;
 ///   - thread safety (locking)
 ///   - writing to multiple destinations (console, file, etc.)
 /// </summary>
-public class Logger : ILogger
+public class Logger : IDnProtoLogger
 {
     private int _level = 1; // default to info; caller can change it
 

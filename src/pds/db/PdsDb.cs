@@ -6,7 +6,7 @@ namespace dnproto.pds.db;
 public class PdsDb
 {
     public required string _dataDir;
-    public required ILogger _logger;
+    public required IDnProtoLogger _logger;
 
 
 
@@ -14,7 +14,7 @@ public class PdsDb
     /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
     /// If already exists, it will fail.
     /// </summary>
-    public static PdsDb? InitializePdsDb(string dataDir, ILogger logger)
+    public static PdsDb? InitializePdsDb(string dataDir, IDnProtoLogger logger)
     {
         //
         // Paths
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS Config (
 
 
 
-    public static PdsDb? ConnectPdsDb(string dataDir, ILogger logger)
+    public static PdsDb? ConnectPdsDb(string dataDir, IDnProtoLogger logger)
     {
         //
         // Check that the pds/db folder exists.

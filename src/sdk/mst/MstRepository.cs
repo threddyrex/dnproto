@@ -274,7 +274,7 @@ public class MstRepository
     /// <summary>
     /// Load a repository from a CAR file.
     /// </summary>
-    public static MstRepository LoadFromFile(string filePath, ILogger? logger = null)
+    public static MstRepository LoadFromFile(string filePath, IDnProtoLogger? logger = null)
     {
         var (commit, mst) = MstCarFile.ReadFromFile(filePath, logger);
         

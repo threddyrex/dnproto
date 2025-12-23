@@ -6,7 +6,7 @@ namespace dnproto.sdk.log;
 /// about this interface for logging. In case we change
 /// things around in the future.
 /// </summary>
-public interface ILogger
+public interface IDnProtoLogger
 {
     public void LogTrace(string? message);
     public void LogInfo(string? message);

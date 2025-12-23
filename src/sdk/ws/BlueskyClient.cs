@@ -15,7 +15,7 @@ namespace dnproto.sdk.ws;
 /// </summary>
 public class BlueskyClient
 {
-    public static ILogger Logger = new Logger();
+    public static IDnProtoLogger Logger = new Logger();
 
     /// <summary>
     /// Finds a bunch of info for a handle. (did, didDoc, pds)

@@ -186,7 +186,7 @@ public static class CommandLineInterface
     /// </summary>
     /// <param name="args">Array of command line arguments.</param>
     /// <returns>A dictionary where the key is the argument name and the value is the argument value.</returns>
-    public static Dictionary<string, string>? ParseArguments(string[] args, ILogger logger)
+    public static Dictionary<string, string>? ParseArguments(string[] args, IDnProtoLogger logger)
     {
         if(args == null)
         {
@@ -331,7 +331,7 @@ public static class CommandLineInterface
         return true;
     }
 
-    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, ILogger logger)
+    public static void PrintUsage(string commandName, dnproto.cli.commands.BaseCommand commandInstance, IDnProtoLogger logger)
     {
         logger.LogInfo("Usage:");
         string usage = "    .\\dnproto.exe /command " + commandName + "";

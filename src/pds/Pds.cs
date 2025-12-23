@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
+using dnproto.sdk.auth;
 using dnproto.sdk.fs;
 using dnproto.pds.db;
 using dnproto.pds.xrpc;
@@ -18,7 +19,7 @@ public class Pds
 {
     public required Config Config;
 
-    public required dnproto.sdk.log.ILogger Logger;
+    public required dnproto.sdk.log.IDnProtoLogger Logger;
 
     public required LocalFileSystem LocalFileSystem;
 
@@ -35,7 +36,7 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds? RunPds(string? dataDir, dnproto.sdk.log.ILogger logger)
+    public static Pds? LoadPdsForRun(string? dataDir, dnproto.sdk.log.IDnProtoLogger logger)
     {
         //
         // Get local file system
@@ -153,5 +154,140 @@ public class Pds
         Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
         Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
         Logger.LogInfo("");
+    }
+
+    public static void InitializePds(dnproto.sdk.log.IDnProtoLogger Logger, string? dataDir, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
+    {
+
+            //
+            // Verify params
+            //
+            if (string.IsNullOrEmpty(dataDir))
+            {
+                Logger.LogError("dataDir argument is required.");
+                return;
+            }
+            if (string.IsNullOrEmpty(pdsHostname))
+            {
+                Logger.LogError("pdshostname argument is required.");
+                return;
+            }
+            if (string.IsNullOrEmpty(availableUserDomain))
+            {
+                Logger.LogError("availableuserdomain argument is required.");
+                return;
+            }
+            if (string.IsNullOrEmpty(userHandle))
+            {
+                Logger.LogError("userHandle argument is required.");
+                return;
+            }
+            if (string.IsNullOrEmpty(userDid))
+            {
+                Logger.LogError("userDid argument is required.");
+                return;
+            }
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                Logger.LogError("userEmail argument is required.");
+                return;
+            }
+
+
+            //
+            // Create fresh pds db
+            //
+            PdsDb? pdsDb = PdsDb.InitializePdsDb(dataDir!, Logger);
+            if (pdsDb == null)
+            {
+                Logger.LogError("Failed to initialize PDS database.");
+
+                Logger.LogInfo("type 'Y' to delete the existing database and re-initialize (all data will be lost), or any other key to abort:");
+                string? input = Console.ReadLine();
+                if (input != null && input.ToUpper() == "Y")
+                {
+                    //
+                    // Delete existing database file
+                    //
+                    string dbDir = Path.Combine(dataDir!, "pds");
+                    string dbPath = Path.Combine(dbDir, "pds.db");
+                    try
+                    {
+                        File.Delete(dbPath);
+                        Logger.LogInfo("Deleted existing database file.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Failed to delete existing database file: {ex.Message}");
+                        return;
+                    }
+
+                    //
+                    // Try again to initialize
+                    //
+                    pdsDb = PdsDb.InitializePdsDb(dataDir!, Logger);
+                    if (pdsDb == null)
+                    {
+                        Logger.LogError("Failed to initialize PDS database after deleting existing database file.");
+                        return;
+                    }
+                }
+                else
+                return;
+            }
+
+
+            //
+            // Create fresh config
+            //
+            var config = new dnproto.pds.db.Config();
+            config.Version = "0.0.001";
+            config.ListenHost = "localhost";
+            config.ListenPort = 5001;
+            config.PdsHostname = pdsHostname!;
+            config.PdsDid = "did:web:" + pdsHostname!;
+            config.AvailableUserDomain = availableUserDomain!;
+            var adminPassword = PasswordHasher.CreateNewAdminPassword();
+            config.AdminHashedPassword = PasswordHasher.HashPassword(adminPassword);
+            config.JwtSecret = JwtSecret.GenerateJwtSecret();
+            config.UserHandle = userHandle!;
+            config.UserDid = userDid!;
+            var userPassword = PasswordHasher.CreateNewAdminPassword();
+            config.UserHashedPassword = PasswordHasher.HashPassword(userPassword!);
+            config.UserEmail = userEmail!;
+            
+            // Generate user keypair for signing commits
+            var userKeyPair = dnproto.sdk.auth.KeyPair.Generate(dnproto.sdk.auth.KeyTypes.P256);
+            config.UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase;
+            config.UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase;
+
+
+            //
+            // Insert config into db
+            //
+            bool insertResult = pdsDb.InsertConfig(config);
+            if (insertResult == false)
+            {
+                Logger.LogError("Failed to insert config into PDS database.");
+                return;
+            }
+
+
+
+
+            //
+            // Print out stuff that the user will need.
+            //
+            Logger.LogInfo("PDS initialized successfully.");
+            Logger.LogInfo($"Admin password: {adminPassword}");
+            Logger.LogInfo($"User password: {userPassword}");
+            Logger.LogInfo("");
+            Logger.LogInfo("User signing keypair (for DID document and commit signing):");
+            Logger.LogInfo($"  Public key (multibase):  {userKeyPair.PublicKeyMultibase}");
+            Logger.LogInfo($"  Private key (multibase): {userKeyPair.PrivateKeyMultibase}");
+            Logger.LogInfo($"  DID Key:                 {userKeyPair.DidKey}");
+
+            Logger.LogInfo($"Copy this powershell:\n\n$adminPassword = '{adminPassword}';\n$userHandle = '{userHandle}';\n$userPassword = '{userPassword}';\n\n to set the admin and user passwords in your environment for use with powershell.\n");
+        
     }
 }

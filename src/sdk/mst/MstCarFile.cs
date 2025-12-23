@@ -172,7 +172,7 @@ public class MstCarFile
     /// Read an MST repository from a CAR file.
     /// Returns the commit and populated MST.
     /// </summary>
-    public static (RepoCommit commit, MerkleSearchTree mst) ReadFromFile(string filePath, ILogger? logger = null)
+    public static (RepoCommit commit, MerkleSearchTree mst) ReadFromFile(string filePath, IDnProtoLogger? logger = null)
     {
         using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         return ReadFromStream(fs, logger);
@@ -181,7 +181,7 @@ public class MstCarFile
     /// <summary>
     /// Read an MST repository from a stream in CAR format.
     /// </summary>
-    public static (RepoCommit commit, MerkleSearchTree mst) ReadFromStream(Stream stream, ILogger? logger = null)
+    public static (RepoCommit commit, MerkleSearchTree mst) ReadFromStream(Stream stream, IDnProtoLogger? logger = null)
     {
         // Read CAR header
         var (headerLength, header) = ReadCarHeader(stream);

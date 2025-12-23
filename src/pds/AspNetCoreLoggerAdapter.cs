@@ -8,10 +8,10 @@ namespace dnproto.pds;
 /// </summary>
 public class AspNetCoreLoggerAdapter : Microsoft.Extensions.Logging.ILogger
 {
-    private readonly dnproto.sdk.log.ILogger _customLogger;
+    private readonly dnproto.sdk.log.IDnProtoLogger _customLogger;
     private readonly string _categoryName;
 
-    public AspNetCoreLoggerAdapter(dnproto.sdk.log.ILogger customLogger, string categoryName)
+    public AspNetCoreLoggerAdapter(dnproto.sdk.log.IDnProtoLogger customLogger, string categoryName)
     {
         _customLogger = customLogger;
         _categoryName = categoryName;
@@ -78,9 +78,9 @@ public class AspNetCoreLoggerAdapter : Microsoft.Extensions.Logging.ILogger
 /// </summary>
 public class CustomLoggerProvider : ILoggerProvider
 {
-    private readonly dnproto.sdk.log.ILogger _customLogger;
+    private readonly dnproto.sdk.log.IDnProtoLogger _customLogger;
 
-    public CustomLoggerProvider(dnproto.sdk.log.ILogger customLogger)
+    public CustomLoggerProvider(dnproto.sdk.log.IDnProtoLogger customLogger)
     {
         _customLogger = customLogger;
     }
