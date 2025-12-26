@@ -109,7 +109,7 @@ public class Pds
         builder.Logging.ClearProviders();
         builder.Logging.AddProvider(new CustomLoggerProvider(logger));
         
-        builder.WebHost.UseUrls($"https://{config.ListenHost}:{config.ListenPort}");
+        builder.WebHost.UseUrls($"http://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 
 
@@ -167,13 +167,13 @@ public class Pds
         Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
         Logger.LogInfo("");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/hello");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
-        Logger.LogInfo($"https://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/hello");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
+        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
         Logger.LogInfo("");
     }
 
