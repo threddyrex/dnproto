@@ -6,6 +6,8 @@ namespace dnproto.pds.db;
 public class Config
 {
     public string Version { get; set; } = string.Empty;
+    
+    public string ListenScheme { get; set; } = "http";
 
     public string ListenHost { get; set; } = "localhost";
 

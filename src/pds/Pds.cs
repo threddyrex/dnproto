@@ -100,16 +100,16 @@ public class Pds
 
 
         //
-        // Configure to listen on specified port with HTTPS
+        // Configure to listen
         //
-        logger.LogInfo($"Starting minimal API with HTTPS on port {config.ListenPort}...");
+        logger.LogInfo($"Starting minimal API with {config.ListenScheme.ToUpper()} on port {config.ListenPort}...");
         var builder = WebApplication.CreateBuilder();
         
         // Clear default logging providers and add custom logger
         builder.Logging.ClearProviders();
         builder.Logging.AddProvider(new CustomLoggerProvider(logger));
         
-        builder.WebHost.UseUrls($"http://{config.ListenHost}:{config.ListenPort}");
+        builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 
 
@@ -160,13 +160,13 @@ public class Pds
         Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
         Logger.LogInfo("");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/hello");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
-        Logger.LogInfo($"http://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/hello");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
         Logger.LogInfo("");
     }
 
