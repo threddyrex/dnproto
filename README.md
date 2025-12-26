@@ -26,7 +26,7 @@ And for general Bluesky WS calls, see:
 
 &nbsp;
 
-# Using the command line tool
+# Using the command line tool (Windows)
 
 The following steps show how to use the command line tool on Windows in PowerShell.
 Requires .NET 10.
@@ -40,7 +40,7 @@ dotnet build
 Next, change into the scripts directory, and list the files:
 
 ```powershell
-cd scripts
+cd powershell
 ls
 ```
 
