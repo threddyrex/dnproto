@@ -12,7 +12,7 @@ public class GetBlob : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[] { "actor", "outdir" });
+        return new HashSet<string>(new string[] { "actor", "cid" });
     }
 
 
@@ -21,32 +21,20 @@ public class GetBlob : BaseCommand
         //
         // Get parameters
         //
-        string? dataDir = arguments.ContainsKey("dataDir") ? arguments["dataDir"] : null;
         string? actor = arguments.ContainsKey("actor") ? arguments["actor"] : null;
-        string? outdir = arguments.ContainsKey("outdir") ? arguments["outdir"] : null;
+        string? cid = arguments.ContainsKey("cid") ? arguments["cid"] : null;
 
-        if (string.IsNullOrEmpty(actor) || string.IsNullOrEmpty(outdir))
+        if (string.IsNullOrEmpty(actor) || string.IsNullOrEmpty(cid))
         {
             Logger.LogError("Missing required arguments.");
             return;
         }
 
-        if (!Directory.Exists(outdir))
-        {
-            Logger.LogError($"Output directory does not exist: {outdir}");
-            return;
-        }
-
-        //
-        // Load lfs
-        //
-        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
-
 
         //
         // Resolve handle
         //
+        ActorInfo? actorInfo = LocalFileSystem?.ResolveActorInfo(actor);
         string? pds = actorInfo?.Pds;
         string? did = actorInfo?.Did;
 
@@ -58,20 +46,11 @@ public class GetBlob : BaseCommand
 
 
         //
-        // List blobs
+        // Get blob
         //
-        string blobsFile = Path.Combine(outdir, $"blobs.json");
-        List<string> blobs = BlueskyClient.ListBlobs(pds, did, blobsFile: blobsFile);
-
-        //
-        // Get blobs
-        //
-        foreach (var cid in blobs)
-        {
-            string blobFile = Path.Combine(outdir, $"{cid}");
-            Logger.LogInfo($"Downloading blob: {cid} to {blobFile}");
-            BlueskyClient.GetBlob(pds, did, cid?.ToString(), blobFile);
-            System.Threading.Thread.Sleep(1000); // Throttle requests to avoid rate limiting
-        }
+        string outputBlobFile = Path.Combine(LocalFileSystem?.GetPath_ScratchDir()!, cid);
+        Logger.LogInfo($"Downloading blob to: {outputBlobFile}");
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}";
+        BlueskyClient.SendRequest(url, HttpMethod.Get, parseJsonResponse: false, outputFilePath: outputBlobFile);
     }
 }

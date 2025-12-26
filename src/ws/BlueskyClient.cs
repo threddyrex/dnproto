@@ -536,7 +536,7 @@ public class BlueskyClient
     /// <param name="pds"></param>
     /// <param name="did"></param>
     /// <returns></returns>
-    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100, int sleepMilliseconds = 1000)
+    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100, int sleepMilliseconds = 1000, string? accessJwt = null)
     {
         List<string> blobs = new List<string>();
         Logger.LogTrace($"ListBlobs: pds: {pds}, did: {did}");
@@ -565,7 +565,7 @@ public class BlueskyClient
 
             Logger.LogTrace($"ListBlobs: url: {url}");
 
-            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
+            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt);
 
             var cids = response?["cids"]?.AsArray();
 

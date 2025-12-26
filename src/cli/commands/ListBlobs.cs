@@ -49,11 +49,22 @@ public class ListBlobs : BaseCommand
         }
 
 
+        //
+        // Get session (access token)
+        //
+        SessionFile? session = LocalFileSystem?.LoadSession(actorInfo);
+        string? accessJwt = session?.accessJwt;
+
+        if (string.IsNullOrEmpty(accessJwt))
+        {
+            Logger.LogInfo("Could not get access token. Calling without authentication.");
+        }
+
 
         //
         // List blobs
         //
-        List<string> blobs = BlueskyClient.ListBlobs(pds, did, limit: 100);
+        List<string> blobs = BlueskyClient.ListBlobs(pds, did, accessJwt: accessJwt, limit: 100);
 
         foreach (var blob in blobs)
         {
