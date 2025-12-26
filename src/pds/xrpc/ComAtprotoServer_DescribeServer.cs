@@ -6,7 +6,7 @@ namespace dnproto.pds.xrpc;
 
 public class ComAtprotoServer_DescribeServer : BaseXrpcCommand
 {
-    public override IResult GetResponse()
+    public IResult GetResponse()
     {
         var response = new DescribeServerResponse
         {

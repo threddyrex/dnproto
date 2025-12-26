@@ -8,7 +8,7 @@ namespace dnproto.pds.xrpc;
 
 public class ComAtprotoIdentity_ResolveHandle : BaseXrpcCommand
 {
-    public override IResult GetResponse()
+    public IResult GetResponse()
     {
         //
         // Get param

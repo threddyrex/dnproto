@@ -6,7 +6,7 @@ namespace dnproto.pds.xrpc;
 
 public class Health : BaseXrpcCommand
 {
-    public override IResult GetResponse()
+    public IResult GetResponse()
     {
         var health = new HealthResponse
         {

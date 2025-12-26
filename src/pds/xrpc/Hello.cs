@@ -7,7 +7,7 @@ namespace dnproto.pds.xrpc;
 
 public class Hello : BaseXrpcCommand
 {
-    public override IResult GetResponse()
+    public IResult GetResponse()
     {
         return Results.Text("world");
     }

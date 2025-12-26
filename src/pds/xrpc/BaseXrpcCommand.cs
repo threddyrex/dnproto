@@ -13,8 +13,6 @@ public abstract class BaseXrpcCommand
     public required HttpContext HttpContext;
 
 
-    public abstract IResult GetResponse();
-
     /// <summary>
     /// Checks to see if the caller is the pds admin.
     /// </summary>

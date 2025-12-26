@@ -567,6 +567,8 @@ public class BlueskyClient
 
             JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt);
 
+            Logger.LogTrace($"ListBlobs: response: {response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}");
+
             var cids = response?["cids"]?.AsArray();
 
             keepGoing = cids != null && cids.Count == limit;

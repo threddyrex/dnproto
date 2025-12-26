@@ -9,7 +9,7 @@ namespace dnproto.pds.xrpc;
 
 public class ComAtprotoServer_GetSession : BaseXrpcCommand
 {
-    public override IResult GetResponse()
+    public IResult GetResponse()
     {
 
         //

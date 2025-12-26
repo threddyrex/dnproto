@@ -89,6 +89,21 @@ CREATE TABLE IF NOT EXISTS Config (
             command.ExecuteNonQuery();
 
 
+            //
+            // Blob.cs table
+            //
+            logger.LogInfo("table: Blob");
+            command = connection.CreateCommand();
+            command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Blob (
+    Cid TEXT PRIMARY KEY,
+    ContentType TEXT NOT NULL,
+    ContentLength INTEGER NOT NULL,
+    Bytes BLOB NOT NULL
+)
+            ";
+            
+            command.ExecuteNonQuery();
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -154,6 +169,41 @@ CREATE TABLE IF NOT EXISTS Config (
             command.ExecuteNonQuery();
         }
     }
+
+
+    /// <summary>
+    /// Executes a query and returns the result rows as a list of dictionaries.
+    /// Each dictionary represents a row with column names as keys.
+    /// </summary>
+    /// <param name="sql">The SQL query to execute</param>
+    /// <returns>List of dictionaries containing the query results</returns>
+    public List<Dictionary<string, object?>> ExecuteQuery(string sql)
+    {
+        var results = new List<Dictionary<string, object?>>();
+        
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = sql;
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var row = new Dictionary<string, object?>();
+                    for(int i = 0; i < reader.FieldCount; i++)
+                    {
+                        row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                    }
+                    results.Add(row);
+                }
+            }
+        }
+        
+        return results;
+    }
+
+
+    #region CONFIG
 
     public bool InsertConfig(Config config)
     {
@@ -239,35 +289,119 @@ VALUES (@Version, @ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname
         }
     }
 
+    #endregion
 
-    /// <summary>
-    /// Executes a query and returns the result rows as a list of dictionaries.
-    /// Each dictionary represents a row with column names as keys.
-    /// </summary>
-    /// <param name="sql">The SQL query to execute</param>
-    /// <returns>List of dictionaries containing the query results</returns>
-    public List<Dictionary<string, object?>> ExecuteQuery(string sql)
+    #region BLOB
+
+    public bool BlobExists(string cid)
     {
-        var results = new List<Dictionary<string, object?>>();
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM Blob WHERE Cid = @Cid";
+            command.Parameters.AddWithValue("@Cid", cid);
+            
+            var result = command.ExecuteScalar();
+            int count = result != null ? Convert.ToInt32(result) : 0;
+            return count > 0;
+        }
+    }
+
+
+
+    public void InsertBlob(Blob blob)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO Blob (Cid, ContentType, ContentLength, Bytes)
+VALUES (@Cid, @ContentType, @ContentLength, @Bytes)
+            ";
+            command.Parameters.AddWithValue("@Cid", blob.Cid);
+            command.Parameters.AddWithValue("@ContentType", blob.ContentType);
+            command.Parameters.AddWithValue("@ContentLength", blob.ContentLength);
+            command.Parameters.AddWithValue("@Bytes", blob.Bytes);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void UpdateBlob(Blob blob)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE Blob
+SET ContentType = @ContentType, ContentLength = @ContentLength, Bytes = @Bytes
+WHERE Cid = @Cid
+            ";
+            command.Parameters.AddWithValue("@Cid", blob.Cid);
+            command.Parameters.AddWithValue("@ContentType", blob.ContentType);
+            command.Parameters.AddWithValue("@ContentLength", blob.ContentLength);
+            command.Parameters.AddWithValue("@Bytes", blob.Bytes);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public Blob? GetBlobByCid(string cid)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM Blob WHERE Cid = @Cid LIMIT 1";
+            command.Parameters.AddWithValue("@Cid", cid);
+            
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var blob = new Blob
+                    {
+                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
+                        ContentType = reader.GetString(reader.GetOrdinal("ContentType")),
+                        ContentLength = reader.GetInt32(reader.GetOrdinal("ContentLength")),
+                        Bytes = (byte[])reader["Bytes"]
+                    };
+                    return blob;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public List<string> ListBlobsWithCursor(string? cursor, int limit)
+    {
+        var blobs = new List<string>();
         
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
-            command.CommandText = sql;
+            if(cursor == null)
+            {
+                command.CommandText = "SELECT Cid FROM Blob ORDER BY Cid ASC LIMIT @Limit";
+            }
+            else
+            {
+                command.CommandText = "SELECT Cid FROM Blob WHERE Cid > @Cursor ORDER BY Cid ASC LIMIT @Limit";
+                command.Parameters.AddWithValue("@Cursor", cursor);
+            }
+            command.Parameters.AddWithValue("@Limit", limit);
+            
             using(var reader = command.ExecuteReader())
             {
                 while(reader.Read())
                 {
-                    var row = new Dictionary<string, object?>();
-                    for(int i = 0; i < reader.FieldCount; i++)
-                    {
-                        row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
-                    }
-                    results.Add(row);
+                    blobs.Add(reader.GetString(reader.GetOrdinal("Cid")));
                 }
             }
         }
         
-        return results;
+        return blobs;
     }
+
+    #endregion
 }
