@@ -117,4 +117,4 @@ https://mod.bsky.app/xrpc/com.atproto.label.queryLabels?uriPatterns=USERS_DID
 
 Is Linux supported? Yes! I tested a few of the commands on an Ubuntu VM. dotnet is supported (generally) on Linux.
 As of now, the test suite fully passes on an Ubuntu VM.
-
+Also running PDS on Linux.
