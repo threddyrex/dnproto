@@ -287,4 +287,76 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         return input.Replace(":", "_").Replace("/", "_").Replace(".", "_").Replace("@", "_");
     }
+
+    
+    /// <summary>
+    /// Infers the MIME type from a file path based on the file extension.
+    /// </summary>
+    /// <param name="filePath">The path to the file.</param>
+    /// <returns>The inferred MIME type.</returns>
+    public string InferMimeType(string filePath)
+    {
+        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+
+        return extension switch
+        {
+            // Images
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".bmp" => "image/bmp",
+            ".svg" => "image/svg+xml",
+            ".ico" => "image/x-icon",
+            ".tiff" or ".tif" => "image/tiff",
+
+            // Video
+            ".mp4" => "video/mp4",
+            ".webm" => "video/webm",
+            ".mov" => "video/quicktime",
+            ".avi" => "video/x-msvideo",
+            ".mkv" => "video/x-matroska",
+            ".flv" => "video/x-flv",
+            ".wmv" => "video/x-ms-wmv",
+            ".m4v" => "video/x-m4v",
+
+            // Audio
+            ".mp3" => "audio/mpeg",
+            ".wav" => "audio/wav",
+            ".ogg" => "audio/ogg",
+            ".m4a" => "audio/mp4",
+            ".flac" => "audio/flac",
+            ".aac" => "audio/aac",
+            ".wma" => "audio/x-ms-wma",
+
+            // Documents
+            ".pdf" => "application/pdf",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xls" => "application/vnd.ms-excel",
+            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".ppt" => "application/vnd.ms-powerpoint",
+            ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            ".txt" => "text/plain",
+            ".csv" => "text/csv",
+            ".rtf" => "application/rtf",
+
+            // Archives
+            ".zip" => "application/zip",
+            ".tar" => "application/x-tar",
+            ".gz" => "application/gzip",
+            ".7z" => "application/x-7z-compressed",
+            ".rar" => "application/vnd.rar",
+
+            // Code/Web
+            ".html" or ".htm" => "text/html",
+            ".css" => "text/css",
+            ".js" => "application/javascript",
+            ".json" => "application/json",
+            ".xml" => "application/xml",
+
+            // Default
+            _ => "application/octet-stream"
+        };
+    }
 }

@@ -797,6 +797,114 @@ public class BlueskyClient
     }
 
 
+    /// <summary>
+    /// Upload a blob to the PDS.
+    /// https://docs.bsky.app/docs/api/com-atproto-repo-upload-blob
+    /// </summary>
+    /// <param name="pds">The PDS hostname</param>
+    /// <param name="accessJwt">The access JWT token for authentication</param>
+    /// <param name="fileBytes">The file content as a byte array</param>
+    /// <param name="mimeType">The MIME type of the file</param>
+    /// <returns>JSON response containing blob reference with CID, mimeType, and size</returns>
+    public static JsonNode? UploadBlob(string? pds, string? accessJwt, byte[] fileBytes, string? mimeType)
+    {
+        Logger.LogTrace($"UploadBlob: pds: {pds}, mimeType: {mimeType}, size: {fileBytes.Length}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(mimeType))
+        {
+            Logger.LogError("UploadBlob: Invalid arguments (pds or accessJwt is null). Exiting.");
+            return null;
+        }
+
+        if (fileBytes == null || fileBytes.Length == 0)
+        {
+            Logger.LogError("UploadBlob: File content is empty. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.repo.uploadBlob";
+        Logger.LogTrace($"UploadBlob: url: {url}");
+
+        // Send raw bytes using the specialized blob request method
+        return SendBlobRequest(url, accessJwt, fileBytes, mimeType);
+    }
+
+    /// <summary>
+    /// Send a blob upload request with raw binary data.
+    /// </summary>
+    private static JsonNode? SendBlobRequest(string url, string accessJwt, byte[] fileBytes, string mimeType)
+    {
+        Logger.LogInfo($"SendBlobRequest: {url}");
+
+        using (HttpClient client = new HttpClient())
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            
+            // Set the content as ByteArrayContent
+            request.Content = new ByteArrayContent(fileBytes);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
+            request.Content.Headers.ContentLength = fileBytes.Length;
+
+            // Add authorization header
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            request.Headers.UserAgent.TryParseAdd("dnproto");
+
+            Logger.LogTrace($"REQUEST:\n{request}");
+            Logger.LogTrace($"Content-Type: {mimeType}");
+            Logger.LogTrace($"Content-Length: {fileBytes.Length}");
+
+            HttpResponseMessage? response = null;
+
+            try
+            {
+                response = client.Send(request);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Exception sending blob request: {ex.Message}");
+                return null;
+            }
+
+            if (response == null)
+            {
+                Logger.LogError("In SendBlobRequest, response is null.");
+                return null;
+            }
+
+            Logger.LogTrace($"RESPONSE: {response}");
+
+            bool succeeded = response.StatusCode == HttpStatusCode.OK;
+
+            if (!succeeded)
+            {
+                Logger.LogError($"Blob upload failed with status code: {response.StatusCode}");
+                return null;
+            }
+
+            // Parse JSON response
+            JsonNode? jsonResponse = null;
+            using (var reader = new StreamReader(response.Content.ReadAsStream()))
+            {
+                var responseText = reader.ReadToEnd();
+
+                if (!string.IsNullOrEmpty(responseText))
+                {
+                    try
+                    {
+                        jsonResponse = JsonNode.Parse(responseText);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Failed to parse JSON response: {ex.Message}");
+                    }
+                }
+            }
+
+            return jsonResponse;
+        }
+    }
+
+
     public static JsonNode? CreateAccount(string? pds, string? handle, string? did, string? inviteCode, string? password)
     {
         string url = $"https://{pds}/xrpc/com.atproto.server.createAccount";
