@@ -1,4 +1,5 @@
 
+using System.Security.Cryptography;
 
 namespace dnproto.repo;
 
@@ -100,5 +101,37 @@ public class CidV1
     public override string ToString()
     {
         return Base32;
+    }
+
+    public static CidV1 GenerateForBlobBytes(byte[] blobBytes)
+    {
+        //
+        // Compute SHA-256 hash
+        //
+        var hash = SHA256.HashData(blobBytes);
+
+        //
+        // Create CID for blob (using "raw" codec 0x55)
+        //
+        var cid = new CidV1
+        {
+            Version = new VarInt { Value = 1 },
+            Multicodec = new VarInt { Value = 0x55 }, // raw codec for blobs
+            HashFunction = new VarInt { Value = 0x12 }, // SHA-256
+            DigestSize = new VarInt { Value = 32 },
+            DigestBytes = hash,
+            AllBytes = Array.Empty<byte>(),
+            Base32 = ""
+        };
+
+        //
+        // Encode CID as bytes and base32
+        //
+        using var ms = new MemoryStream();
+        CidV1.WriteCid(ms, cid);
+        cid.AllBytes = ms.ToArray();
+        cid.Base32 = "b" + Base32Encoding.BytesToBase32(cid.AllBytes);
+
+        return cid;
     }
 }
