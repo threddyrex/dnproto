@@ -128,13 +128,6 @@ public class Pds
         };
 
 
-
-        //
-        // Enable HTTPS redirection
-        //
-        app.UseHttpsRedirection();
-
-
         //
         // Map endpoints
         //
