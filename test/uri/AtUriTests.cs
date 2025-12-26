@@ -1,7 +1,7 @@
-namespace dnproto.tests.utils;
+namespace dnproto.tests.uri;
 
 
-using dnproto.sdk.uri;
+using dnproto.uri;
 
 public class AtUriTests
 {

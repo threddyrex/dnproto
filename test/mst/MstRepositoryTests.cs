@@ -1,7 +1,7 @@
-namespace dnproto.tests.sdk.mst;
+namespace dnproto.tests.mst;
 
-using dnproto.sdk.mst;
-using dnproto.sdk.repo;
+using dnproto.mst;
+using dnproto.repo;
 using System.Linq;
 
 public class MstRepositoryTests

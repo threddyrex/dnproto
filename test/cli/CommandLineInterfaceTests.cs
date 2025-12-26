@@ -1,9 +1,9 @@
-﻿namespace dnproto.tests.utils;
+﻿namespace dnproto.tests.cli;
 
 
 using dnproto.cli;
 using dnproto.cli.commands;
-using dnproto.sdk.log;
+using dnproto.log;
 
 public class CommandLineInterfaceTests
 {

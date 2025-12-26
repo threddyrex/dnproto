@@ -1,5 +1,5 @@
 
-namespace dnproto.tests.commands;
+namespace dnproto.tests.cli.commands;
 
 using dnproto.cli.commands;
 
