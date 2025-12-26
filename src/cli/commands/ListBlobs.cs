@@ -8,7 +8,7 @@ namespace dnproto.cli.commands;
 /// <summary>
 /// List blobs for did.
 /// </summary>
-public class GetBlobList : BaseCommand
+public class ListBlobs : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
@@ -17,7 +17,7 @@ public class GetBlobList : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[] { "outfile" });
+        return new HashSet<string>(new string[] {});
     }
 
 
@@ -26,9 +26,7 @@ public class GetBlobList : BaseCommand
         //
         // Get parameters
         //
-        string? dataDir = arguments.ContainsKey("dataDir") ? arguments["dataDir"] : null;
         string? actor = arguments.ContainsKey("actor") ? arguments["actor"] : null;
-        string? outfile = arguments.ContainsKey("outfile") ? arguments["outfile"] : null;
 
         if (string.IsNullOrEmpty(actor))
         {
@@ -36,15 +34,11 @@ public class GetBlobList : BaseCommand
             return;
         }
 
-        //
-        // Load lfs
-        //
-        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
         //
         // Resolve actor
         //
+        ActorInfo? actorInfo = LocalFileSystem?.ResolveActorInfo(actor);
         string? pds = actorInfo?.Pds;
         string? did = actorInfo?.Did;
 
@@ -64,12 +58,6 @@ public class GetBlobList : BaseCommand
         foreach (var blob in blobs)
         {
             Logger.LogInfo($"Blob: {blob}");
-        }
-
-        if (outfile != null)
-        {
-            File.WriteAllLines(outfile, blobs);
-            Logger.LogInfo($"Blobs written to {outfile}");
         }
 
         Logger.LogInfo($"Total blobs: {blobs.Count}");
