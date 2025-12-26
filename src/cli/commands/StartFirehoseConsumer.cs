@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using dnproto.sdk.repo;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
-using dnproto.sdk.firehose;
+using dnproto.repo;
+using dnproto.ws;
+using dnproto.fs;
+using dnproto.firehose;
 
 namespace dnproto.cli.commands;
 

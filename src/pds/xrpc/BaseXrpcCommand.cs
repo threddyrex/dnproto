@@ -1,7 +1,7 @@
 
 using System.Security.Claims;
 using System.Text.Json.Nodes;
-using dnproto.sdk.auth;
+using dnproto.auth;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;

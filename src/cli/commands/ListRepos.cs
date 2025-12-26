@@ -4,9 +4,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.sdk.repo;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
+using dnproto.fs;
+using dnproto.repo;
+using dnproto.ws;
+using dnproto.uri;
 
 namespace dnproto.cli.commands;
 

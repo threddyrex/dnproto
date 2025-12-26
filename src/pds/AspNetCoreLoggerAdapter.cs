@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using dnproto.sdk.log;
+using dnproto.log;
 
 namespace dnproto.pds;
 
@@ -8,10 +8,10 @@ namespace dnproto.pds;
 /// </summary>
 public class AspNetCoreLoggerAdapter : Microsoft.Extensions.Logging.ILogger
 {
-    private readonly dnproto.sdk.log.IDnProtoLogger _customLogger;
+    private readonly dnproto.log.IDnProtoLogger _customLogger;
     private readonly string _categoryName;
 
-    public AspNetCoreLoggerAdapter(dnproto.sdk.log.IDnProtoLogger customLogger, string categoryName)
+    public AspNetCoreLoggerAdapter(dnproto.log.IDnProtoLogger customLogger, string categoryName)
     {
         _customLogger = customLogger;
         _categoryName = categoryName;
@@ -78,9 +78,9 @@ public class AspNetCoreLoggerAdapter : Microsoft.Extensions.Logging.ILogger
 /// </summary>
 public class CustomLoggerProvider : ILoggerProvider
 {
-    private readonly dnproto.sdk.log.IDnProtoLogger _customLogger;
+    private readonly dnproto.log.IDnProtoLogger _customLogger;
 
-    public CustomLoggerProvider(dnproto.sdk.log.IDnProtoLogger customLogger)
+    public CustomLoggerProvider(dnproto.log.IDnProtoLogger customLogger)
     {
         _customLogger = customLogger;
     }

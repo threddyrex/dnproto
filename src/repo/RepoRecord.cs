@@ -1,5 +1,5 @@
 
-namespace dnproto.sdk.repo;
+namespace dnproto.repo;
 
 /// <summary>
 /// The record of a dag cbor file. Each item in a repo (post, like, follow, etc.) is stored as a record.

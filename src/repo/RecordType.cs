@@ -1,5 +1,5 @@
 
-namespace dnproto.sdk.repo;
+namespace dnproto.repo;
 
 public class RecordType
 {

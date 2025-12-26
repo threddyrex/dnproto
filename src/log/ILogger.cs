@@ -1,5 +1,5 @@
 
-namespace dnproto.sdk.log;
+namespace dnproto.log;
 
 /// <summary>
 /// After initial setup of Logger, most code just knows

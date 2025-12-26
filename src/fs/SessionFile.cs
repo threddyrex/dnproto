@@ -1,6 +1,6 @@
 
-using dnproto.sdk.ws;
-namespace dnproto.sdk.fs;
+using dnproto.ws;
+namespace dnproto.fs;
 
 
 public class SessionFile

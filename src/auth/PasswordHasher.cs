@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace dnproto.sdk.auth
+namespace dnproto.auth
 {
     public static class PasswordHasher
     {

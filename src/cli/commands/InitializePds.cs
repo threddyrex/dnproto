@@ -1,8 +1,6 @@
 
 
 using dnproto.pds;
-using dnproto.pds.db;
-using dnproto.sdk.auth;
 
 
 namespace dnproto.cli.commands

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
+using dnproto.fs;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 

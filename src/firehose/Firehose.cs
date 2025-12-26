@@ -3,10 +3,10 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using dnproto.sdk.repo;
+using dnproto.repo;
 
 
-namespace dnproto.sdk.firehose;
+namespace dnproto.firehose;
 
 
 public class Firehose

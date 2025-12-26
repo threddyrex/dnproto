@@ -6,9 +6,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-using dnproto.sdk.repo;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
+using dnproto.repo;
+using dnproto.fs;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 

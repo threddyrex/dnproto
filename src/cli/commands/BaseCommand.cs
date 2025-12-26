@@ -1,6 +1,6 @@
 
-using dnproto.sdk.fs;
-using dnproto.sdk.log;
+using dnproto.fs;
+using dnproto.log;
 
 namespace dnproto.cli.commands
 {

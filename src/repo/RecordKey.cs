@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace dnproto.sdk.repo;
+namespace dnproto.repo;
 
 /// <summary>
 /// Utilities for working with AT Protocol Record Keys, including TID (Timestamp Identifier) generation.

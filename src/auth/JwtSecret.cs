@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace dnproto.sdk.auth;
+namespace dnproto.auth;
 
 public class JwtSecret
 {

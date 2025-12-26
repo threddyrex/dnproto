@@ -1,8 +1,8 @@
 using System.Text;
-using dnproto.sdk.repo;
-using dnproto.sdk.log;
+using dnproto.repo;
+using dnproto.log;
 
-namespace dnproto.sdk.mst;
+namespace dnproto.mst;
 
 /// <summary>
 /// Manages reading and writing MST repositories in CAR (Content Addressable aRchive) format.

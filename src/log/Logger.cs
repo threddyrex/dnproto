@@ -1,5 +1,5 @@
 
-namespace dnproto.sdk.log;
+namespace dnproto.log;
 
 /// <summary>
 /// Main logger class. Handles the following:

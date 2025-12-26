@@ -1,8 +1,8 @@
 using System.Reflection;
 using dnproto.cli.commands;
-using dnproto.sdk.fs;
-using dnproto.sdk.log;
-using dnproto.sdk.ws;
+using dnproto.fs;
+using dnproto.log;
+using dnproto.ws;
 
 namespace dnproto.cli;
 

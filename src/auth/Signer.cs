@@ -2,10 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
-using dnproto.sdk.repo;
-using dnproto.sdk.log;
+using dnproto.repo;
+using dnproto.log;
 
-namespace dnproto.sdk.auth;
+namespace dnproto.auth;
 
 /// <summary>
 /// Signs and validates JWT tokens using RSA or ECDSA cryptographic keys.

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace dnproto.sdk.repo;
+namespace dnproto.repo;
 
 /// <summary>
 /// Represents the data block section of a repo record (after version and cid).

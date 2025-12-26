@@ -1,6 +1,6 @@
 
 
-namespace dnproto.sdk.log;
+namespace dnproto.log;
 
 public interface ILogDestination
 {

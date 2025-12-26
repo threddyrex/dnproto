@@ -1,9 +1,9 @@
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.sdk.repo;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
+using dnproto.fs;
+using dnproto.repo;
+using dnproto.ws;
 
 namespace dnproto.cli.commands;
 

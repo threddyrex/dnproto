@@ -1,7 +1,7 @@
 
 using System.Text;
 
-namespace dnproto.sdk.repo;
+namespace dnproto.repo;
 
 
 public class Base32Encoding

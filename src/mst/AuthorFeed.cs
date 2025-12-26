@@ -1,7 +1,7 @@
 using System.Text;
-using dnproto.sdk.repo;
+using dnproto.repo;
 
-namespace dnproto.sdk.mst;
+namespace dnproto.mst;
 
 /// <summary>
 /// Provides feed-related operations for an MST repository.

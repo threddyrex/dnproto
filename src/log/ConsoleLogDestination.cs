@@ -1,5 +1,5 @@
 
-namespace dnproto.sdk.log;
+namespace dnproto.log;
 
 public class ConsoleLogDestination : ILogDestination
 {

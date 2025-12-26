@@ -3,10 +3,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using dnproto.sdk.auth;
-using dnproto.sdk.fs;
-using dnproto.sdk.log;
-using dnproto.sdk.mst;
+using dnproto.auth;
+using dnproto.fs;
+using dnproto.log;
+using dnproto.mst;
 using dnproto.pds.db;
 using dnproto.pds.xrpc;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +21,7 @@ public class Pds
 {
     public required Config Config;
 
-    public required dnproto.sdk.log.IDnProtoLogger Logger;
+    public required dnproto.log.IDnProtoLogger Logger;
 
     public required LocalFileSystem LocalFileSystem;
 
@@ -40,7 +40,7 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds? LoadPdsForRun(string? dataDir, dnproto.sdk.log.IDnProtoLogger logger)
+    public static Pds? LoadPdsForRun(string? dataDir, dnproto.log.IDnProtoLogger logger)
     {
         //
         // Get local file system
@@ -75,7 +75,7 @@ public class Pds
         //
         // Create commit signing function
         //
-        var commitSigningFunction = sdk.auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
+        var commitSigningFunction = auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
         if (commitSigningFunction == null)
         {
             logger.LogError("Failed to create commit signing function.");
@@ -177,7 +177,7 @@ public class Pds
         Logger.LogInfo("");
     }
 
-    public static void InitializePds(dnproto.sdk.log.IDnProtoLogger Logger, string? dataDir, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
+    public static void InitializePds(dnproto.log.IDnProtoLogger Logger, string? dataDir, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
     {
 
             //
@@ -278,7 +278,7 @@ public class Pds
             config.UserEmail = userEmail!;
             
             // Generate user keypair for signing commits
-            var userKeyPair = dnproto.sdk.auth.KeyPair.Generate(dnproto.sdk.auth.KeyTypes.P256);
+            var userKeyPair = dnproto.auth.KeyPair.Generate(dnproto.auth.KeyTypes.P256);
             config.UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase;
             config.UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase;
 
@@ -296,7 +296,7 @@ public class Pds
             //
             // Create commit signing function
             //
-            var commitSigningFunction = sdk.auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
+            var commitSigningFunction = auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
             if (commitSigningFunction == null)
             {
                 Logger.LogError("Failed to create commit signing function.");

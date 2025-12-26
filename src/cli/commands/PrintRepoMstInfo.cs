@@ -1,9 +1,9 @@
 using System.Text;
 
-using dnproto.sdk.repo;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
-using dnproto.sdk.mst;
+using dnproto.fs;
+using dnproto.repo;
+using dnproto.ws;
+using dnproto.mst;
 
 namespace dnproto.cli.commands
 {

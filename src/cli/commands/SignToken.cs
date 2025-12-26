@@ -1,5 +1,5 @@
 
-using dnproto.sdk.auth;
+using dnproto.auth;
 
 namespace dnproto.cli.commands;
 

@@ -1,6 +1,6 @@
 
 
-using dnproto.sdk.ws;
+using dnproto.ws;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;

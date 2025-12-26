@@ -1,7 +1,7 @@
 
-using dnproto.sdk.auth;
-using dnproto.sdk.ws;
-using dnproto.sdk.fs;
+using dnproto.auth;
+using dnproto.ws;
+using dnproto.fs;
 
 namespace dnproto.cli.commands;
 

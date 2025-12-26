@@ -4,11 +4,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using dnproto.sdk.repo;
-using dnproto.sdk.log;
-using dnproto.sdk.uri;
+using dnproto.repo;
+using dnproto.log;
+using dnproto.uri;
 
-namespace dnproto.sdk.ws;
+namespace dnproto.ws;
 
 /// <summary>
 /// Entry point for interacting with this SDK.

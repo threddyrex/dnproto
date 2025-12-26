@@ -1,4 +1,4 @@
-namespace dnproto.sdk.log;
+namespace dnproto.log;
 
 /// <summary>
 /// Log destination that writes to a file.

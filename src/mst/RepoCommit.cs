@@ -1,7 +1,7 @@
 using System.Text;
-using dnproto.sdk.repo;
+using dnproto.repo;
 
-namespace dnproto.sdk.mst;
+namespace dnproto.mst;
 
 /// <summary>
 /// Represents a signed commit object in an AT Protocol repository.
