@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS Blob (
         };
     }
 
-
+    #region SQLCONN
 
     public SqliteConnection GetConnection()
     {
@@ -160,48 +160,22 @@ CREATE TABLE IF NOT EXISTS Blob (
         return conn;
     }
 
-    public void ExecuteNonQuery(string sql)
+    public SqliteConnection GetConnectionReadOnly()
     {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = sql;
-            command.ExecuteNonQuery();
-        }
+        string dbPath = Path.Combine(_dataDir, "pds", "pds.db");
+        string connectionString = new SqliteConnectionStringBuilder {
+            DataSource = dbPath,
+            Mode = SqliteOpenMode.ReadOnly
+        }.ToString();
+
+        var conn = new SqliteConnection(connectionString);
+        conn.Open();
+
+        return conn;
     }
 
 
-    /// <summary>
-    /// Executes a query and returns the result rows as a list of dictionaries.
-    /// Each dictionary represents a row with column names as keys.
-    /// </summary>
-    /// <param name="sql">The SQL query to execute</param>
-    /// <returns>List of dictionaries containing the query results</returns>
-    public List<Dictionary<string, object?>> ExecuteQuery(string sql)
-    {
-        var results = new List<Dictionary<string, object?>>();
-        
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = sql;
-            using(var reader = command.ExecuteReader())
-            {
-                while(reader.Read())
-                {
-                    var row = new Dictionary<string, object?>();
-                    for(int i = 0; i < reader.FieldCount; i++)
-                    {
-                        row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
-                    }
-                    results.Add(row);
-                }
-            }
-        }
-        
-        return results;
-    }
-
+    #endregion
 
     #region CONFIG
 
@@ -246,7 +220,7 @@ VALUES (@Version, @ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname
     {
         var config = new Config();
         
-        using(var sqlConnection = GetConnection())
+        using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT * FROM Config LIMIT 1";
@@ -279,7 +253,7 @@ VALUES (@Version, @ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname
 
     public int GetConfigCount()
     {
-        using(var sqlConnection = GetConnection())
+        using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT COUNT(*) FROM Config";
@@ -295,7 +269,7 @@ VALUES (@Version, @ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname
 
     public bool BlobExists(string cid)
     {
-        using(var sqlConnection = GetConnection())
+        using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT COUNT(*) FROM Blob WHERE Cid = @Cid";
@@ -348,7 +322,7 @@ WHERE Cid = @Cid
 
     public Blob? GetBlobByCid(string cid)
     {
-        using(var sqlConnection = GetConnection())
+        using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT * FROM Blob WHERE Cid = @Cid LIMIT 1";
@@ -377,7 +351,7 @@ WHERE Cid = @Cid
     {
         var blobs = new List<string>();
         
-        using(var sqlConnection = GetConnection())
+        using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
             if(cursor == null)
