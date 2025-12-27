@@ -5,8 +5,11 @@ namespace dnproto.log;
 /// </summary>
 public class FileLogDestination : ILogDestination, IDisposable
 {
-    private readonly StreamWriter _writer;
+    private StreamWriter _writer;
     private bool _disposed = false;
+
+    private int _logLength = 0;
+    private long MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 
     public string FilePath { get; }
 
@@ -65,6 +68,10 @@ public class FileLogDestination : ILogDestination, IDisposable
 
     private void WriteMessage(string? message)
     {
+        _logLength += message?.Length ?? 0;
+
+        CheckRollLog();
+
         if (_disposed)
         {
             return;
@@ -82,6 +89,23 @@ public class FileLogDestination : ILogDestination, IDisposable
         {
             _writer?.Dispose();
             _disposed = true;
+        }
+    }
+
+    private void CheckRollLog()
+    {
+        if( _logLength >= MAX_LOG_SIZE)
+        {
+            _writer.WriteLine(" --- Rolling log file due to size limit --- ");
+            _writer.Flush();
+            _writer.Dispose();
+            _logLength = 0;
+            File.Move(FilePath, FilePath + "." + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss") + ".bak");
+
+            _writer = new StreamWriter(FilePath, append: true)
+            {
+                AutoFlush = true
+            };
         }
     }
 }
