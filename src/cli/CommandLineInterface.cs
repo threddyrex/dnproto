@@ -60,7 +60,8 @@ public static class CommandLineInterface
         bool logToDataDir = GetArgumentValueWithDefault(arguments, "logtodatadir", false);
         if (logToDataDir && localFileSystem != null)
         {
-            var fileLogDestination = FileLogDestination.CreateFromDataDir(localFileSystem.DataDir, GetArgumentValueWithDefault(arguments, "command", "dnproto"));
+            string? logFileName = GetArgumentValue(arguments, "logfilename");
+            var fileLogDestination = FileLogDestination.CreateFromDataDir(localFileSystem.DataDir, GetArgumentValueWithDefault(arguments, "command", "dnproto"), logFileName: logFileName);
 
             if (fileLogDestination != null)
             {
@@ -353,7 +354,7 @@ public static class CommandLineInterface
 
     public static HashSet<string> GetReservedArguments()
     {
-        return new HashSet<string>(new string[] { "command", "debugattach", "loglevel", "logtodatadir", "datadir" });
+        return new HashSet<string>(new string[] { "command", "debugattach", "loglevel", "logtodatadir", "logfilename", "datadir" });
     }
 
     public static string? GetArgumentValue(Dictionary<string, string> arguments, string argumentName)

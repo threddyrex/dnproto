@@ -29,7 +29,7 @@ public class FileLogDestination : ILogDestination, IDisposable
     /// </summary>
     /// <param name="dataDir">The root data directory.</param>
     /// <returns>A new FileLogDestination instance.</returns>
-    public static FileLogDestination? CreateFromDataDir(string dataDir, string commandName)
+    public static FileLogDestination? CreateFromDataDir(string dataDir, string commandName, string? logFileName = null)
     {
         // Ensure log directory exists
         string logDir = Path.Combine(dataDir, "logs");
@@ -40,7 +40,7 @@ public class FileLogDestination : ILogDestination, IDisposable
 
         // Create filename from current timestamp
         string timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-        string fileName = $"{timestamp}_{commandName}.log";
+        string fileName = logFileName ?? $"{timestamp}_{commandName}.log";
         string fullPath = Path.Combine(logDir, fileName);
 
         return new FileLogDestination(fullPath);

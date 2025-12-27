@@ -45,13 +45,19 @@ public class Logger : IDnProtoLogger
         }
     }
 
+    private string GetTimestamp()
+    {
+        return DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff] ");
+    }
+
     public void LogTrace(string? message)
     {
         if (_level <= 0)
         {
             lock (_lock)
             {
-                string fullMessage = $"[TRACE] {message}";
+                string timestamp = GetTimestamp();
+                string fullMessage = $"{timestamp}[TRACE] {message}";
 
                 foreach(ILogDestination destination in _destinations)
                 {
@@ -67,7 +73,8 @@ public class Logger : IDnProtoLogger
         {
             lock (_lock)
             {
-                string fullMessage = $"[INFO] {message}";
+                string timestamp = GetTimestamp();
+                string fullMessage = $"{timestamp}[INFO] {message}";
 
                 foreach(ILogDestination destination in _destinations)
                 {
@@ -83,7 +90,8 @@ public class Logger : IDnProtoLogger
         {
             lock (_lock)
             {
-                string fullMessage = $"[WARNING] {message}";
+                string timestamp = GetTimestamp();
+                string fullMessage = $"{timestamp}[WARNING] {message}";
 
                 foreach(ILogDestination destination in _destinations)
                 {
@@ -97,7 +105,8 @@ public class Logger : IDnProtoLogger
     {
         lock (_lock)
         {
-            string fullMessage = $"[ERROR] {message}";
+            string timestamp = GetTimestamp();
+            string fullMessage = $"{timestamp}[ERROR] {message}";
 
             foreach(ILogDestination destination in _destinations)
             {
