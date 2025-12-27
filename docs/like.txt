@@ -1,0 +1,18 @@
+
+
+/xrpc/com.atproto.repo.createRecord
+
+
+{
+    "collection": "app.bsky.feed.like",
+    "repo": "did:plc:l6fxvp2iu2h53auxadff3oyb",
+    "record": {
+        "subject": {
+            "uri": "at://did:plc:watmxkxfjbwyxfuutganopfk/app.bsky.feed.post/3mawgw3vgus2c",
+            "cid": "bafyreigftt2ydy542jnedwbyrvp4yipje4wlbppzcl4fxe7vjqsu4yqqtm"
+        },
+        "createdAt": "2025-12-27T01:13:50.777Z",
+        "$type": "app.bsky.feed.like"
+    }
+}
+
