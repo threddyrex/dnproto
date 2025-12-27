@@ -68,7 +68,6 @@ public class PdsDb
             var command = connection.CreateCommand();
             command.CommandText = @"
 CREATE TABLE IF NOT EXISTS Config (
-    Version TEXT NOT NULL,
     ListenScheme TEXT NOT NULL,
     ListenHost TEXT NOT NULL,
     ListenPort INTEGER NOT NULL,
@@ -191,10 +190,9 @@ CREATE TABLE IF NOT EXISTS Blob (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (Version, ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase)
-VALUES (@Version, @ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase)
+INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase)
+VALUES (@@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase)
             ";
-            command.Parameters.AddWithValue("@Version", config.Version);
             command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
             command.Parameters.AddWithValue("@ListenPort", config.ListenPort);
@@ -229,7 +227,6 @@ VALUES (@Version, @ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname
             {
                 if(reader.Read())
                 {
-                    config.Version = reader.GetString(reader.GetOrdinal("Version"));
                     config.ListenScheme = reader.GetString(reader.GetOrdinal("ListenScheme"));
                     config.ListenHost = reader.GetString(reader.GetOrdinal("ListenHost"));
                     config.ListenPort = reader.GetInt32(reader.GetOrdinal("ListenPort"));
