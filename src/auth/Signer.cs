@@ -144,7 +144,22 @@ public static class Signer
         var tokenHandler = new JsonWebTokenHandler();
         tokenHandler.SetDefaultTimesOnTokenCreation = false;  // Disable automatic timestamp claims
         
-        return tokenHandler.CreateToken(tokenDescriptor);
+        var jwt = tokenHandler.CreateToken(tokenDescriptor);
+        
+        // Log the JWT parts for debugging
+        var parts = jwt.Split('.');
+        if (parts.Length == 3)
+        {
+            var headerJson = System.Text.Encoding.UTF8.GetString(Base64UrlEncoder.DecodeBytes(parts[0]));
+            var payloadJson = System.Text.Encoding.UTF8.GetString(Base64UrlEncoder.DecodeBytes(parts[1]));
+            var signatureBytes = Base64UrlEncoder.DecodeBytes(parts[2]);
+            
+            logger?.LogTrace($"SignToken: JWT Header: {headerJson}");
+            logger?.LogTrace($"SignToken: JWT Payload: {payloadJson}");
+            logger?.LogTrace($"SignToken: JWT Signature length={signatureBytes.Length}, hex={Convert.ToHexString(signatureBytes)}");
+        }
+        
+        return jwt;
     }
 
     /// <summary>
