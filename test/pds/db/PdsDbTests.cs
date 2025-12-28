@@ -1,6 +1,7 @@
 
 namespace dnproto.tests.pds.db;
 
+using System.Reflection;
 using dnproto.fs;
 using dnproto.log;
 using dnproto.pds.db;
@@ -226,6 +227,110 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.NotNull(retrievedMstNode2);
         Assert.Equal(mstNode2.Cid, retrievedMstNode2!.Cid);
         Assert.Equal(mstNode1.Cid, retrievedMstNode2.LeftMstNodeCid);
+    }
+
+    [Fact]
+    public void MstEntry_InsertAndRetrieve()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstEntryToInsert = new MstEntry
+        {
+            MstNodeCid = Guid.NewGuid().ToString(),
+            KeySuffix = "example.key/suffix",
+            PrefixLength = 5,
+            TreeMstNodeCid = null,
+            RecordCid = Guid.NewGuid().ToString()
+        };
+
+        // Act
+        pdsDb!.InsertMstEntry(mstEntryToInsert);
+
+        var retrievedMstEntry = pdsDb.GetMstEntriesForNode(mstEntryToInsert.MstNodeCid);
+
+        // Assert
+        Assert.NotNull(retrievedMstEntry);
+        Assert.Single(retrievedMstEntry);
+        var entry = retrievedMstEntry[0];
+        Assert.Equal(mstEntryToInsert.MstNodeCid, entry.MstNodeCid);
+        Assert.Equal(mstEntryToInsert.KeySuffix, entry.KeySuffix);
+        Assert.Equal(mstEntryToInsert.PrefixLength, entry.PrefixLength);
+        Assert.Equal(mstEntryToInsert.TreeMstNodeCid, entry.TreeMstNodeCid);
+        Assert.Equal(mstEntryToInsert.RecordCid, entry.RecordCid);
+    }
+
+    [Fact]
+    public void MstEntry_InsertTwoEntriesSameNode()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstNodeCid = Guid.NewGuid().ToString();
+
+        var mstEntry1 = new MstEntry
+        {
+            MstNodeCid = mstNodeCid,
+            KeySuffix = "first.entry",
+            PrefixLength = 0,
+            TreeMstNodeCid = null,
+            RecordCid = Guid.NewGuid().ToString()
+        };
+
+        var mstEntry2 = new MstEntry
+        {
+            MstNodeCid = mstNodeCid,
+            KeySuffix = "second.entry",
+            PrefixLength = 5,
+            TreeMstNodeCid = null,
+            RecordCid = Guid.NewGuid().ToString()
+        };
+
+        // Act
+        pdsDb!.InsertMstEntry(mstEntry1);
+        pdsDb.InsertMstEntry(mstEntry2);
+
+        var retrievedMstEntries = pdsDb.GetMstEntriesForNode(mstNodeCid);
+
+        // Assert
+        Assert.NotNull(retrievedMstEntries);
+        Assert.Equal(2, retrievedMstEntries.Count);
+        var entry1 = retrievedMstEntries[0];
+        Assert.Equal(mstEntry1.MstNodeCid, entry1.MstNodeCid);
+        Assert.Equal(mstEntry1.KeySuffix, entry1.KeySuffix);
+        Assert.Equal(mstEntry1.PrefixLength, entry1.PrefixLength);
+    }
+
+    [Fact]
+    public void MstEntry_InsertAndDelete()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstEntryToInsert = new MstEntry
+        {
+            MstNodeCid = Guid.NewGuid().ToString(),
+            KeySuffix = "to.be.deleted",
+            PrefixLength = 0,
+            TreeMstNodeCid = null,
+            RecordCid = Guid.NewGuid().ToString()
+        };
+
+        // Act
+        pdsDb!.InsertMstEntry(mstEntryToInsert);
+
+        var retrievedBeforeDelete = pdsDb.GetMstEntriesForNode(mstEntryToInsert.MstNodeCid);
+        Assert.NotNull(retrievedBeforeDelete);
+        Assert.Single(retrievedBeforeDelete);
+        Assert.Equal(mstEntryToInsert.KeySuffix, retrievedBeforeDelete[0].KeySuffix);
+
+        pdsDb.DeleteMstEntriesForNode(mstEntryToInsert.MstNodeCid);
+
+        var retrievedAfterDelete = pdsDb.GetMstEntriesForNode(mstEntryToInsert.MstNodeCid);
+
+        // Assert
+        Assert.NotNull(retrievedAfterDelete);
+        Assert.Empty(retrievedAfterDelete);
     }
 
 }

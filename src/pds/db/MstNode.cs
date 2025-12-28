@@ -13,7 +13,7 @@ public class MstNode
     /// </summary>
     public required string Cid { get; set; }
 
-   /// <summary>
+    /// <summary>
     /// Optional CID link to a sub-tree node at a lower level.
     /// Contains all keys that sort before the first entry in this node.
     /// Maps to "l" in the MST structure (can be null).

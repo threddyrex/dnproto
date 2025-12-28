@@ -75,6 +75,7 @@ public class PdsDb
             CreateTable_RepoHeader(connection, logger);
             CreateTable_RepoCommit(connection, logger);
             CreateTable_MstNode(connection, logger);
+            CreateTable_MstEntry(connection, logger);
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -797,6 +798,102 @@ DELETE FROM MstNode WHERE Cid = @Cid
             command.ExecuteNonQuery();
         }
     }
+
+
+    #endregion
+
+
+    #region MSTENTRY
+
+    public static void CreateTable_MstEntry(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: MstEntry");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS MstEntry (
+MstNodeCid TEXT NOT NULL,
+KeySuffix TEXT NOT NULL,
+PrefixLength INTEGER NOT NULL,
+TreeMstNodeCid TEXT,
+RecordCid TEXT NOT NULL,
+PRIMARY KEY (MstNodeCid, KeySuffix)
+)
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+
+    public List<MstEntry> GetMstEntriesForNode(string mstNodeCid)
+    {
+        var entries = new List<MstEntry>();
+
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM MstEntry WHERE MstNodeCid = @MstNodeCid ORDER BY PrefixLength ASC";
+            command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid);
+            
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var entry = new MstEntry
+                    {
+                        MstNodeCid = reader.GetString(reader.GetOrdinal("MstNodeCid")),
+                        KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
+                        PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
+                        TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("TreeMstNodeCid")),
+                        RecordCid = reader.GetString(reader.GetOrdinal("RecordCid"))
+                    };
+
+                    entries.Add(entry);
+                }
+            }
+        }
+
+        return entries;
+    }
+
+    public void InsertMstEntry(MstEntry mstEntry)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO MstEntry (MstNodeCid, KeySuffix, PrefixLength, TreeMstNodeCid, RecordCid)
+VALUES (@MstNodeCid, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
+            ";
+            command.Parameters.AddWithValue("@MstNodeCid", mstEntry.MstNodeCid);
+            command.Parameters.AddWithValue("@KeySuffix", mstEntry.KeySuffix);
+            command.Parameters.AddWithValue("@PrefixLength", mstEntry.PrefixLength);
+            if(mstEntry.TreeMstNodeCid != null)
+            {
+                command.Parameters.AddWithValue("@TreeMstNodeCid", mstEntry.TreeMstNodeCid);
+            }
+            else
+            {
+                command.Parameters.AddWithValue("@TreeMstNodeCid", DBNull.Value);
+            }
+            command.Parameters.AddWithValue("@RecordCid", mstEntry.RecordCid);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteMstEntriesForNode(string mstNodeCid)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM MstEntry WHERE MstNodeCid = @MstNodeCid
+            ";
+            command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid);
+            command.ExecuteNonQuery();
+        }
+    }
+
 
 
     #endregion
