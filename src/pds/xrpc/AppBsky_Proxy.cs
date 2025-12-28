@@ -27,12 +27,19 @@ public class AppBsky_Proxy : BaseXrpcCommand
             return Results.Problem("Authentication required", statusCode: 401);
         }
 
+        bool didMatches = authedDid == Pds.Config.UserDid;
+
+        if(didMatches == false)
+        {
+            return Results.Json(new { error = "InvalidRequest", message = "Need auth" }, statusCode: 204);
+        }
+
+
         //
         // Figure out atproto proxy
         //
         const string defaultAtprotoProxyValue = "did:web:api.bsky.app#bsky_appview";
 
-        // if we have atproto proxy in headers, use that
         string atprotoProxyValue = context.Request.Headers.ContainsKey("Atproto-Proxy")
             ? context.Request.Headers["Atproto-Proxy"].ToString()
             : defaultAtprotoProxyValue;
@@ -45,8 +52,9 @@ public class AppBsky_Proxy : BaseXrpcCommand
             return Results.Problem("Invalid Atproto-Proxy header value", statusCode: 400);
         }
 
+
         //
-        // Resolve did doc
+        // Resolve did doc for atproto proxy DID
         //
         ActorInfo? actorInfo = Pds.LocalFileSystem.ResolveActorInfo(atprotoProxy.Did);
         if(actorInfo == null || actorInfo.DidDoc == null)
@@ -60,6 +68,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
             Pds.Logger.LogError($"Unable to parse DID Document for DID: {atprotoProxy.Did}");
             return Results.Problem("Unable to parse DID Document for DID", statusCode: 400);
         }
+
 
         //
         // Look through did doc to find service endpoint for service id
