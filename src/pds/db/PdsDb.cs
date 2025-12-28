@@ -9,12 +9,18 @@ public class PdsDb
     public required IDnProtoLogger _logger;
 
 
+    public static bool DbFileExists(string dataDir)
+    {
+        string dbPath = Path.Combine(dataDir, "pds", "pds.db");
+        return File.Exists(dbPath);
+    }
+
 
     /// <summary>
     /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
     /// If already exists, it will fail.
     /// </summary>
-    public static PdsDb? InitializePdsDb(string dataDir, IDnProtoLogger logger)
+    public static PdsDb? InitializePdsDb(string dataDir, IDnProtoLogger logger, bool force = false)
     {
         //
         // Paths
@@ -34,7 +40,7 @@ public class PdsDb
         //
         // Check that the database file does not already exist.
         //
-        if (File.Exists(dbPath))
+        if (DbFileExists(dataDir) && !force)
         {
             logger.LogError($"PDS database file already exists: {dbPath}");
             return null;
