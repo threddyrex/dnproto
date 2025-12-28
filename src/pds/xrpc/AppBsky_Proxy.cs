@@ -110,6 +110,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
             Pds.Logger.LogTrace($"REQUEST:\n{request}");
             var response = await httpClient.SendAsync(request);
             var responseBody = await response.Content.ReadAsStringAsync();
+            Pds.Logger.LogTrace($"RESPONSE: {response}");
 
             // Copy response headers
             foreach (var header in response.Headers)
