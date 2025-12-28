@@ -121,5 +121,111 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(repoCommitToInsert.PrevMstNodeCid, retrievedRepoCommit.PrevMstNodeCid);
     }
 
+    [Fact]
+    public void MstNode_InsertAndRetrieve()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstNodeToInsert = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = null
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNodeToInsert);
+
+        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+
+        // Assert
+        Assert.NotNull(retrievedMstNode);
+        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
+        Assert.Equal(mstNodeToInsert.LeftMstNodeCid, retrievedMstNode.LeftMstNodeCid);
+    }
+
+    [Fact]
+    public void MstNode_InsertAndRetrieve_WithLeftMstNodeCid()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstNodeToInsert = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = Guid.NewGuid().ToString()
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNodeToInsert);
+
+        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+
+        // Assert
+        Assert.NotNull(retrievedMstNode);
+        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
+        Assert.Equal(mstNodeToInsert.LeftMstNodeCid, retrievedMstNode.LeftMstNodeCid);
+    }
+
+
+    [Fact]
+    public void MstNode_DeleteMstNode()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstNodeToInsert = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = null
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNodeToInsert);
+
+        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        Assert.NotNull(retrievedMstNode);
+
+        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+
+        var retrievedAfterDelete = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+
+        // Assert
+        Assert.Null(retrievedAfterDelete);
+    }
+
+    [Fact]
+    public void MstNode_InsertTwo()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstNode1 = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = null
+        };
+
+        var mstNode2 = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = mstNode1.Cid
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNode1);
+        pdsDb.InsertMstNode(mstNode2);
+
+        var retrievedMstNode1 = pdsDb.GetMstNode(mstNode1.Cid);
+        var retrievedMstNode2 = pdsDb.GetMstNode(mstNode2.Cid);
+
+        // Assert
+        Assert.NotNull(retrievedMstNode1);
+        Assert.Equal(mstNode1.Cid, retrievedMstNode1!.Cid);
+
+        Assert.NotNull(retrievedMstNode2);
+        Assert.Equal(mstNode2.Cid, retrievedMstNode2!.Cid);
+        Assert.Equal(mstNode1.Cid, retrievedMstNode2.LeftMstNodeCid);
+    }
 
 }

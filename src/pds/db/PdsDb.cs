@@ -74,6 +74,7 @@ public class PdsDb
             CreateTable_Preferences(connection, logger);
             CreateTable_RepoHeader(connection, logger);
             CreateTable_RepoCommit(connection, logger);
+            CreateTable_MstNode(connection, logger);
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -710,6 +711,93 @@ SET Version = @Version, Cid = @Cid, RootMstNodeCid = @RootMstNodeCid, Rev = @Rev
             command.ExecuteNonQuery();
         }
     }
+
+    #endregion
+
+
+    #region MSTNODE
+
+    public static void CreateTable_MstNode(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: MstNode");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS MstNode (
+Cid TEXT PRIMARY KEY,
+LeftMstNodeCid TEXT
+)
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+    public MstNode? GetMstNode(string cid)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM MstNode WHERE Cid = @Cid";
+            command.Parameters.AddWithValue("@Cid", cid);
+            
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var mstNode = new MstNode
+                    {
+                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
+                        LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("LeftMstNodeCid"))
+                    };
+
+                    return mstNode;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    public void InsertMstNode(MstNode mstNode)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO MstNode (Cid, LeftMstNodeCid)
+VALUES (@Cid, @LeftMstNodeCid)
+            ";
+            command.Parameters.AddWithValue("@Cid", mstNode.Cid);
+            if(mstNode.LeftMstNodeCid != null)
+            {
+                command.Parameters.AddWithValue("@LeftMstNodeCid", mstNode.LeftMstNodeCid);
+            }
+            else
+            {
+                command.Parameters.AddWithValue("@LeftMstNodeCid", DBNull.Value);
+            }
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteMstNode(MstNode mstNode)
+    {
+        DeleteMstNode(mstNode.Cid);
+    }
+
+    public void DeleteMstNode(string cid)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM MstNode WHERE Cid = @Cid
+            ";
+            command.Parameters.AddWithValue("@Cid", cid);
+            command.ExecuteNonQuery();
+        }
+    }
+
 
     #endregion
 }
