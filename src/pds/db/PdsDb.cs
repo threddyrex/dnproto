@@ -76,6 +76,7 @@ public class PdsDb
             CreateTable_RepoCommit(connection, logger);
             CreateTable_MstNode(connection, logger);
             CreateTable_MstEntry(connection, logger);
+            CreateTable_RepoRecord(connection, logger);
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -895,6 +896,79 @@ DELETE FROM MstEntry WHERE MstNodeCid = @MstNodeCid
     }
 
 
+
+    #endregion
+
+
+    #region REPORECORD
+
+    public static void CreateTable_RepoRecord(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: RepoRecord");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS RepoRecord (
+Cid TEXT PRIMARY KEY,
+JsonData TEXT NOT NULL
+)
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+    public void InsertRepoRecord(RepoRecord repoRecord)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO RepoRecord (Cid, JsonData)
+VALUES (@Cid, @JsonData)
+            ";
+            command.Parameters.AddWithValue("@Cid", repoRecord.Cid);
+            command.Parameters.AddWithValue("@JsonData", repoRecord.JsonData);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public RepoRecord? GetRepoRecord(string cid)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM RepoRecord WHERE Cid = @Cid LIMIT 1";
+            command.Parameters.AddWithValue("@Cid", cid);
+            
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var repoRecord = new RepoRecord
+                    {
+                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
+                        JsonData = reader.GetString(reader.GetOrdinal("JsonData"))
+                    };
+                    return repoRecord;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void DeleteRepoRecord(string cid)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM RepoRecord WHERE Cid = @Cid
+            ";
+            command.Parameters.AddWithValue("@Cid", cid);
+            command.ExecuteNonQuery();
+        }
+    }
 
     #endregion
 }

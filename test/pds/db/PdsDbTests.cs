@@ -333,4 +333,54 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Empty(retrievedAfterDelete);
     }
 
+
+    [Fact]
+    public void RepoRecord_InsertAndRetrieve()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var repoRecordToInsert = new RepoRecord
+        {
+            Cid = Guid.NewGuid().ToString(),
+            JsonData = "{\"example\":\"data\"}"
+        };
+
+        // Act
+        pdsDb!.InsertRepoRecord(repoRecordToInsert);
+
+        var retrievedRepoRecord = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
+
+        // Assert
+        Assert.NotNull(retrievedRepoRecord);
+        Assert.Equal(repoRecordToInsert.Cid, retrievedRepoRecord!.Cid);
+        Assert.Equal(repoRecordToInsert.JsonData, retrievedRepoRecord.JsonData);
+    }
+
+    [Fact]
+    public void RepoRecord_InsertAndDelete()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var repoRecordToInsert = new RepoRecord
+        {
+            Cid = Guid.NewGuid().ToString(),
+            JsonData = "{\"toBe\":\"deleted\"}"
+        };
+
+        // Act
+        pdsDb!.InsertRepoRecord(repoRecordToInsert);
+
+        var retrievedBeforeDelete = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
+        Assert.NotNull(retrievedBeforeDelete);
+        Assert.Equal(repoRecordToInsert.Cid, retrievedBeforeDelete!.Cid);
+
+        pdsDb.DeleteRepoRecord(repoRecordToInsert.Cid);
+
+        var retrievedAfterDelete = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
+
+        // Assert
+        Assert.Null(retrievedAfterDelete);
+    }
 }
