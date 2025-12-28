@@ -16,6 +16,8 @@ public class PdsDb
     }
 
 
+    #region INITIALIZE
+
     /// <summary>
     /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
     /// If already exists, it will fail.
@@ -70,59 +72,17 @@ public class PdsDb
             //
             // Config table
             //
-            logger.LogInfo("table: Config");
-            var command = connection.CreateCommand();
-            command.CommandText = @"
-CREATE TABLE IF NOT EXISTS Config (
-    ListenScheme TEXT NOT NULL,
-    ListenHost TEXT NOT NULL,
-    ListenPort INTEGER NOT NULL,
-    PdsDid TEXT NOT NULL,
-    PdsHostname TEXT NOT NULL,
-    AvailableUserDomain TEXT NOT NULL,
-    AdminHashedPassword TEXT NOT NULL,
-    JwtSecret TEXT NOT NULL,
-    UserHandle TEXT NOT NULL,
-    UserDid TEXT NOT NULL,
-    UserHashedPassword TEXT NOT NULL,
-    UserEmail TEXT NOT NULL,
-    UserPublicKeyMultibase TEXT NOT NULL,
-    UserPrivateKeyMultibase TEXT NOT NULL
-)
-            ";
-            
-            command.ExecuteNonQuery();
-
+            CreateTable_Config(connection, logger);
 
             //
             // Blob.cs table
             //
-            logger.LogInfo("table: Blob");
-            command = connection.CreateCommand();
-            command.CommandText = @"
-CREATE TABLE IF NOT EXISTS Blob (
-    Cid TEXT PRIMARY KEY,
-    ContentType TEXT NOT NULL,
-    ContentLength INTEGER NOT NULL,
-    Bytes BLOB NOT NULL
-)
-            ";
-            
-            command.ExecuteNonQuery();
-
+            CreateTable_Blob(connection, logger);
 
             //
             // Preferences table
             //
-            logger.LogInfo("table: Preferences");
-            command = connection.CreateCommand();
-            command.CommandText = @"
-CREATE TABLE IF NOT EXISTS Preferences (
-    Prefs TEXT NOT NULL
-)
-            ";
-            
-            command.ExecuteNonQuery();
+            CreateTable_Preferences(connection, logger);
 
         }
         
@@ -138,8 +98,10 @@ CREATE TABLE IF NOT EXISTS Preferences (
             _logger = logger
         };
     }
+    #endregion
 
 
+    #region CONNECT
 
     public static PdsDb? ConnectPdsDb(string dataDir, IDnProtoLogger logger)
     {
@@ -163,8 +125,12 @@ CREATE TABLE IF NOT EXISTS Preferences (
             _logger = logger
         };
     }
+    
+    #endregion
 
-    #region SQLCONN
+
+
+    #region SQL
 
     public SqliteConnection GetConnection()
     {
@@ -198,6 +164,36 @@ CREATE TABLE IF NOT EXISTS Preferences (
     #endregion
 
     #region CONFIG
+
+    private static void CreateTable_Config(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        //
+        // Config table
+        //
+        logger.LogInfo("table: Config");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Config (
+    ListenScheme TEXT NOT NULL,
+    ListenHost TEXT NOT NULL,
+    ListenPort INTEGER NOT NULL,
+    PdsDid TEXT NOT NULL,
+    PdsHostname TEXT NOT NULL,
+    AvailableUserDomain TEXT NOT NULL,
+    AdminHashedPassword TEXT NOT NULL,
+    JwtSecret TEXT NOT NULL,
+    UserHandle TEXT NOT NULL,
+    UserDid TEXT NOT NULL,
+    UserHashedPassword TEXT NOT NULL,
+    UserEmail TEXT NOT NULL,
+    UserPublicKeyMultibase TEXT NOT NULL,
+    UserPrivateKeyMultibase TEXT NOT NULL
+)
+        ";
+            
+            command.ExecuteNonQuery();        
+    }
+
 
     public bool InsertConfig(Config config)
     {
@@ -283,7 +279,26 @@ VALUES (@@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availa
 
     #endregion
 
+
+
     #region BLOB
+
+    public static void CreateTable_Blob(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: Blob");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Blob (
+Cid TEXT PRIMARY KEY,
+ContentType TEXT NOT NULL,
+ContentLength INTEGER NOT NULL,
+Bytes BLOB NOT NULL
+)
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
 
     public bool BlobExists(string cid)
     {
@@ -399,6 +414,22 @@ WHERE Cid = @Cid
 
 
     #region PREFERENCES
+
+
+    private static void CreateTable_Preferences(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: Preferences");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Preferences (
+Prefs TEXT NOT NULL
+)
+        ";
+        
+        command.ExecuteNonQuery();
+
+    }
+
 
     public string GetPreferences()
     {
