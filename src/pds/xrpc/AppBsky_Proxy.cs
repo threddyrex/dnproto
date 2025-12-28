@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json.Nodes;
 using dnproto.auth;
+using dnproto.log;
 using dnproto.ws;
 using Microsoft.AspNetCore.Http;
 
@@ -77,18 +78,23 @@ public class AppBsky_Proxy : BaseXrpcCommand
         using var httpClient = new HttpClient();
         var request = new HttpRequestMessage(new HttpMethod(context.Request.Method), targetUrl);
 
+        //
         // Copy headers from incoming request
+        //
         foreach (var header in context.Request.Headers)
         {
             // Skip headers that should not be forwarded
             if (header.Key.Equals("Host", StringComparison.OrdinalIgnoreCase) ||
-                header.Key.Equals("Connection", StringComparison.OrdinalIgnoreCase))
+                header.Key.Equals("Connection", StringComparison.OrdinalIgnoreCase) ||
+                header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
         }
 
+        //
         // Copy request body for POST requests
+        //
         if (context.Request.Method == "POST" && context.Request.ContentLength > 0)
         {
             var bodyContent = new StreamContent(context.Request.Body);
@@ -101,6 +107,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
 
         try
         {
+            Pds.Logger.LogTrace($"REQUEST:\n{request}");
             var response = await httpClient.SendAsync(request);
             var responseBody = await response.Content.ReadAsStringAsync();
 
