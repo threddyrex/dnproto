@@ -27,7 +27,7 @@ internal class EcdsaIeeeP1363SignatureProvider : SignatureProvider
 
     public override bool Sign(ReadOnlySpan<byte> data, Span<byte> destination, out int bytesWritten)
     {
-        return _ecdsa.TrySignData(data, destination, HashAlgorithmName.SHA256, out bytesWritten, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        return _ecdsa.TrySignData(data, destination, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation, out bytesWritten);
     }
 
     public override bool Verify(byte[] input, byte[] signature)
