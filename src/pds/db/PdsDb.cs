@@ -69,12 +69,11 @@ public class PdsDb
         using (var connection = new SqliteConnection(connectionString))
         {
             connection.Open();
-
             CreateTable_Config(connection, logger);
             CreateTable_Blob(connection, logger);
             CreateTable_Preferences(connection, logger);
             CreateTable_RepoHeader(connection, logger);
-
+            CreateTable_RepoCommit(connection, logger);
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -404,7 +403,7 @@ WHERE Cid = @Cid
     #endregion
 
 
-    #region PREFERENCES
+    #region PREFS
 
 
     private static void CreateTable_Preferences(SqliteConnection connection, IDnProtoLogger logger)
@@ -480,7 +479,7 @@ SET Prefs = @Prefs
 
 
 
-    #region REPOHDR
+    #region RPHDR
 
     public static void CreateTable_RepoHeader(SqliteConnection connection, IDnProtoLogger logger)
     {
@@ -579,6 +578,138 @@ SET Version = @Version, RepoCommitCid = @RepoCommitCid
     }
 
 
+
+    #endregion
+
+
+
+
+    #region RPCMMT
+
+    public static void CreateTable_RepoCommit(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: RepoCommit");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS RepoCommit (
+Version INTEGER NOT NULL,
+Cid TEXT PRIMARY KEY,
+RootMstNodeCid TEXT NOT NULL,
+Rev TEXT NOT NULL,
+PrevMstNodeCid TEXT,
+Signature TEXT NOT NULL
+)
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+    public bool RepoCommitExists()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM RepoCommit";
+            
+            var result = command.ExecuteScalar();
+            int count = result != null ? Convert.ToInt32(result) : 0;
+            return count == 0;
+        }
+    }
+
+    public RepoCommit? GetRepoCommit()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM RepoCommit LIMIT 1";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var repoCommit = new RepoCommit
+                    {
+                        Version = reader.GetInt32(reader.GetOrdinal("Version")),
+                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
+                        RootMstNodeCid = reader.GetString(reader.GetOrdinal("RootMstNodeCid")),
+                        Rev = reader.GetString(reader.GetOrdinal("Rev")),
+                        PrevMstNodeCid = reader.IsDBNull(reader.GetOrdinal("PrevMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("PrevMstNodeCid")),
+                        Signature = reader.GetString(reader.GetOrdinal("Signature"))
+                    };
+                    return repoCommit;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    public void InsertUpdateRepoCommit(RepoCommit repoCommit)
+    {
+        if(RepoCommitExists())
+        {
+            InsertRepoCommit(repoCommit);
+        }
+        else
+        {
+            UpdateRepoCommit(repoCommit);
+        }
+    }
+
+    private void InsertRepoCommit(RepoCommit repoCommit)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO RepoCommit (Version, Cid, RootMstNodeCid, Rev, PrevMstNodeCid, Signature)
+VALUES (@Version, @Cid, @RootMstNodeCid, @Rev, @PrevMstNodeCid, @Signature)
+            ";
+            command.Parameters.AddWithValue("@Version", repoCommit.Version);
+            command.Parameters.AddWithValue("@Cid", repoCommit.Cid);
+            command.Parameters.AddWithValue("@RootMstNodeCid", repoCommit.RootMstNodeCid);
+            command.Parameters.AddWithValue("@Rev", repoCommit.Rev);
+            if(repoCommit.PrevMstNodeCid != null)
+            {
+                command.Parameters.AddWithValue("@PrevMstNodeCid", repoCommit.PrevMstNodeCid);
+            }
+            else
+            {
+                command.Parameters.AddWithValue("@PrevMstNodeCid", DBNull.Value);
+            }
+            command.Parameters.AddWithValue("@Signature", repoCommit.Signature);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private void UpdateRepoCommit(RepoCommit repoCommit)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE RepoCommit
+SET Version = @Version, Cid = @Cid, RootMstNodeCid = @RootMstNodeCid, Rev = @Rev, PrevMstNodeCid = @PrevMstNodeCid, Signature = @Signature
+            ";
+            command.Parameters.AddWithValue("@Version", repoCommit.Version);
+            command.Parameters.AddWithValue("@Cid", repoCommit.Cid);
+            command.Parameters.AddWithValue("@RootMstNodeCid", repoCommit.RootMstNodeCid);
+            command.Parameters.AddWithValue("@Rev", repoCommit.Rev);
+            if(repoCommit.PrevMstNodeCid != null)
+            {
+                command.Parameters.AddWithValue("@PrevMstNodeCid", repoCommit.PrevMstNodeCid);
+            }
+            else
+            {
+                command.Parameters.AddWithValue("@PrevMstNodeCid", DBNull.Value);
+            }
+            command.Parameters.AddWithValue("@Signature", repoCommit.Signature);
+
+            command.ExecuteNonQuery();
+        }
+    }
 
     #endregion
 }

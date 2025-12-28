@@ -90,6 +90,36 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(repoHeaderToInsert.Version, retrievedRepoHeader.Version);
     }
 
+    [Fact]
+    public void RepoCommit_InsertAndRetrieve()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var repoCommitToInsert = new RepoCommit
+        {
+            Cid = Guid.NewGuid().ToString(),
+            RootMstNodeCid = Guid.NewGuid().ToString(),
+            Rev = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+            Signature = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+            Version = 3,
+            PrevMstNodeCid = null
+        };
+
+        // Act
+        pdsDb!.InsertUpdateRepoCommit(repoCommitToInsert);
+
+        var retrievedRepoCommit = pdsDb.GetRepoCommit();
+
+        // Assert
+        Assert.NotNull(retrievedRepoCommit);
+        Assert.Equal(repoCommitToInsert.Cid, retrievedRepoCommit!.Cid);
+        Assert.Equal(repoCommitToInsert.RootMstNodeCid, retrievedRepoCommit.RootMstNodeCid);
+        Assert.Equal(repoCommitToInsert.Rev, retrievedRepoCommit.Rev);
+        Assert.Equal(repoCommitToInsert.Signature, retrievedRepoCommit.Signature);
+        Assert.Equal(repoCommitToInsert.Version, retrievedRepoCommit.Version);
+        Assert.Equal(repoCommitToInsert.PrevMstNodeCid, retrievedRepoCommit.PrevMstNodeCid);
+    }
 
 
 }
