@@ -27,10 +27,15 @@ public static class Signer
         // Create a list of claims
         var claimsList = new List<Claim>
         {
-            new("lxm", "com.atproto.server.createAccount"),
             new(JwtRegisteredClaimNames.Iss, issuer),
             new(JwtRegisteredClaimNames.Aud, audience),
         };
+
+        // Add lxm claim if not provided in custom claims
+        if (claims == null || !claims.ContainsKey("lxm"))
+        {
+            claimsList.Add(new Claim("lxm", "com.atproto.server.createAccount"));
+        }
 
         // Add any additional claims
         if (claims != null)

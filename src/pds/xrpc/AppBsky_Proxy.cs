@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.log;
+using dnproto.repo;
 using dnproto.ws;
 using Microsoft.AspNetCore.Http;
 
@@ -13,6 +14,19 @@ public class AppBsky_Proxy : BaseXrpcCommand
 {
     public async Task<IResult> ProxyToAppView(HttpContext context)
     {
+        //
+        // Get authenticated user DID from access token
+        //
+        string? accessJwt = GetAccessJwt();
+        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
+        string? authedDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
+
+        if (string.IsNullOrEmpty(authedDid))
+        {
+            Pds.Logger.LogError("No authenticated user found");
+            return Results.Problem("Authentication required", statusCode: 401);
+        }
+
         //
         // Figure out atproto proxy
         //
@@ -77,6 +91,59 @@ public class AppBsky_Proxy : BaseXrpcCommand
 
         using var httpClient = new HttpClient();
         var request = new HttpRequestMessage(new HttpMethod(context.Request.Method), targetUrl);
+
+        //
+        // Create service authentication JWT
+        //
+        // Extract the lexicon method from the path (remove /xrpc/ prefix)
+        string lxm = context.Request.Path.Value?.TrimStart('/') ?? string.Empty;
+        if (lxm.StartsWith("xrpc/", StringComparison.OrdinalIgnoreCase))
+        {
+            lxm = lxm.Substring(5); // Remove "xrpc/" prefix
+        }
+        Pds.Logger.LogInfo($"Creating service auth JWT for lxm: {lxm}");
+        var serviceDid = atprotoProxy.Did;
+
+        // Get signing keys for the authenticated user
+        // Note: In a multi-user system, you would look up the user's signing key from a database
+        // For now, we use the PDS user's keys from config
+        string signingKeyPublicMultibase = Pds.Config.UserPublicKeyMultibase;
+        string signingKeyPrivateMultibase = Pds.Config.UserPrivateKeyMultibase;
+
+        if (string.IsNullOrEmpty(signingKeyPrivateMultibase) || string.IsNullOrEmpty(signingKeyPublicMultibase))
+        {
+            Pds.Logger.LogError($"Signing key not found for DID: {authedDid}");
+            return Results.Problem("Signing key not found", statusCode: 500);
+        }
+
+        // Convert multibase keys to hex format for SignToken
+        var privateKeyWithPrefix = Base58BtcEncoding.DecodeMultibase(signingKeyPrivateMultibase);
+        var publicKeyWithPrefix = Base58BtcEncoding.DecodeMultibase(signingKeyPublicMultibase);
+
+        // Remove multicodec prefix (0x86 0x26 for P-256 private, 0x80 0x24 for P-256 public)
+        byte[] privateKeyBytes = privateKeyWithPrefix.Skip(2).ToArray();
+        byte[] publicKeyBytes = publicKeyWithPrefix.Skip(2).ToArray();
+
+        string privateKeyHex = Convert.ToHexString(privateKeyBytes);
+        string publicKeyHex = Convert.ToHexString(publicKeyBytes);
+
+        // Create JWT for service authentication
+        var claims = new Dictionary<string, string>
+        {
+            { "lxm", lxm }
+        };
+
+        string serviceAuthJwt = Signer.SignToken(
+            publicKeyHex,
+            privateKeyHex,
+            authedDid,      // iss: issuer is the authenticated user
+            serviceDid,     // aud: audience is the service DID
+            claims,
+            300             // exp: 5 minutes (300 seconds)
+        );
+
+        // Add Authorization header with the service auth JWT
+        request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {serviceAuthJwt}");
 
         //
         // Copy headers from incoming request
