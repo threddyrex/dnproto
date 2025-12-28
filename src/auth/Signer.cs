@@ -22,24 +22,17 @@ internal class EcdsaIeeeP1363SignatureProvider : SignatureProvider
 
     public override byte[] Sign(byte[] input)
     {
-        var hash = SHA256.HashData(input);
-        return _ecdsa.SignHash(hash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        return _ecdsa.SignData(input, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
     }
 
     public override bool Sign(ReadOnlySpan<byte> data, Span<byte> destination, out int bytesWritten)
     {
-        var hash = new byte[32];
-        SHA256.HashData(data, hash);
-        var signature = _ecdsa.SignHash(hash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-        signature.CopyTo(destination);
-        bytesWritten = signature.Length;
-        return true;
+        return _ecdsa.TrySignData(data, destination, HashAlgorithmName.SHA256, out bytesWritten, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
     }
 
     public override bool Verify(byte[] input, byte[] signature)
     {
-        var hash = SHA256.HashData(input);
-        return _ecdsa.VerifyHash(hash, signature, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        return _ecdsa.VerifyData(input, signature, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
     }
 
     protected override void Dispose(bool disposing) { }
