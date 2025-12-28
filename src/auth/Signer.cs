@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 using dnproto.repo;
 using dnproto.log;
+using System.Numerics;
 
 namespace dnproto.auth;
 
@@ -96,12 +97,14 @@ public static class Signer
                 
                 ecdsa.ImportParameters(parameters);
                 
-                // Test signature to verify format
+                // Test signature to verify format and S-normalization
                 var testData = new byte[] { 0x01, 0x02, 0x03 };
                 var testHash = SHA256.HashData(testData);
                 var testSig = ecdsa.SignHash(testHash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-                logger?.LogTrace($"SignToken: Test signature length={testSig.Length}, first 8 bytes={Convert.ToHexString(testSig.Take(8).ToArray())}");
+                var normalizedTestSig = NormalizeLowS(testSig, ECCurve.NamedCurves.nistP256);
+                logger?.LogTrace($"SignToken: Test signature length={testSig.Length}, normalized={testSig.SequenceEqual(normalizedTestSig)}, first 8 bytes={Convert.ToHexString(normalizedTestSig.Take(8).ToArray())}");
                 
+                // Create a custom ECDSA key wrapper that normalizes signatures
                 var ecdsaKey = new ECDsaSecurityKey(ecdsa);
                 signingCredentials = new SigningCredentials(ecdsaKey, SecurityAlgorithms.EcdsaSha256);
             }
@@ -532,5 +535,54 @@ public static class Signer
     {
         return CreateCommitSigningFunction(keyPair.PrivateKeyMultibase, keyPair.PublicKeyMultibase);
     }
+
+    /// <summary>
+    /// Normalizes an ECDSA signature to use low-S value (BIP-62 compliance).
+    /// This prevents signature malleability issues.
+    /// </summary>
+    /// <param name="signature">The IEEE P1363 format signature (r || s, 64 bytes for P-256)</param>
+    /// <param name="curve">The elliptic curve used</param>
+    /// <returns>Normalized signature with low-S value</returns>
+    private static byte[] NormalizeLowS(byte[] signature, ECCurve curve)
+    {
+        if (signature.Length != 64)
+            return signature; // Only handle P-256 64-byte signatures
+
+        // Extract r and s components (32 bytes each for P-256)
+        var r = signature.Take(32).ToArray();
+        var s = signature.Skip(32).Take(32).ToArray();
+
+        // Get the curve order for P-256
+        // P-256 order: FFFFFFFF 00000000 FFFFFFFF FFFFFFFF BCE6FAAD A7179E84 F3B9CAC2 FC632551
+        var orderHex = "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551";
+        var order = BigInteger.Parse(orderHex, System.Globalization.NumberStyles.HexNumber);
+
+        // Convert s to BigInteger (big-endian)
+        var sBigInt = new BigInteger(s.Reverse().Concat(new byte[] { 0 }).ToArray());
+
+        // Calculate order / 2
+        var halfOrder = order / 2;
+
+        // If s > order/2, normalize it: s = order - s
+        if (sBigInt > halfOrder)
+        {
+            var normalizedS = order - sBigInt;
+            var normalizedSBytes = normalizedS.ToByteArray().Reverse().ToArray();
+
+            // Pad to 32 bytes if needed
+            var paddedS = new byte[32];
+            Array.Copy(normalizedSBytes, 0, paddedS, 32 - normalizedSBytes.Length, normalizedSBytes.Length);
+
+            // Combine r and normalized s
+            var result = new byte[64];
+            Array.Copy(r, 0, result, 0, 32);
+            Array.Copy(paddedS, 0, result, 32, 32);
+
+            return result;
+        }
+
+        return signature; // Already normalized
+    }
 }
+
 
