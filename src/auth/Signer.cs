@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
@@ -126,11 +126,10 @@ public static class Signer
         };
 
         // Create and sign the token
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenHandler = new JsonWebTokenHandler();
         tokenHandler.SetDefaultTimesOnTokenCreation = false;  // Disable automatic timestamp claims
-        var token = tokenHandler.CreateToken(tokenDescriptor);
         
-        return tokenHandler.WriteToken(token);
+        return tokenHandler.CreateToken(tokenDescriptor);
     }
 
     /// <summary>
@@ -147,7 +146,7 @@ public static class Signer
     {
         try
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenHandler = new JsonWebTokenHandler();
             
             // Create security key from public key
             SecurityKey securityKey;
@@ -266,7 +265,13 @@ public static class Signer
             ClockSkew = TimeSpan.FromMinutes(5) // Allow 5 minute clock skew
         };
         
-            return tokenHandler.ValidateToken(token, validationParameters, out _);
+            var result = tokenHandler.ValidateTokenAsync(token, validationParameters).GetAwaiter().GetResult();
+            if (!result.IsValid)
+            {
+                logger?.LogError($"JWT validation failed: {result.Exception?.Message}");
+                return null;
+            }
+            return new ClaimsPrincipal(result.ClaimsIdentity);
         }
         catch (Exception ex)
         {
@@ -283,8 +288,8 @@ public static class Signer
     /// <returns>Dictionary of claim types to values</returns>
     public static Dictionary<string, string> GetClaims(string token)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var jwtToken = tokenHandler.ReadJwtToken(token);
+        var tokenHandler = new JsonWebTokenHandler();
+        var jwtToken = tokenHandler.ReadJsonWebToken(token);
         
         return jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
     }
@@ -297,8 +302,8 @@ public static class Signer
     /// <returns>The claim value, or null if not found</returns>
     public static string? GetClaim(string token, string claimType)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var jwtToken = tokenHandler.ReadJwtToken(token);
+        var tokenHandler = new JsonWebTokenHandler();
+        var jwtToken = tokenHandler.ReadJsonWebToken(token);
         
         return jwtToken.Claims.FirstOrDefault(c => c.Type == claimType)?.Value;
     }

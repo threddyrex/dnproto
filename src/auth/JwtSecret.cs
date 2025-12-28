@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -51,16 +51,15 @@ public class JwtSecret
             new SymmetricSecurityKey(key),
             SecurityAlgorithms.HmacSha256);
         
-        // Create JWT token with custom header
-        var header = new JwtHeader(signingCredentials);
-        header["typ"] = "at+jwt"; // Override the default "JWT" type
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            SigningCredentials = signingCredentials,
+            AdditionalHeaderClaims = new Dictionary<string, object> { { "typ", "at+jwt" } }
+        };
         
-        var payload = new JwtPayload(claims);
-        
-        var jwtToken = new JwtSecurityToken(header, payload);
-        var tokenHandler = new JwtSecurityTokenHandler();
-        
-        return tokenHandler.WriteToken(jwtToken);
+        var tokenHandler = new JsonWebTokenHandler();
+        return tokenHandler.CreateToken(tokenDescriptor);
     }
 
     /// <summary>
@@ -96,16 +95,15 @@ public class JwtSecret
             new SymmetricSecurityKey(key),
             SecurityAlgorithms.HmacSha256);
         
-        // Create JWT token with custom header
-        var header = new JwtHeader(signingCredentials);
-        header["typ"] = "refresh+jwt"; // Override the default "JWT" type
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            SigningCredentials = signingCredentials,
+            AdditionalHeaderClaims = new Dictionary<string, object> { { "typ", "refresh+jwt" } }
+        };
         
-        var payload = new JwtPayload(claims);
-        
-        var jwtToken = new JwtSecurityToken(header, payload);
-        var tokenHandler = new JwtSecurityTokenHandler();
-        
-        return tokenHandler.WriteToken(jwtToken);
+        var tokenHandler = new JsonWebTokenHandler();
+        return tokenHandler.CreateToken(tokenDescriptor);
     }
 
     /// <summary>
@@ -122,7 +120,7 @@ public class JwtSecret
             return null;
         }
 
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenHandler = new JsonWebTokenHandler();
         var key = Encoding.UTF8.GetBytes(jwtSecret);
 
         try
@@ -137,21 +135,22 @@ public class JwtSecret
                 ClockSkew = TimeSpan.Zero // No clock skew tolerance
             };
 
-            var principal = tokenHandler.ValidateToken(refreshJwt, validationParameters, out SecurityToken validatedToken);
-
-            // Verify it's a JWT token
-            if (validatedToken is not JwtSecurityToken jwtToken)
+            var result = tokenHandler.ValidateTokenAsync(refreshJwt, validationParameters).GetAwaiter().GetResult();
+            
+            if (!result.IsValid)
             {
                 return null;
             }
 
             // Verify the algorithm is HMAC SHA256
-            if (!jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            if (result.SecurityToken is JsonWebToken jwt && 
+                !jwt.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 return null;
             }
 
             // Verify the scope is for refresh tokens
+            var principal = new ClaimsPrincipal(result.ClaimsIdentity);
             var scopeClaim = principal.FindFirst("scope")?.Value;
             if (scopeClaim != "com.atproto.refresh")
             {
@@ -186,7 +185,7 @@ public class JwtSecret
             return null;
         }
 
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenHandler = new JsonWebTokenHandler();
         var key = Encoding.UTF8.GetBytes(jwtSecret);
 
         try
@@ -201,21 +200,22 @@ public class JwtSecret
                 ClockSkew = TimeSpan.Zero // No clock skew tolerance
             };
 
-            var principal = tokenHandler.ValidateToken(accessJwt, validationParameters, out SecurityToken validatedToken);
-
-            // Verify it's a JWT token
-            if (validatedToken is not JwtSecurityToken jwtToken)
+            var result = tokenHandler.ValidateTokenAsync(accessJwt, validationParameters).GetAwaiter().GetResult();
+            
+            if (!result.IsValid)
             {
                 return null;
             }
 
             // Verify the algorithm is HMAC SHA256
-            if (!jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            if (result.SecurityToken is JsonWebToken jwt && 
+                !jwt.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
                 return null;
             }
 
             // Verify the scope is for access tokens
+            var principal = new ClaimsPrincipal(result.ClaimsIdentity);
             var scopeClaim = principal.FindFirst("scope")?.Value;
             if (scopeClaim != "com.atproto.access")
             {
@@ -243,9 +243,9 @@ public class JwtSecret
             return null;
         }
 
-        // JwtSecurityTokenHandler maps "sub" to ClaimTypes.NameIdentifier by default
+        // Check both ClaimTypes.NameIdentifier and "sub" for compatibility
         var subClaim = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)
-                    ?? claimsPrincipal.FindFirst(JwtRegisteredClaimNames.Sub);
+                    ?? claimsPrincipal.FindFirst("sub");
         
         if(subClaim == null)
         {
