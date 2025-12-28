@@ -567,11 +567,22 @@ public static class Signer
         if (sBigInt > halfOrder)
         {
             var normalizedS = order - sBigInt;
-            var normalizedSBytes = normalizedS.ToByteArray().Reverse().ToArray();
-
-            // Pad to 32 bytes if needed
+            var normalizedSBytes = normalizedS.ToByteArray();
+            
+            // Remove leading zeros and sign byte, reverse to big-endian
+            var trimmedBytes = normalizedSBytes.Reverse().SkipWhile(b => b == 0).ToArray();
+            
+            // Ensure we have exactly 32 bytes (pad with leading zeros if needed)
             var paddedS = new byte[32];
-            Array.Copy(normalizedSBytes, 0, paddedS, 32 - normalizedSBytes.Length, normalizedSBytes.Length);
+            if (trimmedBytes.Length <= 32)
+            {
+                Array.Copy(trimmedBytes, 0, paddedS, 32 - trimmedBytes.Length, trimmedBytes.Length);
+            }
+            else
+            {
+                // Take last 32 bytes if somehow larger
+                Array.Copy(trimmedBytes, trimmedBytes.Length - 32, paddedS, 0, 32);
+            }
 
             // Combine r and normalized s
             var result = new byte[64];
