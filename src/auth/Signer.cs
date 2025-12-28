@@ -131,18 +131,19 @@ public static class Signer
         }
 
         // Create the token descriptor
+        var now = DateTime.UtcNow;
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claimsList),
-            Expires = DateTime.UtcNow.AddSeconds(expiresInSeconds),
-            SigningCredentials = signingCredentials,
-            IssuedAt = null,  // Prevent automatic iat claim
-            NotBefore = null  // Prevent automatic nbf claim
+            Expires = now.AddSeconds(expiresInSeconds),
+            IssuedAt = now,  // AT Proto requires 'iat' field
+            NotBefore = null,  // Prevent automatic nbf claim
+            SigningCredentials = signingCredentials
         };
 
         // Create and sign the token
         var tokenHandler = new JsonWebTokenHandler();
-        tokenHandler.SetDefaultTimesOnTokenCreation = false;  // Disable automatic timestamp claims
+        tokenHandler.SetDefaultTimesOnTokenCreation = false;  // We set times manually above
         
         var jwt = tokenHandler.CreateToken(tokenDescriptor);
         
