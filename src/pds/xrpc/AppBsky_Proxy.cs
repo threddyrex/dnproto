@@ -86,7 +86,9 @@ public class AppBsky_Proxy : BaseXrpcCommand
             // Skip headers that should not be forwarded
             if (header.Key.Equals("Host", StringComparison.OrdinalIgnoreCase) ||
                 header.Key.Equals("Connection", StringComparison.OrdinalIgnoreCase) ||
-                header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
+                header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) ||
+                header.Key.StartsWith("X-Forwarded-", StringComparison.OrdinalIgnoreCase) ||
+                header.Key.Equals("Atproto-Proxy", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
