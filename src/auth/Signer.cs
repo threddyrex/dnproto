@@ -22,7 +22,7 @@ public static class Signer
     /// <param name="claims">Additional claims to include in the token (optional)</param>
     /// <param name="expiresInSeconds">Token expiration time in seconds (default: 180)</param>
     /// <returns>A signed JWT token string</returns>
-    public static string SignToken(string publicKey, string privateKey, string issuer, string audience, Dictionary<string, string>? claims = null, int expiresInSeconds = 180)
+    public static string SignToken(string publicKey, string privateKey, string issuer, string audience, Dictionary<string, string>? claims = null, int expiresInSeconds = 180, IDnProtoLogger? logger = null)
     {
         // Create a list of claims
         var claimsList = new List<Claim>
@@ -60,6 +60,8 @@ public static class Signer
                 var privateKeyBytes = Convert.FromHexString(privateKey);
                 var publicKeyBytes = Convert.FromHexString(publicKey);
                 
+                logger?.LogTrace($"SignToken: privateKey length={privateKeyBytes.Length}, publicKey length={publicKeyBytes.Length}, first byte=0x{publicKeyBytes[0]:X2}");
+                
                 // Handle compressed or uncompressed public key
                 ECPoint publicPoint;
                 if (publicKeyBytes.Length == 33 && (publicKeyBytes[0] == 0x02 || publicKeyBytes[0] == 0x03))
@@ -68,6 +70,7 @@ public static class Signer
                     // Decompress by computing Y from the curve equation
                     var x = publicKeyBytes.Skip(1).Take(32).ToArray();
                     var y = DecompressPublicKey(x, publicKeyBytes[0] == 0x03);
+                    logger?.LogTrace($"SignToken: Decompressed Y coordinate: {Convert.ToHexString(y)}");
                     publicPoint = new ECPoint { X = x, Y = y };
                 }
                 else if (publicKeyBytes.Length == 65 && publicKeyBytes[0] == 0x04)

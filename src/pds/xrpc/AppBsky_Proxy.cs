@@ -128,7 +128,8 @@ public class AppBsky_Proxy : BaseXrpcCommand
         string publicKeyHex = Convert.ToHexString(publicKeyBytes).ToLowerInvariant();
 
         Pds.Logger.LogTrace($"Service auth - authedDid: {authedDid}, serviceDid: {serviceDid}");
-        Pds.Logger.LogTrace($"Service auth - publicKeyHex length: {publicKeyHex.Length}, privateKeyHex length: {privateKeyHex.Length}");
+        Pds.Logger.LogTrace($"Service auth - publicKeyHex: {publicKeyHex}");
+        Pds.Logger.LogTrace($"Service auth - publicKeyMultibase: {signingKeyPublicMultibase}");
 
         // Create JWT for service authentication
         var claims = new Dictionary<string, string>
@@ -142,8 +143,11 @@ public class AppBsky_Proxy : BaseXrpcCommand
             authedDid,      // iss: issuer is the authenticated user
             serviceDid,     // aud: audience is the service DID
             claims,
-            300             // exp: 5 minutes (300 seconds)
+            300,            // exp: 5 minutes (300 seconds)
+            Pds.Logger      // logger for debugging
         );
+
+        Pds.Logger.LogTrace($"Service auth JWT created: {serviceAuthJwt}");
 
         // Add Authorization header with the service auth JWT
         request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {serviceAuthJwt}");
