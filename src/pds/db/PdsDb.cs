@@ -109,6 +109,21 @@ CREATE TABLE IF NOT EXISTS Blob (
             ";
             
             command.ExecuteNonQuery();
+
+
+            //
+            // Preferences table
+            //
+            logger.LogInfo("table: Preferences");
+            command = connection.CreateCommand();
+            command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Preferences (
+    Prefs TEXT NOT NULL
+)
+            ";
+            
+            command.ExecuteNonQuery();
+
         }
         
         logger.LogInfo("Database initialization complete.");
@@ -378,6 +393,65 @@ WHERE Cid = @Cid
         }
         
         return blobs;
+    }
+
+    #endregion
+
+
+    #region PREFERENCES
+
+    public string GetPreferences()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT Prefs FROM Preferences LIMIT 1";
+            
+            var result = command.ExecuteScalar();
+            return result != null ? Convert.ToString(result) ?? "" : "";
+        }
+    }
+
+    public int GetPreferencesCount()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM Preferences";
+            
+            var result = command.ExecuteScalar();
+            return result != null ? Convert.ToInt32(result) : 0;
+        }
+    }
+
+    public void InsertPreferences(string prefs)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO Preferences (Prefs)
+VALUES (@Prefs)
+            ";
+            command.Parameters.AddWithValue("@Prefs", prefs);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void UpdatePreferences(string prefs)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE Preferences
+SET Prefs = @Prefs
+            ";
+            command.Parameters.AddWithValue("@Prefs", prefs);
+
+            command.ExecuteNonQuery();
+        }
     }
 
     #endregion

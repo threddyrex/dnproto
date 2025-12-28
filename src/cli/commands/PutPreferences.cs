@@ -1,0 +1,82 @@
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using dnproto.fs;
+using dnproto.repo;
+using dnproto.ws;
+using dnproto.uri;
+
+namespace dnproto.cli.commands
+{
+    public class PutPreferences : BaseCommand
+    {
+        public override HashSet<string> GetRequiredArguments()
+        {
+            return new HashSet<string>(new string[]{"actor"});
+        }
+
+
+
+        /// <summary>
+        /// Put preferences for the current session.
+        /// Contains things like muted words, saved feeds, etc. 
+        /// https://docs.bsky.app/docs/api/app-bsky-actor-get-preferences
+        /// </summary>
+        /// <param name="arguments"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public override void DoCommand(Dictionary<string, string> arguments)
+        {
+            //
+            // Get arguments
+            //
+            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+
+            //
+            // Load lfs
+            //
+            LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+            ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
+            SessionFile? session = lfs?.LoadSession(actorInfo);
+
+            if (session == null)
+            {
+                Logger.LogError($"Failed to load session for actor: {actorInfo?.Did}");
+                return;
+            }
+
+
+            //
+            // Get local filepath
+            //
+            string? preferencesFile = lfs?.GetPath_Preferences(actorInfo);
+            if (preferencesFile == null)
+            {
+                Logger.LogError("Failed to initialize local file system.");
+                return;
+            }
+
+            if (!File.Exists(preferencesFile))
+            {
+                Logger.LogError($"Preferences file does not exist: {preferencesFile}");
+                return;
+            }
+
+
+
+            //
+            // Call WS
+            //
+            Logger.LogInfo($"Writing preferences: {preferencesFile}");
+            string url = $"https://{session.pds}/xrpc/app.bsky.actor.putPreferences";
+            JsonNode? response = BlueskyClient.SendRequest(url,
+                HttpMethod.Post, 
+                accessJwt: session.accessJwt,
+                content: new StringContent(File.ReadAllText(preferencesFile)));
+
+        }
+    }
+}
