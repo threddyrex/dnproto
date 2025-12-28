@@ -509,6 +509,17 @@ public class DagCborObject
             Value = dataBlockDict
         };
     }
+
+    public byte[] ToBytes()
+    {
+        using(MemoryStream ms = new MemoryStream())
+        {
+            DagCborObject.WriteToStream(this, ms);
+            return ms.ToArray();
+        }
+    }
+
+
 }
 
 public class DagCborType

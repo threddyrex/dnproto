@@ -134,4 +134,42 @@ public class CidV1
 
         return cid;
     }
+
+    public static CidV1 FromBase32(string base32)
+    {
+        if (!base32.StartsWith("b"))
+        {
+            throw new Exception("CID base32 string must start with 'b'");
+        }
+
+        byte[] allBytes = Base32Encoding.Base32ToBytes(base32.Substring(1));
+        using var ms = new MemoryStream(allBytes);
+        return ReadCid(ms);
+    }
+
+    public static CidV1 ComputeCidForDagCbor(DagCborObject dagCborObject)
+    {
+        var bytes = dagCborObject.ToBytes();
+        var hash = SHA256.HashData(bytes);
+
+        // Create CIDv1 with dag-cbor multicodec (0x71) and sha256 (0x12)
+        var cid = new CidV1
+        {
+            Version = new VarInt { Value = 1 },
+            Multicodec = new VarInt { Value = 0x71 },
+            HashFunction = new VarInt { Value = 0x12 },
+            DigestSize = new VarInt { Value = 32 },
+            DigestBytes = hash,
+            AllBytes = Array.Empty<byte>(), // Will be set below
+            Base32 = ""
+        };
+
+        using var ms = new MemoryStream();
+        CidV1.WriteCid(ms, cid);
+        cid.AllBytes = ms.ToArray();
+        cid.Base32 = "b" + Base32Encoding.BytesToBase32(cid.AllBytes);
+
+        return cid;
+    }
+
 }
