@@ -580,6 +580,18 @@ SET Version = @Version, RepoCommitCid = @RepoCommitCid
         }
     }
 
+    public void DeleteRepoHeader()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM RepoHeader
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
 
 
     #endregion
@@ -714,6 +726,19 @@ SET Version = @Version, Cid = @Cid, RootMstNodeCid = @RootMstNodeCid, Rev = @Rev
         }
     }
 
+    public void DeleteRepoCommit()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM RepoCommit
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+
     #endregion
 
 
@@ -799,6 +824,19 @@ DELETE FROM MstNode WHERE Cid = @Cid
             command.ExecuteNonQuery();
         }
     }
+
+    public void DeleteAllMstNodes()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM MstNode
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
 
 
     #endregion
@@ -895,6 +933,17 @@ DELETE FROM MstEntry WHERE MstNodeCid = @MstNodeCid
         }
     }
 
+    public void DeleteAllMstEntries()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM MstEntry
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
 
 
     #endregion
@@ -966,6 +1015,18 @@ VALUES (@Cid, @JsonData)
 DELETE FROM RepoRecord WHERE Cid = @Cid
             ";
             command.Parameters.AddWithValue("@Cid", cid);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteAllRepoRecords()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM RepoRecord
+            ";
             command.ExecuteNonQuery();
         }
     }

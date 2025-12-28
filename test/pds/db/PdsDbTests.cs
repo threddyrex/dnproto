@@ -67,6 +67,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.True(dbFileExists);
     }
 
+    #region REPOHDR
 
     [Fact]
     public void RepoHeader_InsertAndRetrieve()
@@ -90,6 +91,37 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(repoHeaderToInsert.RepoCommitCid, retrievedRepoHeader!.RepoCommitCid);
         Assert.Equal(repoHeaderToInsert.Version, retrievedRepoHeader.Version);
     }
+
+    [Fact]
+    public void RepoHeader_Delete()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var repoHeaderToInsert = new RepoHeader
+        {
+            RepoCommitCid = Guid.NewGuid().ToString(),
+            Version = Random.Shared.Next(1, 1000)
+        };
+
+        // Act
+        pdsDb!.InsertUpdateRepoHeader(repoHeaderToInsert);
+
+        var retrievedBeforeDelete = pdsDb.GetRepoHeader();
+        Assert.NotNull(retrievedBeforeDelete);
+
+        pdsDb.DeleteRepoHeader();
+
+        var retrievedAfterDelete = pdsDb.GetRepoHeader();
+
+        // Assert
+        Assert.Null(retrievedAfterDelete);
+    }
+
+    #endregion
+
+
+    #region REPOCMMT
 
     [Fact]
     public void RepoCommit_InsertAndRetrieve()
@@ -122,6 +154,40 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(repoCommitToInsert.PrevMstNodeCid, retrievedRepoCommit.PrevMstNodeCid);
     }
 
+    [Fact]
+    public void RepoCommit_Delete()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var repoCommitToInsert = new RepoCommit
+        {
+            Cid = Guid.NewGuid().ToString(),
+            RootMstNodeCid = Guid.NewGuid().ToString(),
+            Rev = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+            Signature = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+            Version = 3,
+            PrevMstNodeCid = null
+        };
+
+        // Act
+        pdsDb!.InsertUpdateRepoCommit(repoCommitToInsert);
+
+        var retrievedBeforeDelete = pdsDb.GetRepoCommit();
+        Assert.NotNull(retrievedBeforeDelete);
+
+        pdsDb.DeleteRepoCommit();
+
+        var retrievedAfterDelete = pdsDb.GetRepoCommit();
+
+        // Assert
+        Assert.Null(retrievedAfterDelete);
+    }
+
+    #endregion
+
+
+    #region MSTNODE
     [Fact]
     public void MstNode_InsertAndRetrieve()
     {
@@ -230,6 +296,43 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     }
 
     [Fact]
+    public void MstNode_DeleteAll()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstNode1 = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = null
+        };
+
+        var mstNode2 = new MstNode
+        {
+            Cid = Guid.NewGuid().ToString(),
+            LeftMstNodeCid = mstNode1.Cid
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNode1);
+        pdsDb.InsertMstNode(mstNode2);
+
+        pdsDb.DeleteAllMstNodes();
+
+        var retrievedMstNode1 = pdsDb.GetMstNode(mstNode1.Cid);
+        var retrievedMstNode2 = pdsDb.GetMstNode(mstNode2.Cid);
+
+        // Assert
+        Assert.Null(retrievedMstNode1);
+        Assert.Null(retrievedMstNode2);
+    }
+
+    #endregion
+
+
+    #region MSTENTRY
+
+    [Fact]
     public void MstEntry_InsertAndRetrieve()
     {
         // Arrange
@@ -333,6 +436,51 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Empty(retrievedAfterDelete);
     }
 
+    [Fact]
+    public void MstEntry_DeleteAll()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var mstEntry1 = new MstEntry
+        {
+            MstNodeCid = Guid.NewGuid().ToString(),
+            KeySuffix = "entry.one",
+            PrefixLength = 0,
+            TreeMstNodeCid = null,
+            RecordCid = Guid.NewGuid().ToString()
+        };
+
+        var mstEntry2 = new MstEntry
+        {
+            MstNodeCid = Guid.NewGuid().ToString(),
+            KeySuffix = "entry.two",
+            PrefixLength = 5,
+            TreeMstNodeCid = null,
+            RecordCid = Guid.NewGuid().ToString()
+        };
+
+        // Act
+        pdsDb!.InsertMstEntry(mstEntry1);
+        pdsDb.InsertMstEntry(mstEntry2);
+
+        pdsDb.DeleteAllMstEntries();
+
+        var retrievedMstEntries1 = pdsDb.GetMstEntriesForNode(mstEntry1.MstNodeCid);
+        var retrievedMstEntries2 = pdsDb.GetMstEntriesForNode(mstEntry2.MstNodeCid);
+
+        // Assert
+        Assert.NotNull(retrievedMstEntries1);
+        Assert.Empty(retrievedMstEntries1);
+
+        Assert.NotNull(retrievedMstEntries2);
+        Assert.Empty(retrievedMstEntries2);
+    }
+    #endregion
+
+
+
+    #region REPORECORD
 
     [Fact]
     public void RepoRecord_InsertAndRetrieve()
@@ -383,4 +531,37 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Assert
         Assert.Null(retrievedAfterDelete);
     }
+
+    [Fact]
+    public void RepoRecord_DeleteAll()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var repoRecord1 = new RepoRecord
+        {
+            Cid = Guid.NewGuid().ToString(),
+            JsonData = "{\"record\":\"one\"}"
+        };
+
+        var repoRecord2 = new RepoRecord
+        {
+            Cid = Guid.NewGuid().ToString(),
+            JsonData = "{\"record\":\"two\"}"
+        };
+
+        // Act
+        pdsDb!.InsertRepoRecord(repoRecord1);
+        pdsDb.InsertRepoRecord(repoRecord2);
+
+        pdsDb.DeleteAllRepoRecords();
+
+        var retrievedAfterDelete1 = pdsDb.GetRepoRecord(repoRecord1.Cid);
+        var retrievedAfterDelete2 = pdsDb.GetRepoRecord(repoRecord2.Cid);
+
+        // Assert
+        Assert.Null(retrievedAfterDelete1);
+        Assert.Null(retrievedAfterDelete2);
+    }
+    #endregion
 }
