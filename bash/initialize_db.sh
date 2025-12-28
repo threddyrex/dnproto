@@ -14,7 +14,6 @@ echo "  USER_EMAIL: $USER_EMAIL"
 echo "  SYSTEMCTL_SERVICE_NAME: $SYSTEMCTL_SERVICE_NAME"
 echo ""
 
-cd ..
 
 
 
