@@ -1,4 +1,5 @@
 using dnproto.log;
+using dnproto.pds.db;
 using Microsoft.Data.Sqlite;
 
 namespace dnproto.pds.db;
@@ -69,20 +70,10 @@ public class PdsDb
         {
             connection.Open();
 
-            //
-            // Config table
-            //
             CreateTable_Config(connection, logger);
-
-            //
-            // Blob.cs table
-            //
             CreateTable_Blob(connection, logger);
-
-            //
-            // Preferences table
-            //
             CreateTable_Preferences(connection, logger);
+            CreateTable_RepoHeader(connection, logger);
 
         }
         
@@ -484,6 +475,110 @@ SET Prefs = @Prefs
             command.ExecuteNonQuery();
         }
     }
+
+    #endregion
+
+
+
+    #region REPOHDR
+
+    public static void CreateTable_RepoHeader(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: RepoHeader");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS RepoHeader (
+RepoCommitCid TEXT PRIMARY KEY,
+Version INTEGER NOT NULL
+)
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+    public bool RepoHeaderExists()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM RepoHeader";
+            
+            var result = command.ExecuteScalar();
+            int count = result != null ? Convert.ToInt32(result) : 0;
+            return count == 1;
+        }
+    }
+
+    public RepoHeader? GetRepoHeader()
+    {        
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM RepoHeader LIMIT 1";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var repoCommitCid = reader.GetString(reader.GetOrdinal("RepoCommitCid"));
+                    var version = reader.GetInt32(reader.GetOrdinal("Version"));
+
+                    return new RepoHeader
+                    {
+                        RepoCommitCid = repoCommitCid,
+                        Version = version
+                    };
+                }
+            }
+        }
+        
+        return null;
+    }
+    public void InsertUpdateRepoHeader(RepoHeader repoHeader)
+    {
+        if(RepoHeaderExists())
+        {
+            UpdateRepoHeader(repoHeader);
+        }
+        else
+        {
+            InsertRepoHeader(repoHeader);
+        }
+    }
+
+    private void InsertRepoHeader(RepoHeader repoHeader)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO RepoHeader (RepoCommitCid, Version)
+VALUES (@RepoCommitCid, @Version)
+            ";
+            command.Parameters.AddWithValue("@RepoCommitCid", repoHeader.RepoCommitCid);
+            command.Parameters.AddWithValue("@Version", repoHeader.Version);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private void UpdateRepoHeader(RepoHeader repoHeader)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE RepoHeader
+SET Version = @Version, RepoCommitCid = @RepoCommitCid
+            ";
+            command.Parameters.AddWithValue("@RepoCommitCid", repoHeader.RepoCommitCid);
+            command.Parameters.AddWithValue("@Version", repoHeader.Version);
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+
 
     #endregion
 }
