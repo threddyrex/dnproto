@@ -22,17 +22,26 @@ internal class EcdsaIeeeP1363SignatureProvider : SignatureProvider
 
     public override byte[] Sign(byte[] input)
     {
-        return _ecdsa.SignData(input, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        // SignatureProvider receives the raw JWT bytes (header.payload in UTF8)
+        // We need to hash it first, then sign the hash
+        var hash = SHA256.HashData(input);
+        return _ecdsa.SignHash(hash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
     }
 
     public override bool Sign(ReadOnlySpan<byte> data, Span<byte> destination, out int bytesWritten)
     {
-        return _ecdsa.TrySignData(data, destination, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation, out bytesWritten);
+        // Hash the data first
+        Span<byte> hash = stackalloc byte[32];
+        SHA256.HashData(data, hash);
+        
+        // Sign the hash with IEEE P1363 format
+        return _ecdsa.TrySignHash(hash, destination, DSASignatureFormat.IeeeP1363FixedFieldConcatenation, out bytesWritten);
     }
 
     public override bool Verify(byte[] input, byte[] signature)
     {
-        return _ecdsa.VerifyData(input, signature, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        var hash = SHA256.HashData(input);
+        return _ecdsa.VerifyHash(hash, signature, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
     }
 
     protected override void Dispose(bool disposing) { }
