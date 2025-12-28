@@ -20,6 +20,7 @@ public class FileLogDestination : ILogDestination, IDisposable
     private FileLogDestination(string filePath)
     {
         FilePath = filePath;
+        _logLength = File.Exists(filePath) ? (int)new FileInfo(filePath).Length : 0;
         _writer = new StreamWriter(filePath, append: true)
         {
             AutoFlush = true
@@ -68,10 +69,6 @@ public class FileLogDestination : ILogDestination, IDisposable
 
     private void WriteMessage(string? message)
     {
-        _logLength += message?.Length ?? 0;
-
-        CheckRollLog();
-
         if (_disposed)
         {
             return;
@@ -81,6 +78,9 @@ public class FileLogDestination : ILogDestination, IDisposable
         {
             _writer.WriteLine(message);
         }
+
+        _logLength += message?.Length ?? 0;
+        CheckRollLog();
     }
 
     public void Dispose()

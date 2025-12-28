@@ -162,6 +162,20 @@ public class Pds
         App.MapGet("/xrpc/app.bsky.actor.getPreferences", (HttpContext context) => new AppBskyActor_GetPreferences(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/app.bsky.actor.putPreferences", async (HttpContext context) => { var cmd = new AppBskyActor_PutPreferences(){Pds = this, HttpContext = context}; return await cmd.GetResponseAsync(); });
 
+        // Catch-all for other app.bsky routes - proxy to Bluesky AppView
+        App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
+        {
+            var cmd = new AppBsky_Proxy() { Pds = this, HttpContext = context };
+
+            // Only proxy app.bsky routes that aren't already handled
+            if (context.Request.Path.Value?.StartsWith("/xrpc/app.bsky") == true)
+            {
+                return await cmd.ProxyToAppView(context);
+            }
+
+            return Results.NotFound();
+        });
+
 
         Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
@@ -178,8 +192,11 @@ public class Pds
         Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getBlob");
         Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.actor.getPreferences");
         Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.actor.putPreferences");
+        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky -> proxied to app view");
         Logger.LogInfo("");
     }
+
+
 
     public static void InitializePds(dnproto.log.IDnProtoLogger Logger, string? dataDir, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
     {
