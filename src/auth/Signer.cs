@@ -8,66 +8,6 @@ using dnproto.log;
 namespace dnproto.auth;
 
 /// <summary>
-/// Custom ECDSA signature provider that ensures IEEE P1363 format on all platforms.
-/// This fixes cross-platform signature compatibility issues between Windows and Linux.
-/// </summary>
-internal class EcdsaIeeeP1363SignatureProvider : SignatureProvider
-{
-    private readonly ECDsa _ecdsa;
-
-    public EcdsaIeeeP1363SignatureProvider(ECDsaSecurityKey key, string algorithm) : base(key, algorithm)
-    {
-        _ecdsa = key.ECDsa;
-    }
-
-    public override byte[] Sign(byte[] input)
-    {
-        // SignatureProvider receives the raw JWT bytes (header.payload in UTF8)
-        // We need to hash it first, then sign the hash
-        var hash = SHA256.HashData(input);
-        return _ecdsa.SignHash(hash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-    }
-
-    public override bool Sign(ReadOnlySpan<byte> data, Span<byte> destination, out int bytesWritten)
-    {
-        // Hash the data first
-        Span<byte> hash = stackalloc byte[32];
-        SHA256.HashData(data, hash);
-        
-        // Sign the hash with IEEE P1363 format
-        return _ecdsa.TrySignHash(hash, destination, DSASignatureFormat.IeeeP1363FixedFieldConcatenation, out bytesWritten);
-    }
-
-    public override bool Verify(byte[] input, byte[] signature)
-    {
-        var hash = SHA256.HashData(input);
-        return _ecdsa.VerifyHash(hash, signature, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-    }
-
-    protected override void Dispose(bool disposing) { }
-}
-
-/// <summary>
-/// Custom CryptoProviderFactory that creates IEEE P1363 signature providers for ECDSA.
-/// </summary>
-internal class IeeeP1363CryptoProviderFactory : CryptoProviderFactory
-{
-    public override SignatureProvider CreateForSigning(SecurityKey key, string algorithm)
-    {
-        if (key is ECDsaSecurityKey ecdsaKey && algorithm == SecurityAlgorithms.EcdsaSha256)
-            return new EcdsaIeeeP1363SignatureProvider(ecdsaKey, algorithm);
-        return base.CreateForSigning(key, algorithm);
-    }
-
-    public override SignatureProvider CreateForVerifying(SecurityKey key, string algorithm)
-    {
-        if (key is ECDsaSecurityKey ecdsaKey && algorithm == SecurityAlgorithms.EcdsaSha256)
-            return new EcdsaIeeeP1363SignatureProvider(ecdsaKey, algorithm);
-        return base.CreateForVerifying(key, algorithm);
-    }
-}
-
-/// <summary>
 /// Signs and validates JWT tokens using RSA or ECDSA cryptographic keys.
 /// </summary>
 public static class Signer
@@ -155,10 +95,14 @@ public static class Signer
                 };
                 
                 ecdsa.ImportParameters(parameters);
-                var ecdsaKey = new ECDsaSecurityKey(ecdsa)
-                {
-                    CryptoProviderFactory = new IeeeP1363CryptoProviderFactory()
-                };
+                
+                // Test signature to verify format
+                var testData = new byte[] { 0x01, 0x02, 0x03 };
+                var testHash = SHA256.HashData(testData);
+                var testSig = ecdsa.SignHash(testHash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+                logger?.LogTrace($"SignToken: Test signature length={testSig.Length}, first 8 bytes={Convert.ToHexString(testSig.Take(8).ToArray())}");
+                
+                var ecdsaKey = new ECDsaSecurityKey(ecdsa);
                 signingCredentials = new SigningCredentials(ecdsaKey, SecurityAlgorithms.EcdsaSha256);
             }
             else
@@ -176,10 +120,7 @@ public static class Signer
                     // Try ECDSA
                     var ecdsa = ECDsa.Create();
                     ecdsa.ImportFromPem(privateKey);
-                    var ecdsaKey = new ECDsaSecurityKey(ecdsa)
-                    {
-                        CryptoProviderFactory = new IeeeP1363CryptoProviderFactory()
-                    };
+                    var ecdsaKey = new ECDsaSecurityKey(ecdsa);
                     signingCredentials = new SigningCredentials(ecdsaKey, SecurityAlgorithms.EcdsaSha256);
                 }
             }
