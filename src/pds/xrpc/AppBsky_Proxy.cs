@@ -149,6 +149,17 @@ public class AppBsky_Proxy : BaseXrpcCommand
 
         Pds.Logger.LogTrace($"Service auth JWT created: {serviceAuthJwt}");
 
+        // Verify the signature we just created (for debugging)
+        var verifyResult = Signer.ValidateToken(serviceAuthJwt, signingKeyPublicMultibase, authedDid, serviceDid, Pds.Logger);
+        if (verifyResult == null)
+        {
+            Pds.Logger.LogError("Self-verification of service auth JWT failed!");
+        }
+        else
+        {
+            Pds.Logger.LogTrace("Self-verification of service auth JWT succeeded");
+        }
+
         // Add Authorization header with the service auth JWT
         request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {serviceAuthJwt}");
 
