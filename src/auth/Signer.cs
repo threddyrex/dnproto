@@ -492,8 +492,9 @@ public static class Signer
         // Return the signing function
         return (hash) =>
         {
-            // Sign the hash
-            var signature = ecdsa.SignHash(hash);
+            // Sign the hash - IMPORTANT: Use DSASignatureFormat.IeeeP1363Format for cross-platform compatibility
+            // This ensures we get raw r || s (64 bytes) instead of DER encoding
+            var signature = ecdsa.SignHash(hash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
             return signature;
         };
     }
