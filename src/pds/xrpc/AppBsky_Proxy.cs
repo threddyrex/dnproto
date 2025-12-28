@@ -124,8 +124,11 @@ public class AppBsky_Proxy : BaseXrpcCommand
         byte[] privateKeyBytes = privateKeyWithPrefix.Skip(2).ToArray();
         byte[] publicKeyBytes = publicKeyWithPrefix.Skip(2).ToArray();
 
-        string privateKeyHex = Convert.ToHexString(privateKeyBytes);
-        string publicKeyHex = Convert.ToHexString(publicKeyBytes);
+        string privateKeyHex = Convert.ToHexString(privateKeyBytes).ToLowerInvariant();
+        string publicKeyHex = Convert.ToHexString(publicKeyBytes).ToLowerInvariant();
+
+        Pds.Logger.LogTrace($"Service auth - authedDid: {authedDid}, serviceDid: {serviceDid}");
+        Pds.Logger.LogTrace($"Service auth - publicKeyHex length: {publicKeyHex.Length}, privateKeyHex length: {privateKeyHex.Length}");
 
         // Create JWT for service authentication
         var claims = new Dictionary<string, string>
