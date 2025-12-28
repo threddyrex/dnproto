@@ -75,11 +75,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
         var queryString = context.Request.QueryString.Value;
         var targetUrl = $"{appViewUrl}{path}{queryString}";
 
-        var handler = new HttpClientHandler
-        {
-            AutomaticDecompression = System.Net.DecompressionMethods.All
-        };
-        using var httpClient = new HttpClient(handler);
+        using var httpClient = new HttpClient();
         var request = new HttpRequestMessage(new HttpMethod(context.Request.Method), targetUrl);
 
         //
@@ -92,7 +88,9 @@ public class AppBsky_Proxy : BaseXrpcCommand
                 header.Key.Equals("Connection", StringComparison.OrdinalIgnoreCase) ||
                 header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) ||
                 header.Key.StartsWith("X-Forwarded-", StringComparison.OrdinalIgnoreCase) ||
-                header.Key.Equals("Atproto-Proxy", StringComparison.OrdinalIgnoreCase))
+                header.Key.Equals("Atproto-Proxy", StringComparison.OrdinalIgnoreCase) ||
+                (header.Key.Equals("Accept-Encoding", StringComparison.OrdinalIgnoreCase)
+                    && header.Value.ToString().Contains("gzip")))
                 continue;
 
             request.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
