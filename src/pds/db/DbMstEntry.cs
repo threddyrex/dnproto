@@ -40,4 +40,58 @@ public class DbMstEntry
     /// Maps to "v" in the MST structure.
     /// </summary>
     public CidV1? RecordCid { get; set; } = null;
+
+
+    public DagCborObject? ToDagCborObject()
+    {
+        if(RecordCid == null)
+            return null;
+    
+        var entryDict = new Dictionary<string, DagCborObject>();
+
+        // "p" - prefix length
+        entryDict["p"] = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_UNSIGNED_INT, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = PrefixLength
+        };
+
+        // "k" - key suffix (byte string)
+        entryDict["k"] = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_BYTE_STRING, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = System.Text.Encoding.UTF8.GetBytes(KeySuffix ?? string.Empty)
+        };
+
+        // "v" - value CID
+        entryDict["v"] = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+            Value = RecordCid
+        };
+
+        // "t" - tree CID (nullable)
+        if (TreeMstNodeCid != null)
+        {
+            entryDict["t"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                Value = TreeMstNodeCid
+            };
+        }
+        else
+        {
+            entryDict["t"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_SIMPLE_VALUE, AdditionalInfo = 0x16, OriginalByte = 0 },
+                Value = "null"
+            };
+        }
+
+        return new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = entryDict
+        };
+    }
 }

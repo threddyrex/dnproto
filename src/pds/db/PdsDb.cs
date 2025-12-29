@@ -613,7 +613,7 @@ Cid TEXT PRIMARY KEY,
 RootMstNodeCid TEXT NOT NULL,
 Rev TEXT NOT NULL,
 PrevMstNodeCid TEXT,
-Signature TEXT NOT NULL
+Signature BLOB NOT NULL
 )
         ";
         
@@ -646,12 +646,13 @@ Signature TEXT NOT NULL
                 {
                     var repoCommit = new DbRepoCommit
                     {
+                        Did = this.GetConfig().UserDid,
                         Version = reader.GetInt32(reader.GetOrdinal("Version")),
                         Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
                         RootMstNodeCid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RootMstNodeCid"))),
                         Rev = reader.GetString(reader.GetOrdinal("Rev")),
                         PrevMstNodeCid = reader.IsDBNull(reader.GetOrdinal("PrevMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("PrevMstNodeCid"))),
-                        Signature = reader.GetString(reader.GetOrdinal("Signature"))
+                        Signature = reader.GetFieldValue<byte[]>(reader.GetOrdinal("Signature"))
                     };
                     return repoCommit;
                 }

@@ -31,7 +31,7 @@ public class Pds
 
     public required Func<byte[], byte[]> CommitSigningFunction;
 
-    public required MstRepository Repo;
+    public required Mst Mst;
 
 
     /// <summary>
@@ -86,17 +86,9 @@ public class Pds
         //
         // Load repo
         //
-        logger.LogInfo("Loading user MST repo...");
-        var repoPath = Path.Combine(lfs.DataDir, "pds", "repo.car");
-        var dnprotoRepo = MstRepository.LoadFromFile(repoPath);
-
-        if (dnprotoRepo == null)
-        {
-            logger.LogError("Failed to load user MST repo.");
-            return null;
-        }
-
-        logger.LogInfo($"Current commit: {dnprotoRepo.CurrentCommit?.CommitCid?.ToString() ?? "null"}");
+        var mst = new Mst(pdsDb, logger, commitSigningFunction, config.UserDid);
+        var repoCommit = pdsDb.GetRepoCommit();
+        logger.LogInfo($"Current commit: {repoCommit?.Cid?.ToString() ?? "null"}");
 
 
         //
@@ -125,7 +117,7 @@ public class Pds
             PdsDb = pdsDb,
             App = app,
             CommitSigningFunction = commitSigningFunction,
-            Repo = dnprotoRepo
+            Mst = mst
         };
 
 
@@ -328,23 +320,8 @@ public class Pds
             //
             // Create new mst repo
             //
-            var dnprotoRepo = MstRepository.CreateForNewUser(userDid, commitSigningFunction);
-            if (dnprotoRepo == null)
-            {
-                Logger.LogError("Failed to create new MST repository for user.");
-                return;
-            }
-
-            // write to disk
-            var repoPath = Path.Combine(dataDir!, "pds", "repo.car");
-            Logger.LogInfo($"Writing new MST repo to {repoPath}...");
-            dnprotoRepo.SaveToFile(repoPath);
-
-            if(! File.Exists(repoPath))
-            {
-                Logger.LogError("Failed to save MST repository to disk.");
-                return;
-            }
+            var mst = new Mst(pdsDb, Logger, commitSigningFunction, userDid!);
+            mst.InitializeNewRepo();
 
 
             //

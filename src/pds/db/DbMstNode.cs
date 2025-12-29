@@ -26,4 +26,63 @@ public class DbMstNode
     /// Entries for this node.
     /// </summary>
     public List<DbMstEntry> Entries { get; set; } = new();
+
+
+    public byte[] ToDagCborBytes()
+    {
+        var dagCborObject = ToDagCborObject();
+        using var ms = new MemoryStream();
+        DagCborObject.WriteToStream(dagCborObject, ms);
+        return ms.ToArray();
+    }
+
+    public DagCborObject ToDagCborObject()
+    {
+        // Create the node object
+        var nodeDict = new Dictionary<string, DagCborObject>();
+
+        // Add left link if present
+        if (LeftMstNodeCid != null)
+        {
+            nodeDict["l"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                Value = LeftMstNodeCid
+            };
+        }
+        else
+        {
+            nodeDict["l"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_SIMPLE_VALUE, AdditionalInfo = 0x16, OriginalByte = 0 },
+                Value = "null"
+            };
+        }
+
+        // Add entries array
+        var entriesArray = new List<DagCborObject>();
+        foreach (var entry in Entries)
+        {
+            var entryObj = entry.ToDagCborObject();
+            if(entryObj != null)
+            {
+                entriesArray.Add(entryObj);
+            }
+        }
+
+        nodeDict["e"] = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_ARRAY, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = entriesArray
+        };
+
+        // Serialize to CBOR
+        var nodeObj = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = nodeDict
+        };
+
+        return nodeObj;
+    }
 }
