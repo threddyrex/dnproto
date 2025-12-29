@@ -118,7 +118,7 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
-                    if (string.IsNullOrEmpty(repoRecord.RecordType)) return true;
+                    if (string.IsNullOrEmpty(repoRecord.AtProtoType)) return true;
                     if (string.IsNullOrEmpty(repoRecord.CreatedAt)) return true;
 
 
@@ -131,10 +131,10 @@ namespace dnproto.cli.commands
                             return true;
                         }
 
-                        if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post")
-                            || string.Equals(repoRecord.RecordType, "app.bsky.feed.like")
-                            || string.Equals(repoRecord.RecordType, "app.bsky.feed.repost")
-                            || string.Equals(repoRecord.RecordType, "blue.flashes.feed.post")
+                        if (string.Equals(repoRecord.AtProtoType, "app.bsky.feed.post")
+                            || string.Equals(repoRecord.AtProtoType, "app.bsky.feed.like")
+                            || string.Equals(repoRecord.AtProtoType, "app.bsky.feed.repost")
+                            || string.Equals(repoRecord.AtProtoType, "blue.flashes.feed.post")
                             )
                         {
                             records.Add(repoRecord);
@@ -165,17 +165,17 @@ namespace dnproto.cli.commands
                     continue;
                 }
 
-                if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like"))
+                if (string.Equals(repoRecord.AtProtoType, "app.bsky.feed.like"))
                 {
                     recordsWithDeterminations.Add((repoRecord, $"deleteLikes:{deleteLikes}", deleteLikes));                    
                     continue;
                 }
-                else if (string.Equals(repoRecord.RecordType, "app.bsky.feed.repost"))
+                else if (string.Equals(repoRecord.AtProtoType, "app.bsky.feed.repost"))
                 {
                     recordsWithDeterminations.Add((repoRecord, $"deleteReposts:{deleteReposts}", deleteReposts));
                     continue;
                 }
-                else if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post") || string.Equals(repoRecord.RecordType, "blue.flashes.feed.post"))
+                else if (string.Equals(repoRecord.AtProtoType, "app.bsky.feed.post") || string.Equals(repoRecord.AtProtoType, "blue.flashes.feed.post"))
                 {
                     if (bookmarkRkeys.Contains(rkey))
                     {
@@ -206,7 +206,7 @@ namespace dnproto.cli.commands
                     continue;
                 }
                 
-                Logger.LogInfo($"[{record.CreatedAt}] [{record.RecordType}] {determination} {(delete ? "<----------- DELETE!" : "")}");
+                Logger.LogInfo($"[{record.CreatedAt}] [{record.AtProtoType}] {determination} {(delete ? "<----------- DELETE!" : "")}");
 
             }
 
@@ -218,21 +218,21 @@ namespace dnproto.cli.commands
 
             foreach (var (record, determination, delete) in recordsWithDeterminations)
             {
-                if (delete && string.IsNullOrEmpty(record.RecordType) == false)
+                if (delete && string.IsNullOrEmpty(record.AtProtoType) == false)
                 {
-                    if (!deleteCountsForCollection.ContainsKey(record.RecordType))
+                    if (!deleteCountsForCollection.ContainsKey(record.AtProtoType))
                     {
-                        deleteCountsForCollection[record.RecordType] = 0;
+                        deleteCountsForCollection[record.AtProtoType] = 0;
                     }
-                    deleteCountsForCollection[record.RecordType]++;
+                    deleteCountsForCollection[record.AtProtoType]++;
                 }
-                else if (string.IsNullOrEmpty(record.RecordType) == false)
+                else if (string.IsNullOrEmpty(record.AtProtoType) == false)
                 {
-                    if (!keepCountsForCollection.ContainsKey(record.RecordType))
+                    if (!keepCountsForCollection.ContainsKey(record.AtProtoType))
                     {
-                        keepCountsForCollection[record.RecordType] = 0;
+                        keepCountsForCollection[record.AtProtoType] = 0;
                     }
-                    keepCountsForCollection[record.RecordType]++;
+                    keepCountsForCollection[record.AtProtoType]++;
                 }
             }
 
@@ -273,11 +273,11 @@ namespace dnproto.cli.commands
             {
                 string? rkey = rkeys != null && record.Cid != null && rkeys.TryGetValue(record.Cid.GetBase32(), out string? foundRkey) ? foundRkey : null;
 
-                Logger.LogInfo($"[{record.CreatedAt}] [{record.RecordType}] {determination} {(delete ? "<----------- DELETE!" : "")}");
+                Logger.LogInfo($"[{record.CreatedAt}] [{record.AtProtoType}] {determination} {(delete ? "<----------- DELETE!" : "")}");
 
                 if (delete)
                 {
-                    BlueskyClient.DeleteRecord(pds, did, accessJwt, rkey, collection: record.RecordType);
+                    BlueskyClient.DeleteRecord(pds, did, accessJwt, rkey, collection: record.AtProtoType);
                     Thread.Sleep(sleepSeconds * 1000);
                 }
             }

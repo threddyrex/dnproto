@@ -62,7 +62,7 @@ namespace dnproto.cli.commands
                 (repoHeader) => { return true; },
                 (repoRecord) =>
                 {
-                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.like") == false) return true;
+                    if (string.Equals(repoRecord.AtProtoType, "app.bsky.feed.like") == false) return true;
                     if (string.IsNullOrEmpty(repoRecord.CreatedAt)) return true;
 
  

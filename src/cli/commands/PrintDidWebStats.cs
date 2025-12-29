@@ -100,7 +100,7 @@ public class PrintDidWebStats : BaseCommand
                         },
                         (repoRecord) =>
                         {
-                            if (string.IsNullOrEmpty(repoRecord.RecordType)) return true;
+                            if (string.IsNullOrEmpty(repoRecord.AtProtoType)) return true;
 
 
                             if (DateTime.TryParse(repoRecord.CreatedAt, out DateTime createdAt))

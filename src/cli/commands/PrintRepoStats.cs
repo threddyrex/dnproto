@@ -80,7 +80,7 @@ namespace dnproto.cli.commands
                         return true;
                     }
 
-                    string recordType = repoRecord.RecordType ?? "<null>";
+                    string recordType = repoRecord.AtProtoType ?? "<null>";
 
                     //
                     // total counts
@@ -165,13 +165,13 @@ namespace dnproto.cli.commands
 
                 if (recordTypeCountsByMonth.TryGetValue(currentDateMonth, out var typeCounts))
                 {
-                    postCount = typeCounts.TryGetValue(RecordType.BLUESKY_POST, out int pc) ? pc : 0;
-                    likeCount = typeCounts.TryGetValue(RecordType.BLUESKY_LIKE, out int lc) ? lc : 0;
-                    repostCount = typeCounts.TryGetValue(RecordType.BLUESKY_REPOST, out int rrc) ? rrc : 0;
-                    followCount = typeCounts.TryGetValue(RecordType.BLUESKY_FOLLOW, out int fc) ? fc : 0;
-                    blockCount = typeCounts.TryGetValue(RecordType.BLUESKY_BLOCK, out int bc) ? bc : 0;
-                    flashCount = typeCounts.TryGetValue(RecordType.FLASHES_POST, out int fsc) ? fsc : 0;
-                    verificationCount = typeCounts.TryGetValue(RecordType.VERIFICATION, out int vc) ? vc : 0;
+                    postCount = typeCounts.TryGetValue(AtProtoType.BLUESKY_POST, out int pc) ? pc : 0;
+                    likeCount = typeCounts.TryGetValue(AtProtoType.BLUESKY_LIKE, out int lc) ? lc : 0;
+                    repostCount = typeCounts.TryGetValue(AtProtoType.BLUESKY_REPOST, out int rrc) ? rrc : 0;
+                    followCount = typeCounts.TryGetValue(AtProtoType.BLUESKY_FOLLOW, out int fc) ? fc : 0;
+                    blockCount = typeCounts.TryGetValue(AtProtoType.BLUESKY_BLOCK, out int bc) ? bc : 0;
+                    flashCount = typeCounts.TryGetValue(AtProtoType.FLASHES_POST, out int fsc) ? fsc : 0;
+                    verificationCount = typeCounts.TryGetValue(AtProtoType.VERIFICATION, out int vc) ? vc : 0;
                 }
 
                 Logger.LogInfo($"{currentDateMonth}: records={recordCount}, follows={followCount}, posts={postCount}, likes={likeCount}, reposts={repostCount}, blocks={blockCount}, flashes={flashCount}, verifications={verificationCount}");

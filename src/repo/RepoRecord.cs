@@ -8,15 +8,16 @@ namespace dnproto.repo;
 
 public class RepoRecord
 {
-    public required VarInt Length { get; set; }
-
     public required CidV1 Cid { get; set; }
 
     public required DagCborObject DataBlock { get; set; }
 
     public string? JsonString { get; set; }
 
-    public string? RecordType { get; set; }
+    /// <summary>
+    /// The $type field in a AT Proto record (ex: "app.bsky.feed.post")
+    /// </summary>
+    public string? AtProtoType { get; set; }
 
     public string? CreatedAt { get; set; }
 
@@ -52,7 +53,7 @@ public class RepoRecord
 
         DagCborObject? dataBlock = null;
         Dictionary<string, DagCborObject>? dataBlockDict = new Dictionary<string, DagCborObject>();
-        string? recordType = null;
+        string? atProtoType = null;
         string? createdAt = null;
         bool isError = false;
         try
@@ -66,7 +67,7 @@ public class RepoRecord
             dataBlock = DagCborObject.FromException(ex, buffer, dataBlockDict);
         }
 
-        recordType = dataBlock.SelectString(["$type"]);
+        atProtoType = dataBlock.SelectString(["$type"]);
 
         var recordJson = JsonData.ConvertObjectToJsonString(dataBlock.GetRawValue());
 
@@ -75,13 +76,29 @@ public class RepoRecord
         //
         return new RepoRecord
         {
-            Length = blockLength,
             Cid = cid,
             DataBlock = dataBlock,
             JsonString = recordJson,
-            RecordType = recordType,
+            AtProtoType = atProtoType,
             CreatedAt = createdAt,
             IsError = isError
         };
     }
+}
+
+public class AtProtoType
+{
+    public static readonly string BLUESKY_FOLLOW = "app.bsky.graph.follow";
+
+    public static readonly string BLUESKY_LIKE = "app.bsky.feed.like";
+
+    public static readonly string BLUESKY_POST = "app.bsky.feed.post";
+
+    public static readonly string BLUESKY_REPOST = "app.bsky.feed.repost";
+
+    public static readonly string BLUESKY_BLOCK = "app.bsky.graph.block";
+
+    public static readonly string FLASHES_POST = "blue.flashes.feed.post";
+
+    public static readonly string VERIFICATION = "app.bsky.graph.verification";
 }

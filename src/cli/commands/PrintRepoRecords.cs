@@ -69,12 +69,12 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
-                    string recordType = repoRecord.RecordType ?? "<null>";
+                    string recordType = repoRecord.AtProtoType ?? "<null>";
 
                     // If collection specified, skip non-matching records
                     if (string.IsNullOrEmpty(collection) == false)
                     {
-                        if (string.Equals(repoRecord.RecordType, collection) == false)
+                        if (string.Equals(repoRecord.AtProtoType, collection) == false)
                         {
                             return true;
                         }

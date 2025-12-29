@@ -135,7 +135,7 @@ namespace dnproto.cli.commands
                 (header) => { return true;}, 
                 (record) => 
                 {
-                    if (record.RecordType != "app.bsky.feed.like") return true;
+                    if (record.AtProtoType != "app.bsky.feed.like") return true;
 
                     string? uri = record.DataBlock.SelectString(["subject", "uri"]);
                     if (uri == null || uri.Contains(targetDid) == false) return true;
@@ -158,7 +158,7 @@ namespace dnproto.cli.commands
                 (header) => { return true;}, 
                 (record) => 
                 {
-                    if (record.RecordType != "app.bsky.feed.post") return true;
+                    if (record.AtProtoType != "app.bsky.feed.post") return true;
 
                     string? uriReply = record.DataBlock.SelectString(["reply", "parent", "uri"]);
                     string? uriRoot = record.DataBlock.SelectString(["reply", "root", "uri"]);
@@ -190,7 +190,7 @@ namespace dnproto.cli.commands
                 (header) => { return true;}, 
                 (record) => 
                 {
-                    if (record.RecordType != "app.bsky.feed.repost") return true;
+                    if (record.AtProtoType != "app.bsky.feed.repost") return true;
 
                     string? uri = record.DataBlock.SelectString(["subject", "uri"]);
                     if (uri == null || uri.Contains(targetDid) == false) return true;
@@ -214,7 +214,7 @@ namespace dnproto.cli.commands
                 (header) => { return true;}, 
                 (record) => 
                 {
-                    if (record.RecordType != "app.bsky.feed.post") return true;
+                    if (record.AtProtoType != "app.bsky.feed.post") return true;
 
                     string? uri = record.DataBlock.SelectString(["embed", "record", "uri"]);
                     if (uri == null || uri.Contains(targetDid) == false) return true;
@@ -239,7 +239,7 @@ namespace dnproto.cli.commands
                 (header) => { return true;}, 
                 (record) => 
                 {
-                    if (record.RecordType != "app.bsky.feed.post") return true;
+                    if (record.AtProtoType != "app.bsky.feed.post") return true;
 
                     string? text = record.DataBlock.SelectString(["text"]);
                     if (text == null) return true;

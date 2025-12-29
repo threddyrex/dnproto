@@ -62,8 +62,8 @@ namespace dnproto.cli.commands
                 },
                 (repoRecord) =>
                 {
-                    if (string.IsNullOrEmpty(repoRecord.RecordType)) return true;
-                    if (string.Equals(repoRecord.RecordType, "app.bsky.feed.post", StringComparison.OrdinalIgnoreCase) == false) return true;
+                    if (string.IsNullOrEmpty(repoRecord.AtProtoType)) return true;
+                    if (string.Equals(repoRecord.AtProtoType, "app.bsky.feed.post", StringComparison.OrdinalIgnoreCase) == false) return true;
 
 
                     if (string.IsNullOrEmpty(month) == false)
