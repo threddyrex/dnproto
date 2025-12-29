@@ -856,9 +856,11 @@ VALUES (@Cid, @LeftMstNodeCid)
 
         DeleteMstEntriesForNode(mstNode.Cid);
 
+        int entryIndex = 0;
         foreach(var entry in mstNode.Entries)
         {
-            InsertMstEntry(mstNode.Cid, entry);
+            InsertMstEntry(mstNode.Cid, entry, entryIndex);
+            entryIndex++;
         }
     }
 
@@ -915,6 +917,7 @@ DELETE FROM MstNode
         command.CommandText = @"
 CREATE TABLE IF NOT EXISTS MstEntry (
 MstNodeCid TEXT NOT NULL,
+EntryIndex INTEGER NOT NULL,
 KeySuffix TEXT NOT NULL,
 PrefixLength INTEGER NOT NULL,
 TreeMstNodeCid TEXT,
@@ -934,7 +937,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstEntry WHERE MstNodeCid = @MstNodeCid ORDER BY PrefixLength ASC";
+            command.CommandText = "SELECT * FROM MstEntry WHERE MstNodeCid = @MstNodeCid ORDER BY EntryIndex ASC";
             command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid.Base32);
             
             using(var reader = command.ExecuteReader())
@@ -965,7 +968,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstEntry ORDER BY MstNodeCid ASC, PrefixLength ASC";
+            command.CommandText = "SELECT * FROM MstEntry ORDER BY MstNodeCid ASC, EntryIndex ASC";
             
             using(var reader = command.ExecuteReader())
             {
@@ -988,7 +991,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    private void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry)
+    private void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry, int entryIndex)
     {
         if(nodeCid == null)
         {
@@ -999,10 +1002,11 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO MstEntry (MstNodeCid, KeySuffix, PrefixLength, TreeMstNodeCid, RecordCid)
-VALUES (@MstNodeCid, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
+INSERT INTO MstEntry (MstNodeCid, EntryIndex, KeySuffix, PrefixLength, TreeMstNodeCid, RecordCid)
+VALUES (@MstNodeCid, @EntryIndex, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
             ";
             command.Parameters.AddWithValue("@MstNodeCid", nodeCid?.Base32);
+            command.Parameters.AddWithValue("@EntryIndex", entryIndex);
             command.Parameters.AddWithValue("@KeySuffix", mstEntry.KeySuffix);
             command.Parameters.AddWithValue("@PrefixLength", mstEntry.PrefixLength);
             if(mstEntry.TreeMstNodeCid != null)
