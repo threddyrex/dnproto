@@ -100,7 +100,7 @@ public class Mst
             // Create repo commit.
             // First create unsigned, then sign it.
             //
-            var repoCommit = new DbRepoCommit();
+            var repoCommit = new RepoCommit();
             repoCommit.Did = this._userDid;
             repoCommit.Rev = RecordKey.GenerateTid();
             repoCommit.RootMstNodeCid = mstNode.Cid;

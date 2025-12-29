@@ -130,7 +130,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoCommitToInsert = new DbRepoCommit
+        var repoCommitToInsert = new RepoCommit
         {
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             RootMstNodeCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
@@ -161,7 +161,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoCommitToInsert = new DbRepoCommit
+        var repoCommitToInsert = new RepoCommit
         {
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             RootMstNodeCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),

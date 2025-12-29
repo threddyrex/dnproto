@@ -632,7 +632,7 @@ Signature BLOB NOT NULL
         }
     }
 
-    public DbRepoCommit? GetRepoCommit()
+    public RepoCommit? GetRepoCommit()
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -643,7 +643,7 @@ Signature BLOB NOT NULL
             {
                 if(reader.Read())
                 {
-                    var repoCommit = new DbRepoCommit
+                    var repoCommit = new RepoCommit
                     {
                         Did = this.GetConfig().UserDid,
                         Version = reader.GetInt32(reader.GetOrdinal("Version")),
@@ -661,7 +661,7 @@ Signature BLOB NOT NULL
         return null;
     }
 
-    public void InsertUpdateRepoCommit(DbRepoCommit repoCommit)
+    public void InsertUpdateRepoCommit(RepoCommit repoCommit)
     {
         if(RepoCommitExists())
         {
@@ -673,7 +673,7 @@ Signature BLOB NOT NULL
         }
     }
 
-    private void InsertRepoCommit(DbRepoCommit repoCommit)
+    private void InsertRepoCommit(RepoCommit repoCommit)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -700,7 +700,7 @@ VALUES (@Version, @Cid, @RootMstNodeCid, @Rev, @PrevMstNodeCid, @Signature)
         }
     }
 
-    private void UpdateRepoCommit(DbRepoCommit repoCommit)
+    private void UpdateRepoCommit(RepoCommit repoCommit)
     {
         using(var sqlConnection = GetConnection())
         {
