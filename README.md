@@ -3,17 +3,30 @@
 
 This is a tool written in C# for interacting with ATProto and Bluesky.
 
+It started as tooling for debugging and working with atproto. Things like
+resolving handles, downloading repos, parsing repos, etc.
+
+More recently we've started working on a PDS implementation.
+This is in progress.
+
+
 
 &nbsp;
 
 # Source code
 
-For CAR repo parsing, see these classes:
+For CAR repo encoding and decoding, see these classes:
 
 - [Repo.cs](/src/repo/Repo.cs) - repo parsing code. entry point
 - [DagCborObject.cs](/src/repo/DagCborObject.cs) - decoding/encoding dag cbor
 - [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
 - [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
+
+The PDS implementation is starting to take shape, and can be found in the following files:
+
+- [Pds.cs](/src/pds/Pds.cs) - PDS entry point
+- [Mst.cs](/src/pds/Mst.cs) - MST implementation entry point
+- [PdsDb.cs](/src/pds/db/PdsDb.cs) - the database interface, where the repo is stored
 
 You can consume the firehose with this class:
 

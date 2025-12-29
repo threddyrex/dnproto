@@ -62,6 +62,9 @@ public class Mst
     }
 
 
+    /// <summary>
+    /// Initialize a new repo. Should be called only once during the lifetime of the account.
+    /// </summary>
     public void InitializeNewRepo()
     {
         _lock.Wait();
@@ -142,6 +145,12 @@ public class Mst
         }
     }
 
+    /// <summary>
+    /// Loads entire repo from our database and writes it to the stream.
+    /// For example, this is called by getRepo.
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <returns></returns>
     public async Task WriteToStreamAsync(System.IO.Stream stream)
     {
         await _lock.WaitAsync();
@@ -238,6 +247,13 @@ public class Mst
         }
     }
 
+    /// <summary>
+    /// Writing one record. The format is [VarInt | CidV1 | DagCborObject] (see Repo.cs)
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <param name="cid"></param>
+    /// <param name="dagCbor"></param>
+    /// <returns></returns>
     private async Task WriteBlockAsync(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
     {
         var cidBytes = cid.AllBytes;
