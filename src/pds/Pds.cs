@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using dnproto.auth;
 using dnproto.fs;
-using dnproto.log;
-using dnproto.mst;
 using dnproto.pds.db;
 using dnproto.pds.xrpc;
 using Microsoft.AspNetCore.Http;
