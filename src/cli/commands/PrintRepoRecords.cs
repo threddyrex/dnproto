@@ -64,7 +64,9 @@ namespace dnproto.cli.commands
                 repoFile,
                 (repoHeader) =>
                 {
-                    Logger.LogTrace($"headerJson: {repoHeader.JsonString}");
+                    Logger.LogInfo($"REPO HEADER:");
+                    Logger.LogInfo($"   roots: {repoHeader.RepoCommitCid?.GetBase32()}");
+                    Logger.LogInfo($"   version: {repoHeader.Version}");
                     return true;
                 },
                 (repoRecord) =>

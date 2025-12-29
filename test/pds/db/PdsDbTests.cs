@@ -76,7 +76,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoHeaderToInsert = new DbRepoHeader
+        var repoHeaderToInsert = new RepoHeader
         {
             RepoCommitCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             Version = Random.Shared.Next(1, 1000)
@@ -99,7 +99,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoHeaderToInsert = new DbRepoHeader
+        var repoHeaderToInsert = new RepoHeader
         {
             RepoCommitCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             Version = Random.Shared.Next(1, 1000)

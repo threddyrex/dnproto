@@ -125,7 +125,7 @@ public class Mst
             //
             // Create repo header
             //
-            var repoHeader = new DbRepoHeader
+            var repoHeader = new RepoHeader
             {
                 RepoCommitCid = repoCommit.Cid,
                 Version = 1

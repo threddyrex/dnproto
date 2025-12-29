@@ -511,7 +511,7 @@ Version INTEGER NOT NULL
         }
     }
 
-    public DbRepoHeader? GetRepoHeader()
+    public RepoHeader? GetRepoHeader()
     {        
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -525,7 +525,7 @@ Version INTEGER NOT NULL
                     var repoCommitCid = reader.GetString(reader.GetOrdinal("RepoCommitCid"));
                     var version = reader.GetInt32(reader.GetOrdinal("Version"));
 
-                    return new DbRepoHeader
+                    return new RepoHeader
                     {
                         RepoCommitCid = CidV1.FromBase32(repoCommitCid),
                         Version = version
@@ -536,7 +536,7 @@ Version INTEGER NOT NULL
         
         return null;
     }
-    public void InsertUpdateRepoHeader(DbRepoHeader repoHeader)
+    public void InsertUpdateRepoHeader(RepoHeader repoHeader)
     {
         if(RepoHeaderExists())
         {
@@ -548,7 +548,7 @@ Version INTEGER NOT NULL
         }
     }
 
-    private void InsertRepoHeader(DbRepoHeader repoHeader)
+    private void InsertRepoHeader(RepoHeader repoHeader)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -564,7 +564,7 @@ VALUES (@RepoCommitCid, @Version)
         }
     }
 
-    private void UpdateRepoHeader(DbRepoHeader repoHeader)
+    private void UpdateRepoHeader(RepoHeader repoHeader)
     {
         using(var sqlConnection = GetConnection())
         {
