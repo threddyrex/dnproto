@@ -1114,6 +1114,32 @@ VALUES (@Cid, @DagCborObject)
         return null;
     }
 
+    public List<DbRepoRecord> GetAllRepoRecords()
+    {
+        var repoRecords = new List<DbRepoRecord>();
+        
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM RepoRecord";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var repoRecord = new DbRepoRecord
+                    {
+                        Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        DagCborObject = DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject")))
+                    };
+                    repoRecords.Add(repoRecord);
+                }
+            }
+        }
+        
+        return repoRecords;
+    }
+
     public void DeleteRepoRecord(CidV1? cid)
     {
         if(cid == null)
