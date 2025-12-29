@@ -51,8 +51,13 @@ namespace dnproto.cli.commands
             //
             int totalRecordCount = 0;
             int mstNodeCount = 0;
+            int atProtoRecordCount = 0;
             int mstNodeEmptyCount = 0;
             int commitCount = 0;
+            int nodeSubtreeCount = 0;
+            int entrySubtreeCount = 0;
+
+            Dictionary<string, MstNode> mstNodes = new Dictionary<string, MstNode>();
 
 
             //
@@ -71,24 +76,43 @@ namespace dnproto.cli.commands
                     if(mstNode != null)
                     {
                         mstNodeCount++;
+                        mstNodes[repoRecord.Cid.ToString()] = mstNode;
                         Logger.LogTrace($"MST Node CID: {repoRecord.Cid}");
                         foreach(var entry in mstNode.Entries)
                         {
-                            Logger.LogTrace($"  Entry - PrefixLength: {entry.PrefixLength}, KeySuffix: {entry.KeySuffix}, RecordCid: {entry.RecordCid}, TreeMstNodeCid: {entry.TreeMstNodeCid}");
+                            Logger.LogTrace("       (e) Entry");
+                            Logger.LogTrace($"              (k) KeySuffix: {entry.KeySuffix}");
+                            Logger.LogTrace($"              (p) PrefixLength: {entry.PrefixLength}");
+                            Logger.LogTrace($"              (t) TreeMstNodeCid: {entry.TreeMstNodeCid}");
+                            Logger.LogTrace($"              (v) RecordCid: {entry.RecordCid}");
+                            Logger.LogTrace("");
+
+                            if(entry.TreeMstNodeCid != null)
+                            {
+                                entrySubtreeCount++;
+                            }
                         }
 
                         if(mstNode.Entries.Count == 0)
                         {
                             mstNodeEmptyCount++;
-                            Logger.LogTrace(repoRecord.JsonString);
                         }
+
+                        if(mstNode.LeftMstNodeCid != null)
+                        {
+                            nodeSubtreeCount++;
+                        }
+                    }
+
+                    if(repoRecord.IsAtProtoRecord())
+                    {
+                        atProtoRecordCount++;
                     }
 
                     RepoCommit? repoCommit = repoRecord.ToRepoCommit();
                     if(repoCommit != null)
                     {
                         commitCount++;
-                        Logger.LogTrace($"Repo Commit CID: {repoRecord.Cid}, Rev: {repoCommit.Rev}, PrevMstNodeCid: {repoCommit.PrevMstNodeCid}");
                     }
 
                     return true;
@@ -102,11 +126,20 @@ namespace dnproto.cli.commands
             Logger.LogInfo("");
             Logger.LogInfo("");
             Logger.LogInfo($"totalRecordCount: {totalRecordCount}");
-            Logger.LogInfo($"mstNodeCount: {mstNodeCount}");
+            Logger.LogInfo("");
+            Logger.LogInfo($"totalRecordCount sum: {mstNodeCount + commitCount + atProtoRecordCount}");
+            Logger.LogInfo($"   mstNodeCount: {mstNodeCount}");
+            Logger.LogInfo($"   commitCount: {commitCount}");
+            Logger.LogInfo($"   atProtoRecordCount: {atProtoRecordCount}");
+            Logger.LogInfo("");
             Logger.LogInfo($"mstNodeEmptyCount: {mstNodeEmptyCount}");
-            Logger.LogInfo($"commitCount: {commitCount}");
+            Logger.LogInfo("");
+            Logger.LogInfo($"totalSubtreeCount: {nodeSubtreeCount + entrySubtreeCount}");
+            Logger.LogInfo($"   nodeSubtreeCount: {nodeSubtreeCount}");
+            Logger.LogInfo($"   entrySubtreeCount: {entrySubtreeCount}");
             Logger.LogInfo("");
             Logger.LogInfo("");
+
 
         }
    }

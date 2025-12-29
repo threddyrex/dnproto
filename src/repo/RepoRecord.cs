@@ -123,6 +123,11 @@ public class RepoRecord
 
         return RepoCommit.FromDagCborObject(this.DataBlock);
     }
+
+    public bool IsAtProtoRecord()
+    {
+        return !string.IsNullOrEmpty(this.AtProtoType);
+    }
 }
 
 public class AtProtoType

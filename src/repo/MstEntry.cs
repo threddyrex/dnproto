@@ -13,7 +13,9 @@ public class MstEntry
     public CidV1? MstNodeCid { get; set; } = null;
     
     /// <summary>
+    /// 
     /// "k"
+    /// 
     /// The remainder of the key after the prefix has been removed.
     /// When combined with the prefix from previous entries, forms the complete key.
     /// Maps to "k" in the MST structure (base64 encoded in JSON).
@@ -22,7 +24,9 @@ public class MstEntry
     public string? KeySuffix { get; set; } = null;
 
     /// <summary>
+    /// 
     /// "p"
+    /// 
     /// Count of bytes shared with the previous entry in the node.
     /// The first entry in a node must have PrefixLength = 0.
     /// Maps to "p" in the MST structure.
@@ -30,7 +34,9 @@ public class MstEntry
     public int PrefixLength { get; set; } = 0;
 
     /// <summary>
+    /// 
     /// "t"
+    /// 
     /// Optional CID link to a sub-tree node at a lower level.
     /// Sub-tree contains keys that sort after this entry's key but before the next entry.
     /// Maps to "t" in the MST structure (can be null).
@@ -38,7 +44,9 @@ public class MstEntry
     public CidV1? TreeMstNodeCid { get; set; } = null;
 
     /// <summary>
+    /// 
     /// "v"
+    /// 
     /// CID link to the record data (DAG-CBOR object).
     /// Maps to "v" in the MST structure.
     /// </summary>
