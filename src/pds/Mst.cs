@@ -231,13 +231,13 @@ public class Mst
             var repoRecords = _db.GetAllRepoRecords();
             foreach (var repoRecord in repoRecords)
             {
-                if (repoRecord.DagCborObject == null || repoRecord.Cid == null)
+                if (repoRecord.DataBlock == null || repoRecord.Cid == null)
                 {
                     _logger.LogError($"Cannot write MST to stream: failed to convert repo record {repoRecord.Cid?.Base32} to DagCborObject.");
                     return;
                 }
 
-                await WriteBlockAsync(stream, repoRecord.Cid, repoRecord.DagCborObject);
+                await WriteBlockAsync(stream, repoRecord.Cid, repoRecord.DataBlock);
             }
 
         }

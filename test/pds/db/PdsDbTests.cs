@@ -437,10 +437,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecordToInsert = new DbRepoRecord
-        {
-            Cid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
-            DagCborObject = new DagCborObject
+        var repoRecordToInsert = RepoRecord.FromDagCborObject(
+            CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            new DagCborObject
             {
                 Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
                 Value = new Dictionary<string, DagCborObject>
@@ -448,7 +447,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
                 }
             }
-        };
+        );
 
         // Act
         pdsDb!.InsertRepoRecord(repoRecordToInsert);
@@ -458,7 +457,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Assert
         Assert.NotNull(retrievedRepoRecord);
         Assert.Equal(repoRecordToInsert.Cid?.Base32, retrievedRepoRecord!.Cid?.Base32);
-        Assert.Equal(repoRecordToInsert.DagCborObject?.ToString(), retrievedRepoRecord.DagCborObject?.ToString());
+        Assert.Equal(repoRecordToInsert.DataBlock?.ToString(), retrievedRepoRecord.DataBlock?.ToString());
 
         pdsDb.DeleteRepoRecord(repoRecordToInsert.Cid);
     }
@@ -469,10 +468,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecordToInsert = new DbRepoRecord
-        {
-            Cid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
-            DagCborObject = new DagCborObject
+        var repoRecordToInsert = RepoRecord.FromDagCborObject(
+            CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            new DagCborObject
             {
                 Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
                 Value = new Dictionary<string, DagCborObject>
@@ -480,7 +478,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
                 }
             }
-        };
+        );
 
         // Act
         pdsDb!.InsertRepoRecord(repoRecordToInsert);
@@ -503,10 +501,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecord1 = new DbRepoRecord
-        {
-            Cid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
-            DagCborObject = new DagCborObject
+        var repoRecord1 = RepoRecord.FromDagCborObject(
+            CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            new DagCborObject
             {
                 Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
                 Value = new Dictionary<string, DagCborObject>
@@ -514,11 +511,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
                 }
             }
-        };
-        var repoRecord2 = new DbRepoRecord
-        {
-            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
-            DagCborObject = new DagCborObject
+        );
+        var repoRecord2 = RepoRecord.FromDagCborObject(
+            CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
+            new DagCborObject
             {
                 Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
                 Value = new Dictionary<string, DagCborObject>
@@ -526,7 +522,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
                 }
             }
-        };
+        );
 
         // Act
         pdsDb!.InsertRepoRecord(repoRecord1);

@@ -1068,7 +1068,7 @@ DagCborObject BLOB NOT NULL
         command.ExecuteNonQuery();        
     }
 
-    public void InsertRepoRecord(DbRepoRecord repoRecord)
+    public void InsertRepoRecord(RepoRecord repoRecord)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -1078,13 +1078,13 @@ INSERT INTO RepoRecord (Cid, DagCborObject)
 VALUES (@Cid, @DagCborObject)
             ";
             command.Parameters.AddWithValue("@Cid", repoRecord.Cid?.Base32);
-            command.Parameters.AddWithValue("@DagCborObject", repoRecord.DagCborObject?.ToBytes());
+            command.Parameters.AddWithValue("@DagCborObject", repoRecord.DataBlock.ToBytes());
 
             command.ExecuteNonQuery();
         }
     }
 
-    public DbRepoRecord? GetRepoRecord(CidV1? cid)
+    public RepoRecord? GetRepoRecord(CidV1? cid)
     {
         if(cid == null)
         {
@@ -1101,12 +1101,8 @@ VALUES (@Cid, @DagCborObject)
             {
                 if(reader.Read())
                 {
-                    var repoRecord = new DbRepoRecord
-                    {
-                        Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
-                        DagCborObject = DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject")))
-                    };
-                    return repoRecord;
+                    return RepoRecord.FromDagCborObject(CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject"))));
                 }
             }
         }
@@ -1114,9 +1110,9 @@ VALUES (@Cid, @DagCborObject)
         return null;
     }
 
-    public List<DbRepoRecord> GetAllRepoRecords()
+    public List<RepoRecord> GetAllRepoRecords()
     {
-        var repoRecords = new List<DbRepoRecord>();
+        var repoRecords = new List<RepoRecord>();
         
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -1127,11 +1123,8 @@ VALUES (@Cid, @DagCborObject)
             {
                 while(reader.Read())
                 {
-                    var repoRecord = new DbRepoRecord
-                    {
-                        Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
-                        DagCborObject = DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject")))
-                    };
+                    var repoRecord = RepoRecord.FromDagCborObject(CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject"))));
                     repoRecords.Add(repoRecord);
                 }
             }
