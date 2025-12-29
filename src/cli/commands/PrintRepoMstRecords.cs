@@ -52,6 +52,7 @@ namespace dnproto.cli.commands
             int totalRecordCount = 0;
             int mstNodeCount = 0;
             int mstNodeEmptyCount = 0;
+            int commitCount = 0;
 
 
             //
@@ -66,19 +67,10 @@ namespace dnproto.cli.commands
                 (repoRecord) =>
                 {
                     totalRecordCount++;
-
-                    if(MstNode.IsMstNode(repoRecord.DataBlock))
-                    {
-                        mstNodeCount++;
-                    }
-                    else
-                    {
-                        return true;
-                    }
-
-                    MstNode? mstNode = MstNode.FromDagCborObject(repoRecord.DataBlock);
+                    MstNode? mstNode = repoRecord.ToMstNode();
                     if(mstNode != null)
                     {
+                        mstNodeCount++;
                         Logger.LogTrace($"MST Node CID: {repoRecord.Cid}");
                         foreach(var entry in mstNode.Entries)
                         {
@@ -90,6 +82,13 @@ namespace dnproto.cli.commands
                             mstNodeEmptyCount++;
                             Logger.LogTrace(repoRecord.JsonString);
                         }
+                    }
+
+                    RepoCommit? repoCommit = repoRecord.ToRepoCommit();
+                    if(repoCommit != null)
+                    {
+                        commitCount++;
+                        Logger.LogTrace($"Repo Commit CID: {repoRecord.Cid}, Rev: {repoCommit.Rev}, PrevMstNodeCid: {repoCommit.PrevMstNodeCid}");
                     }
 
                     return true;
@@ -105,6 +104,7 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"totalRecordCount: {totalRecordCount}");
             Logger.LogInfo($"mstNodeCount: {mstNodeCount}");
             Logger.LogInfo($"mstNodeEmptyCount: {mstNodeEmptyCount}");
+            Logger.LogInfo($"commitCount: {commitCount}");
             Logger.LogInfo("");
             Logger.LogInfo("");
 

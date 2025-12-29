@@ -98,6 +98,31 @@ public class RepoRecord
             IsError = isError
         };        
     }
+
+
+    public bool IsMstNode()
+    {
+        return MstNode.IsMstNode(this.DataBlock);
+    }
+
+    public MstNode? ToMstNode()
+    {
+        if (!IsMstNode())
+            return null;
+        return MstNode.FromDagCborObject(this.DataBlock);
+    }
+
+    public bool IsRepoCommit()
+    {
+        return RepoCommit.IsRepoCommit(this.DataBlock);
+    }
+    public RepoCommit? ToRepoCommit()
+    {
+        if (!IsRepoCommit())
+            return null;
+
+        return RepoCommit.FromDagCborObject(this.DataBlock);
+    }
 }
 
 public class AtProtoType

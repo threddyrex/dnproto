@@ -1,8 +1,7 @@
 
 
-using dnproto.repo;
 
-namespace dnproto.pds.db;
+namespace dnproto.repo;
 
 /// <summary>
 /// Repo Commit for the repo. Can be only one.
@@ -43,6 +42,17 @@ public class RepoCommit
     /// Base 64.
     /// </summary>
     public byte[]? Signature { get; set; }
+
+    public static bool IsRepoCommit(DagCborObject? obj)
+    {
+        bool notNull = obj != null;
+        bool isMap = obj?.Type.MajorType == DagCborType.TYPE_MAP;
+        bool containsSig = obj?.SelectObjectValue(new[]{"sig"}) != null;
+        bool containsRev = (obj?.SelectObjectValue(new[]{"rev"}) as string) != null;
+        bool containsDid = (obj?.SelectObjectValue(new[]{"did"}) as string) != null;
+        return notNull && isMap && containsSig && containsRev;
+    }
+
 
     public byte[]? ToDagCborBytes()
     {
@@ -125,6 +135,39 @@ public class RepoCommit
         };
 
         return commitObj;
+    }
+
+    public static RepoCommit? FromDagCborObject(DagCborObject? obj)
+    {
+        if (!IsRepoCommit(obj))
+            return null;
+
+        var repoCommit = new RepoCommit();
+
+        // did
+        repoCommit.Did = obj?.SelectObjectValue(new[] { "did" }) as string;
+
+        // version
+        var versionObj = obj?.SelectObjectValue(new[] { "version" }) as int?;
+        repoCommit.Version = versionObj ?? 3;
+
+        // data (root MST node cid)
+        var dataObj = obj?.SelectObjectValue(new[] { "data" }) as CidV1;
+        repoCommit.RootMstNodeCid = dataObj;
+
+        // rev
+        var revObj = obj?.SelectObjectValue(new[] { "rev" }) as string;
+        repoCommit.Rev = revObj;
+
+        // prev
+        var prevObj = obj?.SelectObjectValue(new[] { "prev" }) as CidV1;
+        repoCommit.PrevMstNodeCid = prevObj;
+
+        // sig
+        var sigObj = obj?.SelectObjectValue(new[] { "sig" }) as byte[];
+        repoCommit.Signature = sigObj;
+
+        return repoCommit;
     }
 
 }
