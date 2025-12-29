@@ -647,10 +647,10 @@ Signature TEXT NOT NULL
                     var repoCommit = new DbRepoCommit
                     {
                         Version = reader.GetInt32(reader.GetOrdinal("Version")),
-                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
-                        RootMstNodeCid = reader.GetString(reader.GetOrdinal("RootMstNodeCid")),
+                        Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        RootMstNodeCid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RootMstNodeCid"))),
                         Rev = reader.GetString(reader.GetOrdinal("Rev")),
-                        PrevMstNodeCid = reader.IsDBNull(reader.GetOrdinal("PrevMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("PrevMstNodeCid")),
+                        PrevMstNodeCid = reader.IsDBNull(reader.GetOrdinal("PrevMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("PrevMstNodeCid"))),
                         Signature = reader.GetString(reader.GetOrdinal("Signature"))
                     };
                     return repoCommit;
@@ -683,12 +683,12 @@ INSERT INTO RepoCommit (Version, Cid, RootMstNodeCid, Rev, PrevMstNodeCid, Signa
 VALUES (@Version, @Cid, @RootMstNodeCid, @Rev, @PrevMstNodeCid, @Signature)
             ";
             command.Parameters.AddWithValue("@Version", repoCommit.Version);
-            command.Parameters.AddWithValue("@Cid", repoCommit.Cid);
-            command.Parameters.AddWithValue("@RootMstNodeCid", repoCommit.RootMstNodeCid);
+            command.Parameters.AddWithValue("@Cid", repoCommit.Cid?.Base32);
+            command.Parameters.AddWithValue("@RootMstNodeCid", repoCommit.RootMstNodeCid?.Base32);
             command.Parameters.AddWithValue("@Rev", repoCommit.Rev);
             if(repoCommit.PrevMstNodeCid != null)
             {
-                command.Parameters.AddWithValue("@PrevMstNodeCid", repoCommit.PrevMstNodeCid);
+                command.Parameters.AddWithValue("@PrevMstNodeCid", repoCommit.PrevMstNodeCid.Base32);
             }
             else
             {
@@ -710,12 +710,12 @@ UPDATE RepoCommit
 SET Version = @Version, Cid = @Cid, RootMstNodeCid = @RootMstNodeCid, Rev = @Rev, PrevMstNodeCid = @PrevMstNodeCid, Signature = @Signature
             ";
             command.Parameters.AddWithValue("@Version", repoCommit.Version);
-            command.Parameters.AddWithValue("@Cid", repoCommit.Cid);
-            command.Parameters.AddWithValue("@RootMstNodeCid", repoCommit.RootMstNodeCid);
+            command.Parameters.AddWithValue("@Cid", repoCommit.Cid?.Base32);
+            command.Parameters.AddWithValue("@RootMstNodeCid", repoCommit.RootMstNodeCid?.Base32);
             command.Parameters.AddWithValue("@Rev", repoCommit.Rev);
             if(repoCommit.PrevMstNodeCid != null)
             {
-                command.Parameters.AddWithValue("@PrevMstNodeCid", repoCommit.PrevMstNodeCid);
+                command.Parameters.AddWithValue("@PrevMstNodeCid", repoCommit.PrevMstNodeCid?.Base32);
             }
             else
             {
@@ -759,8 +759,13 @@ LeftMstNodeCid TEXT
         command.ExecuteNonQuery();        
     }
 
-    public DbMstNode? GetMstNode(string cid)
+    public DbMstNode? GetMstNode(CidV1? cid)
     {
+        if(cid == null)
+        {
+            return null;
+        }
+
         var node = new DbMstNode();
 
         using(var sqlConnection = GetConnectionReadOnly())
@@ -768,24 +773,24 @@ LeftMstNodeCid TEXT
 
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT * FROM MstNode WHERE Cid = @Cid";
-            command.Parameters.AddWithValue("@Cid", cid);
+            command.Parameters.AddWithValue("@Cid", cid?.Base32);
             
             using(var reader = command.ExecuteReader())
             {
                 if(reader.Read())
                 {
-                    node.Cid = reader.GetString(reader.GetOrdinal("Cid"));
-                    node.LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("LeftMstNodeCid"));
+                    node.Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid")));
+                    node.LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("LeftMstNodeCid")));
                 }
             }
         }
 
-        if(!string.IsNullOrEmpty(node.Cid))
+        if(node.Cid != null)
         {
             node.Entries = GetMstEntriesForNode(node.Cid!);            
         }
         
-        return string.IsNullOrEmpty(node.Cid) ? null : node;
+        return node.Cid == null ? null : node;
     }
 
 
@@ -799,10 +804,10 @@ LeftMstNodeCid TEXT
 INSERT INTO MstNode (Cid, LeftMstNodeCid)
 VALUES (@Cid, @LeftMstNodeCid)
             ";
-            command.Parameters.AddWithValue("@Cid", mstNode.Cid);
+            command.Parameters.AddWithValue("@Cid", mstNode.Cid?.Base32);
             if(mstNode.LeftMstNodeCid != null)
             {
-                command.Parameters.AddWithValue("@LeftMstNodeCid", mstNode.LeftMstNodeCid);
+                command.Parameters.AddWithValue("@LeftMstNodeCid", mstNode.LeftMstNodeCid?.Base32);
             }
             else
             {
@@ -812,11 +817,11 @@ VALUES (@Cid, @LeftMstNodeCid)
             command.ExecuteNonQuery();
         }
 
-        DeleteMstEntriesForNode(mstNode.Cid!);
+        DeleteMstEntriesForNode(mstNode.Cid);
 
         foreach(var entry in mstNode.Entries)
         {
-            InsertMstEntry(mstNode.Cid!, entry);
+            InsertMstEntry(mstNode.Cid, entry);
         }
     }
 
@@ -827,9 +832,9 @@ VALUES (@Cid, @LeftMstNodeCid)
         DeleteMstEntriesForNode(mstNode.Cid);
     }
 
-    public void DeleteMstNode(string? cid)
+    public void DeleteMstNode(CidV1? cid)
     {
-        if(string.IsNullOrEmpty(cid))
+        if(cid == null)
         {
             return;
         }
@@ -840,7 +845,7 @@ VALUES (@Cid, @LeftMstNodeCid)
             command.CommandText = @"
 DELETE FROM MstNode WHERE Cid = @Cid
             ";
-            command.Parameters.AddWithValue("@Cid", cid);
+            command.Parameters.AddWithValue("@Cid", cid?.Base32);
             command.ExecuteNonQuery();
         }
     }
@@ -885,7 +890,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
     }
 
 
-    private List<DbMstEntry> GetMstEntriesForNode(string mstNodeCid)
+    private List<DbMstEntry> GetMstEntriesForNode(CidV1 mstNodeCid)
     {
         var entries = new List<DbMstEntry>();
 
@@ -893,7 +898,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT * FROM MstEntry WHERE MstNodeCid = @MstNodeCid ORDER BY PrefixLength ASC";
-            command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid);
+            command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid.Base32);
             
             using(var reader = command.ExecuteReader())
             {
@@ -903,8 +908,8 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
                     {
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
                         PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
-                        TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("TreeMstNodeCid")),
-                        RecordCid = reader.GetString(reader.GetOrdinal("RecordCid"))
+                        TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("TreeMstNodeCid"))),
+                        RecordCid = reader.IsDBNull(reader.GetOrdinal("RecordCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RecordCid")))
                     };
 
                     entries.Add(entry);
@@ -915,9 +920,9 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    private void InsertMstEntry(string? nodeCid, DbMstEntry mstEntry)
+    private void InsertMstEntry(CidV1? nodeCid, DbMstEntry mstEntry)
     {
-        if(string.IsNullOrEmpty(nodeCid))
+        if(nodeCid == null)
         {
             return;
         }
@@ -929,26 +934,26 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
 INSERT INTO MstEntry (MstNodeCid, KeySuffix, PrefixLength, TreeMstNodeCid, RecordCid)
 VALUES (@MstNodeCid, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
             ";
-            command.Parameters.AddWithValue("@MstNodeCid", nodeCid);
+            command.Parameters.AddWithValue("@MstNodeCid", nodeCid?.Base32);
             command.Parameters.AddWithValue("@KeySuffix", mstEntry.KeySuffix);
             command.Parameters.AddWithValue("@PrefixLength", mstEntry.PrefixLength);
             if(mstEntry.TreeMstNodeCid != null)
             {
-                command.Parameters.AddWithValue("@TreeMstNodeCid", mstEntry.TreeMstNodeCid);
+                command.Parameters.AddWithValue("@TreeMstNodeCid", mstEntry.TreeMstNodeCid?.Base32);
             }
             else
             {
                 command.Parameters.AddWithValue("@TreeMstNodeCid", DBNull.Value);
             }
-            command.Parameters.AddWithValue("@RecordCid", mstEntry.RecordCid);
+            command.Parameters.AddWithValue("@RecordCid", mstEntry.RecordCid?.Base32 ?? (object)DBNull.Value);
 
             command.ExecuteNonQuery();
         }
     }
 
-    private void DeleteMstEntriesForNode(string? mstNodeCid)
+    private void DeleteMstEntriesForNode(CidV1? mstNodeCid)
     {
-        if(string.IsNullOrEmpty(mstNodeCid))
+        if(mstNodeCid == null)
         {
             return;
         }
@@ -958,7 +963,7 @@ VALUES (@MstNodeCid, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
             command.CommandText = @"
 DELETE FROM MstEntry WHERE MstNodeCid = @MstNodeCid
             ";
-            command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid);
+            command.Parameters.AddWithValue("@MstNodeCid", mstNodeCid?.Base32);
             command.ExecuteNonQuery();
         }
     }
@@ -988,7 +993,7 @@ DELETE FROM MstEntry
         command.CommandText = @"
 CREATE TABLE IF NOT EXISTS RepoRecord (
 Cid TEXT PRIMARY KEY,
-JsonData TEXT NOT NULL
+DagCborObject BLOB NOT NULL
 )
         ";
         
@@ -1001,23 +1006,28 @@ JsonData TEXT NOT NULL
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO RepoRecord (Cid, JsonData)
-VALUES (@Cid, @JsonData)
+INSERT INTO RepoRecord (Cid, DagCborObject)
+VALUES (@Cid, @DagCborObject)
             ";
-            command.Parameters.AddWithValue("@Cid", repoRecord.Cid);
-            command.Parameters.AddWithValue("@JsonData", repoRecord.JsonData);
+            command.Parameters.AddWithValue("@Cid", repoRecord.Cid?.Base32);
+            command.Parameters.AddWithValue("@DagCborObject", repoRecord.DagCborObject?.ToBytes());
 
             command.ExecuteNonQuery();
         }
     }
 
-    public DbRepoRecord? GetRepoRecord(string cid)
+    public DbRepoRecord? GetRepoRecord(CidV1? cid)
     {
+        if(cid == null)
+        {
+            return null;
+        }
+        
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT * FROM RepoRecord WHERE Cid = @Cid LIMIT 1";
-            command.Parameters.AddWithValue("@Cid", cid);
+            command.Parameters.AddWithValue("@Cid", cid?.Base32);
             
             using(var reader = command.ExecuteReader())
             {
@@ -1025,8 +1035,8 @@ VALUES (@Cid, @JsonData)
                 {
                     var repoRecord = new DbRepoRecord
                     {
-                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
-                        JsonData = reader.GetString(reader.GetOrdinal("JsonData"))
+                        Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        DagCborObject = DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject")))
                     };
                     return repoRecord;
                 }
@@ -1036,15 +1046,20 @@ VALUES (@Cid, @JsonData)
         return null;
     }
 
-    public void DeleteRepoRecord(string cid)
+    public void DeleteRepoRecord(CidV1? cid)
     {
+        if(cid == null)
+        {
+            return;
+        }
+
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
 DELETE FROM RepoRecord WHERE Cid = @Cid
             ";
-            command.Parameters.AddWithValue("@Cid", cid);
+            command.Parameters.AddWithValue("@Cid", cid?.Base32);
             command.ExecuteNonQuery();
         }
     }

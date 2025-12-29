@@ -132,8 +132,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var repoCommitToInsert = new DbRepoCommit
         {
-            Cid = Guid.NewGuid().ToString(),
-            RootMstNodeCid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
+            RootMstNodeCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             Rev = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
             Signature = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
             Version = 3,
@@ -147,12 +147,12 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedRepoCommit);
-        Assert.Equal(repoCommitToInsert.Cid, retrievedRepoCommit!.Cid);
-        Assert.Equal(repoCommitToInsert.RootMstNodeCid, retrievedRepoCommit.RootMstNodeCid);
-        Assert.Equal(repoCommitToInsert.Rev, retrievedRepoCommit.Rev);
-        Assert.Equal(repoCommitToInsert.Signature, retrievedRepoCommit.Signature);
-        Assert.Equal(repoCommitToInsert.Version, retrievedRepoCommit.Version);
-        Assert.Equal(repoCommitToInsert.PrevMstNodeCid, retrievedRepoCommit.PrevMstNodeCid);
+        Assert.Equal(repoCommitToInsert.Cid.Base32, retrievedRepoCommit?.Cid?.Base32);
+        Assert.Equal(repoCommitToInsert.RootMstNodeCid.Base32, retrievedRepoCommit?.RootMstNodeCid?.Base32);
+        Assert.Equal(repoCommitToInsert.Rev, retrievedRepoCommit?.Rev);
+        Assert.Equal(repoCommitToInsert.Signature, retrievedRepoCommit?.Signature);
+        Assert.Equal(repoCommitToInsert.Version, retrievedRepoCommit?.Version);
+        Assert.Equal(repoCommitToInsert.PrevMstNodeCid?.Base32, retrievedRepoCommit?.PrevMstNodeCid?.Base32);
     }
 
     [Fact]
@@ -163,8 +163,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var repoCommitToInsert = new DbRepoCommit
         {
-            Cid = Guid.NewGuid().ToString(),
-            RootMstNodeCid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
+            RootMstNodeCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             Rev = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
             Signature = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
             Version = 3,
@@ -197,7 +197,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = null
         };
 
@@ -208,8 +208,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
-        Assert.Equal(mstNodeToInsert.LeftMstNodeCid, retrievedMstNode.LeftMstNodeCid);
+        Assert.Equal(mstNodeToInsert.Cid.Base32, retrievedMstNode!.Cid?.Base32);
+        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNode.LeftMstNodeCid?.Base32);
+
+        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
     }
 
     [Fact]
@@ -220,8 +222,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
-            LeftMstNodeCid = Guid.NewGuid().ToString()
+            Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
+            LeftMstNodeCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai")
         };
 
         // Act
@@ -231,8 +233,11 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
-        Assert.Equal(mstNodeToInsert.LeftMstNodeCid, retrievedMstNode.LeftMstNodeCid);
+        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
+        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNode.LeftMstNodeCid?.Base32);
+
+
+        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
     }
 
 
@@ -244,7 +249,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = null
         };
 
@@ -270,13 +275,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNode1 = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
         var mstNode2 = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = mstNode1.Cid
         };
 
@@ -289,11 +294,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedMstNode1);
-        Assert.Equal(mstNode1.Cid, retrievedMstNode1!.Cid);
+        Assert.Equal(mstNode1.Cid?.Base32, retrievedMstNode1!.Cid?.Base32);
 
         Assert.NotNull(retrievedMstNode2);
-        Assert.Equal(mstNode2.Cid, retrievedMstNode2!.Cid);
-        Assert.Equal(mstNode1.Cid, retrievedMstNode2.LeftMstNodeCid);
+        Assert.Equal(mstNode2.Cid?.Base32, retrievedMstNode2!.Cid?.Base32);
+        Assert.Equal(mstNode1.Cid?.Base32, retrievedMstNode2.LeftMstNodeCid?.Base32);
+
+
+        pdsDb.DeleteMstNode(mstNode1.Cid);
+        pdsDb.DeleteMstNode(mstNode2.Cid);
     }
 
     [Fact]
@@ -304,13 +313,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNode1 = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
         var mstNode2 = new DbMstNode
         {
-            Cid = Guid.NewGuid().ToString(),
+            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = mstNode1.Cid
         };
 
@@ -337,7 +346,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new DbMstNode
         {
-            Cid = nodeCid,
+            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = null,
             Entries = new List<DbMstEntry>
             {
@@ -346,7 +355,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     KeySuffix = "exampleKey",
                     PrefixLength = 0,
                     TreeMstNodeCid = null,
-                    RecordCid = Guid.NewGuid().ToString()
+                    RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
                 }
             }
         };
@@ -358,10 +367,12 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
+        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
         Assert.Single(retrievedMstNode.Entries);
         Assert.Equal("exampleKey", retrievedMstNode.Entries[0].KeySuffix);
-    }
+
+        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+}
 
 
     [Fact]
@@ -373,7 +384,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new DbMstNode
         {
-            Cid = nodeCid,
+            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null,
             Entries = new List<DbMstEntry>
             {
@@ -382,14 +393,14 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     KeySuffix = "exampleKey1",
                     PrefixLength = 0,
                     TreeMstNodeCid = null,
-                    RecordCid = Guid.NewGuid().ToString()
+                    RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
                 },
                 new DbMstEntry
                 {
                     KeySuffix = "ampleKey2",
                     PrefixLength = 2,
-                    TreeMstNodeCid = Guid.NewGuid().ToString(),
-                    RecordCid = Guid.NewGuid().ToString()
+                    TreeMstNodeCid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+                    RecordCid = CidV1.FromBase32("bafyreiagh3ukdhtq2onx3pz2quesxvq5a4ucaqywvtqyjabqpkmibre7p4")
                 }
             }
         };
@@ -401,12 +412,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
+        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
         Assert.Equal(2, retrievedMstNode.Entries.Count);
         Assert.Equal("exampleKey1", retrievedMstNode.Entries[0].KeySuffix);
         Assert.Equal("ampleKey2", retrievedMstNode.Entries[1].KeySuffix);
         Assert.Equal(2, retrievedMstNode.Entries[1].PrefixLength);
         Assert.Equal(0, retrievedMstNode.Entries[0].PrefixLength);
+
+        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+
     }
 
     #endregion
@@ -425,8 +439,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var repoRecordToInsert = new DbRepoRecord
         {
-            Cid = Guid.NewGuid().ToString(),
-            JsonData = "{\"example\":\"data\"}"
+            Cid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
+                }
+            }
         };
 
         // Act
@@ -436,8 +457,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedRepoRecord);
-        Assert.Equal(repoRecordToInsert.Cid, retrievedRepoRecord!.Cid);
-        Assert.Equal(repoRecordToInsert.JsonData, retrievedRepoRecord.JsonData);
+        Assert.Equal(repoRecordToInsert.Cid?.Base32, retrievedRepoRecord!.Cid?.Base32);
+        Assert.Equal(repoRecordToInsert.DagCborObject?.ToString(), retrievedRepoRecord.DagCborObject?.ToString());
+
+        pdsDb.DeleteRepoRecord(repoRecordToInsert.Cid);
     }
 
     [Fact]
@@ -448,8 +471,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var repoRecordToInsert = new DbRepoRecord
         {
-            Cid = Guid.NewGuid().ToString(),
-            JsonData = "{\"toBe\":\"deleted\"}"
+            Cid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
+                }
+            }
         };
 
         // Act
@@ -457,7 +487,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var retrievedBeforeDelete = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
         Assert.NotNull(retrievedBeforeDelete);
-        Assert.Equal(repoRecordToInsert.Cid, retrievedBeforeDelete!.Cid);
+        Assert.Equal(repoRecordToInsert.Cid?.Base32, retrievedBeforeDelete!.Cid?.Base32);
 
         pdsDb.DeleteRepoRecord(repoRecordToInsert.Cid);
 
@@ -475,14 +505,27 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var repoRecord1 = new DbRepoRecord
         {
-            Cid = Guid.NewGuid().ToString(),
-            JsonData = "{\"record\":\"one\"}"
+            Cid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
+                }
+            }
         };
-
         var repoRecord2 = new DbRepoRecord
         {
-            Cid = Guid.NewGuid().ToString(),
-            JsonData = "{\"record\":\"two\"}"
+            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
+            DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
+                }
+            }
         };
 
         // Act

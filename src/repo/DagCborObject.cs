@@ -519,6 +519,14 @@ public class DagCborObject
         }
     }
 
+    public static DagCborObject FromBytes(byte[] data)
+    {
+        using(MemoryStream ms = new MemoryStream(data))
+        {
+            return DagCborObject.ReadFromStream(ms);
+        }
+    }
+
 
 }
 

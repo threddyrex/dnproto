@@ -1,5 +1,7 @@
 
 
+using dnproto.repo;
+
 namespace dnproto.pds.db;
 
 /// <summary>
@@ -11,13 +13,11 @@ public class DbRepoRecord
     /// Cid for this record.
     /// Base 32, starting with "b".
     /// </summary>
-    public required string Cid { get; set; }
+    public CidV1? Cid { get; set; }
 
     /// <summary>
-    /// Json data for this record.
-    /// Storing as json string for now, for debugging and readability.
-    /// I might regret the performance impacts later.
+    /// Data for this record.
     /// </summary>
-    public required string JsonData { get; set; }
+    public DagCborObject? DagCborObject { get; set; }
 
 }

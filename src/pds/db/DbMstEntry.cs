@@ -1,5 +1,7 @@
 
 
+using dnproto.repo;
+
 namespace dnproto.pds.db;
 
 /// <summary>
@@ -30,12 +32,12 @@ public class DbMstEntry
     /// Sub-tree contains keys that sort after this entry's key but before the next entry.
     /// Maps to "t" in the MST structure (can be null).
     /// </summary>
-    public string? TreeMstNodeCid { get; set; } = null;
+    public CidV1? TreeMstNodeCid { get; set; } = null;
 
     /// <summary>
     /// "v"
     /// CID link to the record data (DAG-CBOR object).
     /// Maps to "v" in the MST structure.
     /// </summary>
-    public string? RecordCid { get; set; } = null;
+    public CidV1? RecordCid { get; set; } = null;
 }
