@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS Config (
     }
 
 
-    public bool InsertConfig(Config config)
+    public bool InsertConfig(DbConfig config)
     {
         if(GetConfigCount() > 0)
         {
@@ -225,9 +225,9 @@ VALUES (@@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availa
         return true;
     }
 
-    public Config GetConfig()
+    public DbConfig GetConfig()
     {
-        var config = new Config();
+        var config = new DbConfig();
         
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -310,7 +310,7 @@ Bytes BLOB NOT NULL
 
 
 
-    public void InsertBlob(Blob blob)
+    public void InsertBlob(DbBlob blob)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -328,7 +328,7 @@ VALUES (@Cid, @ContentType, @ContentLength, @Bytes)
         }
     }
 
-    public void UpdateBlob(Blob blob)
+    public void UpdateBlob(DbBlob blob)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -347,7 +347,7 @@ WHERE Cid = @Cid
         }
     }
 
-    public Blob? GetBlobByCid(string cid)
+    public DbBlob? GetBlobByCid(string cid)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -359,7 +359,7 @@ WHERE Cid = @Cid
             {
                 if(reader.Read())
                 {
-                    var blob = new Blob
+                    var blob = new DbBlob
                     {
                         Cid = reader.GetString(reader.GetOrdinal("Cid")),
                         ContentType = reader.GetString(reader.GetOrdinal("ContentType")),
@@ -512,7 +512,7 @@ Version INTEGER NOT NULL
         }
     }
 
-    public RepoHeader? GetRepoHeader()
+    public DbRepoHeader? GetRepoHeader()
     {        
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -526,7 +526,7 @@ Version INTEGER NOT NULL
                     var repoCommitCid = reader.GetString(reader.GetOrdinal("RepoCommitCid"));
                     var version = reader.GetInt32(reader.GetOrdinal("Version"));
 
-                    return new RepoHeader
+                    return new DbRepoHeader
                     {
                         RepoCommitCid = CidV1.FromBase32(repoCommitCid),
                         Version = version
@@ -537,7 +537,7 @@ Version INTEGER NOT NULL
         
         return null;
     }
-    public void InsertUpdateRepoHeader(RepoHeader repoHeader)
+    public void InsertUpdateRepoHeader(DbRepoHeader repoHeader)
     {
         if(RepoHeaderExists())
         {
@@ -549,7 +549,7 @@ Version INTEGER NOT NULL
         }
     }
 
-    private void InsertRepoHeader(RepoHeader repoHeader)
+    private void InsertRepoHeader(DbRepoHeader repoHeader)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -565,7 +565,7 @@ VALUES (@RepoCommitCid, @Version)
         }
     }
 
-    private void UpdateRepoHeader(RepoHeader repoHeader)
+    private void UpdateRepoHeader(DbRepoHeader repoHeader)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -633,7 +633,7 @@ Signature TEXT NOT NULL
         }
     }
 
-    public RepoCommit? GetRepoCommit()
+    public DbRepoCommit? GetRepoCommit()
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -644,7 +644,7 @@ Signature TEXT NOT NULL
             {
                 if(reader.Read())
                 {
-                    var repoCommit = new RepoCommit
+                    var repoCommit = new DbRepoCommit
                     {
                         Version = reader.GetInt32(reader.GetOrdinal("Version")),
                         Cid = reader.GetString(reader.GetOrdinal("Cid")),
@@ -661,7 +661,7 @@ Signature TEXT NOT NULL
         return null;
     }
 
-    public void InsertUpdateRepoCommit(RepoCommit repoCommit)
+    public void InsertUpdateRepoCommit(DbRepoCommit repoCommit)
     {
         if(RepoCommitExists())
         {
@@ -673,7 +673,7 @@ Signature TEXT NOT NULL
         }
     }
 
-    private void InsertRepoCommit(RepoCommit repoCommit)
+    private void InsertRepoCommit(DbRepoCommit repoCommit)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -700,7 +700,7 @@ VALUES (@Version, @Cid, @RootMstNodeCid, @Rev, @PrevMstNodeCid, @Signature)
         }
     }
 
-    private void UpdateRepoCommit(RepoCommit repoCommit)
+    private void UpdateRepoCommit(DbRepoCommit repoCommit)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -759,9 +759,9 @@ LeftMstNodeCid TEXT
         command.ExecuteNonQuery();        
     }
 
-    public MstNode? GetMstNode(string cid)
+    public DbMstNode? GetMstNode(string cid)
     {
-        var node = new MstNode();
+        var node = new DbMstNode();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -790,7 +790,7 @@ LeftMstNodeCid TEXT
 
 
 
-    public void InsertMstNode(MstNode mstNode)
+    public void InsertMstNode(DbMstNode mstNode)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -821,7 +821,7 @@ VALUES (@Cid, @LeftMstNodeCid)
     }
 
 
-    public void DeleteMstNode(MstNode mstNode)
+    public void DeleteMstNode(DbMstNode mstNode)
     {
         DeleteMstNode(mstNode.Cid);
         DeleteMstEntriesForNode(mstNode.Cid);
@@ -885,9 +885,9 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
     }
 
 
-    private List<MstEntry> GetMstEntriesForNode(string mstNodeCid)
+    private List<DbMstEntry> GetMstEntriesForNode(string mstNodeCid)
     {
-        var entries = new List<MstEntry>();
+        var entries = new List<DbMstEntry>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -899,7 +899,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
             {
                 while(reader.Read())
                 {
-                    var entry = new MstEntry
+                    var entry = new DbMstEntry
                     {
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
                         PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
@@ -915,7 +915,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    private void InsertMstEntry(string? nodeCid, MstEntry mstEntry)
+    private void InsertMstEntry(string? nodeCid, DbMstEntry mstEntry)
     {
         if(string.IsNullOrEmpty(nodeCid))
         {
@@ -995,7 +995,7 @@ JsonData TEXT NOT NULL
         command.ExecuteNonQuery();        
     }
 
-    public void InsertRepoRecord(RepoRecord repoRecord)
+    public void InsertRepoRecord(DbRepoRecord repoRecord)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -1011,7 +1011,7 @@ VALUES (@Cid, @JsonData)
         }
     }
 
-    public RepoRecord? GetRepoRecord(string cid)
+    public DbRepoRecord? GetRepoRecord(string cid)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -1023,7 +1023,7 @@ VALUES (@Cid, @JsonData)
             {
                 if(reader.Read())
                 {
-                    var repoRecord = new RepoRecord
+                    var repoRecord = new DbRepoRecord
                     {
                         Cid = reader.GetString(reader.GetOrdinal("Cid")),
                         JsonData = reader.GetString(reader.GetOrdinal("JsonData"))

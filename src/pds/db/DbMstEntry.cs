@@ -5,7 +5,7 @@ namespace dnproto.pds.db;
 /// <summary>
 /// MST entry
 /// </summary>
-public class MstEntry
+public class DbMstEntry
 {
     /// <summary>
     /// "k"

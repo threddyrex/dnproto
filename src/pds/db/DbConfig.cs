@@ -3,7 +3,7 @@
 namespace dnproto.pds.db;
 
 
-public class Config
+public class DbConfig
 {
     public string Version { get; set; } = "0.0.003";
     

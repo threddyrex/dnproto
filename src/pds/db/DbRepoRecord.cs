@@ -5,7 +5,7 @@ namespace dnproto.pds.db;
 /// <summary>
 /// Record that contains atproto data
 /// </summary>
-public class RepoRecord
+public class DbRepoRecord
 {
     /// <summary>
     /// Cid for this record.

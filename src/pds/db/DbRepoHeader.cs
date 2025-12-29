@@ -7,7 +7,7 @@ namespace dnproto.pds.db;
 /// <summary>
 /// Entry point for the PDS repo.
 /// </summary>
-public class RepoHeader
+public class DbRepoHeader
 {
     /// <summary>
     /// Points to the cid of the root commit for the repo.

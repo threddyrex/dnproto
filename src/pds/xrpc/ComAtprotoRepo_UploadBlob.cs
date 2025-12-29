@@ -3,6 +3,8 @@ using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.log;
 using dnproto.repo;
+using dnproto.pds;
+using dnproto.pds.db;
 using dnproto.ws;
 using Microsoft.AspNetCore.Http;
 
@@ -45,7 +47,7 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
         //
         // Update or insert
         //
-        var blob = new dnproto.pds.db.Blob
+        var blob = new DbBlob
         {
             Cid = cid,
             ContentType = contentType ?? string.Empty,

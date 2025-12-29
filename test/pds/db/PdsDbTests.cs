@@ -76,7 +76,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoHeaderToInsert = new dnproto.pds.db.RepoHeader
+        var repoHeaderToInsert = new DbRepoHeader
         {
             RepoCommitCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             Version = Random.Shared.Next(1, 1000)
@@ -99,7 +99,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoHeaderToInsert = new dnproto.pds.db.RepoHeader
+        var repoHeaderToInsert = new DbRepoHeader
         {
             RepoCommitCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             Version = Random.Shared.Next(1, 1000)
@@ -130,7 +130,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoCommitToInsert = new RepoCommit
+        var repoCommitToInsert = new DbRepoCommit
         {
             Cid = Guid.NewGuid().ToString(),
             RootMstNodeCid = Guid.NewGuid().ToString(),
@@ -161,7 +161,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoCommitToInsert = new RepoCommit
+        var repoCommitToInsert = new DbRepoCommit
         {
             Cid = Guid.NewGuid().ToString(),
             RootMstNodeCid = Guid.NewGuid().ToString(),
@@ -195,7 +195,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = null
@@ -218,7 +218,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = Guid.NewGuid().ToString()
@@ -242,7 +242,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = null
@@ -268,13 +268,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNode1 = new MstNode
+        var mstNode1 = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = null
         };
 
-        var mstNode2 = new MstNode
+        var mstNode2 = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = mstNode1.Cid
@@ -302,13 +302,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNode1 = new MstNode
+        var mstNode1 = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = null
         };
 
-        var mstNode2 = new MstNode
+        var mstNode2 = new DbMstNode
         {
             Cid = Guid.NewGuid().ToString(),
             LeftMstNodeCid = mstNode1.Cid
@@ -335,13 +335,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         var nodeCid = Guid.NewGuid().ToString();
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new DbMstNode
         {
             Cid = nodeCid,
             LeftMstNodeCid = null,
-            Entries = new List<MstEntry>
+            Entries = new List<DbMstEntry>
             {
-                new MstEntry
+                new DbMstEntry
                 {
                     KeySuffix = "exampleKey",
                     PrefixLength = 0,
@@ -371,20 +371,20 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         var nodeCid = Guid.NewGuid().ToString();
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new DbMstNode
         {
             Cid = nodeCid,
             LeftMstNodeCid = null,
-            Entries = new List<MstEntry>
+            Entries = new List<DbMstEntry>
             {
-                new MstEntry
+                new DbMstEntry
                 {
                     KeySuffix = "exampleKey1",
                     PrefixLength = 0,
                     TreeMstNodeCid = null,
                     RecordCid = Guid.NewGuid().ToString()
                 },
-                new MstEntry
+                new DbMstEntry
                 {
                     KeySuffix = "ampleKey2",
                     PrefixLength = 2,
@@ -423,7 +423,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecordToInsert = new dnproto.pds.db.RepoRecord
+        var repoRecordToInsert = new DbRepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"example\":\"data\"}"
@@ -446,7 +446,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecordToInsert = new dnproto.pds.db.RepoRecord
+        var repoRecordToInsert = new DbRepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"toBe\":\"deleted\"}"
@@ -473,13 +473,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecord1 = new dnproto.pds.db.RepoRecord
+        var repoRecord1 = new DbRepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"record\":\"one\"}"
         };
 
-        var repoRecord2 = new dnproto.pds.db.RepoRecord
+        var repoRecord2 = new DbRepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"record\":\"two\"}"

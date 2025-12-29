@@ -5,7 +5,7 @@ namespace dnproto.pds.db;
 /// <summary>
 /// Repo Commit for the repo. Can be only one.
 /// </summary>
-public class RepoCommit
+public class DbRepoCommit
 {
     public required int Version { get; set; } = 3;
 

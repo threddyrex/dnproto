@@ -5,7 +5,7 @@ namespace dnproto.pds.db;
 /// <summary>
 /// MST node
 /// </summary>
-public class MstNode
+public class DbMstNode
 {
     /// <summary>
     /// Cid for this node.
@@ -23,5 +23,5 @@ public class MstNode
     /// <summary>
     /// Entries for this node.
     /// </summary>
-    public List<MstEntry> Entries { get; set; } = new();
+    public List<DbMstEntry> Entries { get; set; } = new();
 }

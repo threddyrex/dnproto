@@ -19,7 +19,7 @@ namespace dnproto.pds;
 /// </summary>
 public class Pds
 {
-    public required Config Config;
+    public required DbConfig Config;
 
     public required dnproto.log.IDnProtoLogger Logger;
 
@@ -282,7 +282,7 @@ public class Pds
             //
             // Create fresh config
             //
-            var config = new dnproto.pds.db.Config();
+            var config = new dnproto.pds.db.DbConfig();
             config.Version = "0.0.001";
             config.ListenHost = "localhost";
             config.ListenPort = 5001;
