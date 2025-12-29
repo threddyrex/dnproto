@@ -53,13 +53,10 @@ public class RepoRecord
 
         DagCborObject? dataBlock = null;
         Dictionary<string, DagCborObject>? dataBlockDict = new Dictionary<string, DagCborObject>();
-        string? atProtoType = null;
-        string? createdAt = null;
         bool isError = false;
         try
         {
             dataBlock = DagCborObject.ReadFromStream(ms, dataBlockDict);
-            createdAt = dataBlock.SelectString(["createdAt"]);
         }
         catch (Exception ex)
         {
@@ -67,9 +64,26 @@ public class RepoRecord
             dataBlock = DagCborObject.FromException(ex, buffer, dataBlockDict);
         }
 
-        atProtoType = dataBlock.SelectString(["$type"]);
 
-        var recordJson = JsonData.ConvertObjectToJsonString(dataBlock.GetRawValue());
+        //
+        // Return
+        //
+        return FromDagCborObject(cid, dataBlock, isError);
+
+    }
+
+    /// <summary>
+    /// Construct this class from a dag cbor
+    /// </summary>
+    /// <param name="cid"></param>
+    /// <param name="dagCborObject"></param>
+    /// <param name="isError"></param>
+    /// <returns></returns>
+    public static RepoRecord FromDagCborObject(CidV1 cid, DagCborObject dagCborObject, bool isError = false)
+    {
+        string? atProtoType = dagCborObject.SelectString(["$type"]);
+        string? createdAt = dagCborObject.SelectString(["createdAt"]);
+        var recordJson = JsonData.ConvertObjectToJsonString(dagCborObject.GetRawValue());
 
         //
         // Return
@@ -77,12 +91,12 @@ public class RepoRecord
         return new RepoRecord
         {
             Cid = cid,
-            DataBlock = dataBlock,
+            DataBlock = dagCborObject,
             JsonString = recordJson,
             AtProtoType = atProtoType,
             CreatedAt = createdAt,
             IsError = isError
-        };
+        };        
     }
 }
 
