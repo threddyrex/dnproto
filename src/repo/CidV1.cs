@@ -88,6 +88,15 @@ public class CidV1
         s.Write(cid.DigestBytes, 0, cid.DigestBytes.Length);
     }
 
+    public static async Task WriteCidAsync(Stream s, CidV1 cid)
+    {
+        await VarInt.WriteVarIntAsync(s, cid.Version);
+        await VarInt.WriteVarIntAsync(s, cid.Multicodec);
+        await VarInt.WriteVarIntAsync(s, cid.HashFunction);
+        await VarInt.WriteVarIntAsync(s, cid.DigestSize);
+        await s.WriteAsync(cid.DigestBytes, 0, cid.DigestBytes.Length);
+    }
+
     public byte[] GetBytes()
     {
         return AllBytes;

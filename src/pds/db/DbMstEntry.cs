@@ -10,6 +10,11 @@ namespace dnproto.pds.db;
 public class DbMstEntry
 {
     /// <summary>
+    /// Cid for parent MST node. Helpful for lookups.
+    /// </summary>
+    public CidV1? MstNodeCid { get; set; } = null;
+    
+    /// <summary>
     /// "k"
     /// The remainder of the key after the prefix has been removed.
     /// When combined with the prefix from previous entries, forms the complete key.

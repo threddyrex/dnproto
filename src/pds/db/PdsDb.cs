@@ -1,5 +1,4 @@
 using dnproto.log;
-using dnproto.pds.db;
 using dnproto.repo;
 using Microsoft.Data.Sqlite;
 
@@ -794,6 +793,43 @@ LeftMstNodeCid TEXT
         return node.Cid == null ? null : node;
     }
 
+    public List<DbMstNode> GetAllMstNodes()
+    {
+        var nodeDict = new Dictionary<string, DbMstNode>();
+
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM MstNode";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var node = new DbMstNode
+                    {
+                        Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("LeftMstNodeCid")))
+                    };
+
+                    nodeDict[node.Cid!.Base32] = node;
+                }
+            }
+        }
+
+        var allEntries = GetAllMstEntries();
+
+        foreach(var entry in allEntries)
+        {
+            if(entry.MstNodeCid != null && nodeDict.ContainsKey(entry.MstNodeCid.Base32))
+            {
+                nodeDict[entry.MstNodeCid.Base32].Entries.Add(entry);
+            }
+        }
+
+        return nodeDict.Values.ToList();
+    }
+
 
 
     public void InsertMstNode(DbMstNode mstNode)
@@ -907,6 +943,37 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
                 {
                     var entry = new DbMstEntry
                     {
+                        MstNodeCid = mstNodeCid,
+                        KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
+                        PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
+                        TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("TreeMstNodeCid"))),
+                        RecordCid = reader.IsDBNull(reader.GetOrdinal("RecordCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RecordCid")))
+                    };
+
+                    entries.Add(entry);
+                }
+            }
+        }
+
+        return entries;
+    }
+
+    public List<DbMstEntry> GetAllMstEntries()
+    {
+        var entries = new List<DbMstEntry>();
+
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT * FROM MstEntry ORDER BY MstNodeCid ASC, PrefixLength ASC";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var entry = new DbMstEntry
+                    {
+                        MstNodeCid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("MstNodeCid"))),
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
                         PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
                         TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("TreeMstNodeCid"))),

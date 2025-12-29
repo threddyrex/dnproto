@@ -20,4 +20,63 @@ public class DbRepoHeader
     /// </summary>
     public required int Version { get; set; } = 1;
 
+
+    public byte[]? ToDagCborBytes()
+    {
+        var dagCborObject = ToDagCborObject();
+        if (dagCborObject == null)
+            return null;
+
+        using var ms = new MemoryStream();
+        DagCborObject.WriteToStream(dagCborObject, ms);
+        return ms.ToArray();
+    }
+
+    public DagCborObject? ToDagCborObject()
+    {
+        //
+        // Validate
+        //
+        if (RepoCommitCid == null)
+            return null;
+
+        //
+        // Create header object
+        //
+        var headerDict = new Dictionary<string, DagCborObject>();
+
+        var rootsArray = new List<DagCborObject>
+        {
+            new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                Value = RepoCommitCid
+            }
+        };
+
+        headerDict["roots"] = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_ARRAY, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = rootsArray
+        };
+
+        headerDict["version"] = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_UNSIGNED_INT, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = Version
+        };
+
+        var headerObj = new DagCborObject
+        {
+            Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 0, OriginalByte = 0 },
+            Value = headerDict
+        };
+
+
+        //
+        // Return
+        //
+        return headerObj;
+    }
+
 }

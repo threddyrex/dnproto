@@ -19,6 +19,13 @@ public class VarInt
         return $"{Value} (hex:0x{Value:X})";
     }
 
+    public static VarInt FromLong(long value)
+    {
+        VarInt vi = new VarInt();
+        vi.Value = value;
+        return vi;
+    }
+
     /// <summary>
     /// Read a varint from a stream.
     /// </summary>
@@ -59,6 +66,24 @@ public class VarInt
         
         // Write the final byte without the high bit set
         fs.WriteByte((byte)value);
+    }
+
+    /// <summary>
+    /// Write a varint to a stream.
+    /// </summary>
+    public static async Task WriteVarIntAsync(Stream fs, VarInt varInt)
+    {
+        long value = varInt.Value;
+        
+        while (value >= 0x80)
+        {
+            // Write the lower 7 bits with the high bit set (continuation flag)
+            await fs.WriteAsync(new byte[] { (byte)((value & 0x7F) | 0x80) }, 0, 1);
+            value >>= 7;
+        }
+        
+        // Write the final byte without the high bit set
+        await fs.WriteAsync(new byte[] { (byte)value }, 0, 1);
     }
 
 }
