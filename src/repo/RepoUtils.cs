@@ -28,7 +28,7 @@ public class RepoUtils
                 if (repoRecord == null) return true;
 
                 // merkle records have "e" as the root item
-                List<DagCborObject>? e = repoRecord.DataBlock.SelectObject(["e"]) as List<DagCborObject>;
+                List<DagCborObject>? e = repoRecord.DataBlock.SelectObjectValue(["e"]) as List<DagCborObject>;
                 if (e == null) return true;
 
                 // loop through the items
@@ -37,7 +37,7 @@ public class RepoUtils
                 {
                     string? v = node.SelectString(["v"]);
 
-                    object? kobj = node.SelectObject(["k"]);
+                    object? kobj = node.SelectObjectValue(["k"]);
                     if (kobj == null) break;
                     byte[]? kbytes = kobj as byte[];
                     if (kbytes == null) break;

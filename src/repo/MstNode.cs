@@ -1,13 +1,12 @@
 
 
-using dnproto.repo;
 
-namespace dnproto.pds.db;
+namespace dnproto.repo;
 
 /// <summary>
 /// MST node
 /// </summary>
-public class DbMstNode
+public class MstNode
 {
     /// <summary>
     /// Cid for this node.
@@ -25,8 +24,17 @@ public class DbMstNode
     /// <summary>
     /// Entries for this node.
     /// </summary>
-    public List<DbMstEntry> Entries { get; set; } = new();
+    public List<MstEntry> Entries { get; set; } = new();
 
+
+
+    public static bool IsMstNode(DagCborObject? obj)
+    {
+        bool notNull = obj != null;
+        bool isMap = obj?.Type.MajorType == DagCborType.TYPE_MAP;
+        bool containsE = (obj?.SelectObjectValue(new[]{"e"}) as List<DagCborObject>) != null;
+        return notNull && isMap && containsE;        
+    }
 
     public byte[] ToDagCborBytes()
     {
@@ -84,5 +92,33 @@ public class DbMstNode
         };
 
         return nodeObj;
+    }
+
+
+    public static MstNode? FromDagCborObject(DagCborObject? obj)
+    {
+        if (obj == null || obj.Type.MajorType != DagCborType.TYPE_MAP)
+            return null;
+
+        var node = new MstNode();
+
+        // Left link
+        var leftCid = obj.SelectObjectValue(new[] { "l" });
+        if(leftCid is CidV1 cid)
+        {
+            node.LeftMstNodeCid = cid;
+        }
+
+        // Entries
+        var entriesObj = (List<DagCborObject>?)obj.SelectObjectValue(new []{"e"});
+        if (entriesObj != null)
+        {
+            foreach(var entryObject in entriesObj)
+            {
+                node.Entries.Add(MstEntry.FromDagCborObject(entryObject)!);
+            }
+        }
+
+        return node;
     }
 }

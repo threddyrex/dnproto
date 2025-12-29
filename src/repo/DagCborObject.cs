@@ -338,11 +338,12 @@ public class DagCborObject
 
 
     /// <summary>
-    /// Finds an object at the path specified by the property names.
+    /// Finds an object at the path specified by the property names,
+    /// and returns its value.
     /// </summary>
     /// <param name="propertyNames"></param>
     /// <returns></returns>
-    public object? SelectObject(string[] propertyNames)
+    public object? SelectObjectValue(string[] propertyNames)
     {
         DagCborObject? current = this;
 
@@ -369,7 +370,7 @@ public class DagCborObject
     /// <returns></returns>
     public string? SelectString(string[] propertyNames)
     {
-        object? o = SelectObject(propertyNames);
+        object? o = SelectObjectValue(propertyNames);
 
         if(o as string != null) return o as string;
         if(o as int? != null) return o.ToString();
@@ -387,7 +388,7 @@ public class DagCborObject
     /// <returns></returns>
     public int? SelectInt(string[] propertyNames)
     {
-        object? o = SelectObject(propertyNames);
+        object? o = SelectObjectValue(propertyNames);
 
         if(o as int? != null) return o as int?;
 

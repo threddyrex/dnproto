@@ -195,7 +195,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new DbMstNode
+        var mstNodeToInsert = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = null
@@ -220,7 +220,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new DbMstNode
+        var mstNodeToInsert = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai")
@@ -247,7 +247,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new DbMstNode
+        var mstNodeToInsert = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = null
@@ -273,13 +273,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNode1 = new DbMstNode
+        var mstNode1 = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
-        var mstNode2 = new DbMstNode
+        var mstNode2 = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = mstNode1.Cid
@@ -311,13 +311,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNode1 = new DbMstNode
+        var mstNode1 = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
-        var mstNode2 = new DbMstNode
+        var mstNode2 = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = mstNode1.Cid
@@ -344,13 +344,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         var nodeCid = Guid.NewGuid().ToString();
 
-        var mstNodeToInsert = new DbMstNode
+        var mstNodeToInsert = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = null,
-            Entries = new List<DbMstEntry>
+            Entries = new List<MstEntry>
             {
-                new DbMstEntry
+                new MstEntry
                 {
                     KeySuffix = "exampleKey",
                     PrefixLength = 0,
@@ -382,20 +382,20 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         var nodeCid = Guid.NewGuid().ToString();
 
-        var mstNodeToInsert = new DbMstNode
+        var mstNodeToInsert = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null,
-            Entries = new List<DbMstEntry>
+            Entries = new List<MstEntry>
             {
-                new DbMstEntry
+                new MstEntry
                 {
                     KeySuffix = "exampleKey1",
                     PrefixLength = 0,
                     TreeMstNodeCid = null,
                     RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
                 },
-                new DbMstEntry
+                new MstEntry
                 {
                     KeySuffix = "ampleKey2",
                     PrefixLength = 2,

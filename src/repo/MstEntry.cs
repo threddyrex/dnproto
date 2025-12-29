@@ -1,13 +1,11 @@
 
 
-using dnproto.repo;
-
-namespace dnproto.pds.db;
+namespace dnproto.repo;
 
 /// <summary>
 /// MST entry
 /// </summary>
-public class DbMstEntry
+public class MstEntry
 {
     /// <summary>
     /// Cid for parent MST node. Helpful for lookups.
@@ -98,5 +96,32 @@ public class DbMstEntry
             Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 0, OriginalByte = 0 },
             Value = entryDict
         };
+    }
+
+    public static MstEntry? FromDagCborObject(DagCborObject? obj)
+    {
+        if (obj == null || obj.Type.MajorType != DagCborType.TYPE_MAP)
+            return null;
+
+        var entry = new MstEntry();
+
+        // "p" - prefix length
+        entry.PrefixLength = obj.SelectInt(new[] { "p" }) ?? 0;
+
+        // "k" - key suffix
+        var keyBytes = (byte[]?)obj.SelectObjectValue(new[] { "k" });
+        entry.KeySuffix = keyBytes != null ? System.Text.Encoding.UTF8.GetString(keyBytes) : null;
+
+        // "v" - record CID
+        entry.RecordCid = (CidV1?)obj.SelectObjectValue(new[] { "v" });
+
+        // "t" - tree CID (nullable)
+        var treeNodeCid = obj.SelectObjectValue(new[] { "t" });
+        if(treeNodeCid != null && treeNodeCid is CidV1)
+        {
+            entry.TreeMstNodeCid = (CidV1)treeNodeCid;
+        }
+
+        return entry;
     }
 }

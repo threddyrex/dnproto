@@ -244,12 +244,12 @@ namespace dnproto.cli.commands
                     string? text = record.DataBlock.SelectString(["text"]);
                     if (text == null) return true;
 
-                    List<DagCborObject>? facets = record.DataBlock.SelectObject(["facets"]) as List<DagCborObject>;
+                    List<DagCborObject>? facets = record.DataBlock.SelectObjectValue(["facets"]) as List<DagCborObject>;
                     if (facets == null) return true;
 
                     foreach(DagCborObject facet in facets)
                     {
-                        List<DagCborObject>? featuresArray = facet.SelectObject(["features"]) as List<DagCborObject>;
+                        List<DagCborObject>? featuresArray = facet.SelectObjectValue(["features"]) as List<DagCborObject>;
                         if (featuresArray == null) return true;
                         if (featuresArray.Count != 1) return true;
 

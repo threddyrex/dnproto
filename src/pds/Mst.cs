@@ -87,7 +87,7 @@ public class Mst
             //
             // Create Mst Node
             //
-            var mstNode = new DbMstNode
+            var mstNode = new MstNode
             {
                 Cid = null, // to be set
                 LeftMstNodeCid = null

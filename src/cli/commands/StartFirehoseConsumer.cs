@@ -97,7 +97,7 @@ public class StartFirehoseConsumer : BaseCommand
                     // "blocks" should be a byte array of records, in repo format.
                     // Since it's in repo format, we can walk it just like a repo.
                     //
-                    var blocks = message.SelectObject(["blocks"]);
+                    var blocks = message.SelectObjectValue(["blocks"]);
                     if (blocks != null && blocks is byte[])
                     {
                         using (var blockStream = new MemoryStream((byte[])blocks))

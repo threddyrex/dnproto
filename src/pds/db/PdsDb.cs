@@ -759,14 +759,14 @@ LeftMstNodeCid TEXT
         command.ExecuteNonQuery();        
     }
 
-    public DbMstNode? GetMstNode(CidV1? cid)
+    public MstNode? GetMstNode(CidV1? cid)
     {
         if(cid == null)
         {
             return null;
         }
 
-        var node = new DbMstNode();
+        var node = new MstNode();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -793,9 +793,9 @@ LeftMstNodeCid TEXT
         return node.Cid == null ? null : node;
     }
 
-    public List<DbMstNode> GetAllMstNodes()
+    public List<MstNode> GetAllMstNodes()
     {
-        var nodeDict = new Dictionary<string, DbMstNode>();
+        var nodeDict = new Dictionary<string, MstNode>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -806,7 +806,7 @@ LeftMstNodeCid TEXT
             {
                 while(reader.Read())
                 {
-                    var node = new DbMstNode
+                    var node = new MstNode
                     {
                         Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
                         LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("LeftMstNodeCid")))
@@ -832,7 +832,7 @@ LeftMstNodeCid TEXT
 
 
 
-    public void InsertMstNode(DbMstNode mstNode)
+    public void InsertMstNode(MstNode mstNode)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -863,7 +863,7 @@ VALUES (@Cid, @LeftMstNodeCid)
     }
 
 
-    public void DeleteMstNode(DbMstNode mstNode)
+    public void DeleteMstNode(MstNode mstNode)
     {
         DeleteMstNode(mstNode.Cid);
         DeleteMstEntriesForNode(mstNode.Cid);
@@ -927,9 +927,9 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
     }
 
 
-    private List<DbMstEntry> GetMstEntriesForNode(CidV1 mstNodeCid)
+    private List<MstEntry> GetMstEntriesForNode(CidV1 mstNodeCid)
     {
-        var entries = new List<DbMstEntry>();
+        var entries = new List<MstEntry>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -941,7 +941,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
             {
                 while(reader.Read())
                 {
-                    var entry = new DbMstEntry
+                    var entry = new MstEntry
                     {
                         MstNodeCid = mstNodeCid,
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
@@ -958,9 +958,9 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    public List<DbMstEntry> GetAllMstEntries()
+    public List<MstEntry> GetAllMstEntries()
     {
-        var entries = new List<DbMstEntry>();
+        var entries = new List<MstEntry>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -971,7 +971,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
             {
                 while(reader.Read())
                 {
-                    var entry = new DbMstEntry
+                    var entry = new MstEntry
                     {
                         MstNodeCid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("MstNodeCid"))),
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
@@ -988,7 +988,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    private void InsertMstEntry(CidV1? nodeCid, DbMstEntry mstEntry)
+    private void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry)
     {
         if(nodeCid == null)
         {
