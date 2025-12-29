@@ -1,5 +1,6 @@
 using dnproto.log;
 using dnproto.pds.db;
+using dnproto.repo;
 using Microsoft.Data.Sqlite;
 
 namespace dnproto.pds.db;
@@ -527,7 +528,7 @@ Version INTEGER NOT NULL
 
                     return new RepoHeader
                     {
-                        RepoCommitCid = repoCommitCid,
+                        RepoCommitCid = CidV1.FromBase32(repoCommitCid),
                         Version = version
                     };
                 }
@@ -557,7 +558,7 @@ Version INTEGER NOT NULL
 INSERT INTO RepoHeader (RepoCommitCid, Version)
 VALUES (@RepoCommitCid, @Version)
             ";
-            command.Parameters.AddWithValue("@RepoCommitCid", repoHeader.RepoCommitCid);
+            command.Parameters.AddWithValue("@RepoCommitCid", repoHeader.RepoCommitCid?.GetBase32());
             command.Parameters.AddWithValue("@Version", repoHeader.Version);
 
             command.ExecuteNonQuery();
@@ -573,7 +574,7 @@ VALUES (@RepoCommitCid, @Version)
 UPDATE RepoHeader
 SET Version = @Version, RepoCommitCid = @RepoCommitCid
             ";
-            command.Parameters.AddWithValue("@RepoCommitCid", repoHeader.RepoCommitCid);
+            command.Parameters.AddWithValue("@RepoCommitCid", repoHeader.RepoCommitCid?.GetBase32());
             command.Parameters.AddWithValue("@Version", repoHeader.Version);
 
             command.ExecuteNonQuery();
@@ -760,8 +761,11 @@ LeftMstNodeCid TEXT
 
     public MstNode? GetMstNode(string cid)
     {
+        var node = new MstNode();
+
         using(var sqlConnection = GetConnectionReadOnly())
         {
+
             var command = sqlConnection.CreateCommand();
             command.CommandText = "SELECT * FROM MstNode WHERE Cid = @Cid";
             command.Parameters.AddWithValue("@Cid", cid);
@@ -770,19 +774,21 @@ LeftMstNodeCid TEXT
             {
                 if(reader.Read())
                 {
-                    var mstNode = new MstNode
-                    {
-                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
-                        LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("LeftMstNodeCid"))
-                    };
-
-                    return mstNode;
+                    node.Cid = reader.GetString(reader.GetOrdinal("Cid"));
+                    node.LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("LeftMstNodeCid"));
                 }
             }
         }
+
+        if(!string.IsNullOrEmpty(node.Cid))
+        {
+            node.Entries = GetMstEntriesForNode(node.Cid!);            
+        }
         
-        return null;
+        return string.IsNullOrEmpty(node.Cid) ? null : node;
     }
+
+
 
     public void InsertMstNode(MstNode mstNode)
     {
@@ -805,15 +811,29 @@ VALUES (@Cid, @LeftMstNodeCid)
 
             command.ExecuteNonQuery();
         }
+
+        DeleteMstEntriesForNode(mstNode.Cid!);
+
+        foreach(var entry in mstNode.Entries)
+        {
+            InsertMstEntry(mstNode.Cid!, entry);
+        }
     }
+
 
     public void DeleteMstNode(MstNode mstNode)
     {
         DeleteMstNode(mstNode.Cid);
+        DeleteMstEntriesForNode(mstNode.Cid);
     }
 
-    public void DeleteMstNode(string cid)
+    public void DeleteMstNode(string? cid)
     {
+        if(string.IsNullOrEmpty(cid))
+        {
+            return;
+        }
+
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
@@ -835,6 +855,8 @@ DELETE FROM MstNode
             ";
             command.ExecuteNonQuery();
         }
+
+        DeleteAllMstEntries();
     }
 
 
@@ -863,7 +885,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
     }
 
 
-    public List<MstEntry> GetMstEntriesForNode(string mstNodeCid)
+    private List<MstEntry> GetMstEntriesForNode(string mstNodeCid)
     {
         var entries = new List<MstEntry>();
 
@@ -879,7 +901,6 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
                 {
                     var entry = new MstEntry
                     {
-                        MstNodeCid = reader.GetString(reader.GetOrdinal("MstNodeCid")),
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
                         PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
                         TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : reader.GetString(reader.GetOrdinal("TreeMstNodeCid")),
@@ -894,8 +915,13 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    public void InsertMstEntry(MstEntry mstEntry)
+    private void InsertMstEntry(string? nodeCid, MstEntry mstEntry)
     {
+        if(string.IsNullOrEmpty(nodeCid))
+        {
+            return;
+        }
+        
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
@@ -903,7 +929,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
 INSERT INTO MstEntry (MstNodeCid, KeySuffix, PrefixLength, TreeMstNodeCid, RecordCid)
 VALUES (@MstNodeCid, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
             ";
-            command.Parameters.AddWithValue("@MstNodeCid", mstEntry.MstNodeCid);
+            command.Parameters.AddWithValue("@MstNodeCid", nodeCid);
             command.Parameters.AddWithValue("@KeySuffix", mstEntry.KeySuffix);
             command.Parameters.AddWithValue("@PrefixLength", mstEntry.PrefixLength);
             if(mstEntry.TreeMstNodeCid != null)
@@ -920,8 +946,12 @@ VALUES (@MstNodeCid, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
         }
     }
 
-    public void DeleteMstEntriesForNode(string mstNodeCid)
+    private void DeleteMstEntriesForNode(string? mstNodeCid)
     {
+        if(string.IsNullOrEmpty(mstNodeCid))
+        {
+            return;
+        }
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
@@ -933,7 +963,7 @@ DELETE FROM MstEntry WHERE MstNodeCid = @MstNodeCid
         }
     }
 
-    public void DeleteAllMstEntries()
+    private void DeleteAllMstEntries()
     {
         using(var sqlConnection = GetConnection())
         {

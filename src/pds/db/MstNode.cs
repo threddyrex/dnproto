@@ -11,7 +11,7 @@ public class MstNode
     /// Cid for this node.
     /// Base 32, starting with "b".
     /// </summary>
-    public required string Cid { get; set; }
+    public string? Cid { get; set; } = null;
 
     /// <summary>
     /// Optional CID link to a sub-tree node at a lower level.
@@ -20,4 +20,8 @@ public class MstNode
     /// </summary>
     public string? LeftMstNodeCid { get; set; } = null;
 
+    /// <summary>
+    /// Entries for this node.
+    /// </summary>
+    public List<MstEntry> Entries { get; set; } = new();
 }

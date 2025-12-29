@@ -1,5 +1,7 @@
 
 
+using dnproto.repo;
+
 namespace dnproto.pds.db;
 
 /// <summary>
@@ -11,7 +13,7 @@ public class RepoHeader
     /// Points to the cid of the root commit for the repo.
     /// Base 32, starting with "b".
     /// </summary>
-    public required string RepoCommitCid { get; set; }
+    public CidV1? RepoCommitCid { get; set; } = null;
 
     /// <summary>
     /// Version. Always 1 for now.

@@ -5,6 +5,7 @@ using System.Reflection;
 using dnproto.fs;
 using dnproto.log;
 using dnproto.pds.db;
+using dnproto.repo;
 
 public class PdsDbTestsFixture : IDisposable
 {
@@ -75,9 +76,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoHeaderToInsert = new RepoHeader
+        var repoHeaderToInsert = new dnproto.pds.db.RepoHeader
         {
-            RepoCommitCid = Guid.NewGuid().ToString(),
+            RepoCommitCid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             Version = Random.Shared.Next(1, 1000)
         };
 
@@ -88,7 +89,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Assert
         Assert.NotNull(retrievedRepoHeader);
-        Assert.Equal(repoHeaderToInsert.RepoCommitCid, retrievedRepoHeader!.RepoCommitCid);
+        Assert.Equal(repoHeaderToInsert.RepoCommitCid?.GetBase32(), retrievedRepoHeader!.RepoCommitCid?.GetBase32());
         Assert.Equal(repoHeaderToInsert.Version, retrievedRepoHeader.Version);
     }
 
@@ -98,9 +99,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoHeaderToInsert = new RepoHeader
+        var repoHeaderToInsert = new dnproto.pds.db.RepoHeader
         {
-            RepoCommitCid = Guid.NewGuid().ToString(),
+            RepoCommitCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             Version = Random.Shared.Next(1, 1000)
         };
 
@@ -327,156 +328,90 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Null(retrievedMstNode2);
     }
 
+    [Fact]
+    public void MstNode_InsertNodeWithOneEntry()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+        var nodeCid = Guid.NewGuid().ToString();
+
+        var mstNodeToInsert = new MstNode
+        {
+            Cid = nodeCid,
+            LeftMstNodeCid = null,
+            Entries = new List<MstEntry>
+            {
+                new MstEntry
+                {
+                    KeySuffix = "exampleKey",
+                    PrefixLength = 0,
+                    TreeMstNodeCid = null,
+                    RecordCid = Guid.NewGuid().ToString()
+                }
+            }
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNodeToInsert);
+
+        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+
+        // Assert
+        Assert.NotNull(retrievedMstNode);
+        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
+        Assert.Single(retrievedMstNode.Entries);
+        Assert.Equal("exampleKey", retrievedMstNode.Entries[0].KeySuffix);
+    }
+
+
+    [Fact]
+    public void MstNode_InsertNodeWithTwoEntries()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+        var nodeCid = Guid.NewGuid().ToString();
+
+        var mstNodeToInsert = new MstNode
+        {
+            Cid = nodeCid,
+            LeftMstNodeCid = null,
+            Entries = new List<MstEntry>
+            {
+                new MstEntry
+                {
+                    KeySuffix = "exampleKey1",
+                    PrefixLength = 0,
+                    TreeMstNodeCid = null,
+                    RecordCid = Guid.NewGuid().ToString()
+                },
+                new MstEntry
+                {
+                    KeySuffix = "ampleKey2",
+                    PrefixLength = 2,
+                    TreeMstNodeCid = Guid.NewGuid().ToString(),
+                    RecordCid = Guid.NewGuid().ToString()
+                }
+            }
+        };
+
+        // Act
+        pdsDb!.InsertMstNode(mstNodeToInsert);
+
+        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+
+        // Assert
+        Assert.NotNull(retrievedMstNode);
+        Assert.Equal(mstNodeToInsert.Cid, retrievedMstNode!.Cid);
+        Assert.Equal(2, retrievedMstNode.Entries.Count);
+        Assert.Equal("exampleKey1", retrievedMstNode.Entries[0].KeySuffix);
+        Assert.Equal("ampleKey2", retrievedMstNode.Entries[1].KeySuffix);
+        Assert.Equal(2, retrievedMstNode.Entries[1].PrefixLength);
+        Assert.Equal(0, retrievedMstNode.Entries[0].PrefixLength);
+    }
+
     #endregion
 
 
-    #region MSTENTRY
-
-    [Fact]
-    public void MstEntry_InsertAndRetrieve()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstEntryToInsert = new MstEntry
-        {
-            MstNodeCid = Guid.NewGuid().ToString(),
-            KeySuffix = "example.key/suffix",
-            PrefixLength = 5,
-            TreeMstNodeCid = null,
-            RecordCid = Guid.NewGuid().ToString()
-        };
-
-        // Act
-        pdsDb!.InsertMstEntry(mstEntryToInsert);
-
-        var retrievedMstEntry = pdsDb.GetMstEntriesForNode(mstEntryToInsert.MstNodeCid);
-
-        // Assert
-        Assert.NotNull(retrievedMstEntry);
-        Assert.Single(retrievedMstEntry);
-        var entry = retrievedMstEntry[0];
-        Assert.Equal(mstEntryToInsert.MstNodeCid, entry.MstNodeCid);
-        Assert.Equal(mstEntryToInsert.KeySuffix, entry.KeySuffix);
-        Assert.Equal(mstEntryToInsert.PrefixLength, entry.PrefixLength);
-        Assert.Equal(mstEntryToInsert.TreeMstNodeCid, entry.TreeMstNodeCid);
-        Assert.Equal(mstEntryToInsert.RecordCid, entry.RecordCid);
-    }
-
-    [Fact]
-    public void MstEntry_InsertTwoEntriesSameNode()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstNodeCid = Guid.NewGuid().ToString();
-
-        var mstEntry1 = new MstEntry
-        {
-            MstNodeCid = mstNodeCid,
-            KeySuffix = "first.entry",
-            PrefixLength = 0,
-            TreeMstNodeCid = null,
-            RecordCid = Guid.NewGuid().ToString()
-        };
-
-        var mstEntry2 = new MstEntry
-        {
-            MstNodeCid = mstNodeCid,
-            KeySuffix = "second.entry",
-            PrefixLength = 5,
-            TreeMstNodeCid = null,
-            RecordCid = Guid.NewGuid().ToString()
-        };
-
-        // Act
-        pdsDb!.InsertMstEntry(mstEntry1);
-        pdsDb.InsertMstEntry(mstEntry2);
-
-        var retrievedMstEntries = pdsDb.GetMstEntriesForNode(mstNodeCid);
-
-        // Assert
-        Assert.NotNull(retrievedMstEntries);
-        Assert.Equal(2, retrievedMstEntries.Count);
-        var entry1 = retrievedMstEntries[0];
-        Assert.Equal(mstEntry1.MstNodeCid, entry1.MstNodeCid);
-        Assert.Equal(mstEntry1.KeySuffix, entry1.KeySuffix);
-        Assert.Equal(mstEntry1.PrefixLength, entry1.PrefixLength);
-    }
-
-    [Fact]
-    public void MstEntry_InsertAndDelete()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstEntryToInsert = new MstEntry
-        {
-            MstNodeCid = Guid.NewGuid().ToString(),
-            KeySuffix = "to.be.deleted",
-            PrefixLength = 0,
-            TreeMstNodeCid = null,
-            RecordCid = Guid.NewGuid().ToString()
-        };
-
-        // Act
-        pdsDb!.InsertMstEntry(mstEntryToInsert);
-
-        var retrievedBeforeDelete = pdsDb.GetMstEntriesForNode(mstEntryToInsert.MstNodeCid);
-        Assert.NotNull(retrievedBeforeDelete);
-        Assert.Single(retrievedBeforeDelete);
-        Assert.Equal(mstEntryToInsert.KeySuffix, retrievedBeforeDelete[0].KeySuffix);
-
-        pdsDb.DeleteMstEntriesForNode(mstEntryToInsert.MstNodeCid);
-
-        var retrievedAfterDelete = pdsDb.GetMstEntriesForNode(mstEntryToInsert.MstNodeCid);
-
-        // Assert
-        Assert.NotNull(retrievedAfterDelete);
-        Assert.Empty(retrievedAfterDelete);
-    }
-
-    [Fact]
-    public void MstEntry_DeleteAll()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstEntry1 = new MstEntry
-        {
-            MstNodeCid = Guid.NewGuid().ToString(),
-            KeySuffix = "entry.one",
-            PrefixLength = 0,
-            TreeMstNodeCid = null,
-            RecordCid = Guid.NewGuid().ToString()
-        };
-
-        var mstEntry2 = new MstEntry
-        {
-            MstNodeCid = Guid.NewGuid().ToString(),
-            KeySuffix = "entry.two",
-            PrefixLength = 5,
-            TreeMstNodeCid = null,
-            RecordCid = Guid.NewGuid().ToString()
-        };
-
-        // Act
-        pdsDb!.InsertMstEntry(mstEntry1);
-        pdsDb.InsertMstEntry(mstEntry2);
-
-        pdsDb.DeleteAllMstEntries();
-
-        var retrievedMstEntries1 = pdsDb.GetMstEntriesForNode(mstEntry1.MstNodeCid);
-        var retrievedMstEntries2 = pdsDb.GetMstEntriesForNode(mstEntry2.MstNodeCid);
-
-        // Assert
-        Assert.NotNull(retrievedMstEntries1);
-        Assert.Empty(retrievedMstEntries1);
-
-        Assert.NotNull(retrievedMstEntries2);
-        Assert.Empty(retrievedMstEntries2);
-    }
-    #endregion
 
 
 
@@ -488,7 +423,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecordToInsert = new RepoRecord
+        var repoRecordToInsert = new dnproto.pds.db.RepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"example\":\"data\"}"
@@ -511,7 +446,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecordToInsert = new RepoRecord
+        var repoRecordToInsert = new dnproto.pds.db.RepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"toBe\":\"deleted\"}"
@@ -538,13 +473,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var repoRecord1 = new RepoRecord
+        var repoRecord1 = new dnproto.pds.db.RepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"record\":\"one\"}"
         };
 
-        var repoRecord2 = new RepoRecord
+        var repoRecord2 = new dnproto.pds.db.RepoRecord
         {
             Cid = Guid.NewGuid().ToString(),
             JsonData = "{\"record\":\"two\"}"
