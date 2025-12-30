@@ -1,9 +1,9 @@
 
 # dnproto - an ATProto/Bluesky tool written in dotnet
 
-This is a tool written in C# for interacting with ATProto and Bluesky.
+This is code for interacting with ATProto and Bluesky.
 
-It started as tooling for debugging and working with atproto. Things like
+It started as a toolset for debugging and working with ATproto. Things like
 resolving handles, downloading repos, parsing repos, etc.
 
 More recently we've started working on a PDS implementation.
