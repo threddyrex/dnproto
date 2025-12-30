@@ -64,84 +64,76 @@ public class Mst
     /// <summary>
     /// Install a new repo. Should be called only once during the lifetime of the account.
     /// </summary>
-    public void InstallMst()
+    public static void InstallMst(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string userDid)
     {
-        _lock.Wait();
-        try
+        if(commitSigningFunction == null)
         {
-            if(this._commitSigningFunction == null)
-            {
-                _logger.LogError("Cannot install new MST repo: commit signing function is null.");
-                return;
-            }
-            
-            //
-            // Delete everything
-            //
-            _db.DeleteRepoCommit();
-            _db.DeleteAllMstNodes();
-            _db.DeleteAllRepoRecords();
-            _db.DeleteRepoHeader();
-
-            //
-            // Create Mst Node
-            //
-            var mstNode = new MstNode
-            {
-                Cid = null, // to be set
-                LeftMstNodeCid = null
-            };
-
-            mstNode.Cid = CidV1.ComputeCidForDagCbor(mstNode.ToDagCborObject());
-
-
-            //
-            // Create repo commit.
-            // First create unsigned, then sign it.
-            //
-            var repoCommit = new RepoCommit();
-            repoCommit.Did = this._userDid;
-            repoCommit.Rev = RecordKey.GenerateTid();
-            repoCommit.RootMstNodeCid = mstNode.Cid;
-            repoCommit.Version = 3;
-
-            byte[]? repoCommitObjUnsignedBytes = repoCommit.ToDagCborBytes();
-
-            if (repoCommitObjUnsignedBytes == null)
-            {
-                _logger.LogError("Failed to serialize unsigned repo commit.");
-                return;
-            }
-
-            var hash = System.Security.Cryptography.SHA256.HashData(repoCommitObjUnsignedBytes);
-            
-            // Sign the hash
-            repoCommit.Signature = this._commitSigningFunction(hash);
-            byte[]? repoCommitObjSignedBytes = repoCommit.ToDagCborBytes();
-            repoCommit.Cid = CidV1.ComputeCidForDagCbor(repoCommit.ToDagCborObject()!);
-
-
-            //
-            // Create repo header
-            //
-            var repoHeader = new RepoHeader
-            {
-                RepoCommitCid = repoCommit.Cid,
-                Version = 1
-            };
-
-
-            //
-            // Insert everything into the database
-            //
-            _db.InsertMstNode(mstNode);
-            _db.InsertUpdateRepoCommit(repoCommit);
-            _db.InsertUpdateRepoHeader(repoHeader);
+            logger.LogError("Cannot install new MST repo: commit signing function is null.");
+            return;
         }
-        finally
+        
+        //
+        // Delete everything
+        //
+        db.DeleteRepoCommit();
+        db.DeleteAllMstNodes();
+        db.DeleteAllRepoRecords();
+        db.DeleteRepoHeader();
+
+        //
+        // Create Mst Node
+        //
+        var mstNode = new MstNode
         {
-            _lock.Release();
+            Cid = null, // to be set
+            LeftMstNodeCid = null
+        };
+
+        mstNode.Cid = CidV1.ComputeCidForDagCbor(mstNode.ToDagCborObject());
+
+
+        //
+        // Create repo commit.
+        // First create unsigned, then sign it.
+        //
+        var repoCommit = new RepoCommit();
+        repoCommit.Did = userDid;
+        repoCommit.Rev = RecordKey.GenerateTid();
+        repoCommit.RootMstNodeCid = mstNode.Cid;
+        repoCommit.Version = 3;
+
+        byte[]? repoCommitObjUnsignedBytes = repoCommit.ToDagCborBytes();
+
+        if (repoCommitObjUnsignedBytes == null)
+        {
+            logger.LogError("Failed to serialize unsigned repo commit.");
+            return;
         }
+
+        var hash = System.Security.Cryptography.SHA256.HashData(repoCommitObjUnsignedBytes);
+        
+        // Sign the hash
+        repoCommit.Signature = commitSigningFunction(hash);
+        byte[]? repoCommitObjSignedBytes = repoCommit.ToDagCborBytes();
+        repoCommit.Cid = CidV1.ComputeCidForDagCbor(repoCommit.ToDagCborObject()!);
+
+
+        //
+        // Create repo header
+        //
+        var repoHeader = new RepoHeader
+        {
+            RepoCommitCid = repoCommit.Cid,
+            Version = 1
+        };
+
+
+        //
+        // Insert everything into the database
+        //
+        db.InsertMstNode(mstNode);
+        db.InsertUpdateRepoCommit(repoCommit);
+        db.InsertUpdateRepoHeader(repoHeader);
     }
 
     /// <summary>

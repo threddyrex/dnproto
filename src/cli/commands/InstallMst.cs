@@ -36,9 +36,13 @@ namespace dnproto.cli.commands
                 return;
             }
 
-            var mst = new Mst(pdsDb, Logger, func, pds?.Config.UserDid);
+            if(pds?.Config.UserDid == null)
+            {
+                Logger.LogError("Cannot install MST: User DID is null.");
+                return;
+            }
 
-            mst.InstallMst();
+            Mst.InstallMst(pdsDb, Logger, func, pds?.Config.UserDid!);
         }
     }
 }
