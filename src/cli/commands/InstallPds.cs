@@ -8,7 +8,7 @@ namespace dnproto.cli.commands
     /// <summary>
     /// A minimal ASP.NET Core web API that responds to /hello with "world"
     /// </summary>
-    public class InitializePds : BaseCommand
+    public class InstallPds : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -30,7 +30,7 @@ namespace dnproto.cli.commands
             //
             // Initialize PDS
             //
-            Pds.InitializePds(Logger, dataDir, pdsHostname, availableUserDomain, userHandle, userDid, userEmail);
+            Pds.InstallPds(Logger, dataDir, pdsHostname, availableUserDomain, userHandle, userDid, userEmail);
         }
     }
 }

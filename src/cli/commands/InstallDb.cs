@@ -9,7 +9,7 @@ namespace dnproto.cli.commands
     /// <summary>
     /// A minimal ASP.NET Core web API that responds to /hello with "world"
     /// </summary>
-    public class InitializeDb : BaseCommand
+    public class InstallDb : BaseCommand
     {
         public override void DoCommand(Dictionary<string, string> arguments)
         {
@@ -21,7 +21,7 @@ namespace dnproto.cli.commands
             //
             // Initialize PDS
             //
-            PdsDb.InitializePdsDb(dataDir!, Logger, force: true);
+            PdsDb.InstallPdsDb(dataDir!, Logger, force: true);
         }
     }
 }

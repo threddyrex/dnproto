@@ -17,5 +17,5 @@ echo ""
 
 
 
-../src/bin/Debug/net10.0/dnproto /command InitializeMst /datadir ../data/ 
+../src/bin/Debug/net10.0/dnproto /command InstallMst /datadir ../data/ 
 

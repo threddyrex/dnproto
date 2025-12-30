@@ -190,7 +190,7 @@ public class Pds
 
 
 
-    public static void InitializePds(dnproto.log.IDnProtoLogger Logger, string? dataDir, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
+    public static void InstallPds(dnproto.log.IDnProtoLogger Logger, string? dataDir, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
     {
 
             //
@@ -231,7 +231,7 @@ public class Pds
             //
             // Create fresh pds db
             //
-            PdsDb? pdsDb = PdsDb.InitializePdsDb(dataDir!, Logger);
+            PdsDb? pdsDb = PdsDb.InstallPdsDb(dataDir!, Logger);
             if (pdsDb == null)
             {
                 Logger.LogError("Failed to initialize PDS database.");
@@ -259,7 +259,7 @@ public class Pds
                     //
                     // Try again to initialize
                     //
-                    pdsDb = PdsDb.InitializePdsDb(dataDir!, Logger);
+                    pdsDb = PdsDb.InstallPdsDb(dataDir!, Logger);
                     if (pdsDb == null)
                     {
                         Logger.LogError("Failed to initialize PDS database after deleting existing database file.");
@@ -321,13 +321,13 @@ public class Pds
             // Create new mst repo
             //
             var mst = new Mst(pdsDb, Logger, commitSigningFunction, userDid!);
-            mst.InitializeNewRepo();
+            mst.InstallMst();
 
 
             //
             // Print out stuff that the user will need.
             //
-            Logger.LogInfo("PDS initialized successfully.");
+            Logger.LogInfo("PDS installed successfully.");
             Logger.LogInfo("");
             Logger.LogInfo("Important stuff to remember:");
             Logger.LogInfo("");

@@ -34,7 +34,7 @@ public class PdsDbTestsFixture : IDisposable
             File.Delete(pdsDbFile);
         }
 
-        PdsDb = PdsDb.InitializePdsDb(tempDir, Logger);
+        PdsDb = PdsDb.InstallPdsDb(tempDir, Logger);
     }
 
     public void Dispose()

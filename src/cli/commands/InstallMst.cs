@@ -9,7 +9,7 @@ namespace dnproto.cli.commands
     /// <summary>
     /// A minimal ASP.NET Core web API that responds to /hello with "world"
     /// </summary>
-    public class InitializeMst : BaseCommand
+    public class InstallMst : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -32,13 +32,13 @@ namespace dnproto.cli.commands
 
             if(pdsDb == null || func == null)
             {
-                Logger.LogError("Cannot initialize MST: PDS DB or commit signing function is null.");
+                Logger.LogError("Cannot install MST: PDS DB or commit signing function is null.");
                 return;
             }
 
             var mst = new Mst(pdsDb, Logger, func, pds?.Config.UserDid);
 
-            mst.InitializeNewRepo();
+            mst.InstallMst();
         }
     }
 }

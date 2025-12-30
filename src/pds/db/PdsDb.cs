@@ -17,13 +17,13 @@ public class PdsDb
     }
 
 
-    #region INITIALIZE
+    #region INSTALL
 
     /// <summary>
-    /// Initializes the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
+    /// Installs the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
     /// If already exists, it will fail.
     /// </summary>
-    public static PdsDb? InitializePdsDb(string dataDir, IDnProtoLogger logger, bool force = false)
+    public static PdsDb? InstallPdsDb(string dataDir, IDnProtoLogger logger, bool force = false)
     {
         //
         // Paths
@@ -59,11 +59,11 @@ public class PdsDb
             Mode = SqliteOpenMode.ReadWriteCreate
         }.ToString();
         
-        logger.LogInfo($"Initializing database at: {dbPath}");
+        logger.LogInfo($"Installing database at: {dbPath}");
 
 
         //
-        // Run through the initialize statements.
+        // Run through the install statements.
         // If the db already exists, these will be a no-op.
         //
         using (var connection = new SqliteConnection(connectionString))

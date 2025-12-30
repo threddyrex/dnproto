@@ -62,16 +62,16 @@ public class Mst
 
 
     /// <summary>
-    /// Initialize a new repo. Should be called only once during the lifetime of the account.
+    /// Install a new repo. Should be called only once during the lifetime of the account.
     /// </summary>
-    public void InitializeNewRepo()
+    public void InstallMst()
     {
         _lock.Wait();
         try
         {
             if(this._commitSigningFunction == null)
             {
-                _logger.LogError("Cannot initialize new MST repo: commit signing function is null.");
+                _logger.LogError("Cannot install new MST repo: commit signing function is null.");
                 return;
             }
             

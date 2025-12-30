@@ -17,5 +17,5 @@ echo ""
 
 
 
-../src/bin/Debug/net10.0/dnproto /command InitializeDb /datadir ../data/ 
+../src/bin/Debug/net10.0/dnproto /command InstallDb /datadir ../data/ 
 

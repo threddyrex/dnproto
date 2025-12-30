@@ -17,5 +17,5 @@ echo ""
 
 
 
-../src/bin/Debug/net10.0/dnproto /command InitializePds /datadir ../data/ /pdshostname $PDS_HOST_NAME /availableuserdomain $AVAILABLE_USER_DOMAIN /userhandle $USER_HANDLE /userdid $USER_DID /useremail $USER_EMAIL
+../src/bin/Debug/net10.0/dnproto /command InstallPds /datadir ../data/ /pdshostname $PDS_HOST_NAME /availableuserdomain $AVAILABLE_USER_DOMAIN /userhandle $USER_HANDLE /userdid $USER_DID /useremail $USER_EMAIL
 
