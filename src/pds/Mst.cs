@@ -11,11 +11,11 @@ namespace dnproto.pds;
 /// </summary>
 
 /*
-    ✅ DbRepoHeader (only one)
+    ✅ RepoHeader (only one)
         CidV1 RepoCommitCid (points to repocomitcid)
         Int Version
 
-    ✅ DbRepoCommit (only one)
+    ✅ RepoCommit (only one)
         Int Version (always 3)
         CidV1 Cid;
         CidV1 RootMstNodeCid;
@@ -23,21 +23,20 @@ namespace dnproto.pds;
         CidV1? PrevMstNodeCid (usually null)
         String Signature (base 64 encoded)
 
-    ✅ DbMstNode (0 or more)
+    ✅ MstNode (0 or more)
         CidV1 Cid
         "l" - String? LeftMstNodeCid
 
-    ✅ DbMstEntry (0 or more)
+    ✅ MstEntry (0 or more)
         CidV1 MstNodeCid
         "k" - String KeySuffix (plaintext - we can convert to base64 later)
         "p" - Int PrefixLength
         "t" - CidV1? TreeMstNodeCid
         "v" - CidV1 RecordCid (cid of atproto record)
 
-    ✅ DbRepoRecord (0 or more)
+    ✅ RepoRecord (0 or more)
         CidV1 Cid
         DagCborObject Data (the actual atproto record)
-
 */
 
 
