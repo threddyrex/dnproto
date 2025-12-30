@@ -39,7 +39,7 @@ namespace dnproto.pds;
 */
 
 
-public class PdsRepo
+public class UserRepo
 {
     private PdsDb _db;
 
@@ -51,7 +51,7 @@ public class PdsRepo
 
     private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     
-    public PdsRepo(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string? userDid = null)
+    public UserRepo(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string? userDid = null)
     {
         _db = db;
         _logger = logger;

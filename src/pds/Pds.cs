@@ -29,7 +29,7 @@ public class Pds
 
     public required Func<byte[], byte[]> CommitSigningFunction;
 
-    public required PdsRepo Repo;
+    public required UserRepo Repo;
 
 
     /// <summary>
@@ -84,7 +84,7 @@ public class Pds
         //
         // Load repo
         //
-        var repo = new PdsRepo(pdsDb, logger, commitSigningFunction, config.UserDid);
+        var repo = new UserRepo(pdsDb, logger, commitSigningFunction, config.UserDid);
 
 
         //
@@ -316,7 +316,7 @@ public class Pds
         //
         // Install new repo
         //
-        PdsRepo.InstallRepo(pdsDb, Logger, commitSigningFunction, userDid!);
+        UserRepo.InstallRepo(pdsDb, Logger, commitSigningFunction, userDid!);
 
 
         //

@@ -42,7 +42,7 @@ namespace dnproto.cli.commands
                 return;
             }
 
-            PdsRepo.InstallRepo(pdsDb, Logger, func, pds?.Config.UserDid!);
+            UserRepo.InstallRepo(pdsDb, Logger, func, pds?.Config.UserDid!);
         }
     }
 }
