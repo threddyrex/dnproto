@@ -24,12 +24,6 @@ public class MstNode
     /// </summary>
     public CidV1? LeftMstNodeCid { get; set; } = null;
 
-    /// <summary>
-    /// Entries for this node.
-    /// </summary>
-    public List<MstEntry> Entries { get; set; } = new();
-
-
 
     public static bool IsMstNode(DagCborObject? obj)
     {
@@ -39,15 +33,15 @@ public class MstNode
         return notNull && isMap && containsE;        
     }
 
-    public byte[] ToDagCborBytes()
+    public byte[] ToDagCborBytes(List<MstEntry> entries)
     {
-        var dagCborObject = ToDagCborObject();
+        var dagCborObject = ToDagCborObject(entries);
         using var ms = new MemoryStream();
         DagCborObject.WriteToStream(dagCborObject, ms);
         return ms.ToArray();
     }
 
-    public DagCborObject ToDagCborObject()
+    public DagCborObject ToDagCborObject(List<MstEntry> entries)
     {
         // Create the node object
         var nodeDict = new Dictionary<string, DagCborObject>();
@@ -72,7 +66,7 @@ public class MstNode
 
         // Add entries array
         var entriesArray = new List<DagCborObject>();
-        foreach (var entry in Entries)
+        foreach (var entry in entries)
         {
             var entryObj = entry.ToDagCborObject();
             if(entryObj != null)
@@ -98,12 +92,13 @@ public class MstNode
     }
 
 
-    public static MstNode? FromDagCborObject(DagCborObject? obj)
+    public static (MstNode?, List<MstEntry>?) FromDagCborObject(DagCborObject? obj)
     {
         if (obj == null || obj.Type.MajorType != DagCborType.TYPE_MAP)
-            return null;
+            return (null, null);
 
         var node = new MstNode();
+        var entries = new List<MstEntry>();
 
         // Left link
         var leftCid = obj.SelectObjectValue(new[] { "l" });
@@ -118,10 +113,10 @@ public class MstNode
         {
             foreach(var entryObject in entriesObj)
             {
-                node.Entries.Add(MstEntry.FromDagCborObject(entryObject)!);
+                entries.Add(MstEntry.FromDagCborObject(entryObject)!);
             }
         }
 
-        return node;
+        return (node, entries);
     }
 }

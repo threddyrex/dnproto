@@ -785,17 +785,12 @@ LeftMstNodeCid TEXT
             }
         }
 
-        if(node.Cid != null)
-        {
-            node.Entries = GetMstEntriesForNode(node.Cid!);            
-        }
-        
         return node.Cid == null ? null : node;
     }
 
-    public List<MstNode> GetAllMstNodes()
+    public Dictionary<CidV1, MstNode> GetAllMstNodes()
     {
-        var nodeDict = new Dictionary<string, MstNode>();
+        var nodeDict = new Dictionary<CidV1, MstNode>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -812,22 +807,12 @@ LeftMstNodeCid TEXT
                         LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("LeftMstNodeCid")))
                     };
 
-                    nodeDict[node.Cid!.Base32] = node;
+                    nodeDict[node.Cid!] = node;
                 }
             }
         }
 
-        var allEntries = GetAllMstEntries();
-
-        foreach(var entry in allEntries)
-        {
-            if(entry.MstNodeCid != null && nodeDict.ContainsKey(entry.MstNodeCid.Base32))
-            {
-                nodeDict[entry.MstNodeCid.Base32].Entries.Add(entry);
-            }
-        }
-
-        return nodeDict.Values.ToList();
+        return nodeDict;
     }
 
 
@@ -853,22 +838,12 @@ VALUES (@Cid, @LeftMstNodeCid)
 
             command.ExecuteNonQuery();
         }
-
-        DeleteMstEntriesForNode(mstNode.Cid);
-
-        int entryIndex = 0;
-        foreach(var entry in mstNode.Entries)
-        {
-            InsertMstEntry(mstNode.Cid, entry, entryIndex);
-            entryIndex++;
-        }
     }
 
 
     public void DeleteMstNode(MstNode mstNode)
     {
         DeleteMstNode(mstNode.Cid);
-        DeleteMstEntriesForNode(mstNode.Cid);
     }
 
     public void DeleteMstNode(CidV1? cid)
@@ -899,8 +874,6 @@ DELETE FROM MstNode
             ";
             command.ExecuteNonQuery();
         }
-
-        DeleteAllMstEntries();
     }
 
 
@@ -930,7 +903,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
     }
 
 
-    private List<MstEntry> GetMstEntriesForNode(CidV1 mstNodeCid)
+    public List<MstEntry> GetMstEntriesForNode(CidV1 mstNodeCid)
     {
         var entries = new List<MstEntry>();
 
@@ -961,9 +934,9 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    public List<MstEntry> GetAllMstEntries()
+    public Dictionary<CidV1, List<MstEntry>> GetAllMstEntries()
     {
-        var entries = new List<MstEntry>();
+        var entries = new Dictionary<CidV1, List<MstEntry>>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -983,7 +956,12 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
                         RecordCid = reader.IsDBNull(reader.GetOrdinal("RecordCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RecordCid")))
                     };
 
-                    entries.Add(entry);
+                    if(!entries.ContainsKey(entry.MstNodeCid))
+                    {
+                        entries[entry.MstNodeCid] = new List<MstEntry>();
+                    }
+
+                    entries[entry.MstNodeCid].Add(entry);
                 }
             }
         }
@@ -991,7 +969,17 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    private void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry, int entryIndex)
+    public void InsertMstEntries(CidV1? nodeCid, List<MstEntry> entries)
+    {
+        int entryIndex = 0;
+        foreach(MstEntry entry in entries)
+        {
+            InsertMstEntry(nodeCid, entry, entryIndex);
+            entryIndex++;
+        }
+    }
+
+    public void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry, int entryIndex)
     {
         if(nodeCid == null)
         {
@@ -1023,7 +1011,7 @@ VALUES (@MstNodeCid, @EntryIndex, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @R
         }
     }
 
-    private void DeleteMstEntriesForNode(CidV1? mstNodeCid)
+    public void DeleteMstEntriesForNode(CidV1? mstNodeCid)
     {
         if(mstNodeCid == null)
         {
@@ -1040,7 +1028,7 @@ DELETE FROM MstEntry WHERE MstNodeCid = @MstNodeCid
         }
     }
 
-    private void DeleteAllMstEntries()
+    public void DeleteAllMstEntries()
     {
         using(var sqlConnection = GetConnection())
         {

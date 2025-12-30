@@ -57,80 +57,8 @@ public class UserRepo
         _logger = logger;
         _commitSigningFunction = commitSigningFunction;
         _userDid = userDid;
-
-        LoadFromDb();
     }
 
-
-    //
-    // The following items are the in-memory representation of the repo.
-    // We keep everything in memory, backed by SQL.
-    // When changes occur, we update both in-memory and SQL.
-    //
-    public RepoHeader? RepoHeader = null;
-    public RepoCommit? RepoCommit = null;
-    public Dictionary<CidV1, MstNode> MstNodes = new Dictionary<CidV1, MstNode>();
-    public Dictionary<CidV1, RepoRecord> RepoRecords = new Dictionary<CidV1, RepoRecord>();
-
-    private void LoadFromDb()
-    {
-        _logger.LogInfo("Loading PDS repo from database...");
-
-        //
-        // Load repo header
-        //
-        RepoHeader = _db.GetRepoHeader();
-
-        //
-        // Load repo commit
-        //
-        RepoCommit = _db.GetRepoCommit();
-
-        //
-        // Load MST nodes
-        //
-        var mstNodes = _db.GetAllMstNodes();
-        MstNodes.Clear();
-        foreach (var mstNode in mstNodes)
-        {
-            if (mstNode.Cid != null)
-            {
-                MstNodes[mstNode.Cid] = mstNode;
-            }
-            else
-            {
-                _logger.LogError("Found MST node with null CID in database.");
-            }
-        }
-
-        //
-        // Load repo records
-        //
-        var repoRecords = _db.GetAllRepoRecords();
-        RepoRecords.Clear();
-        foreach (var repoRecord in repoRecords)
-        {
-            if (repoRecord.Cid != null)
-            {
-                RepoRecords[repoRecord.Cid] = repoRecord;
-            }
-            else
-            {
-                _logger.LogError("Found repo record with null CID in database.");
-            }
-        }
-
-        //
-        // Print
-        //
-        _logger.LogInfo("");
-        _logger.LogInfo($"Loaded PDS repo.");
-        _logger.LogInfo($"  RepoHeader={(RepoHeader != null ? RepoHeader.RepoCommitCid?.ToString() ?? "null" : "null")}");
-        _logger.LogInfo($"  RepoCommit={(RepoCommit != null ? RepoCommit.Cid?.ToString() ?? "null" : "null")}");
-        _logger.LogInfo($"  MstNodes={MstNodes.Count}");
-        _logger.LogInfo($"  RepoRecords={RepoRecords.Count}");
-        _logger.LogInfo("");
-    }
 
 
     /// <summary>
@@ -149,6 +77,7 @@ public class UserRepo
         //
         db.DeleteRepoCommit();
         db.DeleteAllMstNodes();
+        db.DeleteAllMstEntries();
         db.DeleteAllRepoRecords();
         db.DeleteRepoHeader();
 
@@ -161,7 +90,7 @@ public class UserRepo
             LeftMstNodeCid = null
         };
 
-        mstNode.Cid = CidV1.ComputeCidForDagCbor(mstNode.ToDagCborObject());
+        mstNode.Cid = CidV1.ComputeCidForDagCbor(mstNode.ToDagCborObject(new List<MstEntry>())!);
 
 
         //
@@ -203,7 +132,7 @@ public class UserRepo
         //
         // Insert everything into the database
         //
-        db.InsertMstNode(mstNode);
+        db.InsertMstNode(mstNode); // no entries
         db.InsertUpdateRepoCommit(repoCommit);
         db.InsertUpdateRepoHeader(repoHeader);
     }
@@ -269,10 +198,20 @@ public class UserRepo
             //
             // MST Nodes
             //
-            var mstNodes = _db.GetAllMstNodes();
-            foreach (var mstNode in mstNodes)
+            var mstNodes = _db.GetAllMstNodes().Values;
+            var mstEntries = _db.GetAllMstEntries();
+
+            foreach (MstNode mstNode in mstNodes)
             {
-                var mstNodeDagCbor = mstNode.ToDagCborObject();
+                if (mstNode.Cid == null)
+                {
+                    _logger.LogError("Cannot write MST to stream: MST node CID is null.");
+                    return;
+                }
+                
+                List<MstEntry> mstEntriesForNode = mstEntries.ContainsKey(mstNode.Cid) ? mstEntries[mstNode.Cid] : new List<MstEntry>();
+                
+                var mstNodeDagCbor = mstNode.ToDagCborObject(mstEntriesForNode);
                 if (mstNodeDagCbor == null)
                 {
                     _logger.LogError($"Cannot write MST to stream: failed to convert MST node {mstNode.Cid?.Base32} to DagCborObject.");

@@ -399,29 +399,32 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var mstNodeToInsert = new MstNode
         {
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
-            LeftMstNodeCid = null,
-            Entries = new List<MstEntry>
+            LeftMstNodeCid = null
+        };
+        var mstEntries = new List<MstEntry>
+        {
+            new MstEntry
             {
-                new MstEntry
-                {
-                    KeySuffix = "exampleKey",
-                    PrefixLength = 0,
-                    TreeMstNodeCid = null,
-                    RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
-                }
+                KeySuffix = "exampleKey",
+                PrefixLength = 0,
+                TreeMstNodeCid = null,
+                RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
             }
         };
 
+
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
+        pdsDb!.InsertMstEntries(mstNodeToInsert.Cid, mstEntries);
 
         var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        var retrievedMstEntries = pdsDb.GetMstEntriesForNode(mstNodeToInsert.Cid);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
         Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
-        Assert.Single(retrievedMstNode.Entries);
-        Assert.Equal("exampleKey", retrievedMstNode.Entries[0].KeySuffix);
+        Assert.Single(retrievedMstEntries);
+        Assert.Equal("exampleKey", retrievedMstEntries[0].KeySuffix);
 
         pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
 }
@@ -438,7 +441,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         {
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null,
-            Entries = new List<MstEntry>
+        };
+        var mstEntriesToInsert = new List<MstEntry>
             {
                 new MstEntry
                 {
@@ -454,22 +458,23 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     TreeMstNodeCid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
                     RecordCid = CidV1.FromBase32("bafyreiagh3ukdhtq2onx3pz2quesxvq5a4ucaqywvtqyjabqpkmibre7p4")
                 }
-            }
-        };
+            };
 
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
+        pdsDb!.InsertMstEntries(mstNodeToInsert.Cid, mstEntriesToInsert);
 
         var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        var retrievedMstEntries = pdsDb.GetMstEntriesForNode(mstNodeToInsert.Cid);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
         Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
-        Assert.Equal(2, retrievedMstNode.Entries.Count);
-        Assert.Equal("exampleKey1", retrievedMstNode.Entries[0].KeySuffix);
-        Assert.Equal("ampleKey2", retrievedMstNode.Entries[1].KeySuffix);
-        Assert.Equal(2, retrievedMstNode.Entries[1].PrefixLength);
-        Assert.Equal(0, retrievedMstNode.Entries[0].PrefixLength);
+        Assert.Equal(2, retrievedMstEntries.Count);
+        Assert.Equal("exampleKey1", retrievedMstEntries[0].KeySuffix);
+        Assert.Equal("ampleKey2", retrievedMstEntries[1].KeySuffix);
+        Assert.Equal(2, retrievedMstEntries[1].PrefixLength);
+        Assert.Equal(0, retrievedMstEntries[0].PrefixLength);
 
         pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
 

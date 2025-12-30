@@ -72,13 +72,13 @@ namespace dnproto.cli.commands
                 (repoRecord) =>
                 {
                     totalRecordCount++;
-                    MstNode? mstNode = repoRecord.ToMstNode();
+                    (MstNode? mstNode, List<MstEntry>? mstEntries) = repoRecord.ToMstNode();
                     if(mstNode != null)
                     {
                         mstNodeCount++;
                         mstNodes[repoRecord.Cid.ToString()] = mstNode;
                         Logger.LogTrace($"MST Node CID: {repoRecord.Cid}");
-                        foreach(var entry in mstNode.Entries)
+                        foreach(var entry in mstEntries!)
                         {
                             Logger.LogTrace("       (e) Entry");
                             Logger.LogTrace($"              (k) KeySuffix: {entry.KeySuffix}");
@@ -93,7 +93,7 @@ namespace dnproto.cli.commands
                             }
                         }
 
-                        if(mstNode.Entries.Count == 0)
+                        if(mstEntries!.Count == 0)
                         {
                             mstNodeEmptyCount++;
                         }

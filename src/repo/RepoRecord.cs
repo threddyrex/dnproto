@@ -105,10 +105,10 @@ public class RepoRecord
         return MstNode.IsMstNode(this.DataBlock);
     }
 
-    public MstNode? ToMstNode()
+    public (MstNode?, List<MstEntry>?) ToMstNode()
     {
         if (!IsMstNode())
-            return null;
+            return (null, null);
         return MstNode.FromDagCborObject(this.DataBlock);
     }
 
