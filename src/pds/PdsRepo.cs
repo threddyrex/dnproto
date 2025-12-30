@@ -7,9 +7,8 @@ namespace dnproto.pds;
 
 
 /// <summary>
-/// Merkle Search Tree (MST) implementation for PDS.
+/// Repo implementation for PDS, including MST.
 /// </summary>
-
 /*
     ✅ RepoHeader (only one)
         CidV1 RepoCommitCid (points to repocomitcid)
@@ -58,6 +57,79 @@ public class PdsRepo
         _logger = logger;
         _commitSigningFunction = commitSigningFunction;
         _userDid = userDid;
+
+        LoadFromDb();
+    }
+
+
+    //
+    // The following items are the in-memory representation of the repo.
+    // We keep everything in memory, backed by SQL.
+    // When changes occur, we update both in-memory and SQL.
+    //
+    public RepoHeader? RepoHeader = null;
+    public RepoCommit? RepoCommit = null;
+    public Dictionary<CidV1, MstNode> MstNodes = new Dictionary<CidV1, MstNode>();
+    public Dictionary<CidV1, RepoRecord> RepoRecords = new Dictionary<CidV1, RepoRecord>();
+
+    private void LoadFromDb()
+    {
+        _logger.LogInfo("Loading PDS repo from database...");
+
+        //
+        // Load repo header
+        //
+        RepoHeader = _db.GetRepoHeader();
+
+        //
+        // Load repo commit
+        //
+        RepoCommit = _db.GetRepoCommit();
+
+        //
+        // Load MST nodes
+        //
+        var mstNodes = _db.GetAllMstNodes();
+        MstNodes.Clear();
+        foreach (var mstNode in mstNodes)
+        {
+            if (mstNode.Cid != null)
+            {
+                MstNodes[mstNode.Cid] = mstNode;
+            }
+            else
+            {
+                _logger.LogError("Found MST node with null CID in database.");
+            }
+        }
+
+        //
+        // Load repo records
+        //
+        var repoRecords = _db.GetAllRepoRecords();
+        RepoRecords.Clear();
+        foreach (var repoRecord in repoRecords)
+        {
+            if (repoRecord.Cid != null)
+            {
+                RepoRecords[repoRecord.Cid] = repoRecord;
+            }
+            else
+            {
+                _logger.LogError("Found repo record with null CID in database.");
+            }
+        }
+
+        //
+        // Print
+        //
+        _logger.LogInfo("");
+        _logger.LogInfo($"Loaded PDS repo.");
+        _logger.LogInfo($"  RepoHeader={(RepoHeader != null ? RepoHeader.RepoCommitCid?.ToString() ?? "null" : "null")}");
+        _logger.LogInfo($"  RepoCommit={(RepoCommit != null ? RepoCommit.Cid?.ToString() ?? "null" : "null")}");
+        _logger.LogInfo($"  MstNodes={MstNodes.Count}");
+        _logger.LogInfo($"  RepoRecords={RepoRecords.Count}");
+        _logger.LogInfo("");
     }
 
 

@@ -85,14 +85,11 @@ public class Pds
         // Load repo
         //
         var repo = new PdsRepo(pdsDb, logger, commitSigningFunction, config.UserDid);
-        var repoCommit = pdsDb.GetRepoCommit();
-        logger.LogInfo($"Current commit: {repoCommit?.Cid?.ToString() ?? "null"}");
 
 
         //
         // Configure to listen
         //
-        logger.LogInfo($"Starting minimal API with {config.ListenScheme.ToUpper()} on port {config.ListenPort}...");
         var builder = WebApplication.CreateBuilder();
 
         
@@ -168,23 +165,22 @@ public class Pds
         });
 
 
-        Logger.LogInfo("");
         Logger.LogInfo("Mapped XRPC endpoints:");
         Logger.LogInfo("");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/hello");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.uploadBlob");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.listBlobs");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getBlob");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.actor.getPreferences");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.actor.putPreferences");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getRepo");
-        Logger.LogInfo($"{Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky -> proxied to app view");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/hello");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/_health");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.describeServer");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.identity.resolveHandle");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.createSession");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.refreshSession");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.getSession");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.uploadBlob");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.listBlobs");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getBlob");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.actor.getPreferences");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.actor.putPreferences");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getRepo");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky -> proxied to app view");
         Logger.LogInfo("");
     }
 
