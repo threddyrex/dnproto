@@ -40,7 +40,7 @@ namespace dnproto.pds;
 */
 
 
-public class Mst
+public class PdsRepo
 {
     private PdsDb _db;
 
@@ -52,7 +52,7 @@ public class Mst
 
     private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     
-    public Mst(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string? userDid = null)
+    public PdsRepo(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string? userDid = null)
     {
         _db = db;
         _logger = logger;
@@ -64,7 +64,7 @@ public class Mst
     /// <summary>
     /// Install a new repo. Should be called only once during the lifetime of the account.
     /// </summary>
-    public static void InstallMst(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string userDid)
+    public static void InstallRepo(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string userDid)
     {
         if(commitSigningFunction == null)
         {

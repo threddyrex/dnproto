@@ -7,9 +7,9 @@ using dnproto.pds.db;
 namespace dnproto.cli.commands
 {
     /// <summary>
-    /// A minimal ASP.NET Core web API that responds to /hello with "world"
+    /// Installs a new repo for the user.
     /// </summary>
-    public class InstallMst : BaseCommand
+    public class InstallRepo : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -42,7 +42,7 @@ namespace dnproto.cli.commands
                 return;
             }
 
-            Mst.InstallMst(pdsDb, Logger, func, pds?.Config.UserDid!);
+            PdsRepo.InstallRepo(pdsDb, Logger, func, pds?.Config.UserDid!);
         }
     }
 }

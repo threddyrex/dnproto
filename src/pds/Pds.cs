@@ -29,7 +29,7 @@ public class Pds
 
     public required Func<byte[], byte[]> CommitSigningFunction;
 
-    public required Mst Mst;
+    public required PdsRepo Repo;
 
 
     /// <summary>
@@ -84,7 +84,7 @@ public class Pds
         //
         // Load repo
         //
-        var mst = new Mst(pdsDb, logger, commitSigningFunction, config.UserDid);
+        var repo = new PdsRepo(pdsDb, logger, commitSigningFunction, config.UserDid);
         var repoCommit = pdsDb.GetRepoCommit();
         logger.LogInfo($"Current commit: {repoCommit?.Cid?.ToString() ?? "null"}");
 
@@ -115,7 +115,7 @@ public class Pds
             PdsDb = pdsDb,
             App = app,
             CommitSigningFunction = commitSigningFunction,
-            Mst = mst
+            Repo = repo
         };
 
 
@@ -318,9 +318,9 @@ public class Pds
 
 
         //
-        // Install new mst repo
+        // Install new repo
         //
-        Mst.InstallMst(pdsDb, Logger, commitSigningFunction, userDid!);
+        PdsRepo.InstallRepo(pdsDb, Logger, commitSigningFunction, userDid!);
 
 
         //
