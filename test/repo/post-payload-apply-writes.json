@@ -1,0 +1,19 @@
+{
+    "repo": "did:plc:l6fxvp2iu2h53auxadff3oyb",
+    "writes": [
+        {
+            "$type": "com.atproto.repo.applyWrites#create",
+            "collection": "app.bsky.feed.post",
+            "rkey": "3mb6eho3c722k",
+            "value": {
+                "$type": "app.bsky.feed.post",
+                "createdAt": "2025-12-30T03:03:39.429Z",
+                "text": "hello world",
+                "langs": [
+                    "en"
+                ]
+            }
+        }
+    ],
+    "validate": true
+}

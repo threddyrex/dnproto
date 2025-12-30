@@ -529,6 +529,245 @@ public class DagCborObject
     }
 
 
+    /// <summary>
+    /// Parses a JSON string into a DagCborObject.
+    /// </summary>
+    /// <param name="jsonString"></param>
+    /// <returns></returns>
+    public static DagCborObject FromJsonString(string jsonString)
+    {
+        object? o = JsonData.ConvertJsonStringToObject(jsonString);
+        DagCborObject dagCborObject = DagCborObject.FromRawValue(o);
+        return dagCborObject;
+    }
+
+    /// <summary>
+    /// Creates a DagCborObject from a raw value (useful for converting from JSON).
+    /// This is the inverse of GetRawValue().
+    /// </summary>
+    /// <param name="value">The raw value to convert</param>
+    /// <returns>A DagCborObject representing the value</returns>
+    /// <exception cref="Exception"></exception>
+    public static DagCborObject FromRawValue(object? value)
+    {
+        if(value == null)
+        {
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_SIMPLE_VALUE,
+                    AdditionalInfo = 0x16,
+                    OriginalByte = (byte)((DagCborType.TYPE_SIMPLE_VALUE << 5) | 0x16)
+                },
+                Value = "null"
+            };
+        }
+        else if(value is bool boolValue)
+        {
+            byte additionalInfo = boolValue ? (byte)0x15 : (byte)0x14;
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_SIMPLE_VALUE,
+                    AdditionalInfo = additionalInfo,
+                    OriginalByte = (byte)((DagCborType.TYPE_SIMPLE_VALUE << 5) | additionalInfo)
+                },
+                Value = boolValue
+            };
+        }
+        else if(value is int intValue)
+        {
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_UNSIGNED_INT,
+                    AdditionalInfo = 0,
+                    OriginalByte = 0
+                },
+                Value = intValue
+            };
+        }
+        else if(value is long longValue)
+        {
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_UNSIGNED_INT,
+                    AdditionalInfo = 0,
+                    OriginalByte = 0
+                },
+                Value = (int)longValue
+            };
+        }
+        else if(value is string stringValue)
+        {
+            // Check if it's a CID (starts with "b" for base32)
+            // CIDv1 with SHA-256 has minimum length of 59 characters
+            if(stringValue.StartsWith("b") && stringValue.Length >= 59)
+            {
+                // Additional validation: check if characters are valid base32 (a-z, 2-7)
+                bool isValidBase32 = true;
+                for(int i = 1; i < stringValue.Length && i < 100; i++) // Check first 100 chars for performance
+                {
+                    char c = stringValue[i];
+                    if (!((c >= 'a' && c <= 'z') || (c >= '2' && c <= '7')))
+                    {
+                        isValidBase32 = false;
+                        break;
+                    }
+                }
+
+                if(isValidBase32)
+                {
+                    try
+                    {
+                        CidV1 cid = CidV1.FromBase32(stringValue);
+                        return new DagCborObject
+                        {
+                            Type = new DagCborType
+                            {
+                                MajorType = DagCborType.TYPE_TAG,
+                                AdditionalInfo = 24,
+                                OriginalByte = 0
+                            },
+                            Value = cid
+                        };
+                    }
+                    catch
+                    {
+                        // Not a valid CID, treat as regular string
+                    }
+                }
+            }
+
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_TEXT,
+                    AdditionalInfo = 0,
+                    OriginalByte = 0
+                },
+                Value = stringValue
+            };
+        }
+        else if(value is byte[] byteArray)
+        {
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_BYTE_STRING,
+                    AdditionalInfo = 0,
+                    OriginalByte = 0
+                },
+                Value = byteArray
+            };
+        }
+        else if(value is System.Text.Json.JsonElement jsonElement)
+        {
+            return FromJsonElement(jsonElement);
+        }
+        else if(value is List<object> list)
+        {
+            List<DagCborObject> cborList = new List<DagCborObject>();
+            foreach(var item in list)
+            {
+                cborList.Add(FromRawValue(item));
+            }
+
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_ARRAY,
+                    AdditionalInfo = 0,
+                    OriginalByte = 0
+                },
+                Value = cborList
+            };
+        }
+        else if(value is Dictionary<string, object> dict)
+        {
+            Dictionary<string, DagCborObject> cborDict = new Dictionary<string, DagCborObject>();
+            foreach(var kvp in dict)
+            {
+                cborDict[kvp.Key] = FromRawValue(kvp.Value);
+            }
+
+            return new DagCborObject
+            {
+                Type = new DagCborType
+                {
+                    MajorType = DagCborType.TYPE_MAP,
+                    AdditionalInfo = 0,
+                    OriginalByte = 0
+                },
+                Value = cborDict
+            };
+        }
+        else
+        {
+            throw new Exception($"Cannot convert type {value.GetType().Name} to DagCborObject");
+        }
+    }
+
+    /// <summary>
+    /// Helper method to convert System.Text.Json.JsonElement to DagCborObject.
+    /// </summary>
+    private static DagCborObject FromJsonElement(System.Text.Json.JsonElement element)
+    {
+        switch(element.ValueKind)
+        {
+            case System.Text.Json.JsonValueKind.Null:
+                return FromRawValue(null);
+            
+            case System.Text.Json.JsonValueKind.True:
+                return FromRawValue(true);
+            
+            case System.Text.Json.JsonValueKind.False:
+                return FromRawValue(false);
+            
+            case System.Text.Json.JsonValueKind.Number:
+                if(element.TryGetInt32(out int intVal))
+                    return FromRawValue(intVal);
+                if(element.TryGetInt64(out long longVal))
+                    return FromRawValue((int)longVal);
+                throw new Exception("Number too large for int32");
+            
+            case System.Text.Json.JsonValueKind.String:
+                return FromRawValue(element.GetString());
+            
+            case System.Text.Json.JsonValueKind.Array:
+                List<object> list = new List<object>();
+                foreach(var item in element.EnumerateArray())
+                {
+                    var rawValue = FromJsonElement(item).GetRawValue();
+                    if(rawValue != null)
+                        list.Add(rawValue);
+                }
+                return FromRawValue(list);
+            
+            case System.Text.Json.JsonValueKind.Object:
+                Dictionary<string, object> dict = new Dictionary<string, object>();
+                foreach(var prop in element.EnumerateObject())
+                {
+                    var rawValue = FromJsonElement(prop.Value).GetRawValue();
+                    if(rawValue != null)
+                        dict[prop.Name] = rawValue;
+                }
+                return FromRawValue(dict);
+            
+            default:
+                throw new Exception($"Unsupported JsonValueKind: {element.ValueKind}");
+        }
+    }
+
+
 }
 
 public class DagCborType

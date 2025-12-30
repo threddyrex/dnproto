@@ -752,4 +752,31 @@ public class DagCborObjectTests
         Assert.Equal(cid.DigestBytes, imageCid.DigestBytes);
         Assert.Equal("A test image", imageObj["alt"].Value);
     }
+
+
+    [Fact]
+    public void ParseJsonToDagCborObject()
+    {
+        // Read test JSON file from the output directory
+        string testDir = Path.GetDirectoryName(typeof(DagCborObjectTests).Assembly.Location)!;
+        string jsonFilePath = Path.Combine(testDir, "repo", "post-payload-apply-writes.json");
+        string jsonContent = File.ReadAllText(jsonFilePath);
+        DagCborObject dagCborObject = DagCborObject.FromJsonString(jsonContent);
+
+        Assert.Equal(DagCborType.TYPE_MAP, dagCborObject.Type.MajorType);
+
+        Dictionary<string, object>? rawObject = (Dictionary<string, object>?)dagCborObject.GetRawValue();
+
+        Assert.Equal("did:plc:l6fxvp2iu2h53auxadff3oyb", rawObject?["repo"]);
+
+        List<object>? writes = rawObject?["writes"] as List<object>;
+
+        Assert.NotNull(writes);
+        Assert.Single(writes!);
+
+        Dictionary<string, object>? firstWrite = writes![0] as Dictionary<string, object>;
+
+        Assert.Equal("com.atproto.repo.applyWrites#create", firstWrite?["$type"]);
+        
+    }
 }
