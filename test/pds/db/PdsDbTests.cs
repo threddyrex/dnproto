@@ -68,6 +68,58 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.True(dbFileExists);
     }
 
+    #region CONFIG
+
+    [Fact]
+    public void Config_InsertAndRetrieve()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+
+        var configToInsert = new DbConfig
+        {
+            ListenScheme = "http",
+            ListenHost = "localhost",
+            ListenPort = 8080,
+            PdsDid = "did:example:123456789abcdefghi",
+            PdsHostname = "example.com",
+            AvailableUserDomain = "users.example.com",
+            AdminHashedPassword = "hashed_admin_password",
+            JwtSecret = "super_secret_jwt_key",
+            UserHandle = "testuser",
+            UserDid = "did:example:user123",
+            UserHashedPassword = "hashed_user_password",
+            UserEmail = "user@example.com",
+            UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
+            UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample"
+        };
+        // Act
+        pdsDb!.InsertConfig(configToInsert);
+        var retrievedConfig = pdsDb.GetConfig();
+        int configCount = pdsDb.GetConfigCount();
+
+        // Assert
+        Assert.NotNull(retrievedConfig);
+        Assert.Equal(configToInsert.ListenScheme, retrievedConfig!.ListenScheme);
+        Assert.Equal(configToInsert.ListenHost, retrievedConfig.ListenHost);
+        Assert.Equal(configToInsert.ListenPort, retrievedConfig.ListenPort);
+        Assert.Equal(configToInsert.PdsDid, retrievedConfig.PdsDid);
+        Assert.Equal(configToInsert.PdsHostname, retrievedConfig.PdsHostname);
+        Assert.Equal(configToInsert.AvailableUserDomain, retrievedConfig.AvailableUserDomain);
+        Assert.Equal(configToInsert.AdminHashedPassword, retrievedConfig.AdminHashedPassword);
+        Assert.Equal(configToInsert.JwtSecret, retrievedConfig.JwtSecret);
+        Assert.Equal(configToInsert.UserHandle, retrievedConfig.UserHandle);
+        Assert.Equal(configToInsert.UserDid, retrievedConfig.UserDid);
+        Assert.Equal(configToInsert.UserHashedPassword, retrievedConfig.UserHashedPassword);
+        Assert.Equal(configToInsert.UserEmail, retrievedConfig.UserEmail);
+        Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
+        Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
+        Assert.Equal(1, configCount);
+    }
+
+    #endregion
+
+
     #region REPOHDR
 
     [Fact]
