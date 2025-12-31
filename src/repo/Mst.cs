@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 
 namespace dnproto.repo;
 
@@ -7,11 +9,13 @@ namespace dnproto.repo;
 /// </summary>
 public class Mst
 {
+    CidV1 _rootCid;
     List<MstNode> _mstNodes;
     List<MstEntry> _mstEntries;
     
-    public Mst(List<MstNode> mstNodes, List<MstEntry> mstEntries)
+    public Mst(CidV1 rootCid, List<MstNode> mstNodes, List<MstEntry> mstEntries)
     {
+        _rootCid = rootCid;
         _mstNodes = mstNodes;
         _mstEntries = mstEntries;
     }
@@ -70,6 +74,77 @@ public class Mst
 
         return allMstEntriesByNode;
 
+    }
+
+    /// <summary>
+    /// Calculate the depth of a key (string version).
+    /// Converts string to UTF-8 bytes first.
+    /// </summary>
+    public static int GetKeyDepth(string key)
+    {
+        return GetKeyDepth(Encoding.UTF8.GetBytes(key));
+    }
+
+
+
+    /// <summary>
+    /// Calculate the depth of a key using SHA-256 hash.
+    /// 
+    /// Per the spec:
+    /// - Hash the key with SHA-256 (binary output)
+    /// - Count leading zeros in 2-bit chunks
+    /// - This gives a fanout of 4
+    /// 
+    /// Examples from spec:
+    /// - "2653ae71" -> depth 0
+    /// - "blue" -> depth 1
+    /// - "app.bsky.feed.post/454397e440ec" -> depth 4
+    /// - "app.bsky.feed.post/9adeb165882c" -> depth 8
+    /// </summary>
+    public static int GetKeyDepth(byte[] key)
+    {
+        // Hash the key with SHA-256
+        byte[] hash = SHA256.HashData(key);
+
+        // Count leading zeros in 2-bit chunks
+        int leadingZeros = 0;
+        foreach (byte b in hash)
+        {
+            if (b == 0)
+            {
+                leadingZeros += 8; // All 8 bits are zero
+            }
+            else
+            {
+                // Count leading zeros in this byte
+                int mask = 0x80;
+                for (int i = 0; i < 8; i++)
+                {
+                    if ((b & mask) == 0)
+                    {
+                        leadingZeros++;
+                        mask >>= 1;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // Divide by 2 to get 2-bit chunks
+        return leadingZeros / 2;
+    }
+
+
+
+    public void Put(string key, DagCborObject recordObject)
+    {
+        //
+        // Find the right node to put into
+        //
     }
     
 }

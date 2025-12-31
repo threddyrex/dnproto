@@ -11,25 +11,26 @@ namespace dnproto.pds;
 /// </summary>
 /*
     ✅ RepoHeader (only one)
-        CidV1 RepoCommitCid (points to repocomitcid)
+        CidV1 RepoCommitCid (points to RepoCommit)
         Int Version
 
     ✅ RepoCommit (only one)
-        Int Version (always 3)
+        int Version (always 3)
         CidV1 Cid;
         CidV1 RootMstNodeCid;
-        String Rev (increases monotonically, typically timestamp)
+        string Rev (increases monotonically, typically timestamp)
         CidV1? PrevMstNodeCid (usually null)
-        String Signature (base 64 encoded)
+        string Signature
 
     ✅ MstNode (0 or more)
         CidV1 Cid
-        "l" - String? LeftMstNodeCid
+        "l" - CidV1? LeftMstNodeCid (optional to a sub-tree node)
 
     ✅ MstEntry (0 or more)
         CidV1 MstNodeCid
-        "k" - String KeySuffix (plaintext - we can convert to base64 later)
-        "p" - Int PrefixLength
+        int EntryIndex (0-based index within parent MstNode)
+        "k" - string KeySuffix
+        "p" - int PrefixLength
         "t" - CidV1? TreeMstNodeCid
         "v" - CidV1 RecordCid (cid of atproto record)
 
@@ -200,12 +201,13 @@ public class UserRepo
 
             await WriteBlockAsync(stream, repoCommitCid, repoCommitDagCbor);
 
+
             //
             // MST Nodes
             //
             var allMstNodes = _db.GetAllMstNodes();
             var allMstEntries = _db.GetAllMstEntries();
-            var mst = new Mst(allMstNodes, allMstEntries);
+            var mst = new Mst(repoCommit.Cid!, allMstNodes, allMstEntries);
             Dictionary<CidV1, List<MstEntry>> allMstEntriesByNode = mst.GetMstEntriesByNode();
 
             foreach (MstNode mstNode in allMstNodes)
@@ -285,9 +287,10 @@ public class UserRepo
         //
         // Load MST
         //
+        var repoCommit = _db.GetRepoCommit();
         var allMstNodes = _db.GetAllMstNodes();
         var allMstEntries = _db.GetAllMstEntries();
-        var mst = new Mst(allMstNodes, allMstEntries);
+        var mst = new Mst(repoCommit?.Cid!, allMstNodes, allMstEntries);
 
 
         //
@@ -300,6 +303,12 @@ public class UserRepo
             return;
         }
 
+
+
+        //
+        // Put into MST
+        //
+        mst.Put("app.bsky.actor.profile/self", profileObject);
 
 
     }

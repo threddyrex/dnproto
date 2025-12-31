@@ -32,7 +32,7 @@ public class MstTests
             }
         };
 
-        var mst = new Mst(mstNodes, mstEntries);
+        var mst = new Mst(CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"), mstNodes, mstEntries);
 
         // Act
         bool exists = mst.KeyExists("app.bsky.actor.profile/self");
@@ -78,7 +78,7 @@ public class MstTests
             }
         };
 
-        var mst = new Mst(mstNodes, mstEntries);
+        var mst = new Mst(mstNodes[0].Cid!, mstNodes, mstEntries);
 
         // Act
         bool exists = mst.KeyExists("app.bsky.actor.profile/other");
@@ -86,5 +86,15 @@ public class MstTests
         // Assert
         Assert.True(exists);
 
+    }
+
+
+    [Fact]
+    public void GetKeyDepth()
+    {
+        Assert.Equal(0, Mst.GetKeyDepth("2653ae71"));
+        Assert.Equal(1, Mst.GetKeyDepth("blue"));
+        Assert.Equal(4, Mst.GetKeyDepth("app.bsky.feed.post/454397e440ec"));
+        Assert.Equal(8, Mst.GetKeyDepth("app.bsky.feed.post/9adeb165882c"));
     }
 }
