@@ -303,10 +303,16 @@ public class UserRepo
         // Put into MST
         //
         CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
-        CidV1 newMstNodeCid = mst.PutEntry("app.bsky.actor.profile/self", recordCid);
+
+        (CidV1 originalRootMstNodeCid, 
+            CidV1 newRootMstNodeCid, 
+            List<CidV1> updatedCids) = mst.PutEntry("app.bsky.actor.profile/self", recordCid);
 
 
         // TODO: stopped here
+        // We will use updatedCids to update the repo commit and repo header.
+        // updatedCids contains all the cids that were changed during the PutEntry operation,
+        // including the new root MST node cid. All of these will be sent in firehose event.
     }
 
     #endregion

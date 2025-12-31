@@ -1,5 +1,9 @@
 
 
+using System.Security.Cryptography;
+using System.Text;
+
+
 namespace dnproto.repo;
 
 /// <summary>
@@ -138,6 +142,12 @@ public class MstEntry
         return entry;
     }
 
+
+    /// <summary>
+    /// Get full key for this entry given the previous full key
+    /// </summary>
+    /// <param name="previousKey"></param>
+    /// <returns></returns>
     public string GetFullKey(string? previousKey)
     {
         if(EntryIndex == 0 || previousKey == null)
@@ -149,4 +159,197 @@ public class MstEntry
             return previousKey.Substring(0, PrefixLength) + (KeySuffix ?? string.Empty);
         }
     }
+
+
+    #region STATIC
+
+    /// <summary>
+    /// Get full keys for a list of entries
+    /// </summary>
+    /// <param name="entries"></param>
+    /// <returns></returns>
+    public static List<string> GetFullKeys(List<MstEntry> entries)
+    {
+        var fullKeys = new List<string>();
+        string? previousFullKey = null;
+
+        for(int i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+
+            if(i == 0)
+            {
+                previousFullKey = entry.KeySuffix;
+                fullKeys.Add(previousFullKey!);
+                continue;
+            }
+            else
+            {
+                string fullKey = entry.GetFullKey(previousFullKey);
+                fullKeys.Add(fullKey);
+                previousFullKey = fullKey;
+                continue;
+            }
+        }
+
+        return fullKeys;
+    }
+
+
+
+
+    /// <summary>
+    /// Loop through list of entries and fix their EntryIndex values (0 to n-1).
+    /// </summary>
+    /// <param name="entries"></param>
+    public static void FixEntryIndexes(List<MstEntry> entries)
+    {
+        for(int i = 0; i < entries.Count; i++)
+        {
+            entries[i].EntryIndex = i;
+        }
+    }
+
+    /// <summary>
+    /// Fix the PrefixLength and KeySuffix values for the given entries.
+    /// </summary>
+    /// <param name="entries"></param>
+    public static void FixPrefixLengths(List<MstEntry> entries)
+    {
+        string previousFullKey = string.Empty;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            if (i == 0)
+            {
+                entry.PrefixLength = 0;
+                previousFullKey = entry.KeySuffix!;
+            }
+            else
+            {
+                var entryFullKey = entry.GetFullKey(previousFullKey);
+                int prefixLen = GetCommonPrefixLength(previousFullKey, entryFullKey);
+                entry.PrefixLength = prefixLen;
+                entry.KeySuffix = entryFullKey.Substring(prefixLen);
+                previousFullKey = entryFullKey;
+            }
+        }
+    }
+
+    public static void FixEntryNodeCids(List<MstEntry> entries, CidV1 mstNodeCid)
+    {
+        foreach(var entry in entries)
+        {
+            entry.MstNodeCid = mstNodeCid;
+        }
+    }
+
+    
+    /// <summary>
+    /// Get the length of the common prefix between two keys.
+    /// </summary>
+    public static int GetCommonPrefixLength(string a, string b)
+    {
+        int len = 0;
+        int minLen = Math.Min(a.Length, b.Length);
+        
+        for (int i = 0; i < minLen; i++)
+        {
+            if (a[i] == b[i])
+            {
+                len++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        return len;
+    }
+
+    /// <summary>
+    /// Calculate the depth of a key (string version).
+    /// Converts string to UTF-8 bytes first.
+    /// </summary>
+    public static int GetKeyDepth(string key)
+    {
+        return GetKeyDepth(Encoding.UTF8.GetBytes(key));
+    }
+
+
+
+    /// <summary>
+    /// Calculate the depth of a key using SHA-256 hash.
+    /// 
+    /// Per the spec:
+    /// - Hash the key with SHA-256 (binary output)
+    /// - Count leading zeros in 2-bit chunks
+    /// - This gives a fanout of 4
+    /// 
+    /// Examples from spec:
+    /// - "2653ae71" -> depth 0
+    /// - "blue" -> depth 1
+    /// - "app.bsky.feed.post/454397e440ec" -> depth 4
+    /// - "app.bsky.feed.post/9adeb165882c" -> depth 8
+    /// </summary>
+    public static int GetKeyDepth(byte[] key)
+    {
+        // Hash the key with SHA-256
+        byte[] hash = SHA256.HashData(key);
+
+        // Count leading zeros in 2-bit chunks
+        int leadingZeros = 0;
+        foreach (byte b in hash)
+        {
+            if (b == 0)
+            {
+                leadingZeros += 8; // All 8 bits are zero
+            }
+            else
+            {
+                // Count leading zeros in this byte
+                int mask = 0x80;
+                for (int i = 0; i < 8; i++)
+                {
+                    if ((b & mask) == 0)
+                    {
+                        leadingZeros++;
+                        mask >>= 1;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // Divide by 2 to get 2-bit chunks
+        return leadingZeros / 2;
+    }
+
+
+
+    /// <summary>
+    /// Compare two keys lexicographically.
+    /// </summary>
+    public static int CompareKeys(string a, string b)
+    {
+        int minLen = Math.Min(a.Length, b.Length);
+        for (int i = 0; i < minLen; i++)
+        {
+            if (a[i] != b[i])
+            {
+                return a[i] - b[i];
+            }
+        }
+        return a.Length - b.Length;
+    }
+
+
+    #endregion
+
+
 }
