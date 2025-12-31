@@ -22,7 +22,7 @@ public class MstTestsFixture : IDisposable
     public MstTestsFixture()
     {
         Logger.AddDestination(new ConsoleLogDestination());
-        string tempDir = Path.Combine(Path.GetTempPath(), "dnproto-tests-data-dir");
+        string tempDir = Path.Combine(Path.GetTempPath(), "mst-tests-data-dir");
         Logger.LogInfo($"Using temp dir for tests: {tempDir}");
 
         if(!Directory.Exists(tempDir))
@@ -210,9 +210,20 @@ public class MstTests : IClassFixture<MstTestsFixture>
         mstEntries[0].EntryIndex = 6;
         mstEntries[1].EntryIndex = 7;
 
-        mst.FixEntryIndices(mstEntries);
+        mst.FixEntryIndexes(mstEntries);
         Assert.Equal(0, mstEntries[0].EntryIndex);
         Assert.Equal(1, mstEntries[1].EntryIndex);
 
+    }
+
+    [Fact]
+    public void GetCommonPrefixLength_Test()
+    {
+        var mst = new Mst(_fixture.PdsDb!);
+        Assert.Equal(0, mst.GetCommonPrefixLength("apple", "banana"));
+        Assert.Equal(3, mst.GetCommonPrefixLength("application", "appetite"));
+        Assert.Equal(5, mst.GetCommonPrefixLength("hello", "hello"));
+        Assert.Equal(0, mst.GetCommonPrefixLength("short", "longer"));
+        Assert.Equal(6, mst.GetCommonPrefixLength("prefixes", "prefixation"));
     }
 }

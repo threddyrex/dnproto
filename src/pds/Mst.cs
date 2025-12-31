@@ -7,33 +7,16 @@ namespace dnproto.pds;
 
 
 /// <summary>
-/// MST logic layered on top of PdsDb.
+/// MST implementation, backed by database.
 /// </summary>
 public class Mst
 {
     private PdsDb _db;
 
-    private Dictionary<CidV1, MstNode>? _mstNodeCache = null;
-    private Dictionary<CidV1, List<MstEntry>>? _mstEntryCache = null;
-
     public Mst(PdsDb db)
     {
         _db = db;
-
-        _mstNodeCache = _db.GetAllMstNodes().ToDictionary(n => n.Cid!);
-        _mstEntryCache = GetMstEntriesByNode();
     }
-
-    public List<MstNode> GetAllMstNodes()
-    {
-        return _mstNodeCache!.Values.ToList();
-    }
-
-    public Dictionary<CidV1, List<MstEntry>> GetAllMstEntriesByNode()
-    {
-        return _mstEntryCache!;
-    }
-
 
 
     /// <summary>
@@ -155,52 +138,78 @@ public class Mst
     }
 
 
-
+    #region PUT
 
     /// <summary>
     /// Put an entry into the MST stored in the database.
+    /// It recursively calls InternalPutEntry to find the right place to insert the entry.
+    /// For the part of the tree where an update happens, all of the cids from that location 
+    /// all the way to the root *will be* recalculated. 
+    /// (because a cid is a hash of the node and its entries).
+    /// Db updates happen inside InternalPutEntry.
     /// </summary>
     /// <param name="db"></param>
     /// <param name="key"></param>
     /// <param name="recordCid"></param>
-    public void PutEntry(string key, CidV1 recordCid)
+    public CidV1 PutEntry(string key, CidV1 recordCid)
     {
         //
         // Load from db
         //
         var repoCommit = _db.GetRepoCommit();
-        var mstNodeRoot = _mstNodeCache![repoCommit!.RootMstNodeCid!];
+        var mstNodeRoot = _db.GetMstNode(repoCommit!.RootMstNodeCid!);
 
-        InternalPutEntry(key, recordCid, mstNodeRoot, currentDepth: 0);
+        var newCid = PutEntryAtNode(key, recordCid, mstNodeRoot!, currentDepth: 0);
+
+        return newCid;
     }
 
 
-    private void InternalPutEntry(string key, CidV1 recordCid, MstNode currentNode, int currentDepth)
+    /// <summary>
+    /// Internal recursive function to put an entry into the MST.
+    /// Returns the cid for currentNode (because cids often change - they are a hash of the MST node).
+    /// </summary>
+    private CidV1 PutEntryAtNode(string key, CidV1 recordCid, MstNode currentNode, int currentDepth)
     {
         int keyDepth = GetKeyDepth(key);
         string prefix = "";
+        var entries = _db.GetMstEntriesForNode(currentNode.Cid!);
 
         //
-        // if we're at the right depth, insert here
+        // If depths are equal, we insert at *this* MstNode.
         //
         if(keyDepth == currentDepth)
         {
-            var entries = _mstEntryCache![currentNode.Cid!] ?? new List<MstEntry>();
             int insertIndex = 0;
 
+            //
+            // Loop through entries to find insert position.
+            //
             for(int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 string fullKey = entry.GetFullKey(prefix);
                 int comparison = CompareKeys(key, fullKey);
 
-                // ✅
+                //
+                // Key exists already - update it.
+                //
                 if(comparison == 0)
                 {
-                    // Key already exists, update recordCid and then update db.
                     entry.RecordCid = recordCid;
-                    _db.ReplaceMstEntriesForNode(currentNode.Cid, entries); // ➡️
-                    return;
+
+                    //
+                    // 🚨 DB UPDATE 🚨
+                    //
+                    CidV1 oldCid1 = currentNode.Cid!;
+                    currentNode.Cid = CidV1.ComputeCidForDagCbor(currentNode.ToDagCborObject(entries))!;
+
+                    _db.ReplaceMstNode(
+                        oldCid1, // old cid
+                        currentNode, // node
+                        entries); // entries
+
+                    return currentNode.Cid!;
                 }
                 else if(comparison < 0)
                 {
@@ -219,20 +228,16 @@ public class Mst
             {
                 var prevEntry = entries[insertIndex - 1];
                 string prevFullKey = prevEntry.GetFullKey(prefix);
-                while (prefixLength < prevFullKey.Length && prefixLength < key.Length &&
-                       prevFullKey[prefixLength] == key[prefixLength])
-                {
-                    prefixLength++;
-                }
+                prefixLength = GetCommonPrefixLength(key, prevFullKey);
             }
 
             // create new entry
             var newEntry = new MstEntry
             {
                 MstNodeCid = currentNode.Cid,
-                EntryIndex = insertIndex,
-                KeySuffix = key.Substring(prefixLength),
-                PrefixLength = prefixLength,
+                EntryIndex = insertIndex, // gets fixed later
+                KeySuffix = key.Substring(prefixLength), // gets fixed later
+                PrefixLength = prefixLength, // gets fixed later
                 TreeMstNodeCid = null,
                 RecordCid = recordCid
             };
@@ -240,21 +245,94 @@ public class Mst
             entries.Insert(insertIndex, newEntry);
 
             // fix entry indices (0 -> n-1)
-            FixEntryIndices(entries);
+            FixEntryIndexes(entries);
 
-            //
-            // TODO: stopped here 📝
-            //
             // fix prefix lengths
-            
+            FixPrefixLengths(entries);
 
-            // replace in db
+            //
+            // 🚨 DB UPDATE 🚨
+            //
+            CidV1 oldCid2 = currentNode.Cid!;
+            currentNode.Cid = CidV1.ComputeCidForDagCbor(currentNode.ToDagCborObject(entries))!;
+
+            _db.ReplaceMstNode(
+                oldCid2, // old cid
+                currentNode, // node
+                entries); // entries
+
+            return currentNode.Cid!;
+
         }
         //
-        // otherwise, go to next level
+        // Otherwise, we need to go to next level.
+        // This could either mean:
+        //      1 - the sub-tree of MstNode.LeftMstNodeCid, OR
+        //      2 - the sub-tree of one of the entries' TreeMstNodeCid. 
         //
         else
         {
+            int insertPos = 0;
+
+            for (int i = 0; i < entries.Count; i++)
+            {
+                var entry = entries[i];
+                string entryKey = entry.GetFullKey(prefix);
+                
+                if (CompareKeys(key, entryKey) < 0)
+                {
+                    break;
+                }
+                
+                prefix = entryKey;
+                insertPos = i + 1;
+            }
+            /* TODO: stopped here
+            if(insertPos == 0)
+            {
+                // Go to left subtree
+                MstNode? leftNode = null;
+                if (currentNode.LeftMstNodeCid != null)
+                {
+                    leftNode = _db.GetMstNode(currentNode.LeftMstNodeCid);
+                }
+                else
+                {
+                    // Create new left node
+                    leftNode = new MstNode();
+                    _db.InsertMstNode(leftNode);
+                    currentNode.LeftMstNodeCid = leftNode.Cid;
+                    _db.UpdateMstNode(currentNode);
+                    _mstNodeCache![currentNode.Cid!] = currentNode;
+                    _mstNodeCache![leftNode.Cid!] = leftNode;
+                }
+
+                // Recurse
+                InternalPutEntry(key, recordCid, leftNode, currentDepth + 1);
+            }
+            else
+            {
+                // Go to right subtree of the selected entry
+                var selectedEntry = entries[insertPos - 1];
+                MstNode? rightNode = null;
+                if (selectedEntry.TreeMstNodeCid != null)
+                {
+                    rightNode = _mstNodeCache![selectedEntry.TreeMstNodeCid];
+                }
+                else
+                {
+                    // Create new right node
+                    rightNode = new MstNode();
+                    _db.InsertMstNode(rightNode);
+                    selectedEntry.TreeMstNodeCid = rightNode.Cid;
+                    _db.UpdateMstEntry(selectedEntry);
+                    _mstNodeCache![rightNode.Cid!] = rightNode;
+                }
+
+                // Recurse
+                InternalPutEntry(key, recordCid, rightNode, currentDepth + 1);
+            }*/
+            return currentNode.Cid!;
         }
     }
 
@@ -275,12 +353,72 @@ public class Mst
     }
 
 
-    public void FixEntryIndices(List<MstEntry> entries)
+    /// <summary>
+    /// Loop through list of entries and fix their EntryIndex values (0 to n-1).
+    /// </summary>
+    /// <param name="entries"></param>
+    public void FixEntryIndexes(List<MstEntry> entries)
     {
         for(int i = 0; i < entries.Count; i++)
         {
             entries[i].EntryIndex = i;
         }
     }
+
+    /// <summary>
+    /// Fix the PrefixLength and KeySuffix values for the given entries.
+    /// </summary>
+    /// <param name="entries"></param>
+    public void FixPrefixLengths(List<MstEntry> entries)
+    {
+        string previousFullKey = string.Empty;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            if (i == 0)
+            {
+                entry.PrefixLength = 0;
+                previousFullKey = entry.KeySuffix!;
+            }
+            else
+            {
+                var entryFullKey = entry.GetFullKey(previousFullKey);
+                int prefixLen = GetCommonPrefixLength(previousFullKey, entryFullKey);
+                entry.PrefixLength = prefixLen;
+                entry.KeySuffix = entryFullKey.Substring(prefixLen);
+                previousFullKey = entryFullKey;
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Get the length of the common prefix between two keys.
+    /// </summary>
+    public int GetCommonPrefixLength(string a, string b)
+    {
+        int len = 0;
+        int minLen = Math.Min(a.Length, b.Length);
+        
+        for (int i = 0; i < minLen; i++)
+        {
+            if (a[i] == b[i])
+            {
+                len++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        return len;
+    }
+
+
+
+
+    #endregion
+
 
 }

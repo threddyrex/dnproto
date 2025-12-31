@@ -206,8 +206,8 @@ public class UserRepo
             // MST Nodes
             //
             var mst = new Mst(_db);
-            var allMstNodes = mst.GetAllMstNodes();
-            var allMstEntriesByNode = mst.GetAllMstEntriesByNode();
+            var allMstNodes = _db.GetAllMstNodes();
+            var allMstEntriesByNode = _db.GetAllMstEntriesByNode();
             foreach (MstNode mstNode in allMstNodes)
             {
                 if (mstNode.Cid == null)
@@ -303,7 +303,7 @@ public class UserRepo
         // Put into MST
         //
         CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
-        mst.PutEntry("app.bsky.actor.profile/self", recordCid);
+        CidV1 newMstNodeCid = mst.PutEntry("app.bsky.actor.profile/self", recordCid);
 
 
         // TODO: stopped here

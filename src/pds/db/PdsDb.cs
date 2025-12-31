@@ -966,6 +966,30 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
+
+    public Dictionary<CidV1, List<MstEntry>> GetAllMstEntriesByNode()
+    {
+        List<MstEntry> allEntries = GetAllMstEntries();
+        var dict = new Dictionary<CidV1, List<MstEntry>>();
+
+        foreach(MstEntry entry in allEntries)
+        {
+            if(entry.MstNodeCid == null)
+            {
+                continue;
+            }
+
+            if(!dict.ContainsKey(entry.MstNodeCid))
+            {
+                dict[entry.MstNodeCid] = new List<MstEntry>();
+            }
+
+            dict[entry.MstNodeCid].Add(entry);
+        }
+
+        return dict;
+    }
+
     public void InsertMstEntries(CidV1? nodeCid, List<MstEntry> entries)
     {
         foreach(MstEntry entry in entries)
@@ -1046,6 +1070,22 @@ DELETE FROM MstEntry
         InsertMstEntries(mstNodeCid, entries);
     }
 
+    /// <summary>
+    /// Replaces an existing MST node and its entries with a new node and entries.
+    /// This happens when a sub-tree changed, thus changing the sub-tree's cid,
+    /// which in turn changes this node's cid.
+    /// </summary>
+    /// <param name="oldCid"></param>
+    /// <param name="newCid"></param>
+    /// <param name="mstNode"></param>
+    /// <param name="entries"></param>
+    public void ReplaceMstNode(CidV1 oldCid, MstNode mstNode, List<MstEntry> entries)
+    {
+        DeleteMstNode(oldCid);
+        DeleteMstEntriesForNode(oldCid);
+        InsertMstNode(mstNode);
+        InsertMstEntries(mstNode.Cid!, entries);
+    }
 
     #endregion
 
