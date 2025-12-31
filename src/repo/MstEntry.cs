@@ -137,4 +137,16 @@ public class MstEntry
 
         return entry;
     }
+
+    public string GetFullKey(string? previousKey)
+    {
+        if(EntryIndex == 0 || previousKey == null)
+        {
+            return KeySuffix ?? string.Empty;
+        }
+        else
+        {
+            return previousKey.Substring(0, PrefixLength) + (KeySuffix ?? string.Empty);
+        }
+    }
 }

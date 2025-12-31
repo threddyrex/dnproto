@@ -205,11 +205,9 @@ public class UserRepo
             //
             // MST Nodes
             //
-            var allMstNodes = _db.GetAllMstNodes();
-            var allMstEntries = _db.GetAllMstEntries();
-            var mst = new Mst(repoCommit.Cid!, allMstNodes, allMstEntries);
-            Dictionary<CidV1, List<MstEntry>> allMstEntriesByNode = mst.GetMstEntriesByNode();
-
+            var mst = new Mst(_db);
+            var allMstNodes = mst.GetAllMstNodes();
+            var allMstEntriesByNode = mst.GetAllMstEntriesByNode();
             foreach (MstNode mstNode in allMstNodes)
             {
                 if (mstNode.Cid == null)
@@ -282,16 +280,12 @@ public class UserRepo
 
     #region PROFILE
 
-    public void CreateProfile(DagCborObject profileObject)
+    public void CreateProfile(DagCborObject record)
     {
         //
         // Load MST
         //
-        var repoCommit = _db.GetRepoCommit();
-        var allMstNodes = _db.GetAllMstNodes();
-        var allMstEntries = _db.GetAllMstEntries();
-        var mst = new Mst(repoCommit?.Cid!, allMstNodes, allMstEntries);
-
+        var mst = new Mst(_db);
 
         //
         // Check if profile exists.
@@ -308,9 +302,11 @@ public class UserRepo
         //
         // Put into MST
         //
-        mst.Put("app.bsky.actor.profile/self", profileObject);
+        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
+        mst.PutEntry("app.bsky.actor.profile/self", recordCid);
 
 
+        // TODO: stopped here
     }
 
     #endregion

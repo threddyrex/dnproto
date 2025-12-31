@@ -1035,6 +1035,17 @@ DELETE FROM MstEntry
         }
     }
 
+    public void ReplaceMstEntriesForNode(CidV1? mstNodeCid, List<MstEntry> entries)
+    {
+        if(mstNodeCid == null)
+        {
+            return;
+        }
+
+        DeleteMstEntriesForNode(mstNodeCid);
+        InsertMstEntries(mstNodeCid, entries);
+    }
+
 
     #endregion
 
