@@ -165,4 +165,54 @@ public class MstTests : IClassFixture<MstTestsFixture>
         Assert.True(mst.CompareKeys("app", "apple") < 0);
         Assert.True(mst.CompareKeys("apple", "app") > 0);
     }
+
+
+    [Fact]
+    public void FixEntryIndices()
+    {
+        _fixture.PdsDb!.DeleteAllMstNodes();
+        _fixture.PdsDb.DeleteAllMstEntries();
+
+        // Arrange - Create MST node and entries
+        var mstNode = new MstNode
+        {
+            Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
+            LeftMstNodeCid = null
+        };
+
+        _fixture.PdsDb.InsertMstNode(mstNode);
+
+        var mstEntries = new List<MstEntry>
+        {
+            new MstEntry
+            {
+                MstNodeCid = mstNode.Cid,
+                EntryIndex = 0,
+                KeySuffix = "apple",
+                PrefixLength = 0,
+                TreeMstNodeCid = null,
+                RecordCid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6")
+            },
+            new MstEntry
+            {
+                MstNodeCid = mstNode.Cid,
+                EntryIndex = 1,
+                KeySuffix = "banana",
+                PrefixLength = 0,
+                TreeMstNodeCid = null,
+                RecordCid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6")
+            }
+        };
+        _fixture.PdsDb.InsertMstEntries(mstNode.Cid, mstEntries);
+
+        var mst = new Mst(_fixture.PdsDb);
+
+        mstEntries[0].EntryIndex = 6;
+        mstEntries[1].EntryIndex = 7;
+
+        mst.FixEntryIndices(mstEntries);
+        Assert.Equal(0, mstEntries[0].EntryIndex);
+        Assert.Equal(1, mstEntries[1].EntryIndex);
+
+    }
 }

@@ -239,12 +239,16 @@ public class Mst
 
             entries.Insert(insertIndex, newEntry);
 
-            // TODO: stopped here
+            // fix entry indices (0 -> n-1)
+            FixEntryIndices(entries);
+
+            //
+            // TODO: stopped here 📝
+            //
             // fix prefix lengths
             
-            // fix entry indices
 
-            // replce in db
+            // replace in db
         }
         //
         // otherwise, go to next level
@@ -252,8 +256,6 @@ public class Mst
         else
         {
         }
-
-        // TODO: stopped here
     }
 
     /// <summary>
@@ -270,6 +272,15 @@ public class Mst
             }
         }
         return a.Length - b.Length;
+    }
+
+
+    public void FixEntryIndices(List<MstEntry> entries)
+    {
+        for(int i = 0; i < entries.Count; i++)
+        {
+            entries[i].EntryIndex = i;
+        }
     }
 
 }
