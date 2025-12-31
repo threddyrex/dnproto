@@ -4,7 +4,7 @@
 namespace dnproto.repo;
 
 /// <summary>
-/// MST node
+/// MST node. A node will have 0 or more entries. See MstEntry.
 /// </summary>
 public class MstNode
 {

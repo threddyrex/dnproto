@@ -11,7 +11,12 @@ public class MstEntry
     /// Cid for parent MST node. Helpful for lookups.
     /// </summary>
     public CidV1? MstNodeCid { get; set; } = null;
-    
+
+    /// <summary>
+    /// Index of this entry within the MST node's entries list.
+    /// </summary>
+    public int EntryIndex { get; set; } = 0;
+
     /// <summary>
     /// 
     /// "k"

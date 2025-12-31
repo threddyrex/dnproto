@@ -405,6 +405,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         {
             new MstEntry
             {
+                EntryIndex = 0,
                 KeySuffix = "exampleKey",
                 PrefixLength = 0,
                 TreeMstNodeCid = null,
@@ -425,6 +426,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
         Assert.Single(retrievedMstEntries);
         Assert.Equal("exampleKey", retrievedMstEntries[0].KeySuffix);
+        Assert.Equal(0, retrievedMstEntries[0].PrefixLength);
+        Assert.Equal(0, retrievedMstEntries[0].EntryIndex);
 
         pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
 }
@@ -447,6 +450,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                 new MstEntry
                 {
                     KeySuffix = "exampleKey1",
+                    EntryIndex = 0,
                     PrefixLength = 0,
                     TreeMstNodeCid = null,
                     RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
@@ -454,6 +458,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                 new MstEntry
                 {
                     KeySuffix = "ampleKey2",
+                    EntryIndex = 1,
                     PrefixLength = 2,
                     TreeMstNodeCid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
                     RecordCid = CidV1.FromBase32("bafyreiagh3ukdhtq2onx3pz2quesxvq5a4ucaqywvtqyjabqpkmibre7p4")
@@ -475,6 +480,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal("ampleKey2", retrievedMstEntries[1].KeySuffix);
         Assert.Equal(2, retrievedMstEntries[1].PrefixLength);
         Assert.Equal(0, retrievedMstEntries[0].PrefixLength);
+        Assert.Equal(0, retrievedMstEntries[0].EntryIndex);
+        Assert.Equal(1, retrievedMstEntries[1].EntryIndex);
 
         pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
 

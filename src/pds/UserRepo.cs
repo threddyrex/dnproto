@@ -59,7 +59,7 @@ public class UserRepo
         _userDid = userDid;
     }
 
-
+    #region INSTALL
 
     /// <summary>
     /// Install a new repo. Should be called only once during the lifetime of the account.
@@ -137,6 +137,11 @@ public class UserRepo
         db.InsertUpdateRepoHeader(repoHeader);
     }
 
+    #endregion
+
+
+    #region STREAM
+
     /// <summary>
     /// Loads entire repo from our database and writes it to the stream.
     /// For example, this is called by getRepo.
@@ -198,10 +203,12 @@ public class UserRepo
             //
             // MST Nodes
             //
-            var mstNodes = _db.GetAllMstNodes().Values;
-            var mstEntries = _db.GetAllMstEntries();
+            var allMstNodes = _db.GetAllMstNodes();
+            var allMstEntries = _db.GetAllMstEntries();
+            var mst = new Mst(allMstNodes, allMstEntries);
+            Dictionary<CidV1, List<MstEntry>> allMstEntriesByNode = mst.GetMstEntriesByNode();
 
-            foreach (MstNode mstNode in mstNodes)
+            foreach (MstNode mstNode in allMstNodes)
             {
                 if (mstNode.Cid == null)
                 {
@@ -209,7 +216,7 @@ public class UserRepo
                     return;
                 }
                 
-                List<MstEntry> mstEntriesForNode = mstEntries.ContainsKey(mstNode.Cid) ? mstEntries[mstNode.Cid] : new List<MstEntry>();
+                List<MstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey(mstNode.Cid) ? allMstEntriesByNode[mstNode.Cid] : new List<MstEntry>();
                 
                 var mstNodeDagCbor = mstNode.ToDagCborObject(mstEntriesForNode);
                 if (mstNodeDagCbor == null)
@@ -265,5 +272,37 @@ public class UserRepo
         await VarInt.WriteVarIntAsync(stream, blockLengthVarInt);
         await CidV1.WriteCidAsync(stream, cid);
         await stream.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
-    }   
+    }
+
+    #endregion
+
+
+
+    #region PROFILE
+
+    public void CreateProfile(DagCborObject profileObject)
+    {
+        //
+        // Load MST
+        //
+        var allMstNodes = _db.GetAllMstNodes();
+        var allMstEntries = _db.GetAllMstEntries();
+        var mst = new Mst(allMstNodes, allMstEntries);
+
+
+        //
+        // Check if profile exists.
+        //
+        bool keyExists = mst.KeyExists("app.bsky.actor.profile/self");
+        if (keyExists)
+        {
+            _logger.LogInfo("Profile already exists in MST, not creating a new one.");
+            return;
+        }
+
+
+
+    }
+
+    #endregion
 }

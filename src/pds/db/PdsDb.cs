@@ -788,9 +788,9 @@ LeftMstNodeCid TEXT
         return node.Cid == null ? null : node;
     }
 
-    public Dictionary<CidV1, MstNode> GetAllMstNodes()
+    public List<MstNode> GetAllMstNodes()
     {
-        var nodeDict = new Dictionary<CidV1, MstNode>();
+        var nodeList = new List<MstNode>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -807,12 +807,12 @@ LeftMstNodeCid TEXT
                         LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("LeftMstNodeCid")))
                     };
 
-                    nodeDict[node.Cid!] = node;
+                    nodeList.Add(node);
                 }
             }
         }
 
-        return nodeDict;
+        return nodeList;
     }
 
 
@@ -920,6 +920,7 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
                     var entry = new MstEntry
                     {
                         MstNodeCid = mstNodeCid,
+                        EntryIndex = reader.GetInt32(reader.GetOrdinal("EntryIndex")),
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
                         PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
                         TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("TreeMstNodeCid"))),
@@ -934,9 +935,9 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
         return entries;
     }
 
-    public Dictionary<CidV1, List<MstEntry>> GetAllMstEntries()
+    public List<MstEntry> GetAllMstEntries()
     {
-        var entries = new Dictionary<CidV1, List<MstEntry>>();
+        var entries = new List<MstEntry>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -950,18 +951,14 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
                     var entry = new MstEntry
                     {
                         MstNodeCid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("MstNodeCid"))),
+                        EntryIndex = reader.GetInt32(reader.GetOrdinal("EntryIndex")),
                         KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
                         PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
                         TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("TreeMstNodeCid"))),
                         RecordCid = reader.IsDBNull(reader.GetOrdinal("RecordCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RecordCid")))
                     };
 
-                    if(!entries.ContainsKey(entry.MstNodeCid))
-                    {
-                        entries[entry.MstNodeCid] = new List<MstEntry>();
-                    }
-
-                    entries[entry.MstNodeCid].Add(entry);
+                    entries.Add(entry);
                 }
             }
         }
@@ -971,15 +968,13 @@ PRIMARY KEY (MstNodeCid, KeySuffix)
 
     public void InsertMstEntries(CidV1? nodeCid, List<MstEntry> entries)
     {
-        int entryIndex = 0;
         foreach(MstEntry entry in entries)
         {
-            InsertMstEntry(nodeCid, entry, entryIndex);
-            entryIndex++;
+            InsertMstEntry(nodeCid, entry);
         }
     }
 
-    public void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry, int entryIndex)
+    public void InsertMstEntry(CidV1? nodeCid, MstEntry mstEntry)
     {
         if(nodeCid == null)
         {
@@ -994,7 +989,7 @@ INSERT INTO MstEntry (MstNodeCid, EntryIndex, KeySuffix, PrefixLength, TreeMstNo
 VALUES (@MstNodeCid, @EntryIndex, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
             ";
             command.Parameters.AddWithValue("@MstNodeCid", nodeCid?.Base32);
-            command.Parameters.AddWithValue("@EntryIndex", entryIndex);
+            command.Parameters.AddWithValue("@EntryIndex", mstEntry.EntryIndex);
             command.Parameters.AddWithValue("@KeySuffix", mstEntry.KeySuffix);
             command.Parameters.AddWithValue("@PrefixLength", mstEntry.PrefixLength);
             if(mstEntry.TreeMstNodeCid != null)
