@@ -8,4 +8,4 @@ param (
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command InitializeRepo /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir
+& $dnprotoPath /command InstallRepo /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir
