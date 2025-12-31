@@ -64,9 +64,10 @@ namespace dnproto.cli.commands
                 repoFile,
                 (repoHeader) =>
                 {
-                    Logger.LogInfo($"REPO HEADER:");
-                    Logger.LogInfo($"   roots: {repoHeader.RepoCommitCid?.GetBase32()}");
-                    Logger.LogInfo($"   version: {repoHeader.Version}");
+                    Logger.LogTrace("");
+                    Logger.LogTrace($"REPO HEADER:");
+                    Logger.LogTrace($"   roots: {repoHeader.RepoCommitCid?.GetBase32()}");
+                    Logger.LogTrace($"   version: {repoHeader.Version}");
                     return true;
                 },
                 (repoRecord) =>
@@ -100,8 +101,10 @@ namespace dnproto.cli.commands
                         }
                     }
 
-                    Logger.LogTrace($"cid: {repoRecord.Cid.GetBase32()}");
-                    Logger.LogTrace($"blockJson: {repoRecord.JsonString}");
+                    Logger.LogTrace("");
+                    Logger.LogTrace($"REPO RECORD:");
+                    Logger.LogTrace($"  cid: {repoRecord.Cid.GetBase32()}");
+                    Logger.LogTrace($"  blockJson:\n {repoRecord.JsonString}");
 
                     // For stats
                     totalRecords++;
