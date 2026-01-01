@@ -86,6 +86,18 @@ public class Pds
         //
         var repo = new UserRepo(pdsDb, logger, commitSigningFunction, config.UserDid);
 
+        //
+        // Print repo commit
+        //
+        var repoCommit = pdsDb.GetRepoCommit();
+        if (repoCommit != null)
+        {
+            logger.LogInfo($"Loaded repo commit: {repoCommit.Cid}");
+        }
+        else
+        {
+            logger.LogWarning("No repo commit found in database.");
+        }
 
         //
         // Configure to listen
