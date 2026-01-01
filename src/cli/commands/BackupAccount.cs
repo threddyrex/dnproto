@@ -199,10 +199,10 @@ public class BackupAccount : BaseCommand
             //
             // List blobs (this just gives you the blob IDs)
             //
-            List<string> blobs = BlueskyClient.ListBlobs(session.pds, session.did);
-            string blobFile = Path.Combine(backupDir, "blobs.txt");
             Logger.LogInfo("");
             Logger.LogInfo($"----- BLOBS -----");
+            List<string> blobs = BlueskyClient.ListBlobs(session.pds, session.did);
+            string blobFile = Path.Combine(backupDir, "blobs.txt");
             Logger.LogInfo($"Found {blobs.Count} blobs.");
             Logger.LogInfo($"Creating blob list file: {blobFile}");
             File.WriteAllLines(blobFile, blobs);
