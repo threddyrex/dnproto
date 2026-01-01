@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using dnproto.log;
 
-namespace dnproto.pds;
+namespace dnproto.log;
 
 /// <summary>
 /// Adapter that bridges ASP.NET Core's ILogger to our custom Logger.

@@ -95,7 +95,7 @@ public class Pds
         
         // Clear default logging providers and add custom logger
         builder.Logging.ClearProviders();
-        builder.Logging.AddProvider(new CustomLoggerProvider(logger));
+        builder.Logging.AddProvider(new dnproto.log.CustomLoggerProvider(logger));
         
         builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
