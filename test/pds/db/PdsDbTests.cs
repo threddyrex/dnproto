@@ -331,10 +331,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
 
-        var retrievedAfterDelete = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-
         // Assert
-        Assert.Null(retrievedAfterDelete);
+        Assert.False(pdsDb.MstNodeExistsByCid(mstNodeToInsert.Cid));
     }
 
     [Fact]
@@ -403,12 +401,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteAllMstNodes();
 
-        var retrievedMstNode1 = pdsDb.GetMstNodeByCid(mstNode1.Cid);
-        var retrievedMstNode2 = pdsDb.GetMstNodeByCid(mstNode2.Cid);
-
         // Assert
-        Assert.Null(retrievedMstNode1);
-        Assert.Null(retrievedMstNode2);
+        Assert.False(pdsDb.MstNodeExistsByCid(mstNode1.Cid));
+        Assert.False(pdsDb.MstNodeExistsByCid(mstNode2.Cid));
     }
 
     [Fact]

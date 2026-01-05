@@ -764,7 +764,7 @@ LeftMstNodeCid TEXT
     {
         if(cid == null)
         {
-            return null;
+            throw new ArgumentException("cid cannot be null when retrieving MstNode by Cid.");
         }
 
         var node = new MstNode();
@@ -781,6 +781,10 @@ LeftMstNodeCid TEXT
                 if(reader.Read())
                 {
                     node = CreateNodeObjectFromReader(reader);
+                }
+                else
+                {
+                    throw new ArgumentException($"No MstNode found with Cid: {cid?.Base32}");
                 }
             }
         }
@@ -814,6 +818,25 @@ LeftMstNodeCid TEXT
         }
 
         return node;
+    }
+
+    public bool MstNodeExistsByCid(CidV1? cid)
+    {
+        if(cid == null)
+        {
+            throw new ArgumentException("cid cannot be null when checking MstNode existence by Cid.");
+        }
+
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM MstNode WHERE Cid = @Cid";
+            command.Parameters.AddWithValue("@Cid", cid?.Base32);
+            
+            var result = command.ExecuteScalar();
+            int count = result != null ? Convert.ToInt32(result) : 0;
+            return count > 0;
+        }
     }
 
 

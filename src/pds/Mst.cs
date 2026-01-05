@@ -104,8 +104,8 @@ public class Mst
 
     /// <summary>
     /// Internal recursive function to put an entry into the MST.
-    /// Caller passes in MstNode and MstEntries. 
-    /// On return, MstNode and MstEntries are updated in db.
+    /// Caller passes in currentNode and currentEntries. 
+    /// On return, currentNode and currentEntries are updated in db.
     /// 
     /// Possible scenarios for one iteration:
     /// 
@@ -115,39 +115,39 @@ public class Mst
     ///     4) next level - insert into MstEntry.TreeMstNodeCid (go right)
     /// 
     /// </summary>
-    private void InternalPutEntry(string key, CidV1 recordCid, MstNode mstNode, List<MstEntry> mstEntries, int currentDepth, List<Guid> updatedNodeObjectIds)
+    private void InternalPutEntry(string recordKeyToInsert, CidV1 recordCidToInsert, MstNode currentNode, List<MstEntry> currentEntries, int currentDepth, List<Guid> updatedNodeObjectIds)
     {
         //
-        // Prep
+        // Calculate full keys and depth.
         //
-        var entryKeys = MstEntry.GetFullKeys(mstEntries);
-        int keyDepth = MstEntry.GetKeyDepth(key);
+        var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
+        int keyDepthToInsert = MstEntry.GetKeyDepth(recordKeyToInsert);
 
         //
         // Insert at this level?
         //
-        if(keyDepth == currentDepth)
+        if(keyDepthToInsert == currentDepth)
         {
             int insertIndex = 0;
 
             //
             // Loop through entries to find insert position.
             //
-            for(int i = 0; i < mstEntries.Count; i++)
+            for(int i = 0; i < currentEntries.Count; i++)
             {
-                var entry = mstEntries[i];
-                string fullKey = entryKeys[i];
-                int comparison = MstEntry.CompareKeys(key, fullKey);
+                var entry = currentEntries[i];
+                string fullKey = currentEntryKeys[i];
+                int comparison = MstEntry.CompareKeys(recordKeyToInsert, fullKey);
 
                 //
                 // CASE 1 - update existing MstEntry with identical key (update)
                 //
                 if(comparison == 0)
                 {
-                    entry.RecordCid = recordCid;
-                    mstNode.RecomputeCid(mstEntries);
-                    updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
-                    _db.ReplaceMstNode(mstNode, mstEntries);
+                    entry.RecordCid = recordCidToInsert;
+                    currentNode.RecomputeCid(currentEntries);
+                    _db.ReplaceMstNode(currentNode, currentEntries);
+                    updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
                     return;
                 }
                 else if(comparison < 0)
@@ -165,20 +165,21 @@ public class Mst
             //
             var newEntry = new MstEntry
             {
-                EntryIndex = insertIndex, // gets fixed later
-                KeySuffix = key, // gets fixed later
-                PrefixLength = 0, // gets fixed later
+                RecordCid = recordCidToInsert,
                 TreeMstNodeCid = null,
-                RecordCid = recordCid
+                EntryIndex = insertIndex, // gets fixed later
+                KeySuffix = recordKeyToInsert, // gets fixed later
+                PrefixLength = 0, // gets fixed later
             };
 
-            mstEntries.Insert(insertIndex, newEntry);
-            entryKeys.Insert(insertIndex, key);
-            MstEntry.FixEntryIndexes(mstEntries);
-            MstEntry.FixPrefixLengths(mstEntries);
-            mstNode.RecomputeCid(mstEntries);
-            updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
-            _db.ReplaceMstNode(mstNode, mstEntries);
+            MstEntry.FixEntryIndexes(currentEntries);
+            MstEntry.FixPrefixLengths(currentEntries);
+
+            currentEntries.Insert(insertIndex, newEntry);
+            currentEntryKeys.Insert(insertIndex, recordKeyToInsert);
+            currentNode.RecomputeCid(currentEntries);
+            _db.ReplaceMstNode(currentNode, currentEntries);
+            updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
             return;
 
         }
@@ -191,12 +192,12 @@ public class Mst
             // Find insert position
             //
             int insertPos = 0;
-            for (int i = 0; i < mstEntries.Count; i++)
+            for (int i = 0; i < currentEntries.Count; i++)
             {
-                var entry = mstEntries[i];
-                string entryKey = entryKeys[i];
+                var entry = currentEntries[i];
+                string entryKey = currentEntryKeys[i];
                 
-                if (MstEntry.CompareKeys(key, entryKey) < 0)
+                if (MstEntry.CompareKeys(recordKeyToInsert, entryKey) < 0)
                 {
                     break;
                 }
@@ -214,9 +215,9 @@ public class Mst
                 // Get (or create) left subtree
                 //
                 MstNode? leftNode = null;                
-                if (mstNode.LeftMstNodeCid != null)
+                if (currentNode.LeftMstNodeCid != null)
                 {
-                    leftNode = _db.GetMstNodeByCid(mstNode.LeftMstNodeCid);
+                    leftNode = _db.GetMstNodeByCid(currentNode.LeftMstNodeCid);
                 }
                 else
                 {
@@ -224,7 +225,7 @@ public class Mst
                     leftNode.NodeObjectId = Guid.NewGuid();
                     leftNode.RecomputeCid(new List<MstEntry>());
                     _db.InsertMstNode(leftNode);
-                    mstNode.LeftMstNodeCid = leftNode.Cid;
+                    currentNode.LeftMstNodeCid = leftNode.Cid;
                 }
 
                 if(leftNode is null) 
@@ -238,22 +239,16 @@ public class Mst
                 //
                 // Recurse
                 //
-                InternalPutEntry(key, recordCid, leftNode!, leftEntries, currentDepth + 1, updatedNodeObjectIds);
+                InternalPutEntry(recordKeyToInsert, recordCidToInsert, leftNode!, leftEntries, currentDepth + 1, updatedNodeObjectIds);
 
 
                 //
                 // Update currentNode (because its LeftMstNodeCid changed)
-                // (can reuse entries because it hasn't changed)
                 //
-                mstNode.LeftMstNodeCid = leftNode.Cid;
-                mstNode.RecomputeCid(mstEntries);
-                updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
-                _db.ReplaceMstNode(mstNode, mstEntries);
-
-
-                //
-                // Return
-                //
+                currentNode.LeftMstNodeCid = leftNode.Cid;
+                currentNode.RecomputeCid(currentEntries);
+                _db.ReplaceMstNode(currentNode, currentEntries);
+                updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
                 return;
 
             }
@@ -263,11 +258,10 @@ public class Mst
             else
             {
                 // Go to right subtree of the selected entry
-                MstEntry selectedEntry = mstEntries[insertPos - 1];
                 MstNode? rightNode = null;
-                if (selectedEntry.TreeMstNodeCid != null)
+                if (currentEntries[insertPos - 1].TreeMstNodeCid != null)
                 {
-                    rightNode = _db.GetMstNodeByCid(selectedEntry.TreeMstNodeCid);
+                    rightNode = _db.GetMstNodeByCid(currentEntries[insertPos - 1].TreeMstNodeCid);
                 }
                 else
                 {
@@ -278,23 +272,23 @@ public class Mst
                     rightNode.NodeObjectId = Guid.NewGuid();
                     rightNode.RecomputeCid(new List<MstEntry>());
                     _db.InsertMstNode(rightNode);
-                    selectedEntry.TreeMstNodeCid = rightNode.Cid;
+                    currentEntries[insertPos - 1].TreeMstNodeCid = rightNode.Cid;
                 }
 
                 List<MstEntry> rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode?.NodeObjectId!);
 
-                //                
+                //
                 // Recurse
                 //
-                InternalPutEntry(key, recordCid, rightNode!, rightEntries, currentDepth + 1, updatedNodeObjectIds);
+                InternalPutEntry(recordKeyToInsert, recordCidToInsert, rightNode!, rightEntries, currentDepth + 1, updatedNodeObjectIds);
 
                 //
-                // Update currentNode (because selectedEntry.TreeMstNodeCid changed)
+                // Update currentNode (because currentEntries[insertPos - 1].TreeMstNodeCid changed)
                 //
-                selectedEntry.TreeMstNodeCid = rightNode.Cid;
-                mstNode.RecomputeCid(mstEntries);
-                updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
-                _db.ReplaceMstNode(mstNode, mstEntries);
+                currentEntries[insertPos - 1].TreeMstNodeCid = rightNode.Cid;
+                currentNode.RecomputeCid(currentEntries);
+                _db.ReplaceMstNode(currentNode, currentEntries);
+                updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
                 return;
             }
         }
