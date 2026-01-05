@@ -90,6 +90,7 @@ public class MstEntryTests
         // Arrange - Create MST node and entries
         var mstNode = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
             LeftMstNodeCid = null
         };
@@ -98,7 +99,6 @@ public class MstEntryTests
         {
             new MstEntry
             {
-                MstNodeCid = mstNode.Cid,
                 EntryIndex = 0,
                 KeySuffix = "apple",
                 PrefixLength = 0,
@@ -107,7 +107,6 @@ public class MstEntryTests
             },
             new MstEntry
             {
-                MstNodeCid = mstNode.Cid,
                 EntryIndex = 1,
                 KeySuffix = "banana",
                 PrefixLength = 0,

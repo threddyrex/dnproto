@@ -9,6 +9,15 @@ namespace dnproto.repo;
 public class MstNode
 {
     /// <summary>
+    /// NodeObjectId
+    /// 
+    /// This is not part of AT Proto. It is an internal database object id
+    /// used when making edits to the tree. It's difficult to use Cid for this,
+    /// because Cids change when the node is modified.
+    /// </summary>
+    public Guid? NodeObjectId { get; set; } = null;
+
+    /// <summary>
     /// Cid for this node.
     /// Base 32, starting with "b".
     /// </summary>
@@ -118,5 +127,11 @@ public class MstNode
         }
 
         return (node, entries);
+    }
+
+
+    public void RecomputeCid(List<MstEntry> entries)
+    {
+        this.Cid = CidV1.ComputeCidForDagCbor(this.ToDagCborObject(entries))!;
     }
 }

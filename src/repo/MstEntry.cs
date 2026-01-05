@@ -12,9 +12,13 @@ namespace dnproto.repo;
 public class MstEntry
 {
     /// <summary>
-    /// Cid for parent MST node. Helpful for lookups.
+    /// NodeObjectId
+    /// 
+    /// This is not part of AT Proto. It is an internal database object id
+    /// used when making edits to the tree. It's difficult to use Cid for this,
+    /// because Cids change when the node is modified.
     /// </summary>
-    public CidV1? MstNodeCid { get; set; } = null;
+    public Guid? NodeObjectId { get; set; } = null;
 
     /// <summary>
     /// Index of this entry within the MST node's entries list.
@@ -236,13 +240,6 @@ public class MstEntry
         }
     }
 
-    public static void FixEntryNodeCids(List<MstEntry> entries, CidV1 mstNodeCid)
-    {
-        foreach(var entry in entries)
-        {
-            entry.MstNodeCid = mstNodeCid;
-        }
-    }
 
     
     /// <summary>

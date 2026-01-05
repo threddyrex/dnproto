@@ -87,6 +87,7 @@ public class UserRepo
         //
         var mstNode = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = null, // to be set
             LeftMstNodeCid = null
         };
@@ -207,7 +208,7 @@ public class UserRepo
             //
             var mst = new Mst(_db);
             var allMstNodes = _db.GetAllMstNodes();
-            var allMstEntriesByNode = _db.GetAllMstEntriesByNode();
+            var allMstEntriesByNode = _db.GetAllMstEntriesByNodeObjectId();
             foreach (MstNode mstNode in allMstNodes)
             {
                 if (mstNode.Cid == null)
@@ -216,7 +217,7 @@ public class UserRepo
                     return;
                 }
                 
-                List<MstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey(mstNode.Cid) ? allMstEntriesByNode[mstNode.Cid] : new List<MstEntry>();
+                List<MstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey((Guid) mstNode.NodeObjectId!) ? allMstEntriesByNode[(Guid) mstNode.NodeObjectId!] : new List<MstEntry>();
                 
                 var mstNodeDagCbor = mstNode.ToDagCborObject(mstEntriesForNode);
                 if (mstNodeDagCbor == null)
@@ -306,12 +307,12 @@ public class UserRepo
 
         (CidV1 originalRootMstNodeCid, 
             CidV1 newRootMstNodeCid, 
-            List<CidV1> updatedCids) = mst.PutEntry("app.bsky.actor.profile/self", recordCid);
+            List<Guid> updatedNodeObjectIds) = mst.PutEntry("app.bsky.actor.profile/self", recordCid);
 
 
         // TODO: stopped here
-        // We will use updatedCids to update the repo commit and repo header.
-        // updatedCids contains all the cids that were changed during the PutEntry operation,
+        // We will use updatedNodeObjectIds to update the repo commit and repo header.
+        // updatedNodeObjectIds contains all the cids that were changed during the PutEntry operation,
         // including the new root MST node cid. All of these will be sent in firehose event.
     }
 

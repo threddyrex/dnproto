@@ -8,4 +8,4 @@ param (
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command InitializeDb /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir 
+& $dnprotoPath /command InstallDb /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir 

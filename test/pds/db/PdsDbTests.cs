@@ -249,6 +249,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = null
         };
@@ -256,14 +257,20 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
 
-        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
+        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
         Assert.Equal(mstNodeToInsert.Cid.Base32, retrievedMstNode!.Cid?.Base32);
         Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNode.LeftMstNodeCid?.Base32);
 
-        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+        Assert.NotNull(retrievedMstNodeById);
+        Assert.Equal(mstNodeToInsert.Cid.Base32, retrievedMstNodeById!.Cid?.Base32);
+        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNodeById.LeftMstNodeCid?.Base32);
+        Assert.Equal(mstNodeToInsert.NodeObjectId, retrievedMstNodeById.NodeObjectId);
+
+        pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
     }
 
     [Fact]
@@ -274,6 +281,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai")
         };
@@ -281,15 +289,21 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
 
-        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
+        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
         Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
         Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNode.LeftMstNodeCid?.Base32);
 
+        Assert.NotNull(retrievedMstNodeById);
+        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNodeById!.Cid?.Base32);
+        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNodeById.LeftMstNodeCid?.Base32);
+        Assert.Equal(mstNodeToInsert.NodeObjectId, retrievedMstNodeById.NodeObjectId);
 
-        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+
+        pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
     }
 
 
@@ -301,6 +315,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
             LeftMstNodeCid = null
         };
@@ -308,12 +323,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
 
-        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
+        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
+
         Assert.NotNull(retrievedMstNode);
+        Assert.NotNull(retrievedMstNodeById);
 
-        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+        pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
 
-        var retrievedAfterDelete = pdsDb.GetMstNode(mstNodeToInsert.Cid);
+        var retrievedAfterDelete = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
 
         // Assert
         Assert.Null(retrievedAfterDelete);
@@ -327,12 +345,14 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNode1 = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
         var mstNode2 = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = mstNode1.Cid
         };
@@ -341,8 +361,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         pdsDb!.InsertMstNode(mstNode1);
         pdsDb.InsertMstNode(mstNode2);
 
-        var retrievedMstNode1 = pdsDb.GetMstNode(mstNode1.Cid);
-        var retrievedMstNode2 = pdsDb.GetMstNode(mstNode2.Cid);
+        var retrievedMstNode1 = pdsDb.GetMstNodeByCid(mstNode1.Cid);
+        var retrievedMstNode2 = pdsDb.GetMstNodeByCid(mstNode2.Cid);
 
         // Assert
         Assert.NotNull(retrievedMstNode1);
@@ -353,8 +373,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(mstNode1.Cid?.Base32, retrievedMstNode2.LeftMstNodeCid?.Base32);
 
 
-        pdsDb.DeleteMstNode(mstNode1.Cid);
-        pdsDb.DeleteMstNode(mstNode2.Cid);
+        pdsDb.DeleteMstNodeByObjectId(mstNode1.NodeObjectId);
+        pdsDb.DeleteMstNodeByObjectId(mstNode2.NodeObjectId);
     }
 
     [Fact]
@@ -365,12 +385,14 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNode1 = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
         var mstNode2 = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = mstNode1.Cid
         };
@@ -381,8 +403,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteAllMstNodes();
 
-        var retrievedMstNode1 = pdsDb.GetMstNode(mstNode1.Cid);
-        var retrievedMstNode2 = pdsDb.GetMstNode(mstNode2.Cid);
+        var retrievedMstNode1 = pdsDb.GetMstNodeByCid(mstNode1.Cid);
+        var retrievedMstNode2 = pdsDb.GetMstNodeByCid(mstNode2.Cid);
 
         // Assert
         Assert.Null(retrievedMstNode1);
@@ -398,6 +420,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = null
         };
@@ -416,10 +439,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
-        pdsDb!.InsertMstEntries(mstNodeToInsert.Cid, mstEntries);
+        pdsDb!.InsertMstEntries((Guid)mstNodeToInsert.NodeObjectId, mstEntries);
 
-        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
-        var retrievedMstEntries = pdsDb.GetMstEntriesForNode(mstNodeToInsert.Cid);
+        var retrievedMstNode = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
+        var retrievedMstEntries = pdsDb.GetMstEntriesForNodeObjectId((Guid)mstNodeToInsert.NodeObjectId);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
@@ -429,7 +452,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(0, retrievedMstEntries[0].PrefixLength);
         Assert.Equal(0, retrievedMstEntries[0].EntryIndex);
 
-        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+        pdsDb.DeleteMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
 }
 
 
@@ -442,6 +465,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         var mstNodeToInsert = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null,
         };
@@ -467,10 +491,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         // Act
         pdsDb!.InsertMstNode(mstNodeToInsert);
-        pdsDb!.InsertMstEntries(mstNodeToInsert.Cid, mstEntriesToInsert);
+        pdsDb!.InsertMstEntries((Guid)mstNodeToInsert.NodeObjectId, mstEntriesToInsert);
 
-        var retrievedMstNode = pdsDb.GetMstNode(mstNodeToInsert.Cid);
-        var retrievedMstEntries = pdsDb.GetMstEntriesForNode(mstNodeToInsert.Cid);
+        var retrievedMstNode = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
+        var retrievedMstEntries = pdsDb.GetMstEntriesForNodeObjectId((Guid)mstNodeToInsert.NodeObjectId);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
@@ -483,7 +507,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(0, retrievedMstEntries[0].EntryIndex);
         Assert.Equal(1, retrievedMstEntries[1].EntryIndex);
 
-        pdsDb.DeleteMstNode(mstNodeToInsert.Cid);
+        pdsDb.DeleteMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
 
     }
 

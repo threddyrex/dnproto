@@ -67,15 +67,15 @@ public class MstTests : IClassFixture<MstTestsFixture>
         // Arrange - Create MST nodes and entries
         var mstNode = new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
             LeftMstNodeCid = null
         };
 
         _fixture.PdsDb.InsertMstNode(mstNode);
 
-        _fixture.PdsDb.InsertMstEntry(mstNode.Cid, new MstEntry
+        _fixture.PdsDb.InsertMstEntry((Guid)mstNode.NodeObjectId, new MstEntry
             {
-                MstNodeCid = mstNode.Cid,
                 KeySuffix = "app.bsky.actor.profile/self",
                 PrefixLength = 0,
                 TreeMstNodeCid = null,
@@ -103,6 +103,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
         // Arrange - Create MST nodes and entries
         var mstNode =new MstNode
         {
+            NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
             LeftMstNodeCid = null                
         }
@@ -114,7 +115,6 @@ public class MstTests : IClassFixture<MstTestsFixture>
         {
             new MstEntry
             {
-                MstNodeCid = mstNode.Cid,
                 EntryIndex = 0,
                 KeySuffix = "app.bsky.actor.profile/self",
                 PrefixLength = 0,
@@ -123,7 +123,6 @@ public class MstTests : IClassFixture<MstTestsFixture>
             },
             new MstEntry
             {
-                MstNodeCid = mstNode.Cid,
                 EntryIndex = 1,
                 KeySuffix = "other",
                 PrefixLength = 23,
@@ -131,7 +130,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
                 RecordCid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6")
             }
         };
-        _fixture.PdsDb.InsertMstEntries(mstNode.Cid, mstEntries);
+        _fixture.PdsDb.InsertMstEntries((Guid)mstNode.NodeObjectId, mstEntries);
 
         var mst = new Mst(_fixture.PdsDb);
 

@@ -57,28 +57,7 @@ public class Mst
         return false;
     }
 
-    /// <summary>
-    /// Get all MST entries grouped by their parent MST node Cid.
-    /// </summary>
-    /// <returns></returns>
-    public Dictionary<CidV1, List<MstEntry>> GetMstEntriesByNode()
-    {
-        Dictionary<CidV1, List<MstEntry>> allMstEntriesByNode = new Dictionary<CidV1, List<MstEntry>>();
-        foreach (MstEntry entry in _db.GetAllMstEntries())
-        {
-            if (entry.MstNodeCid == null)
-                continue;
 
-            if (!allMstEntriesByNode.ContainsKey(entry.MstNodeCid))
-            {
-                allMstEntriesByNode[entry.MstNodeCid] = new List<MstEntry>();
-            }
-            allMstEntriesByNode[entry.MstNodeCid].Add(entry);
-        }
-
-        return allMstEntriesByNode;
-
-    }
     #endregion
 
 
@@ -96,33 +75,37 @@ public class Mst
     /// <param name="db"></param>
     /// <param name="key"></param>
     /// <param name="recordCid"></param>
-    public (CidV1 originalRootMstNodeCid, CidV1 newRootMstNodeCid, List<CidV1> updatedCids) 
+    public (CidV1 originalRootMstNodeCid, CidV1 newRootMstNodeCid, List<Guid> updatedNodeObjectIds) 
         PutEntry(string key, CidV1 recordCid)
     {
         //
         // Load from db
         //
         var repoCommit = _db.GetRepoCommit();
-        var mstNodeRoot = _db.GetMstNode(repoCommit!.RootMstNodeCid!);
+        var mstNodeRoot = _db.GetMstNodeByCid(repoCommit!.RootMstNodeCid!);
+        var mstNodeRootEntries = _db.GetMstEntriesForNodeObjectId((Guid)mstNodeRoot!.NodeObjectId!);
         var originalRootMstNodeCid = repoCommit!.RootMstNodeCid!;
 
         //
         // Recursive put
         //
-        List<CidV1> updatedCids = new List<CidV1>();
-        var newRootMstNodeCid = InternalPutEntry(key, recordCid, mstNodeRoot!, currentDepth: 0, updatedCids);
+        List<Guid> updatedNodeObjectIds = new List<Guid>();
+        InternalPutEntry(key, recordCid, mstNodeRoot!, mstNodeRootEntries, currentDepth: 0, updatedNodeObjectIds);
+
+        var newRootMstNodeCid = mstNodeRoot!.Cid!;
 
         //
         // Return
         //
-        return (originalRootMstNodeCid, newRootMstNodeCid, updatedCids);
+        return (originalRootMstNodeCid, newRootMstNodeCid, updatedNodeObjectIds);
     }
 
 
 
     /// <summary>
     /// Internal recursive function to put an entry into the MST.
-    /// Returns the *new* cid for currentNode (because cids change - they are a hash of the MstNode contents).
+    /// Caller passes in MstNode and MstEntries. 
+    /// On return, MstNode and MstEntries are updated in db.
     /// 
     /// Possible scenarios for one iteration:
     /// 
@@ -132,20 +115,17 @@ public class Mst
     ///     4) next level - insert into MstEntry.TreeMstNodeCid (go right)
     /// 
     /// </summary>
-    private CidV1 InternalPutEntry(string key, CidV1 recordCid, MstNode currentNode, int currentDepth, List<CidV1> updatedCids)
+    private void InternalPutEntry(string key, CidV1 recordCid, MstNode mstNode, List<MstEntry> mstEntries, int currentDepth, List<Guid> updatedNodeObjectIds)
     {
-
         //
-        // Load entries from db
+        // Prep
         //
-        var entries = _db.GetMstEntriesForNode(currentNode.Cid!);
-        var entryKeys = MstEntry.GetFullKeys(entries);
-
-
-        //
-        // INSERT AT THIS LEVEL?
-        //
+        var entryKeys = MstEntry.GetFullKeys(mstEntries);
         int keyDepth = MstEntry.GetKeyDepth(key);
+
+        //
+        // Insert at this level?
+        //
         if(keyDepth == currentDepth)
         {
             int insertIndex = 0;
@@ -153,37 +133,22 @@ public class Mst
             //
             // Loop through entries to find insert position.
             //
-            for(int i = 0; i < entries.Count; i++)
+            for(int i = 0; i < mstEntries.Count; i++)
             {
-                var entry = entries[i];
+                var entry = mstEntries[i];
                 string fullKey = entryKeys[i];
                 int comparison = MstEntry.CompareKeys(key, fullKey);
 
                 //
-                // Key exists already - update it.
+                // CASE 1 - update existing MstEntry with identical key (update)
                 //
                 if(comparison == 0)
                 {
                     entry.RecordCid = recordCid;
-
-
-                    CidV1 oldCid1 = currentNode.Cid!;
-                    currentNode.Cid = CidV1.ComputeCidForDagCbor(currentNode.ToDagCborObject(entries))!;
-
-                    MstEntry.FixEntryNodeCids(entries, currentNode.Cid!);
-
-
-                    //
-                    // 🚨 DB UPDATE 🚨
-                    //
-                    updatedCids.Add(currentNode.Cid!);
-                    _db.ReplaceMstNode(
-                        oldCid1, // old cid
-                        currentNode, // node (with new cid)
-                        entries); // entries
-
-
-                    return currentNode.Cid!;
+                    mstNode.RecomputeCid(mstEntries);
+                    updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
+                    _db.ReplaceMstNode(mstNode, mstEntries);
+                    return;
                 }
                 else if(comparison < 0)
                 {
@@ -195,10 +160,11 @@ public class Mst
                 insertIndex++;
             }
 
-            // create new entry
+            //
+            // CASE 2 - insert new MstEntry (insert)
+            //
             var newEntry = new MstEntry
             {
-                MstNodeCid = currentNode.Cid, // gets fixed later
                 EntryIndex = insertIndex, // gets fixed later
                 KeySuffix = key, // gets fixed later
                 PrefixLength = 0, // gets fixed later
@@ -206,41 +172,18 @@ public class Mst
                 RecordCid = recordCid
             };
 
-            entries.Insert(insertIndex, newEntry);
+            mstEntries.Insert(insertIndex, newEntry);
             entryKeys.Insert(insertIndex, key);
-
-            // fix entry indices (0 -> n-1)
-            MstEntry.FixEntryIndexes(entries);
-
-            // fix prefix lengths
-            MstEntry.FixPrefixLengths(entries);
-
-            CidV1 oldCid2 = currentNode.Cid!;
-            currentNode.Cid = CidV1.ComputeCidForDagCbor(currentNode.ToDagCborObject(entries))!;
-
-            MstEntry.FixEntryNodeCids(entries, currentNode.Cid!);
-
-            //
-            // 🚨 DB UPDATE 🚨
-            //
-            updatedCids.Add(currentNode.Cid!);
-            _db.ReplaceMstNode(
-                oldCid2, // old cid
-                currentNode, // node
-                entries); // entries
-
-            //
-            // Return updated cid
-            //
-            return currentNode.Cid!;
+            MstEntry.FixEntryIndexes(mstEntries);
+            MstEntry.FixPrefixLengths(mstEntries);
+            mstNode.RecomputeCid(mstEntries);
+            updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
+            _db.ReplaceMstNode(mstNode, mstEntries);
+            return;
 
         }
         //
-        // ELSE: NEED TO GO TO NEXT LEVEL
-        //
-        // This could either mean:
-        //      1 - MstNode.LeftMstNodeCid - the node's left sub tree
-        //      2 - MstEntry.TreeMstNodeCid - one of the entries' right sub-tree.
+        // Else: Need to go to next level
         //
         else
         {
@@ -248,9 +191,9 @@ public class Mst
             // Find insert position
             //
             int insertPos = 0;
-            for (int i = 0; i < entries.Count; i++)
+            for (int i = 0; i < mstEntries.Count; i++)
             {
-                var entry = entries[i];
+                var entry = mstEntries[i];
                 string entryKey = entryKeys[i];
                 
                 if (MstEntry.CompareKeys(key, entryKey) < 0)
@@ -263,66 +206,68 @@ public class Mst
 
 
             //
-            // (insertPos == 0) means we need to go to left subtree (MstNode.LeftMstNodeCid)
+            // CASE 3 - insert into MstNode.LeftMstNodeCid (go left)
             //
             if(insertPos == 0)
             {
                 //
                 // Get (or create) left subtree
                 //
-                MstNode? leftNode = null;
-                if (currentNode.LeftMstNodeCid != null)
+                MstNode? leftNode = null;                
+                if (mstNode.LeftMstNodeCid != null)
                 {
-                    leftNode = _db.GetMstNode(currentNode.LeftMstNodeCid);
+                    leftNode = _db.GetMstNodeByCid(mstNode.LeftMstNodeCid);
                 }
                 else
                 {
                     leftNode = new MstNode();
-                    leftNode.Cid = CidV1.ComputeCidForDagCbor(leftNode.ToDagCborObject(new List<MstEntry>()))!;
+                    leftNode.NodeObjectId = Guid.NewGuid();
+                    leftNode.RecomputeCid(new List<MstEntry>());
                     _db.InsertMstNode(leftNode);
-                    currentNode.LeftMstNodeCid = leftNode.Cid;
+                    mstNode.LeftMstNodeCid = leftNode.Cid;
                 }
 
+                if(leftNode is null) 
+                {
+                    throw new Exception("Left MST node is null after creation.");
+                }
+
+                List<MstEntry> leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode.NodeObjectId!);
+
+
+                //
                 // Recurse
-                CidV1 leftNodeNewCid = InternalPutEntry(key, recordCid, leftNode!, currentDepth + 1, updatedCids);
+                //
+                InternalPutEntry(key, recordCid, leftNode!, leftEntries, currentDepth + 1, updatedNodeObjectIds);
 
 
                 //
                 // Update currentNode (because its LeftMstNodeCid changed)
                 // (can reuse entries because it hasn't changed)
                 //
-                CidV1 oldCid3 = currentNode.Cid!;
-                currentNode.LeftMstNodeCid = leftNodeNewCid;
-                currentNode.Cid = CidV1.ComputeCidForDagCbor(currentNode.ToDagCborObject(entries))!;
-                MstEntry.FixEntryNodeCids(entries, currentNode.Cid!);
-
-                //
-                // 🚨 DB UPDATE 🚨
-                //
-                updatedCids.Add(currentNode.Cid!);
-                _db.ReplaceMstNode(
-                    oldCid3, // old cid
-                    currentNode, // node
-                    entries); // entries
+                mstNode.LeftMstNodeCid = leftNode.Cid;
+                mstNode.RecomputeCid(mstEntries);
+                updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
+                _db.ReplaceMstNode(mstNode, mstEntries);
 
 
                 //
-                // Return updated cid
+                // Return
                 //
-                return currentNode.Cid!;
+                return;
 
             }
             //
-            // (insertPos > 0) means go to right subtree of selected entry (MstEntry.TreeMstNodeCid)
+            // CASE 4 - insert into MstEntry.TreeMstNodeCid (go right)
             //
             else
             {
                 // Go to right subtree of the selected entry
-                MstEntry selectedEntry = entries[insertPos - 1];
+                MstEntry selectedEntry = mstEntries[insertPos - 1];
                 MstNode? rightNode = null;
                 if (selectedEntry.TreeMstNodeCid != null)
                 {
-                    rightNode = _db.GetMstNode(selectedEntry.TreeMstNodeCid);
+                    rightNode = _db.GetMstNodeByCid(selectedEntry.TreeMstNodeCid);
                 }
                 else
                 {
@@ -330,32 +275,27 @@ public class Mst
                     // Create new right node
                     //
                     rightNode = new MstNode();
-                    rightNode.Cid = CidV1.ComputeCidForDagCbor(rightNode.ToDagCborObject(new List<MstEntry>()))!;
+                    rightNode.NodeObjectId = Guid.NewGuid();
+                    rightNode.RecomputeCid(new List<MstEntry>());
                     _db.InsertMstNode(rightNode);
                     selectedEntry.TreeMstNodeCid = rightNode.Cid;
                 }
-                
+
+                List<MstEntry> rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode?.NodeObjectId!);
+
+                //                
                 // Recurse
-                CidV1 newRightNodeCid = InternalPutEntry(key, recordCid, rightNode!, currentDepth + 1, updatedCids);
+                //
+                InternalPutEntry(key, recordCid, rightNode!, rightEntries, currentDepth + 1, updatedNodeObjectIds);
 
                 //
                 // Update currentNode (because selectedEntry.TreeMstNodeCid changed)
                 //
-                selectedEntry.TreeMstNodeCid = newRightNodeCid;
-                CidV1 oldCid4 = currentNode.Cid!;
-                currentNode.Cid = CidV1.ComputeCidForDagCbor(currentNode.ToDagCborObject(entries))!;
-                MstEntry.FixEntryNodeCids(entries, currentNode.Cid!);
-
-                //
-                // 🚨 DB UPDATE 🚨
-                //
-                updatedCids.Add(currentNode.Cid!);
-                _db.ReplaceMstNode(
-                    oldCid4, // old cid
-                    currentNode, // node
-                    entries); // entries
-
-                return currentNode.Cid!;
+                selectedEntry.TreeMstNodeCid = rightNode.Cid;
+                mstNode.RecomputeCid(mstEntries);
+                updatedNodeObjectIds.Add((Guid) mstNode.NodeObjectId!);
+                _db.ReplaceMstNode(mstNode, mstEntries);
+                return;
             }
         }
     }
