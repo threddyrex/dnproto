@@ -534,16 +534,17 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         );
 
         // Act
-        pdsDb!.InsertRepoRecord(repoRecordToInsert);
+        pdsDb!.InsertRepoRecord("collection1", "rkey1", repoRecordToInsert.Cid!, repoRecordToInsert.DataBlock!);
 
-        var retrievedRepoRecord = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
+        var retrievedRepoRecord = pdsDb.GetRepoRecord("collection1", "rkey1");
 
         // Assert
         Assert.NotNull(retrievedRepoRecord);
         Assert.Equal(repoRecordToInsert.Cid?.Base32, retrievedRepoRecord!.Cid?.Base32);
         Assert.Equal(repoRecordToInsert.DataBlock?.ToString(), retrievedRepoRecord.DataBlock?.ToString());
 
-        pdsDb.DeleteRepoRecord(repoRecordToInsert.Cid);
+
+        pdsDb.DeleteRepoRecord("collection1", "rkey1");
     }
 
     [Fact]
@@ -564,16 +565,19 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             }
         );
 
-        // Act
-        pdsDb!.InsertRepoRecord(repoRecordToInsert);
+        string collection = "collection1";
+        string rkey = "rkey1";
 
-        var retrievedBeforeDelete = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
+        // Act
+        pdsDb!.InsertRepoRecord(collection, rkey, repoRecordToInsert.Cid!, repoRecordToInsert.DataBlock!);
+
+        var retrievedBeforeDelete = pdsDb.GetRepoRecord(collection, rkey);
         Assert.NotNull(retrievedBeforeDelete);
         Assert.Equal(repoRecordToInsert.Cid?.Base32, retrievedBeforeDelete!.Cid?.Base32);
 
-        pdsDb.DeleteRepoRecord(repoRecordToInsert.Cid);
+        pdsDb.DeleteRepoRecord(collection, rkey);
 
-        var retrievedAfterDelete = pdsDb.GetRepoRecord(repoRecordToInsert.Cid);
+        var retrievedAfterDelete = pdsDb.GetRepoRecord(collection, rkey);
 
         // Assert
         Assert.Null(retrievedAfterDelete);
@@ -609,13 +613,13 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         );
 
         // Act
-        pdsDb!.InsertRepoRecord(repoRecord1);
-        pdsDb.InsertRepoRecord(repoRecord2);
+        pdsDb!.InsertRepoRecord("collection1", "rkey1", repoRecord1.Cid!, repoRecord1.DataBlock!);
+        pdsDb.InsertRepoRecord("collection2", "rkey2", repoRecord2.Cid!, repoRecord2.DataBlock!);
 
         pdsDb.DeleteAllRepoRecords();
 
-        var retrievedAfterDelete1 = pdsDb.GetRepoRecord(repoRecord1.Cid);
-        var retrievedAfterDelete2 = pdsDb.GetRepoRecord(repoRecord2.Cid);
+        var retrievedAfterDelete1 = pdsDb.GetRepoRecord("collection1", "rkey1");
+        var retrievedAfterDelete2 = pdsDb.GetRepoRecord("collection2", "rkey2");
 
         // Assert
         Assert.Null(retrievedAfterDelete1);

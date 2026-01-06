@@ -162,6 +162,7 @@ public class Pds
         App.MapPost("/xrpc/app.bsky.actor.putPreferences", async (HttpContext context) => { var cmd = new AppBskyActor_PutPreferences(){Pds = this, HttpContext = context}; return await cmd.GetResponseAsync(); });
         App.MapGet("/xrpc/com.atproto.sync.getRepo", async (HttpContext context) => { var cmd = new ComAtprotoSync_GetRepo(){Pds = this, HttpContext = context}; return await cmd.GetResponseAsync(); });
         App.MapPost("/xrpc/com.atproto.repo.createRecord", (HttpContext context) => new ComAtprotoRepo_CreateRecord(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/com.atproto.repo.getRecord", (HttpContext context) => new ComAtprotoRepo_GetRecord(){Pds = this, HttpContext = context}.GetResponse());
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
@@ -195,6 +196,7 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getRepo");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky -> proxied to app view");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.createRecord");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.getRecord");
         Logger.LogInfo("");
     }
 

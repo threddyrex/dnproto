@@ -296,7 +296,7 @@ public class UserRepo
         record.SetString(new string[] { "$type" }, collection);
         CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
         RepoRecord repoRecord = RepoRecord.FromDagCborObject(recordCid, record);
-        _db.InsertRepoRecord(repoRecord);
+        _db.InsertRepoRecord(collection, rkey, recordCid, record);
 
 
         //

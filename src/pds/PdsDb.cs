@@ -1158,6 +1158,9 @@ DELETE FROM MstEntry
     #endregion
 
 
+
+
+
     #region REPORECORD
 
     public static void CreateTable_RepoRecord(SqliteConnection connection, IDnProtoLogger logger)
@@ -1166,42 +1169,42 @@ DELETE FROM MstEntry
         var command = connection.CreateCommand();
         command.CommandText = @"
 CREATE TABLE IF NOT EXISTS RepoRecord (
-Cid TEXT PRIMARY KEY,
-DagCborObject BLOB NOT NULL
-)
+Collection TEXT NOT NULL,
+Rkey TEXT NOT NULL,
+Cid TEXT NOT NULL,
+DagCborObject BLOB NOT NULL,
+PRIMARY KEY (Collection, Rkey)
+);
         ";
         
         command.ExecuteNonQuery();        
     }
 
-    public void InsertRepoRecord(RepoRecord repoRecord)
+    public void InsertRepoRecord(string collection, string rkey, CidV1 cid, DagCborObject dagCborObject)
     {
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO RepoRecord (Cid, DagCborObject)
-VALUES (@Cid, @DagCborObject)
+INSERT INTO RepoRecord (Collection, Rkey, Cid, DagCborObject)
+VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
             ";
-            command.Parameters.AddWithValue("@Cid", repoRecord.Cid?.Base32);
-            command.Parameters.AddWithValue("@DagCborObject", repoRecord.DataBlock.ToBytes());
-
+            command.Parameters.AddWithValue("@Collection", collection);
+            command.Parameters.AddWithValue("@Rkey", rkey);
+            command.Parameters.AddWithValue("@Cid", cid.Base32);
+            command.Parameters.AddWithValue("@DagCborObject", dagCborObject.ToBytes());
             command.ExecuteNonQuery();
         }
     }
 
-    public RepoRecord? GetRepoRecord(CidV1? cid)
+    public RepoRecord? GetRepoRecord(string collection, string rkey)
     {
-        if(cid == null)
-        {
-            return null;
-        }
-        
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM RepoRecord WHERE Cid = @Cid LIMIT 1";
-            command.Parameters.AddWithValue("@Cid", cid?.Base32);
+            command.CommandText = "SELECT * FROM RepoRecord WHERE Collection = @Collection AND Rkey = @Rkey LIMIT 1";
+            command.Parameters.AddWithValue("@Collection", collection);
+            command.Parameters.AddWithValue("@Rkey", rkey);
             
             using(var reader = command.ExecuteReader())
             {
@@ -1239,20 +1242,17 @@ VALUES (@Cid, @DagCborObject)
         return repoRecords;
     }
 
-    public void DeleteRepoRecord(CidV1? cid)
+    public void DeleteRepoRecord(string collection, string rkey)
     {
-        if(cid == null)
-        {
-            return;
-        }
 
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-DELETE FROM RepoRecord WHERE Cid = @Cid
+DELETE FROM RepoRecord WHERE Collection = @Collection AND Rkey = @Rkey
             ";
-            command.Parameters.AddWithValue("@Cid", cid?.Base32);
+            command.Parameters.AddWithValue("@Collection", collection);
+            command.Parameters.AddWithValue("@Rkey", rkey);
             command.ExecuteNonQuery();
         }
     }
