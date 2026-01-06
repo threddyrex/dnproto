@@ -61,7 +61,7 @@ namespace dnproto.cli.commands
                 (repoHeader, repoCommit, mstNodes, mstNodeEntries, atProtoRecordCids) =>
                 {
                     Logger.LogInfo("Beginning MST Walk...");
-                    Logger.LogInfo($"   RepoHeader.Cid: {repoHeader.RepoCommitCid}");
+                    Logger.LogInfo($"   RepoHeader.RepoCommitCid: {repoHeader.RepoCommitCid}");
                     Logger.LogInfo($"   RepoCommit.Cid: {repoCommit.Cid}");
                     Logger.LogInfo($"   RepoCommit.RootMstNodeCid: {repoCommit.RootMstNodeCid}");
                     Logger.LogInfo($"   Total MST Nodes Loaded: {mstNodes.Count}");
