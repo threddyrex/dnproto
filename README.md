@@ -24,9 +24,11 @@ For CAR repo encoding and decoding, see these classes:
 
 The PDS implementation is starting to take shape, and can be found in the following files:
 
+- [MstNode.cs](/src/repo/MstNode.cs) - represents one node in the MST
+- [MstEntry.cs](/src/repo/MstEntry.cs) - represents on entry in a MST node
 - [Pds.cs](/src/pds/Pds.cs) - PDS entry point
-- [Mst.cs](/src/pds/Mst.cs) - MST implementation entry point
-- [PdsDb.cs](/src/pds/db/PdsDb.cs) - the database interface, where the repo is stored
+- [MstDb.cs](/src/pds/MstDb.cs) - MST db implementation entry point
+- [PdsDb.cs](/src/pds/PdsDb.cs) - the database interface, where the repo is stored
 
 You can consume the firehose with this class:
 
