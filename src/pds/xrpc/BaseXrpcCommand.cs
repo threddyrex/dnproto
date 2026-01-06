@@ -1,7 +1,9 @@
 
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.auth;
+using dnproto.repo;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
@@ -14,7 +16,7 @@ public abstract class BaseXrpcCommand
 
 
     /// <summary>
-    /// Checks to see if the caller is the pds admin.
+    /// Returns true if the caller is the PDS admin user.
     /// </summary>
     /// <returns></returns>
     protected bool CheckAdminAuth()
@@ -52,6 +54,22 @@ public abstract class BaseXrpcCommand
 
         return true;
     }
+
+
+    /// <summary>
+    /// Returns true if the client is authenticated as the PDS user.
+    /// </summary>
+    /// <returns></returns>
+    public bool CheckUserAuth()
+    {
+        string? accessJwt = GetAccessJwt();
+        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
+        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
+        bool didMatches = userDid == Pds.Config.UserDid;
+        return didMatches;
+    }
+
+
 
     protected string? GetAccessJwt()
     {
@@ -92,6 +110,7 @@ public abstract class BaseXrpcCommand
             }
         }
     }
+
 
     /// <summary>
     /// Helper for getting int in request body.
@@ -142,6 +161,32 @@ public abstract class BaseXrpcCommand
             return false;
         }
 
+        return true;
+    }
+
+    protected bool CheckRequestBodyParam(JsonNode? requestBody, string paramName, out DagCborObject? dagCborObject)
+    {
+        dagCborObject = null;
+
+        if(requestBody == null)
+        {
+            return false;
+        }
+
+        string? valueStr = requestBody[paramName]?.ToString();
+
+        if(string.IsNullOrEmpty(valueStr))
+        {
+            return false;
+        }
+
+        dagCborObject = DagCborObject.FromJsonString(valueStr);
+
+        if(dagCborObject == null)
+        {
+            return false;
+        }
+        
         return true;
     }
 }

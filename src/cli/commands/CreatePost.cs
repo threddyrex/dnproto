@@ -54,7 +54,7 @@ public class CreatePost : BaseCommand
         SessionFile? session = lfs?.LoadSession(actorInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for actor: {actor}");
+            Logger.LogError($"Failed to load session for actor: {actor}. Please log in first.");
             return;
         }
 
@@ -128,10 +128,10 @@ public class CreatePost : BaseCommand
         //
         // Send request
         //
+        Logger.LogInfo("\nREQUEST:\n" + JsonData.ConvertObjectToJsonString((object?)json));
         if(skipSend == true)
         {
             Logger.LogInfo("Skipping send.");
-            Logger.LogInfo(JsonData.ConvertObjectToJsonString((object?)json));
             return;
         }
 

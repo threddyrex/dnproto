@@ -1244,7 +1244,7 @@ public class BlueskyClient
         }
 
         var options = new JsonSerializerOptions { WriteIndented = true };
-        Logger.LogInfo(response.ToJsonString(options));
+        Logger.LogInfo($"\nRESPONSE:\n{response.ToJsonString(options)}");
     }
 
     public static void LogTraceJsonResponse(JsonNode? response)

@@ -104,21 +104,7 @@ public class UserRepo
         repoCommit.Rev = RecordKey.GenerateTid();
         repoCommit.RootMstNodeCid = mstNode.Cid;
         repoCommit.Version = 3;
-
-        byte[]? repoCommitObjUnsignedBytes = repoCommit.ToDagCborBytes();
-
-        if (repoCommitObjUnsignedBytes == null)
-        {
-            logger.LogError("Failed to serialize unsigned repo commit.");
-            return;
-        }
-
-        var hash = System.Security.Cryptography.SHA256.HashData(repoCommitObjUnsignedBytes);
-        
-        // Sign the hash
-        repoCommit.Signature = commitSigningFunction(hash);
-        byte[]? repoCommitObjSignedBytes = repoCommit.ToDagCborBytes();
-        repoCommit.Cid = CidV1.ComputeCidForDagCbor(repoCommit.ToDagCborObject()!);
+        repoCommit.SignRepoCommit(mstNode.Cid, commitSigningFunction);
 
 
         //
@@ -279,41 +265,70 @@ public class UserRepo
 
 
 
-    #region PROFILE
+    #region CREATE
 
-    public void CreateProfile(DagCborObject record)
+    /// <summary>
+    /// Creates a new record in the repo. Takes care of everything (rkey, uri, mst, repo record, etc).
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <param name="record"></param>
+    /// <returns></returns>
+    public 
+        (string? uri, 
+        RepoRecord? repoRecord, 
+        RepoCommit? repoCommit, 
+        string? validationStatus) 
+            CreateRecord(string collection, DagCborObject record)
     {
         //
-        // Load MST
+        // Create rkey and uri
+        //
+        string rkey = RecordKey.GenerateRkey(collection);
+        string fullKey = $"{collection}/{rkey}";
+        string uri = $"at://{_userDid}/{collection}/{rkey}";
+        _logger.LogInfo($"Generated rkey for new record: {rkey}");
+        _logger.LogInfo($"Generated uri for new record: {uri}");
+
+
+        //
+        // REPO RECORD
+        //
+        record.SetString(new string[] { "$type" }, collection);
+        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
+        RepoRecord repoRecord = RepoRecord.FromDagCborObject(recordCid, record);
+        _db.InsertRepoRecord(repoRecord);
+
+
+        //
+        // MST
         //
         var mst = new MstDb(_db);
-
-        //
-        // Check if profile exists.
-        //
-        bool keyExists = mst.KeyExists("app.bsky.actor.profile/self");
-        if (keyExists)
-        {
-            _logger.LogInfo("Profile already exists in MST, not creating a new one.");
-            return;
-        }
-
-
-
-        //
-        // Put into MST
-        //
-        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
-
         (CidV1 originalRootMstNodeCid, 
             CidV1 newRootMstNodeCid, 
-            List<Guid> updatedNodeObjectIds) = mst.PutEntry("app.bsky.actor.profile/self", recordCid);
+            List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
 
 
-        // TODO: stopped here
-        // We will use updatedNodeObjectIds to update the repo commit and repo header.
-        // updatedNodeObjectIds contains all the cids that were changed during the PutEntry operation,
-        // including the new root MST node cid. All of these will be sent in firehose event.
+        //
+        // REPO COMMIT
+        //
+        var repoCommit = _db.GetRepoCommit()!;
+        repoCommit.SignRepoCommit(newRootMstNodeCid, _commitSigningFunction!);
+        _db.InsertUpdateRepoCommit(repoCommit);
+
+
+        //
+        // REPO HEADER
+        //
+        var repoHeader = _db.GetRepoHeader()!;
+        repoHeader.RepoCommitCid = repoCommit.Cid;
+        _db.InsertUpdateRepoHeader(repoHeader);
+
+
+        //
+        // Return everything.
+        //
+        return (uri, repoRecord, repoCommit, "valid");
+
     }
 
     #endregion

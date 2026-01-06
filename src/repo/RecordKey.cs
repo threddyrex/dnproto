@@ -211,4 +211,15 @@ public static class RecordKey
         
         return result;
     }
+
+    /// <summary>
+    /// Generate rkey. Example: 3mbrerl2hb22z
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <returns></returns>
+    public static string GenerateRkey(string collection)
+    {
+        string tid = GenerateTid();
+        return tid;
+    }
 }

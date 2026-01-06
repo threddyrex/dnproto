@@ -396,6 +396,63 @@ public class DagCborObject
     }
 
 
+    public bool SetString(string[] propertyNames, string strValue)
+    {
+        DagCborObject? current = this;
+
+        for(int i = 0; i < propertyNames.Length; i++)
+        {
+            string propertyName = propertyNames[i];
+
+            if(current.Type.MajorType != DagCborType.TYPE_MAP) return false;
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null) return false;
+
+            if(i == propertyNames.Length - 1)
+            {
+                // Last property, set value
+                dict[propertyName] = new DagCborObject
+                {
+                    Type = new DagCborType
+                    {
+                        MajorType = DagCborType.TYPE_TEXT,
+                        AdditionalInfo = 0,
+                        OriginalByte = 0
+                    },
+                    Value = strValue
+                };
+            }
+            else
+            {
+                // Intermediate property, navigate or create
+                if(dict.ContainsKey(propertyName))
+                {
+                    current = dict[propertyName];
+                }
+                else
+                {
+                    DagCborObject newObj = new DagCborObject
+                    {
+                        Type = new DagCborType
+                        {
+                            MajorType = DagCborType.TYPE_MAP,
+                            AdditionalInfo = 0,
+                            OriginalByte = 0
+                        },
+                        Value = new Dictionary<string,DagCborObject>()
+                    };
+                    dict[propertyName] = newObj;
+                    current = newObj;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
 
     public override string ToString()
     {

@@ -170,4 +170,22 @@ public class RepoCommit
         return repoCommit;
     }
 
+
+
+    public void SignRepoCommit(CidV1 newRootMstNodeCid, Func<byte[], byte[]> commitSigningFunction)
+    {
+        this.PrevMstNodeCid = this.Cid;
+        this.RootMstNodeCid = newRootMstNodeCid;
+        this.Rev = RecordKey.GenerateTid();
+
+        //
+        // Sign the commit
+        //
+        byte[]? unsignedBytes = this.ToDagCborBytes()!;
+        var hash = System.Security.Cryptography.SHA256.HashData(unsignedBytes);        
+        this.Signature = commitSigningFunction(hash);
+        byte[]? repoCommitObjSignedBytes = this.ToDagCborBytes();
+        this.Cid = CidV1.ComputeCidForDagCbor(this.ToDagCborObject()!);
+    }
+
 }

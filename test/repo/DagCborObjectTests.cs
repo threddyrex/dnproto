@@ -779,4 +779,15 @@ public class DagCborObjectTests
         Assert.Equal("com.atproto.repo.applyWrites#create", firstWrite?["$type"]);
         
     }
+
+    [Fact]
+    public void SetString()
+    {
+        string initialJson = "{\"key\":\"value\"}";
+        var dagCborObject = DagCborObject.FromJsonString(initialJson);
+        dagCborObject.SetString(new string[] { "hello" }, "world");
+
+        Assert.Equal(DagCborType.TYPE_MAP, dagCborObject.Type.MajorType);
+        Assert.Equal("world", dagCborObject.SelectString(new string[] { "hello" }));
+    }
 }

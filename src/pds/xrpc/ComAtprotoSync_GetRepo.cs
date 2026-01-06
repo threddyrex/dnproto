@@ -27,7 +27,7 @@ public class ComAtprotoSync_GetRepo : BaseXrpcCommand
         // Write the MST to stream, using "application/vnd.ipld.car" content type
         //
         HttpContext.Response.ContentType = "application/vnd.ipld.car";
-        await Pds.Repo.WriteToStreamAsync(HttpContext.Response.Body);
+        await Pds.UserRepo.WriteToStreamAsync(HttpContext.Response.Body);
         return Results.Empty;
     }
 }
