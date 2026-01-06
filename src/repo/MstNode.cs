@@ -9,15 +9,6 @@ namespace dnproto.repo;
 public class MstNode
 {
     /// <summary>
-    /// NodeObjectId
-    /// 
-    /// This is not part of AT Proto. It is an internal database object id
-    /// used when making edits to the tree. It's difficult to use Cid for this,
-    /// because Cids change when the node is modified.
-    /// </summary>
-    public Guid? NodeObjectId { get; set; } = null;
-
-    /// <summary>
     /// Cid for this node.
     /// Base 32, starting with "b".
     /// </summary>
@@ -32,6 +23,16 @@ public class MstNode
     /// Maps to "l" in the MST structure (can be null).
     /// </summary>
     public CidV1? LeftMstNodeCid { get; set; } = null;
+    
+
+    /// <summary>
+    /// NodeObjectId
+    /// 
+    /// This is not part of AT Proto. It is an internal database object id
+    /// used when making edits to the tree. It's difficult to use Cid for this,
+    /// because Cids change when the node is modified.
+    /// </summary>
+    public Guid? NodeObjectId { get; set; } = null;
 
 
     public static bool IsMstNode(DagCborObject? obj)

@@ -12,11 +12,11 @@ namespace dnproto.pds;
 /// Instance methods usually modify the MST stored in the database (_db).
 /// 
 /// </summary>
-public class Mst
+public class MstDb
 {
     private PdsDb _db;
 
-    public Mst(PdsDb db)
+    public MstDb(PdsDb db)
     {
         _db = db;
     }

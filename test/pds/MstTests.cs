@@ -84,7 +84,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
 
 
         // Act
-        var mst = new Mst(_fixture.PdsDb);
+        var mst = new MstDb(_fixture.PdsDb);
         bool exists = mst.KeyExists("app.bsky.actor.profile/self");
         bool doesntExist = mst.KeyExists("app.bsky.actor.profile/other");
 
@@ -132,7 +132,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
         };
         _fixture.PdsDb.InsertMstEntries((Guid)mstNode.NodeObjectId, mstEntries);
 
-        var mst = new Mst(_fixture.PdsDb);
+        var mst = new MstDb(_fixture.PdsDb);
 
         // Act
         bool exists = mst.KeyExists("app.bsky.actor.profile/other");

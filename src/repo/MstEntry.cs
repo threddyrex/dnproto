@@ -12,20 +12,6 @@ namespace dnproto.repo;
 public class MstEntry
 {
     /// <summary>
-    /// NodeObjectId
-    /// 
-    /// This is not part of AT Proto. It is an internal database object id
-    /// used when making edits to the tree. It's difficult to use Cid for this,
-    /// because Cids change when the node is modified.
-    /// </summary>
-    public Guid? NodeObjectId { get; set; } = null;
-
-    /// <summary>
-    /// Index of this entry within the MST node's entries list.
-    /// </summary>
-    public int EntryIndex { get; set; } = 0;
-
-    /// <summary>
     /// 
     /// "k"
     /// 
@@ -64,6 +50,23 @@ public class MstEntry
     /// Maps to "v" in the MST structure.
     /// </summary>
     public CidV1? RecordCid { get; set; } = null;
+
+
+    /// <summary>
+    /// Index of this entry within the MST node's entries list.
+    /// </summary>
+    public int EntryIndex { get; set; } = 0;
+
+
+    /// <summary>
+    /// NodeObjectId
+    /// 
+    /// This is not part of AT Proto. It is an internal database object id
+    /// used when making edits to the tree. It's difficult to use Cid for this,
+    /// because Cids change when the node is modified.
+    /// </summary>
+    public Guid? NodeObjectId { get; set; } = null;
+
 
 
     public DagCborObject? ToDagCborObject()

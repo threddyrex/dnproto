@@ -1,8 +1,9 @@
 using dnproto.log;
 using dnproto.repo;
 using Microsoft.Data.Sqlite;
+using dnproto.pds.db;
 
-namespace dnproto.pds.db;
+namespace dnproto.pds;
 
 public class PdsDb
 {

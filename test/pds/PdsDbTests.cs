@@ -1,9 +1,10 @@
 
-namespace dnproto.tests.pds.db;
+namespace dnproto.tests.pds;
 
 using System.Reflection;
 using dnproto.fs;
 using dnproto.log;
+using dnproto.pds;
 using dnproto.pds.db;
 using dnproto.repo;
 

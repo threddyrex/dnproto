@@ -206,7 +206,7 @@ public class UserRepo
             //
             // MST Nodes
             //
-            var mst = new Mst(_db);
+            var mst = new MstDb(_db);
             var allMstNodes = _db.GetAllMstNodes();
             var allMstEntriesByNode = _db.GetAllMstEntriesByNodeObjectId();
             foreach (MstNode mstNode in allMstNodes)
@@ -286,7 +286,7 @@ public class UserRepo
         //
         // Load MST
         //
-        var mst = new Mst(_db);
+        var mst = new MstDb(_db);
 
         //
         // Check if profile exists.
