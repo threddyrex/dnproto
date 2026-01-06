@@ -15,20 +15,20 @@ public class Mst
     /// <param name="repoFile"></param>
     /// <param name="mstNodeCallback"></param>
     public static void WalkMst(string repoFile,
-        Func<RepoCommit, bool> repoCommitCallback,
-        Func<MstNode, int, List<MstEntry>, bool> mstNodeCallback,
+        Func<RepoHeader, RepoCommit, Dictionary<CidV1, MstNode>, Dictionary<CidV1, List<MstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
+        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback,
         Func<string, bool> errorCallback)
     {
         if (string.IsNullOrEmpty(repoFile)) return;
         using (var fs = new FileStream(repoFile, FileMode.Open))
         {
-            WalkMst(fs, repoCommitCallback, mstNodeCallback, errorCallback);
+            WalkMst(fs, dataLoadedCallback, mstNodeCallback, errorCallback);
         }
     }
 
     public static void WalkMst(Stream s,
-        Func<RepoCommit, bool> repoCommitCallback,
-        Func<MstNode, int, List<MstEntry>, bool> mstNodeCallback,
+        Func<RepoHeader, RepoCommit, Dictionary<CidV1, MstNode>, Dictionary<CidV1, List<MstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
+        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback,
         Func<string, bool> errorCallback)
     {
         //
@@ -96,6 +96,15 @@ public class Mst
                 return true;
             });
 
+        //
+        // Send data back to caller.
+        //
+        bool continueWalk = dataLoadedCallback(repoHeader!, repoCommit!, mstNodes, mstNodeEntries, atProtoRecordCids);
+        if(!continueWalk)
+        {
+            return;
+        }
+
 
         //
         // Start at the root node and walk the MST.
@@ -103,8 +112,6 @@ public class Mst
         MstNode? rootNode = null;
         if(repoCommit != null && repoCommit.RootMstNodeCid != null)
         {
-            repoCommitCallback(repoCommit);
-
             CidV1 rootCid = (CidV1)repoCommit.RootMstNodeCid;
             if(mstNodes.ContainsKey(rootCid))
             {
@@ -122,14 +129,14 @@ public class Mst
             return;
         }
 
-        VisitNode(rootNode, 0, mstNodes, mstNodeEntries, mstNodeCallback, errorCallback);
+        VisitNode("(root) ", rootNode, 0, mstNodes, mstNodeEntries, mstNodeCallback, errorCallback);
     }
 
-    private static bool VisitNode(MstNode currentNode, 
+    private static bool VisitNode(string direction, MstNode currentNode, 
         int currentDepth,
         Dictionary<CidV1, MstNode> allMstNodes, 
         Dictionary<CidV1, List<MstEntry>> allMstNodeEntries, 
-        Func<MstNode, int, List<MstEntry>, bool> mstNodeCallback, 
+        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback, 
         Func<string, bool> errorCallback)
     {
         if(currentNode is null || currentNode.Cid is null)
@@ -148,7 +155,7 @@ public class Mst
         var entries = allMstNodeEntries[currentNode.Cid];
 
         // Call the callback
-        bool continueWalk = mstNodeCallback(currentNode, currentDepth, entries);
+        bool continueWalk = mstNodeCallback(direction, currentNode, currentDepth, entries);
         if(!continueWalk)
         {
             return false;
@@ -160,7 +167,7 @@ public class Mst
             if(allMstNodes.ContainsKey(currentNode.LeftMstNodeCid))
             {
                 var leftNode = allMstNodes[currentNode.LeftMstNodeCid];
-                continueWalk = VisitNode(leftNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
+                continueWalk = VisitNode("(left) ", leftNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
                 if(!continueWalk)
                 {
                     return false;
@@ -180,7 +187,7 @@ public class Mst
                 if(allMstNodes.ContainsKey(entry.TreeMstNodeCid))
                 {
                     var rightNode = allMstNodes[entry.TreeMstNodeCid];
-                    continueWalk = VisitNode(rightNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
+                    continueWalk = VisitNode("(right) ", rightNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
                     if(!continueWalk)
                     {
                         return false;

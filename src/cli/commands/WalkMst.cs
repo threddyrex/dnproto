@@ -54,22 +54,28 @@ namespace dnproto.cli.commands
 
 
             //
-            // First walk repo and load everything.
+            // Walk MST. It takes care of parsing RepoRecords.
             //
             Mst.WalkMst(repoFile,
-                (repoCommit) =>
+                // data loaded callback
+                (repoHeader, repoCommit, mstNodes, mstNodeEntries, atProtoRecordCids) =>
                 {
-                    Logger.LogInfo($"RepoCommit.Cid: {repoCommit.Cid}");
-                    Logger.LogInfo($"RepoCommit.RootMstNodeCid: {repoCommit.RootMstNodeCid}");
+                    Logger.LogInfo("Beginning MST Walk...");
+                    Logger.LogInfo($"   RepoHeader.Cid: {repoHeader.RepoCommitCid}");
+                    Logger.LogInfo($"   RepoCommit.Cid: {repoCommit.Cid}");
+                    Logger.LogInfo($"   RepoCommit.RootMstNodeCid: {repoCommit.RootMstNodeCid}");
+                    Logger.LogInfo($"   Total MST Nodes Loaded: {mstNodes.Count}");
+                    Logger.LogInfo($"   Total AtProto Record CIDs: {atProtoRecordCids.Count}");
                     return true;
                 },
-                (mstNode, currentDepth, mstEntries) =>
+                // mst node callback
+                (direction, mstNode, currentDepth, mstEntries) =>
                 {
-                    // print node cid
-                    Logger.LogInfo($"{new string(' ', currentDepth * 2)}MST Node: {mstNode.Cid}");
+                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}({currentDepth}) {direction}{mstNode.Cid}");
                     nodeCount++;
                     return true;
                 },
+                // error callback
                 (errorMsg) =>
                 {
                     Logger.LogError($"Error walking MST: {errorMsg}");
@@ -78,7 +84,9 @@ namespace dnproto.cli.commands
                 });
             
 
-            Logger.LogInfo($"MST verification complete. Nodes visited: {nodeCount}, Errors found: {errorCount}");
+            Logger.LogInfo($"MST walk complete.");
+            Logger.LogInfo($"   Nodes visited: {nodeCount}");
+            Logger.LogInfo($"   Errors found: {errorCount}");
         }
 
    }
