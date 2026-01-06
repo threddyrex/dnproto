@@ -172,11 +172,21 @@ public class MstDb
                 PrefixLength = 0, // gets fixed later, but start at 0 to make "GetFullKeys" work
             };
 
+            // insert first, before fixing indexes and prefix lengths
+            currentEntries.Insert(insertIndex, newEntry);
+            currentEntryKeys.Insert(insertIndex, recordKeyToInsert);
+
+            // fix up
             MstEntry.FixEntryIndexes(currentEntries);
             MstEntry.FixPrefixLengths(currentEntries);
 
-            currentEntries.Insert(insertIndex, newEntry);
-            currentEntryKeys.Insert(insertIndex, recordKeyToInsert);
+            // log debug
+            for(int i = 0; i < currentEntries.Count; i++)
+            {
+                var entry = currentEntries[i];
+                _db._logger.LogTrace($"   !! MST Entry {i}: EntryIndex={entry.EntryIndex}, PrefixLength={entry.PrefixLength}, KeySuffix={entry.KeySuffix}");
+            }
+
             currentNode.RecomputeCid(currentEntries);
             _db.ReplaceMstNode(currentNode, currentEntries);
             updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);

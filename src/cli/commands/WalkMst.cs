@@ -75,9 +75,12 @@ namespace dnproto.cli.commands
                     nodeCount++;
 
                     var fullKeys = MstEntry.GetFullKeys(mstEntries);
-                    foreach(var fullKey in fullKeys)
+
+                    for(int i = 0; i < fullKeys.Count; i++)
                     {
-                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}- {fullKey}");
+                        var entry = mstEntries[i];
+                        var fullKey = fullKeys[i];
+                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}- {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}");
                     }
 
                     return true;
