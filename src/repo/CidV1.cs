@@ -181,4 +181,19 @@ public class CidV1
         return cid;
     }
 
+    public override bool Equals(object? obj)
+    {
+        if (obj is CidV1 otherCid)
+        {
+            return string.Equals(this.Base32, otherCid.Base32, StringComparison.Ordinal);
+        }
+
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return Base32.GetHashCode();
+    }
+
 }
