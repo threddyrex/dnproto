@@ -2,6 +2,7 @@ param (
     [string]$dnprotoPath = $null,
     [string]$logLevel = $null,
     [string]$dataDir = $null,
+    [bool]$debugAttach = $false,
     [Parameter(Position = 0)]
     [string]$actor = $null,
     [string]$repofile = $null
@@ -12,9 +13,9 @@ param (
 
 if(-not [string]::IsNullOrWhiteSpace($repofile))
 {
-& $dnprotoPath /command WalkMst /dataDir $dataDir /logLevel $logLevel /repofile $repofile
+& $dnprotoPath /command WalkMst /dataDir $dataDir /logLevel $logLevel /repofile $repofile /debugattach $debugAttach
 }
 elseif(-not [string]::IsNullOrWhiteSpace($actor))
 {
-& $dnprotoPath /command WalkMst /dataDir $dataDir /logLevel $logLevel /actor $actor 
+& $dnprotoPath /command WalkMst /dataDir $dataDir /logLevel $logLevel /actor $actor /debugattach $debugAttach
 }

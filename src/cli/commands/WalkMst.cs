@@ -73,6 +73,13 @@ namespace dnproto.cli.commands
                 {
                     Logger.LogTrace($"{new string(' ', currentDepth * 2)}({currentDepth}) {direction}{mstNode.Cid}");
                     nodeCount++;
+
+                    var fullKeys = MstEntry.GetFullKeys(mstEntries);
+                    foreach(var fullKey in fullKeys)
+                    {
+                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}- {fullKey}");
+                    }
+
                     return true;
                 },
                 // error callback
