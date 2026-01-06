@@ -109,7 +109,10 @@ public class RepoRecord
     {
         if (!IsMstNode())
             return (null, null);
-        return MstNode.FromDagCborObject(this.DataBlock);
+        
+        var (mstNode, mstEntries) = MstNode.FromDagCborObject(this.DataBlock);
+        mstNode?.Cid = this.Cid;
+        return (mstNode, mstEntries);
     }
 
     public bool IsRepoCommit()
@@ -121,7 +124,9 @@ public class RepoRecord
         if (!IsRepoCommit())
             return null;
 
-        return RepoCommit.FromDagCborObject(this.DataBlock);
+        var repoCommit = RepoCommit.FromDagCborObject(this.DataBlock);
+        repoCommit?.Cid = this.Cid;
+        return repoCommit;
     }
 
     public bool IsAtProtoRecord()
