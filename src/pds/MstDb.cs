@@ -169,7 +169,7 @@ public class MstDb
                 TreeMstNodeCid = null,
                 EntryIndex = insertIndex, // gets fixed later
                 KeySuffix = recordKeyToInsert, // gets fixed later
-                PrefixLength = 0, // gets fixed later
+                PrefixLength = 0, // gets fixed later, but start at 0 to make "GetFullKeys" work
             };
 
             MstEntry.FixEntryIndexes(currentEntries);

@@ -157,7 +157,7 @@ public class MstEntry
     /// <returns></returns>
     public string GetFullKey(string? previousKey)
     {
-        if(EntryIndex == 0 || previousKey == null)
+        if(PrefixLength == 0 || previousKey == null)
         {
             return KeySuffix ?? string.Empty;
         }
