@@ -10,88 +10,6 @@ public class PdsDb
     public required IDnProtoLogger _logger;
 
 
-    public static bool DbFileExists(string dataDir)
-    {
-        string dbPath = Path.Combine(dataDir, "pds", "pds.db");
-        return File.Exists(dbPath);
-    }
-
-
-    #region INSTALL
-
-    /// <summary>
-    /// Installs the PDS database on disk. Checks that the folder exists (in local data dir, in the "pds/db" sub dir).
-    /// If already exists, it will fail.
-    /// </summary>
-    public static PdsDb? InstallPdsDb(string dataDir, IDnProtoLogger logger, bool force = false)
-    {
-        //
-        // Paths
-        //
-        string dbDir = Path.Combine(dataDir, "pds");
-        string dbPath = Path.Combine(dbDir, "pds.db");
-
-        //
-        // Check that the pds/db folder exists.
-        //
-        if (!Directory.Exists(dbDir))
-        {
-            logger.LogError($"PDS database directory does not exist: {dbDir}");
-            return null;
-        }
-
-        //
-        // Check that the database file does not already exist.
-        //
-        if (DbFileExists(dataDir) && !force)
-        {
-            logger.LogError($"PDS database file already exists: {dbPath}");
-            return null;
-        }
-
-
-        //
-        // Create connection string for the SQLite database.
-        // It will create the db if it doesn't exist.
-        //
-        string connectionString = new SqliteConnectionStringBuilder {
-            DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadWriteCreate
-        }.ToString();
-        
-        logger.LogInfo($"Installing database at: {dbPath}");
-
-
-        //
-        // Run through the install statements.
-        // If the db already exists, these will be a no-op.
-        //
-        using (var connection = new SqliteConnection(connectionString))
-        {
-            connection.Open();
-            CreateTable_Config(connection, logger);
-            CreateTable_Blob(connection, logger);
-            CreateTable_Preferences(connection, logger);
-            CreateTable_RepoHeader(connection, logger);
-            CreateTable_RepoCommit(connection, logger);
-            CreateTable_MstNode(connection, logger);
-            CreateTable_MstEntry(connection, logger);
-            CreateTable_RepoRecord(connection, logger);
-        }
-        
-        logger.LogInfo("Database initialization complete.");
-
-
-        //
-        // Return PdsDb instance.
-        //
-        return new PdsDb
-        {
-            _dataDir = dataDir,
-            _logger = logger
-        };
-    }
-    #endregion
 
 
     #region CONNECT
@@ -102,10 +20,17 @@ public class PdsDb
         // Check that the pds/db folder exists.
         //
         string dbDir = Path.Combine(dataDir, "pds");
+        string dbFilePath = Path.Combine(dataDir, "pds", "pds.db");
 
         if (!Directory.Exists(dbDir))
         {
             logger.LogError($"PDS database directory does not exist: {dbDir}");
+            return null;
+        }
+
+        if (!File.Exists(dbFilePath))
+        {
+            logger.LogError($"PDS database file does not exist: {dbFilePath}");
             return null;
         }
 
@@ -127,7 +52,12 @@ public class PdsDb
 
     public SqliteConnection GetConnection()
     {
-        string dbPath = Path.Combine(_dataDir, "pds", "pds.db");
+        return GetConnection(_dataDir);
+    }
+
+    public static SqliteConnection GetConnection(string dataDir)
+    {
+        string dbPath = Path.Combine(dataDir, "pds", "pds.db");
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
             Mode = SqliteOpenMode.ReadWrite
@@ -138,6 +68,21 @@ public class PdsDb
 
         return conn;
     }
+
+    public static SqliteConnection GetConnectionCreate(string dataDir)
+    {
+        string dbPath = Path.Combine(dataDir, "pds", "pds.db");
+        string connectionString = new SqliteConnectionStringBuilder {
+            DataSource = dbPath,
+            Mode = SqliteOpenMode.ReadWriteCreate
+        }.ToString();
+
+        var conn = new SqliteConnection(connectionString);
+        conn.Open();
+
+        return conn;
+    }
+
 
     public SqliteConnection GetConnectionReadOnly()
     {
@@ -158,7 +103,7 @@ public class PdsDb
 
     #region CONFIG
 
-    private static void CreateTable_Config(SqliteConnection connection, IDnProtoLogger logger)
+    public static void CreateTable_Config(SqliteConnection connection, IDnProtoLogger logger)
     {
         //
         // Config table
@@ -409,7 +354,7 @@ WHERE Cid = @Cid
     #region PREFS
 
 
-    private static void CreateTable_Preferences(SqliteConnection connection, IDnProtoLogger logger)
+    public static void CreateTable_Preferences(SqliteConnection connection, IDnProtoLogger logger)
     {
         logger.LogInfo("table: Preferences");
         var command = connection.CreateCommand();

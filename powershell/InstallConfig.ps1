@@ -13,4 +13,4 @@ param (
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command InitializePds /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir /pdshostname $pdsHostName /availableuserdomain $availableUserDomain /userHandle $userHandle /userDid $userDid /userEmail $userEmail
+& $dnprotoPath /command InstallConfig /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir /pdshostname $pdsHostName /availableuserdomain $availableUserDomain /userHandle $userHandle /userDid $userDid /userEmail $userEmail

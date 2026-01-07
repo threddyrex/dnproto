@@ -6,9 +6,9 @@ using dnproto.pds;
 namespace dnproto.cli.commands
 {
     /// <summary>
-    /// A minimal ASP.NET Core web API that responds to /hello with "world"
+    /// Install config
     /// </summary>
-    public class InstallPds : BaseCommand
+    public class InstallConfig : BaseCommand
     {
         public override HashSet<string> GetRequiredArguments()
         {
@@ -28,9 +28,9 @@ namespace dnproto.cli.commands
             string? userEmail = CommandLineInterface.GetArgumentValue(arguments, "userEmail");
 
             //
-            // Initialize PDS
+            // Install config
             //
-            Pds.InstallPds(Logger, dataDir, pdsHostname, availableUserDomain, userHandle, userDid, userEmail);
+            Installer.InstallConfig(dataDir, Logger, pdsHostname, availableUserDomain, userHandle, userDid, userEmail);
         }
     }
 }

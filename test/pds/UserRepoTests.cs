@@ -36,13 +36,9 @@ public class UserRepoTestsFixture : IDisposable
             File.Delete(pdsDbFile);
         }
 
-        PdsDb = PdsDb.InstallPdsDb(tempDir, Logger);
-        if(PdsDb is null)
-        {
-            throw new Exception("Failed to install PDS database for tests.");
-        }
-
-        UserRepo.InstallRepo(PdsDb, Logger, TestCommitSigner, "did:example:testuser");
+        Installer.InstallDb(tempDir, Logger, deleteExistingDb: false);
+        Installer.InstallRepo(tempDir, Logger, TestCommitSigner);
+        PdsDb = PdsDb.ConnectPdsDb(tempDir, Logger);
     }
 
     public static Func<byte[], byte[]> TestCommitSigner = (data) =>
@@ -79,7 +75,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        UserRepo.InstallRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
         var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //
@@ -116,7 +112,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        UserRepo.InstallRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
         var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //
@@ -160,7 +156,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        UserRepo.InstallRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
         var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //

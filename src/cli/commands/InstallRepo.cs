@@ -23,9 +23,9 @@ namespace dnproto.cli.commands
             string? dataDir = LocalFileSystem?.DataDir;
 
             //
-            // Initialize MST (destructive)
+            // Load PDS
             //
-            var pds = Pds.LoadPdsForRun(dataDir!, Logger);
+            var pds = Pds.InitializePdsForRun(dataDir!, Logger);
             var pdsDb = pds?.PdsDb;
             var func = pds?.CommitSigningFunction;
 
@@ -41,7 +41,11 @@ namespace dnproto.cli.commands
                 return;
             }
 
-            UserRepo.InstallRepo(pdsDb, Logger, func, pds?.Config.UserDid!);
+
+            //
+            // Install repo (destroy existing one if any)
+            //
+            Installer.InstallRepo(dataDir, Logger, func);
         }
     }
 }
