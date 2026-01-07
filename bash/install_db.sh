@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-ource ../data/pds/setup.env
+source ../data/pds/setup.env
 
 echo ""
 echo "CONFIG FROM ../data/pds/setup.env:"
@@ -17,5 +17,5 @@ echo ""
 
 
 
-../src/bin/Debug/net10.0/dnproto /command InstallDb /datadir ../data/ 
+../src/bin/Debug/net10.0/dnproto /command InstallDb /datadir ../data/ /deleteexistingdb false 
 
