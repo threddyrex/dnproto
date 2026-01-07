@@ -1243,6 +1243,10 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
 
     public void DeleteRepoRecord(string collection, string rkey)
     {
+        if(string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
+        {
+            return;
+        }
 
         using(var sqlConnection = GetConnection())
         {

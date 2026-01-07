@@ -172,7 +172,7 @@ public class RepoCommit
 
 
 
-    public void SignRepoCommit(CidV1 newRootMstNodeCid, Func<byte[], byte[]> commitSigningFunction)
+    public void SignAndRecomputeCid(CidV1 newRootMstNodeCid, Func<byte[], byte[]> commitSigningFunction)
     {
         this.PrevMstNodeCid = this.Cid;
         this.RootMstNodeCid = newRootMstNodeCid;

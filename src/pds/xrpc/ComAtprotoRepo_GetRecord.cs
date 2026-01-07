@@ -27,7 +27,7 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
         //
         // Retrieve record
         //
-        RepoRecord? repoRecord = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
+        RepoRecord? repoRecord = Pds.UserRepo.GetRecord(collection!, rkey!);
 
         if(repoRecord is null)
         {

@@ -8,4 +8,4 @@ param (
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command RunPds /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir /logfilename "pds.log"
+& $dnprotoPath /command RunPds /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir

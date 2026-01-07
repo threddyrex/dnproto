@@ -1,5 +1,8 @@
 
+using dnproto.log;
 using dnproto.repo;
+using Microsoft.Extensions.Logging;
+
 
 namespace dnproto.pds;
 
@@ -14,9 +17,12 @@ public class MstDb
 {
     private PdsDb _db;
 
+    private IDnProtoLogger _logger;
+
     public MstDb(PdsDb db)
     {
         _db = db;
+        _logger = db._logger;
     }
 
 
@@ -305,4 +311,208 @@ public class MstDb
 
 
 
+
+    #region DELETE
+
+    public (CidV1 originalRootMstNodeCid, CidV1 newRootMstNodeCid, List<Guid> updatedNodeObjectIds) 
+        DeleteEntry(string recordKeyToDelete)
+    {
+        _logger.LogTrace($"MstDb.DeleteEntry: Deleting key: {recordKeyToDelete}");
+
+        //
+        // Load from db
+        //
+        var repoCommit = _db.GetRepoCommit();
+        var mstNodeRoot = _db.GetMstNodeByCid(repoCommit!.RootMstNodeCid!);
+        var mstNodeRootEntries = _db.GetMstEntriesForNodeObjectId((Guid)mstNodeRoot!.NodeObjectId!);
+        var originalRootMstNodeCid = repoCommit!.RootMstNodeCid!;
+
+        //
+        // Recursive put
+        //
+        List<Guid> updatedNodeObjectIds = new List<Guid>();
+        InternalDeleteEntry(recordKeyToDelete, mstNodeRoot!, mstNodeRootEntries, currentDepth: 0, updatedNodeObjectIds);
+
+        var newRootMstNodeCid = mstNodeRoot!.Cid!;
+
+        //
+        // Return
+        //
+        return (originalRootMstNodeCid, newRootMstNodeCid, updatedNodeObjectIds);
+    }
+
+
+
+    /// <summary>
+    /// Internal recursive function to delete an entry from the MST.
+    /// Caller passes in currentNode and currentEntries.
+    /// On return, currentNode and currentEntries are updated in db.
+    /// 
+    /// Possible scenarios for one iteration:
+    /// 
+    ///     1) this level - delete existing MstEntry with identical key (delete)
+    ///     2) next level - delete from MstNode.LeftMstNodeCid (go left)
+    ///     3) next level - delete from MstEntry.TreeMstNodeCid (go right)
+    /// 
+    /// </summary>
+    /// <param name="recordKeyToDelete"></param>
+    /// <param name="currentNode"></param>
+    /// <param name="currentEntries"></param>
+    /// <param name="currentDepth"></param>
+    /// <param name="updatedNodeObjectIds"></param>
+    private void InternalDeleteEntry(string recordKeyToDelete, MstNode? currentNode, List<MstEntry> currentEntries, int currentDepth, List<Guid> updatedNodeObjectIds)
+    {
+        if(currentNode is null)
+        {
+            return;
+        }
+
+        //
+        // Calculate full keys and depth.
+        //
+        var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
+        int keyDepthToDelete = MstEntry.GetKeyDepth(recordKeyToDelete);
+
+        _logger.LogTrace($"MstDb.InternalDeleteEntry: currentDepth={currentDepth}, keyDepthToDelete={keyDepthToDelete}, currentNodeCid={currentNode.Cid?.Base32}");
+
+        //
+        // Delete from this level?
+        //
+        if(keyDepthToDelete == currentDepth)
+        {
+            //
+            // Find entry to delete
+            //
+            int deleteIndex = -1;
+            for(int i = 0; i < currentEntries.Count; i++)
+            {
+                var entry = currentEntries[i];
+                string fullKey = currentEntryKeys[i];
+                _logger.LogTrace($"     MstDb.InternalDeleteEntry: Checking entry {i}, fullKey={fullKey}, recordKeyToDelete={recordKeyToDelete}");
+                int comparison = MstEntry.CompareKeys(recordKeyToDelete, fullKey);
+
+                if(comparison == 0)
+                {
+                    deleteIndex = i;
+                    break;
+                }
+            }
+
+            _logger.LogTrace($"MstDb.InternalDeleteEntry: deleteIndex={deleteIndex}");
+
+            //
+            // If found, delete it
+            //
+            if(deleteIndex != -1)
+            {
+                currentEntries.RemoveAt(deleteIndex);
+                currentEntryKeys.RemoveAt(deleteIndex);
+
+                // fix up
+                MstEntry.FixEntryIndexes(currentEntries);
+                MstEntry.FixPrefixLengths(currentEntries);
+
+                currentNode.RecomputeCid(currentEntries);
+                _db.ReplaceMstNode(currentNode, currentEntries);
+                updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
+            }
+
+            return;
+        }
+        //
+        // Else: Need to go to next level
+        //
+        else
+        {
+            //
+            // Find delete position to traverse.
+            //
+            int deletePos = 0;
+            for (int i = 0; i < currentEntries.Count; i++)
+            {
+                var entry = currentEntries[i];
+                string entryKey = currentEntryKeys[i];
+                
+                if (MstEntry.CompareKeys(recordKeyToDelete, entryKey) < 0)
+                {
+                    break;
+                }
+                
+                deletePos = i + 1;
+            }
+
+            _logger.LogTrace($"MstDb.InternalDeleteEntry: next level, deletePos={deletePos}");
+
+            //
+            // If 0, go left.
+            //
+            if(deletePos == 0)
+            {
+                //
+                // Get left subtree
+                //
+                if (currentNode.LeftMstNodeCid != null)
+                {
+                    var leftNode = _db.GetMstNodeByCid(currentNode.LeftMstNodeCid);
+                    if(leftNode is null) { return; }
+                    var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode!.NodeObjectId!);
+
+                    //
+                    // Recurse
+                    //
+                    InternalDeleteEntry(recordKeyToDelete, leftNode, leftEntries, currentDepth + 1, updatedNodeObjectIds);
+
+                    //
+                    // Update currentNode (because its LeftMstNodeCid might have changed)
+                    //
+                    currentNode.LeftMstNodeCid = leftNode.Cid;
+                    currentNode.RecomputeCid(currentEntries);
+                    _db.ReplaceMstNode(currentNode, currentEntries);
+                    updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
+                }
+                else
+                {
+                    _logger.LogTrace($"MstDb.InternalDeleteEntry: LeftMstNodeCid is null, cannot go left.");
+                }
+
+                return;
+            }
+            //
+            // Else, go right into the selected entry.
+            //
+            else
+            {
+                MstNode? rightNode = null;
+                if (currentEntries[deletePos - 1].TreeMstNodeCid != null)
+                {
+                    rightNode = _db.GetMstNodeByCid(currentEntries[deletePos - 1].TreeMstNodeCid);
+                }
+                if(rightNode is null) 
+                { 
+                    _logger.LogTrace($"MstDb.InternalDeleteEntry: Right subtree node is null, cannot go right.");
+                    return; 
+                }
+
+                var rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode!.NodeObjectId!);
+
+                //
+                // Recurse.
+                //
+                InternalDeleteEntry(recordKeyToDelete, rightNode, rightEntries, currentDepth + 1, updatedNodeObjectIds);
+
+                //
+                // Update currentNode (because currentEntries[deletePos - 1].TreeMstNodeCid might have changed)
+                //
+                currentEntries[deletePos - 1].TreeMstNodeCid = rightNode.Cid;
+                currentNode.RecomputeCid(currentEntries);
+                _db.ReplaceMstNode(currentNode, currentEntries);
+                updatedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
+                return;
+            }
+        }
+
+    }
+
+
+    #endregion
 }

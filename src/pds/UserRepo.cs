@@ -91,7 +91,7 @@ public class UserRepo
             LeftMstNodeCid = null
         };
 
-        mstNode.Cid = CidV1.ComputeCidForDagCbor(mstNode.ToDagCborObject(new List<MstEntry>())!);
+        mstNode.RecomputeCid(new List<MstEntry>());
 
 
         //
@@ -103,7 +103,7 @@ public class UserRepo
         repoCommit.Rev = RecordKey.GenerateTid();
         repoCommit.RootMstNodeCid = mstNode.Cid;
         repoCommit.Version = 3;
-        repoCommit.SignRepoCommit(mstNode.Cid, commitSigningFunction);
+        repoCommit.SignAndRecomputeCid(mstNode.Cid!, commitSigningFunction);
 
 
         //
@@ -311,7 +311,7 @@ public class UserRepo
         // REPO COMMIT
         //
         var repoCommit = _db.GetRepoCommit()!;
-        repoCommit.SignRepoCommit(newRootMstNodeCid, _commitSigningFunction!);
+        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
         _db.InsertUpdateRepoCommit(repoCommit);
 
 
@@ -329,6 +329,77 @@ public class UserRepo
         return (uri, repoRecord, repoCommit, "valid");
 
     }
+
+    #endregion
+
+
+    #region GET
+
+    /// <summary>
+    /// Gets record by collection and rkey.
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <param name="rkey"></param>
+    /// <returns></returns>
+    public RepoRecord? GetRecord(string collection, string rkey)
+    {
+        return _db.GetRepoRecord(collection, rkey);
+    }
+
+    #endregion
+
+
+
+
+    #region DELETE
+
+    /// <summary>
+    /// Deletes record.
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <param name="rkey"></param>
+    /// <returns></returns>
+    public 
+        (RepoHeader? repoHeader, RepoCommit? repoCommit) 
+        DeleteRecord(string collection, string rkey)
+    {
+        //
+        // REPO RECORD
+        //
+        _db.DeleteRepoRecord(collection, rkey);
+
+
+        //
+        // MST
+        //
+        var mst = new MstDb(_db);
+        (CidV1 originalRootMstNodeCid, 
+            CidV1 newRootMstNodeCid, 
+            List<Guid> updatedNodeObjectIds) = mst.DeleteEntry($"{collection}/{rkey}");
+
+
+        //
+        // REPO COMMIT
+        //
+        var repoCommit = _db.GetRepoCommit()!;
+        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
+        _db.InsertUpdateRepoCommit(repoCommit);
+
+
+        //
+        // REPO HEADER
+        //
+        var repoHeader = _db.GetRepoHeader()!;
+        repoHeader.RepoCommitCid = repoCommit.Cid;
+        _db.InsertUpdateRepoHeader(repoHeader);
+
+
+        //
+        // Return
+        //
+        return (repoHeader, repoCommit);
+    }
+
 
     #endregion
 }
