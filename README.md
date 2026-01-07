@@ -15,27 +15,31 @@ This is in progress.
 
 # Source code
 
-For CAR repo encoding and decoding, see these classes:
+CAR repo encoding and decoding:
 
 - [Repo.cs](/src/repo/Repo.cs) - repo parsing entry point
-  - [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
-  - [DagCborObject.cs](/src/repo/DagCborObject.cs) - decoding/encoding dag cbor
-  - [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
-- [Mst.cs](/src/repo/Mst.cs) - MST parsing entry point
-  - [MstEntry.cs](/src/repo/MstEntry.cs) - represents on entry in a MST node
-  - [MstNode.cs](/src/repo/MstNode.cs) - represents one node in the MST
+- [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
+- [DagCborObject.cs](/src/repo/DagCborObject.cs) - decoding/encoding dag cbor
+- [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
 
-The PDS implementation is starting to take shape, and can be found in the following files:
+MST decoding:
+
+- [Mst.cs](/src/repo/Mst.cs) - MST parsing entry point
+- [MstEntry.cs](/src/repo/MstEntry.cs) - represents on entry in a MST node
+- [MstNode.cs](/src/repo/MstNode.cs) - represents one node in the MST
+
+PDS implementation (in progress):
 
 - [Pds.cs](/src/pds/Pds.cs) - PDS entry point
-- [MstDb.cs](/src/pds/MstDb.cs) - a db-backed implementation of MST
 - [PdsDb.cs](/src/pds/PdsDb.cs) - the database interface, where the repo is stored
+- [MstDb.cs](/src/pds/MstDb.cs) - a db-backed implementation of MST
+- [UserRepo.cs](/src/pds/UserRepo.cs) - operations on the user's repo
 
-You can consume the firehose with this class:
+Listening to a firehose:
 
 - [Firehose.cs](/src/firehose/Firehose.cs)
 
-And for general Bluesky WS calls, see:
+General Bluesky WS calls:
 
 - [BlueskyClient.cs](/src/ws/BlueskyClient.cs) - calling the Bluesky API.
 
