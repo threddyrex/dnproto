@@ -1,7 +1,7 @@
-namespace dnproto.pds.db;
+namespace dnproto.pds;
 
 
-public class DbBlob
+public class Blob
 {
     public string Cid { get; set; } = string.Empty;
 

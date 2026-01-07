@@ -5,7 +5,6 @@ using System.Reflection;
 using dnproto.fs;
 using dnproto.log;
 using dnproto.pds;
-using dnproto.pds.db;
 using dnproto.repo;
 
 public class PdsDbTestsFixture : IDisposable

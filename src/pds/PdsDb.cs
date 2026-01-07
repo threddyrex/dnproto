@@ -1,7 +1,6 @@
 using dnproto.log;
 using dnproto.repo;
 using Microsoft.Data.Sqlite;
-using dnproto.pds.db;
 
 namespace dnproto.pds;
 
@@ -310,7 +309,7 @@ Bytes BLOB NOT NULL
 
 
 
-    public void InsertBlob(DbBlob blob)
+    public void InsertBlob(Blob blob)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -328,7 +327,7 @@ VALUES (@Cid, @ContentType, @ContentLength, @Bytes)
         }
     }
 
-    public void UpdateBlob(DbBlob blob)
+    public void UpdateBlob(Blob blob)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -347,7 +346,7 @@ WHERE Cid = @Cid
         }
     }
 
-    public DbBlob? GetBlobByCid(string cid)
+    public Blob? GetBlobByCid(string cid)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -359,7 +358,7 @@ WHERE Cid = @Cid
             {
                 if(reader.Read())
                 {
-                    var blob = new DbBlob
+                    var blob = new Blob
                     {
                         Cid = reader.GetString(reader.GetOrdinal("Cid")),
                         ContentType = reader.GetString(reader.GetOrdinal("ContentType")),
