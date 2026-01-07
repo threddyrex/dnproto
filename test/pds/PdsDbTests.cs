@@ -77,7 +77,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var configToInsert = new DbConfig
+        var configToInsert = new Config
         {
             ListenScheme = "http",
             ListenHost = "localhost",

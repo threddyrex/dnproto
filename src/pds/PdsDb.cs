@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS Config (
     }
 
 
-    public bool InsertConfig(DbConfig config)
+    public bool InsertConfig(Config config)
     {
         if(GetConfigCount() > 0)
         {
@@ -225,9 +225,9 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
         return true;
     }
 
-    public DbConfig GetConfig()
+    public Config GetConfig()
     {
-        var config = new DbConfig();
+        var config = new Config();
         
         using(var sqlConnection = GetConnectionReadOnly())
         {

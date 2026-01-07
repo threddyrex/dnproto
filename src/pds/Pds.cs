@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using dnproto.auth;
 using dnproto.fs;
-using dnproto.pds.db;
 using dnproto.pds.xrpc;
 using Microsoft.AspNetCore.Http;
 
@@ -17,7 +16,7 @@ namespace dnproto.pds;
 /// </summary>
 public class Pds
 {
-    public required DbConfig Config;
+    public required Config Config;
 
     public required dnproto.log.IDnProtoLogger Logger;
 
@@ -286,7 +285,7 @@ public class Pds
         //
         // Create fresh config
         //
-        var config = new dnproto.pds.db.DbConfig();
+        var config = new dnproto.pds.Config();
         config.Version = "0.0.001";
         config.ListenHost = "localhost";
         config.ListenPort = 5001;

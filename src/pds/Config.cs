@@ -1,9 +1,9 @@
 
 
-namespace dnproto.pds.db;
+namespace dnproto.pds;
 
 
-public class DbConfig
+public class Config
 {
     public string Version { get; set; } = "0.0.003";
     
