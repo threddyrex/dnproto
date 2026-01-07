@@ -267,6 +267,80 @@ public class UserRepo
     #endregion
 
 
+
+    #region PUT
+
+    /// <summary>
+    /// Creates (or updates) a new record in the repo. Takes care of everything (rkey, uri, mst, repo record, etc).
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <param name="record"></param>
+    /// <returns></returns>
+    public 
+        (string? uri, 
+        RepoRecord? repoRecord, 
+        RepoCommit? repoCommit, 
+        string? validationStatus) 
+            PutRecord(string collection, string rkey, DagCborObject record)
+    {
+        //
+        // Create uri
+        //
+        string fullKey = $"{collection}/{rkey}";
+        string uri = $"at://{_userDid}/{collection}/{rkey}";
+        _logger.LogInfo($"rkey for record: {rkey}");
+        _logger.LogInfo($"uri for record: {uri}");
+
+
+        //
+        // REPO RECORD
+        //
+        record.SetString(new string[] { "$type" }, collection);
+        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
+        RepoRecord repoRecord = RepoRecord.FromDagCborObject(recordCid, record);
+        if(_db.GetRepoRecord(collection, rkey) != null)
+        {
+            _db.DeleteRepoRecord(collection, rkey);
+        }
+
+        _db.InsertRepoRecord(collection, rkey, recordCid, record);
+
+
+        //
+        // MST
+        //
+        var mst = new MstDb(_db);
+        (CidV1 originalRootMstNodeCid, 
+            CidV1 newRootMstNodeCid, 
+            List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
+
+
+        //
+        // REPO COMMIT
+        //
+        var repoCommit = _db.GetRepoCommit()!;
+        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
+        _db.InsertUpdateRepoCommit(repoCommit);
+
+
+        //
+        // REPO HEADER
+        //
+        var repoHeader = _db.GetRepoHeader()!;
+        repoHeader.RepoCommitCid = repoCommit.Cid;
+        _db.InsertUpdateRepoHeader(repoHeader);
+
+
+        //
+        // Return everything.
+        //
+        return (uri, repoRecord, repoCommit, "valid");
+
+    }
+
+    #endregion
+
+
     #region GET
 
     /// <summary>

@@ -191,4 +191,62 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         Assert.Null(fetchedRecord);
 
     }
+
+    [Fact]
+    public void PutRecord()
+    {
+        Assert.NotNull(_fixture.PdsDb);
+
+        //
+        // Start with fresh repo
+        //
+        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+
+        //
+        // Create record
+        //
+        JsonNode post1Node = new JsonObject
+        {
+            ["text"] = "record was created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        (string? uri, 
+        RepoRecord? repoRecord, 
+        RepoCommit? repoCommit, 
+        string? validationStatus)  = userRepo.CreateRecord("app.bsky.feed.post", DagCborObject.FromJsonString(post1Node.ToJsonString())!);
+        AtUri? atUri = AtUri.FromAtUri(uri);
+
+        //
+        // Get record
+        //
+        RepoRecord? fetchedRecord = userRepo.GetRecord(atUri!.Collection!, atUri.Rkey!);
+        Assert.Equal("record was created", fetchedRecord!.DataBlock.SelectString(["text"]));
+
+
+        //
+        // Put new record
+        //
+        JsonNode post2Node = new JsonObject
+        {
+            ["text"] = "record was updated",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        (string? uri2, 
+        RepoRecord? repoRecord2, 
+        RepoCommit? repoCommit2, 
+        string? validationStatus2)  = userRepo.PutRecord("app.bsky.feed.post", atUri!.Rkey!, DagCborObject.FromJsonString(post2Node.ToJsonString())!);
+
+
+        //
+        // Get record
+        //
+        RepoRecord? fetchedRecord2 = userRepo.GetRecord(atUri!.Collection!, atUri.Rkey!);
+        Assert.Equal("record was updated", fetchedRecord2!.DataBlock.SelectString(["text"]));
+
+
+
+    }
 }
