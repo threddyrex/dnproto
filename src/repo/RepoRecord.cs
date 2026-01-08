@@ -124,7 +124,7 @@ public class RepoRecord
         if (!IsRepoCommit())
             return null;
 
-        var repoCommit = RepoCommit.FromDagCborObject(this.DataBlock);
+        var repoCommit = RepoCommit.FromDagCborObject(this.Cid!, this.DataBlock!);
         repoCommit?.Cid = this.Cid;
         return repoCommit;
     }

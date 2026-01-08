@@ -1,6 +1,8 @@
 
 
 
+using Microsoft.AspNetCore.Authentication;
+
 namespace dnproto.repo;
 
 /// <summary>
@@ -8,27 +10,21 @@ namespace dnproto.repo;
 /// </summary>
 public class RepoCommit
 {
-    public string? Did { get; set; } = null;
+    public required string Did;
 
-    public int Version { get; set; } = 3;
-
-    /// <summary>
-    /// Cid of this commit object.
-    /// Base 32, starting with "b".
-    /// </summary>
-    public CidV1? Cid { get; set; }
+    public required int Version;
 
     /// <summary>
     /// Points to the cid of the root MST node for the repo.
     /// Base 32, starting with "b".
     /// </summary>
-    public CidV1? RootMstNodeCid { get; set; }
+    public required CidV1 RootMstNodeCid;
 
     /// <summary>
     /// Revision string for this commit.
     /// Increases monotonically. Typically a timestamp-based string.
     /// </summary>
-    public string? Rev { get; set; } = null;
+    public required string Rev;
 
     /// <summary>
     /// Points to the cid of the previous commit for the repo.
@@ -36,6 +32,13 @@ public class RepoCommit
     /// Usually null.
     /// </summary>
     public CidV1? PrevMstNodeCid { get; set; }
+
+    /// <summary>
+    /// Cid of this commit object.
+    /// Base 32, starting with "b".
+    /// </summary>
+    public CidV1? Cid { get; set; }
+
 
     /// <summary>
     /// Signature of this commit.
@@ -54,22 +57,19 @@ public class RepoCommit
     }
 
 
-    public byte[]? ToDagCborBytes()
+    #region DAG-CBOR
+
+    public byte[] ToDagCborBytes()
     {
         var dagCborObject = ToDagCborObject();
-        if (dagCborObject == null)
-            return null;
 
         using var ms = new MemoryStream();
         DagCborObject.WriteToStream(dagCborObject, ms);
         return ms.ToArray();
     }
 
-    public DagCborObject? ToDagCborObject()
+    public DagCborObject ToDagCborObject()
     {
-        if (Did == null || RootMstNodeCid == null || Rev == null)
-            return null;
-
         using var ms = new MemoryStream();
         var commitDict = new Dictionary<string, DagCborObject>();
 
@@ -137,55 +137,72 @@ public class RepoCommit
         return commitObj;
     }
 
-    public static RepoCommit? FromDagCborObject(DagCborObject? obj)
+    public static RepoCommit FromDagCborObject(CidV1 cid, DagCborObject obj)
     {
-        if (!IsRepoCommit(obj))
-            return null;
+        //
+        // Get values from the DagCborObject
+        //
+        string? did = obj?.SelectObjectValue(new[] { "did" }) as string;
+        int? version = obj?.SelectObjectValue(new[] { "version" }) as int?;
+        CidV1? data = obj?.SelectObjectValue(new[] { "data" }) as CidV1;
+        string? rev = obj?.SelectObjectValue(new[] { "rev" }) as string;
+        CidV1? prev = obj?.SelectObjectValue(new[] { "prev" }) as CidV1;
+        byte[]? sig = obj?.SelectObjectValue(new[] { "sig" }) as byte[];
 
-        var repoCommit = new RepoCommit();
 
-        // did
-        repoCommit.Did = obj?.SelectObjectValue(new[] { "did" }) as string;
+        //
+        // Validate
+        //
+        if (did == null || version == null || data == null || rev == null)
+        {
+            throw new Exception("Invalid RepoCommit object - missing required fields.");
+        }
 
-        // version
-        var versionObj = obj?.SelectObjectValue(new[] { "version" }) as int?;
-        repoCommit.Version = versionObj ?? 3;
+        //
+        // Return
+        //
+        return new RepoCommit
+        {
+            Cid = cid,
+            Did = did,
+            Version = version.Value,
+            RootMstNodeCid = data,
+            Rev = rev,
+            PrevMstNodeCid = prev,
+            Signature = sig
+        };
 
-        // data (root MST node cid)
-        var dataObj = obj?.SelectObjectValue(new[] { "data" }) as CidV1;
-        repoCommit.RootMstNodeCid = dataObj;
-
-        // rev
-        var revObj = obj?.SelectObjectValue(new[] { "rev" }) as string;
-        repoCommit.Rev = revObj;
-
-        // prev
-        var prevObj = obj?.SelectObjectValue(new[] { "prev" }) as CidV1;
-        repoCommit.PrevMstNodeCid = prevObj;
-
-        // sig
-        var sigObj = obj?.SelectObjectValue(new[] { "sig" }) as byte[];
-        repoCommit.Signature = sigObj;
-
-        return repoCommit;
     }
 
+    #endregion
 
+
+    #region SIGN
 
     public void SignAndRecomputeCid(CidV1 newRootMstNodeCid, Func<byte[], byte[]> commitSigningFunction)
     {
-        this.PrevMstNodeCid = this.Cid;
+        //
+        // Update fields (clear out signature and cid)
+        //
         this.RootMstNodeCid = newRootMstNodeCid;
         this.Rev = RecordKey.GenerateTid();
+        this.Signature = null;
+        this.Cid = null;
+        this.PrevMstNodeCid = null;
 
         //
-        // Sign the commit
+        // Sign commit (w/o cid, signature)
         //
         byte[]? unsignedBytes = this.ToDagCborBytes()!;
         var hash = System.Security.Cryptography.SHA256.HashData(unsignedBytes);        
         this.Signature = commitSigningFunction(hash);
+
+        //
+        // Recompute Cid with Signature
+        //
         byte[]? repoCommitObjSignedBytes = this.ToDagCborBytes();
         this.Cid = CidV1.ComputeCidForDagCbor(this.ToDagCborObject()!);
     }
 
+    #endregion
 }

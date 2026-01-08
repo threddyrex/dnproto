@@ -227,11 +227,14 @@ public class Installer
         // Create repo commit.
         // First create unsigned, then sign it.
         //
-        var repoCommit = new RepoCommit();
-        repoCommit.Did = config.UserDid;
-        repoCommit.Rev = RecordKey.GenerateTid();
-        repoCommit.RootMstNodeCid = mstNode.Cid;
-        repoCommit.Version = 3;
+        var repoCommit = new RepoCommit()
+        {
+            Did = config.UserDid,
+            Version = 3,
+            RootMstNodeCid = mstNode.Cid!,
+            Rev = RecordKey.GenerateTid()
+        };
+
         repoCommit.SignAndRecomputeCid(mstNode.Cid!, commitSigningFunction);
 
 
