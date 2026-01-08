@@ -235,6 +235,11 @@ public class Installer
         repoCommit.SignAndRecomputeCid(mstNode.Cid!, commitSigningFunction);
 
 
+        if(repoCommit.Cid is null)
+        {
+            throw new Exception("Failed to create repo commit CID.");
+        }
+
         //
         // Create repo header
         //

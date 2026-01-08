@@ -232,7 +232,7 @@ public class UserRepo
         // REPO HEADER
         //
         var repoHeader = _db.GetRepoHeader()!;
-        repoHeader.RepoCommitCid = repoCommit.Cid;
+        repoHeader.RepoCommitCid = repoCommit.Cid!;
         _db.InsertUpdateRepoHeader(repoHeader);
 
 
@@ -306,7 +306,7 @@ public class UserRepo
         // REPO HEADER
         //
         var repoHeader = _db.GetRepoHeader()!;
-        repoHeader.RepoCommitCid = repoCommit.Cid;
+        repoHeader.RepoCommitCid = repoCommit.Cid!;
         _db.InsertUpdateRepoHeader(repoHeader);
 
 
@@ -377,7 +377,7 @@ public class UserRepo
         // REPO HEADER
         //
         var repoHeader = _db.GetRepoHeader()!;
-        repoHeader.RepoCommitCid = repoCommit.Cid;
+        repoHeader.RepoCommitCid = repoCommit.Cid!;
         _db.InsertUpdateRepoHeader(repoHeader);
 
 

@@ -10,12 +10,12 @@ public class RepoHeader
     /// Points to the cid of the root commit for the repo.
     /// Base 32, starting with "b".
     /// </summary>
-    public CidV1? RepoCommitCid { get; set; } = null;
+    public required CidV1 RepoCommitCid;
 
     /// <summary>
     /// Version. Always 1 for now.
     /// </summary>
-    public int Version { get; set; } = 1;
+    public required int Version;
 
 
     public static RepoHeader ReadFromStream(Stream s)
@@ -28,7 +28,9 @@ public class RepoHeader
 
     public static RepoHeader FromDagCborObject(DagCborObject dagCborObject)
     {
-        var repoHeader = new RepoHeader();
+        CidV1? repoCommitCid = null;
+        int? version = null;
+
 
         var headerJson = JsonData.ConvertObjectToJsonString(dagCborObject.GetRawValue());
         var headerDict = (Dictionary<string, DagCborObject>?) dagCborObject.Value;
@@ -40,40 +42,45 @@ public class RepoHeader
             {
                 var firstRoot = rootsArray[0];
                 var cid = (CidV1?) firstRoot.Value;
-                repoHeader.RepoCommitCid = cid;
+                repoCommitCid = cid;
             }
         }
 
         if (headerDict != null && headerDict.ContainsKey("version"))
         {
-            var version = (int) headerDict["version"].Value;
-            repoHeader.Version = version;
+            var versionValue = (int) headerDict["version"].Value;
+            version = versionValue;
         }
+
+        if (repoCommitCid == null || version == null)
+        {
+            throw new Exception("Invalid RepoHeader.");
+        }
+
+        var repoHeader = new RepoHeader
+        {
+            RepoCommitCid = repoCommitCid,
+            Version = version.Value
+        };
 
         return repoHeader;
     }
 
 
 
-    public byte[]? ToDagCborBytes()
+    public byte[] ToDagCborBytes()
     {
         var dagCborObject = ToDagCborObject();
         if (dagCborObject == null)
-            return null;
+            throw new Exception("Invalid RepoHeader.");
 
         using var ms = new MemoryStream();
         DagCborObject.WriteToStream(dagCborObject, ms);
         return ms.ToArray();
     }
 
-    public DagCborObject? ToDagCborObject()
+    public DagCborObject ToDagCborObject()
     {
-        //
-        // Validate
-        //
-        if (RepoCommitCid == null)
-            return null;
-
         //
         // Create header object
         //

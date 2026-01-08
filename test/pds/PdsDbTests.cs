@@ -184,10 +184,11 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteRepoHeader();
 
-        var retrievedAfterDelete = pdsDb.GetRepoHeader();
 
-        // Assert
-        Assert.Null(retrievedAfterDelete);
+        Assert.Throws<Exception>(() =>
+        {
+            pdsDb.GetRepoHeader();
+        });
     }
 
     #endregion

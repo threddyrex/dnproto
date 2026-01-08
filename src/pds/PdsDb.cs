@@ -473,7 +473,7 @@ Version INTEGER NOT NULL
         }
     }
 
-    public RepoHeader? GetRepoHeader()
+    public RepoHeader GetRepoHeader()
     {        
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -496,8 +496,10 @@ Version INTEGER NOT NULL
             }
         }
         
-        return null;
+        throw new Exception("No RepoHeader found in database.");
     }
+
+    
     public void InsertUpdateRepoHeader(RepoHeader repoHeader)
     {
         if(RepoHeaderExists())
