@@ -179,21 +179,24 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             {
                 if(reader.Read())
                 {
-                    var config = new Config();
-                    config.ListenScheme = reader.GetString(reader.GetOrdinal("ListenScheme"));
-                    config.ListenHost = reader.GetString(reader.GetOrdinal("ListenHost"));
-                    config.ListenPort = reader.GetInt32(reader.GetOrdinal("ListenPort"));
-                    config.PdsDid = reader.GetString(reader.GetOrdinal("PdsDid"));
-                    config.PdsHostname = reader.GetString(reader.GetOrdinal("PdsHostname"));
-                    config.AvailableUserDomain = reader.GetString(reader.GetOrdinal("AvailableUserDomain"));
-                    config.AdminHashedPassword = reader.GetString(reader.GetOrdinal("AdminHashedPassword"));
-                    config.JwtSecret = reader.GetString(reader.GetOrdinal("JwtSecret"));
-                    config.UserHandle = reader.GetString(reader.GetOrdinal("UserHandle"));
-                    config.UserDid = reader.GetString(reader.GetOrdinal("UserDid"));
-                    config.UserHashedPassword = reader.GetString(reader.GetOrdinal("UserHashedPassword"));
-                    config.UserEmail = reader.GetString(reader.GetOrdinal("UserEmail"));
-                    config.UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase"));
-                    config.UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase"));
+                    var config = new Config()
+                    {
+                        ListenScheme = reader.GetString(reader.GetOrdinal("ListenScheme")),
+                        ListenHost = reader.GetString(reader.GetOrdinal("ListenHost")),
+                        ListenPort = reader.GetInt32(reader.GetOrdinal("ListenPort")),
+                        PdsDid = reader.GetString(reader.GetOrdinal("PdsDid")),
+                        PdsHostname = reader.GetString(reader.GetOrdinal("PdsHostname")),
+                        AvailableUserDomain = reader.GetString(reader.GetOrdinal("AvailableUserDomain")),
+                        AdminHashedPassword = reader.GetString(reader.GetOrdinal("AdminHashedPassword")),
+                        JwtSecret = reader.GetString(reader.GetOrdinal("JwtSecret")),
+                        UserHandle = reader.GetString(reader.GetOrdinal("UserHandle")),
+                        UserDid = reader.GetString(reader.GetOrdinal("UserDid")),
+                        UserHashedPassword = reader.GetString(reader.GetOrdinal("UserHashedPassword")),
+                        UserEmail = reader.GetString(reader.GetOrdinal("UserEmail")),
+                        UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase")),
+                        UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase"))
+                    };
+
                     return config;
                 }
                 else

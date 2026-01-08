@@ -10,7 +10,7 @@ public class Health : BaseXrpcCommand
     {
         var health = new HealthResponse
         {
-            Version = Pds.Config.Version
+            Version = Config.Version
         };
         
         return Results.Json(health, contentType: "application/json");

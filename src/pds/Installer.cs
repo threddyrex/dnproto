@@ -3,6 +3,7 @@
 using dnproto.auth;
 using dnproto.fs;
 using dnproto.log;
+using dnproto.pds;
 using dnproto.repo;
 
 
@@ -106,26 +107,26 @@ public class Installer
         //
         // Create fresh config
         //
-        var config = new dnproto.pds.Config();
-        config.Version = "0.0.001";
-        config.ListenHost = "localhost";
-        config.ListenPort = 5001;
-        config.PdsHostname = pdsHostname!;
-        config.PdsDid = "did:web:" + pdsHostname!;
-        config.AvailableUserDomain = availableUserDomain!;
-        var adminPassword = PasswordHasher.CreateNewAdminPassword();
-        config.AdminHashedPassword = PasswordHasher.HashPassword(adminPassword);
-        config.JwtSecret = JwtSecret.GenerateJwtSecret();
-        config.UserHandle = userHandle!;
-        config.UserDid = userDid!;
-        var userPassword = PasswordHasher.CreateNewAdminPassword();
-        config.UserHashedPassword = PasswordHasher.HashPassword(userPassword!);
-        config.UserEmail = userEmail!;
-        
-        // Generate user keypair for signing commits
         var userKeyPair = dnproto.auth.KeyPair.Generate(dnproto.auth.KeyTypes.P256);
-        config.UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase;
-        config.UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase;
+        var adminPassword = PasswordHasher.CreateNewAdminPassword();
+        var userPassword = PasswordHasher.CreateNewAdminPassword();
+        var config = new Config()
+        {
+            ListenHost = "localhost",
+            ListenPort = 5001,
+            ListenScheme = "http",
+            PdsHostname = pdsHostname!,
+            PdsDid = "did:web:" + pdsHostname!,
+            AvailableUserDomain = availableUserDomain!,
+            AdminHashedPassword = PasswordHasher.HashPassword(adminPassword),
+            JwtSecret = JwtSecret.GenerateJwtSecret(),
+            UserHandle = userHandle!,
+            UserDid = userDid!,
+            UserHashedPassword = PasswordHasher.HashPassword(userPassword),
+            UserEmail = userEmail!,
+            UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
+            UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
+        };
 
 
         //

@@ -23,20 +23,19 @@ namespace dnproto.cli.commands
             //
             string? dataDir = LocalFileSystem?.GetDataDir();
 
+            if(dataDir is null)
+            {
+                throw new Exception("DataDir is null");
+            }
+
             //
             // Load PDS
             //
-            var pds = Pds.InitializePdsForRun(dataDir!, Logger);
-            var pdsDb = pds?.PdsDb;
-            var func = pds?.CommitSigningFunction;
+            var pds = Pds.InitializePdsForRun(dataDir, Logger);
+            var pdsDb = pds.PdsDb;
+            var func = pds.CommitSigningFunction;
 
-            if(pdsDb == null || func == null)
-            {
-                Logger.LogError("Cannot install MST: PDS DB or commit signing function is null.");
-                return;
-            }
-
-            if(pds?.Config.UserDid == null)
+            if(pds.Config.UserDid == null)
             {
                 Logger.LogError("Cannot install MST: User DID is null.");
                 return;
