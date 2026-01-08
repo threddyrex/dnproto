@@ -35,6 +35,7 @@ PDS implementation (in progress):
 - [UserRepo.cs](/src/pds/UserRepo.cs) - operations on the user's repo
 - [PdsDb.cs](/src/pds/PdsDb.cs) - the database interface, where the repo is stored
 - [MstDb.cs](/src/pds/MstDb.cs) - a db-backed implementation of MST
+- [/xrpc/](/src/pds/xrpc/) - the XRPC endpoints
 
 Listening to a firehose:
 
