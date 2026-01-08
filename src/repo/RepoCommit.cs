@@ -50,10 +50,10 @@ public class RepoCommit
     {
         bool notNull = obj != null;
         bool isMap = obj?.Type.MajorType == DagCborType.TYPE_MAP;
-        bool containsSig = obj?.SelectObjectValue(new[]{"sig"}) != null;
+        bool containsVersion = obj?.SelectObjectValue(new[]{"version"}) != null;
         bool containsRev = (obj?.SelectObjectValue(new[]{"rev"}) as string) != null;
         bool containsDid = (obj?.SelectObjectValue(new[]{"did"}) as string) != null;
-        return notNull && isMap && containsSig && containsRev;
+        return notNull && isMap && containsVersion && containsRev && containsDid;
     }
 
 

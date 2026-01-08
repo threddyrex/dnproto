@@ -26,6 +26,9 @@ public class RepoHeader
         return FromDagCborObject(header);
     }
 
+
+    #region DAG-CBOR
+
     public static RepoHeader FromDagCborObject(DagCborObject dagCborObject)
     {
         CidV1? repoCommitCid = null;
@@ -119,4 +122,6 @@ public class RepoHeader
         //
         return headerObj;
     }
+
+    #endregion
 }
