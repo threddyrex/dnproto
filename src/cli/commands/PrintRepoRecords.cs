@@ -101,8 +101,22 @@ namespace dnproto.cli.commands
                         }
                     }
 
+                    string repoRecordType = "REPO RECORD (GENERIC)";
+                    if(repoRecord.IsAtProtoRecord())
+                    {
+                        repoRecordType = "ATPROTO RECORD";
+                    }
+                    else if(repoRecord.IsMstNode())
+                    {
+                        repoRecordType = "MST NODE";
+                    }
+                    else if(repoRecord.IsRepoCommit())
+                    {
+                        repoRecordType = "REPO COMMIT";
+                    }
+
                     Logger.LogTrace("");
-                    Logger.LogTrace($"REPO RECORD:");
+                    Logger.LogTrace($"{repoRecordType}:");
                     Logger.LogTrace($"  cid: {repoRecord.Cid.GetBase32()}");
                     Logger.LogTrace($"  blockJson:\n {repoRecord.JsonString}");
 

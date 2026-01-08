@@ -24,7 +24,7 @@ public class ComAtprotoRepo_CreateRecord : BaseXrpcCommand
         // Get body input
         //
         JsonNode? requestBody = GetRequestBodyAsJson();
-        string? repo, collection;
+        string? repo, collection, rkey = null;
         DagCborObject? record;
 
         if(requestBody is null 
@@ -39,11 +39,14 @@ public class ComAtprotoRepo_CreateRecord : BaseXrpcCommand
             return Results.Json(new { error = "InvalidRequest", message = "Error: invalid params." }, statusCode: 400);
         }
 
+        // rkey is optional
+        CheckRequestBodyParam(requestBody, "rkey", out rkey);
+
 
         //
         // Call UserRepo to create record
         //
-        var (uri, repoRecord, repoCommit, validationStatus) = Pds.UserRepo.CreateRecord(collection, record);
+        var (uri, repoRecord, repoCommit, validationStatus) = Pds.UserRepo.CreateRecord(collection, record, rkey);
 
 
         //
