@@ -1,5 +1,6 @@
 
 
+using dnproto.fs;
 using dnproto.pds;
 
 
@@ -20,7 +21,7 @@ namespace dnproto.cli.commands
             //
             // Get Arguments
             //
-            string? dataDir = LocalFileSystem?.DataDir;
+            string? dataDir = LocalFileSystem?.GetDataDir();
 
             //
             // Load PDS
@@ -45,7 +46,12 @@ namespace dnproto.cli.commands
             //
             // Install repo (destroy existing one if any)
             //
-            Installer.InstallRepo(dataDir, Logger, func);
+            if(LocalFileSystem is null)
+            {
+                throw new Exception("LocalFileSystem is null");
+            }
+            
+            Installer.InstallRepo(LocalFileSystem, Logger, func);
         }
     }
 }

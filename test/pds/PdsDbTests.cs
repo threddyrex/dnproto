@@ -12,10 +12,13 @@ public class PdsDbTestsFixture : IDisposable
     Logger Logger { get; set; } = new Logger();
     public LocalFileSystem? Lfs { get; set; }
 
-    public PdsDb? PdsDb { get; set; }
+    public PdsDb PdsDb { get; set; }
 
     public PdsDbTestsFixture()
     {
+        //
+        // Set up temp directory
+        //
         Logger.AddDestination(new ConsoleLogDestination());
         string tempDir = Path.Combine(Path.GetTempPath(), "dnproto-tests-data-dir");
         Logger.LogInfo($"Using temp dir for tests: {tempDir}");
@@ -25,8 +28,15 @@ public class PdsDbTestsFixture : IDisposable
             Directory.CreateDirectory(tempDir);            
         }
 
+        //
+        // Initialize LFS
+        //
         Lfs = LocalFileSystem.Initialize(tempDir, Logger);
 
+
+        //
+        // Install db
+        //
         string pdsDbFile = Path.Combine(tempDir, "pds", "pds.db");
         Logger.LogInfo($"PDS database file path: {pdsDbFile}");
         if (File.Exists(pdsDbFile))
@@ -34,8 +44,14 @@ public class PdsDbTestsFixture : IDisposable
             File.Delete(pdsDbFile);
         }
 
-        Installer.InstallDb(tempDir, Logger, deleteExistingDb: false);
-        PdsDb = PdsDb.ConnectPdsDb(tempDir, Logger);
+        Installer.InstallDb(Lfs, Logger, deleteExistingDb: false);
+        PdsDb = PdsDb.ConnectPdsDb(Lfs, Logger);
+
+
+        //
+        // Install config
+        //
+        Installer.InstallConfig(Lfs, Logger, "example.com", "availabledomain", "userhandle", "userdid", "useremail");
     }
 
     public void Dispose()
@@ -61,7 +77,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var lfs = _fixture.Lfs;
 
         // Act
-        string pdsDbFilePath = Path.Combine(lfs!.DataDir, "pds", "pds.db");
+        string pdsDbFilePath = Path.Combine(lfs!.GetDataDir(), "pds", "pds.db");
         bool dbFileExists = File.Exists(pdsDbFilePath);
 
         // Assert
@@ -76,6 +92,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     {
         // Arrange
         var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteConfig();
 
         var configToInsert = new Config
         {
@@ -94,6 +111,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
             UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample"
         };
+
         // Act
         pdsDb!.InsertConfig(configToInsert);
         var retrievedConfig = pdsDb.GetConfig();
@@ -232,10 +250,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteRepoCommit();
 
-        var retrievedAfterDelete = pdsDb.GetRepoCommit();
-
-        // Assert
-        Assert.Null(retrievedAfterDelete);
+        Assert.Throws<Exception>(() => 
+        {
+            var retrievedAfterDelete = pdsDb.GetRepoCommit();
+        });
     }
 
     #endregion

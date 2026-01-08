@@ -1,3 +1,4 @@
+using dnproto.fs;
 using dnproto.log;
 using dnproto.repo;
 using Microsoft.Data.Sqlite;
@@ -6,42 +7,41 @@ namespace dnproto.pds;
 
 public class PdsDb
 {
-    public required string _dataDir;
-    public required IDnProtoLogger _logger;
+    private LocalFileSystem _lfs;
+    private IDnProtoLogger _logger;
 
 
+    private PdsDb(LocalFileSystem lfs, IDnProtoLogger logger)
+    {
+        _lfs = lfs;
+        _logger = logger;
+    }   
 
 
     #region CONNECT
 
-    public static PdsDb? ConnectPdsDb(string dataDir, IDnProtoLogger logger)
+    public static PdsDb ConnectPdsDb(LocalFileSystem lfs, IDnProtoLogger logger)
     {
         //
         // Check that the pds/db folder exists.
         //
-        string dbDir = Path.Combine(dataDir, "pds");
-        string dbFilePath = Path.Combine(dataDir, "pds", "pds.db");
+        string dbDir = Path.Combine(lfs.GetDataDir(), "pds");
+        string dbFilePath = Path.Combine(lfs.GetDataDir(), "pds", "pds.db");
 
         if (!Directory.Exists(dbDir))
         {
-            logger.LogError($"PDS database directory does not exist: {dbDir}");
-            return null;
+            throw new Exception($"PDS database directory does not exist: {dbDir}");
         }
 
         if (!File.Exists(dbFilePath))
         {
-            logger.LogError($"PDS database file does not exist: {dbFilePath}");
-            return null;
+            throw new Exception($"PDS database file does not exist: {dbFilePath}");
         }
 
         //
         // Return PdsDb instance.
         //
-        return new PdsDb
-        {
-            _dataDir = dataDir,
-            _logger = logger
-        };
+        return new PdsDb(lfs, logger);
     }
     
     #endregion
@@ -52,12 +52,12 @@ public class PdsDb
 
     public SqliteConnection GetConnection()
     {
-        return GetConnection(_dataDir);
+        return GetConnection(_lfs);
     }
 
-    public static SqliteConnection GetConnection(string dataDir)
+    public static SqliteConnection GetConnection(LocalFileSystem lfs)
     {
-        string dbPath = Path.Combine(dataDir, "pds", "pds.db");
+        string dbPath = lfs.GetPath_PdsDb();
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
             Mode = SqliteOpenMode.ReadWrite
@@ -69,9 +69,9 @@ public class PdsDb
         return conn;
     }
 
-    public static SqliteConnection GetConnectionCreate(string dataDir)
+    public static SqliteConnection GetConnectionCreate(LocalFileSystem lfs)
     {
-        string dbPath = Path.Combine(dataDir, "pds", "pds.db");
+        string dbPath = lfs.GetPath_PdsDb();
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
             Mode = SqliteOpenMode.ReadWriteCreate
@@ -86,7 +86,7 @@ public class PdsDb
 
     public SqliteConnection GetConnectionReadOnly()
     {
-        string dbPath = Path.Combine(_dataDir, "pds", "pds.db");
+        string dbPath = _lfs.GetPath_PdsDb();
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
             Mode = SqliteOpenMode.ReadOnly
@@ -137,8 +137,7 @@ CREATE TABLE IF NOT EXISTS Config (
     {
         if(GetConfigCount() > 0)
         {
-            _logger.LogError("Config already exists in database.");
-            return false;
+            throw new Exception("Config already exists in database.");
         }
 
         using(var sqlConnection = GetConnection())
@@ -170,9 +169,7 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
     }
 
     public Config GetConfig()
-    {
-        var config = new Config();
-        
+    {        
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
@@ -182,6 +179,7 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             {
                 if(reader.Read())
                 {
+                    var config = new Config();
                     config.ListenScheme = reader.GetString(reader.GetOrdinal("ListenScheme"));
                     config.ListenHost = reader.GetString(reader.GetOrdinal("ListenHost"));
                     config.ListenPort = reader.GetInt32(reader.GetOrdinal("ListenPort"));
@@ -196,11 +194,14 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                     config.UserEmail = reader.GetString(reader.GetOrdinal("UserEmail"));
                     config.UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase"));
                     config.UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase"));
+                    return config;
+                }
+                else
+                {
+                    throw new Exception("No config found in database.");
                 }
             }
         }
-        
-        return config;
     }
 
     public int GetConfigCount()
@@ -214,6 +215,19 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             return result != null ? Convert.ToInt32(result) : 0;
         }
     }
+
+    public void DeleteConfig()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM Config
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
 
     #endregion
 
@@ -577,7 +591,7 @@ Signature BLOB NOT NULL
         }
     }
 
-    public RepoCommit? GetRepoCommit()
+    public RepoCommit GetRepoCommit()
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -600,11 +614,15 @@ Signature BLOB NOT NULL
                     };
                     return repoCommit;
                 }
+                else
+                {
+                    throw new Exception("No RepoCommit found in database.");
+                }
             }
         }
-        
-        return null;
     }
+
+
 
     public void InsertUpdateRepoCommit(RepoCommit repoCommit)
     {

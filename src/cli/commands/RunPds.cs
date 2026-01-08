@@ -21,6 +21,12 @@ namespace dnproto.cli.commands
             // Get arguments
             //
             string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
+            if (string.IsNullOrEmpty(dataDir))
+            {
+                Logger.LogError("dataDir argument is required to run PDS.");
+                return;
+            }
+            
             var pds = Pds.InitializePdsForRun(dataDir, Logger);
             if (pds == null)
             {

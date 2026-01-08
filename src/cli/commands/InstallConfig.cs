@@ -20,7 +20,6 @@ namespace dnproto.cli.commands
             //
             // Get Arguments
             //
-            string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
             string? pdsHostname = CommandLineInterface.GetArgumentValue(arguments, "pdshostname");
             string? availableUserDomain = CommandLineInterface.GetArgumentValue(arguments, "availableuserdomain");
             string? userHandle = CommandLineInterface.GetArgumentValue(arguments, "userHandle");
@@ -30,7 +29,11 @@ namespace dnproto.cli.commands
             //
             // Install config
             //
-            Installer.InstallConfig(dataDir, Logger, pdsHostname, availableUserDomain, userHandle, userDid, userEmail);
+            if(LocalFileSystem is null)
+            {
+                throw new Exception("LocalFileSystem is null");
+            }
+            Installer.InstallConfig(LocalFileSystem, Logger, pdsHostname, availableUserDomain, userHandle, userDid, userEmail);
         }
     }
 }

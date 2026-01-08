@@ -10,16 +10,27 @@ namespace dnproto.fs;
 /// <summary>
 /// Provides access to the local file system for storing repos and backups.
 /// </summary>
-public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
+public class LocalFileSystem
 {
-    public string DataDir = dataDir;
+    private string _dataDir;
 
-    public IDnProtoLogger Logger = logger;
+    private IDnProtoLogger _logger;
+
+    private LocalFileSystem(string dataDir, IDnProtoLogger logger)
+    {
+        _dataDir = dataDir;
+        _logger = logger;
+    }
+
 
     private readonly object _lock = new object();
 
     private int cacheExpiryMinutes = 60;
 
+    public string GetDataDir()
+    {
+        return _dataDir;
+    }
 
     /// <summary>
     /// Ensure that the root dir exists, and creates subdirs if needed.
@@ -27,12 +38,11 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static LocalFileSystem? Initialize(string? dataDir, IDnProtoLogger logger)
+    public static LocalFileSystem Initialize(string? dataDir, IDnProtoLogger logger)
     {
         if (string.IsNullOrEmpty(dataDir) || Directory.Exists(dataDir) == false)
         {
-            logger.LogError($"dataDir does not exist: {dataDir}");
-            return null;
+            throw new Exception($"dataDir is null or does not exist: {dataDir}");
         }
 
         foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch", "logs" })
@@ -48,6 +58,7 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
         return new LocalFileSystem(dataDir, logger);
     }
 
+
     /// <summary>
     /// Resolve actor info for the given actor (handle or did).
     /// </summary>
@@ -59,12 +70,11 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
         {
             if (string.IsNullOrEmpty(actor))
             {
-                Logger.LogError("lfs.ResolveActorInfo: actor is null or empty.");
+                _logger.LogError("lfs.ResolveActorInfo: actor is null or empty.");
                 return null;
             }
 
-            string actorFile = Path.Combine(DataDir, "actors", GetSafeString(actor) + ".json");
-
+            string actorFile = Path.Combine(_dataDir, "actors", GetSafeString(actor) + ".json");
             //
             // If the file exists, use that.
             //
@@ -74,18 +84,18 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
                 FileInfo fileInfo = new FileInfo(actorFile);
                 if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
                 {
-                    Logger.LogInfo($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
+                    _logger.LogInfo($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
                 }
                 else
                 {
-                    Logger.LogInfo($"Actor info file exists and is recent, loading: {actorFile}");
+                    _logger.LogInfo($"Actor info file exists and is recent, loading: {actorFile}");
                     string actorJson = File.ReadAllText(actorFile);
-                    Logger.LogTrace($"file text: {actorJson}");
+                    _logger.LogTrace($"file text: {actorJson}");
                     var info = ActorInfo.FromJsonString(actorJson);
 
                     if(info == null || info?.Did == null || string.IsNullOrEmpty(info?.Did))
                     {
-                        Logger.LogWarning("Actor info loaded from file is missing DID, will re-resolve.");
+                        _logger.LogWarning("Actor info loaded from file is missing DID, will re-resolve.");
                         // fall through to re-resolve
                     }
                     else
@@ -98,16 +108,16 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
             //
             // Otherwise, resolve and save to file.
             //
-            Logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
+            _logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
             var actorInfo = BlueskyClient.ResolveActorInfo(actor);
 
             if (actorInfo == null)
             {
-                Logger.LogError("Failed to resolve actor info.");
+                _logger.LogError("Failed to resolve actor info.");
                 return null;
             }
 
-            Logger.LogInfo($"Saving actor info to file: {actorFile}");
+            _logger.LogInfo($"Saving actor info to file: {actorFile}");
             File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
 
             //
@@ -137,11 +147,11 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         if (did == null || string.IsNullOrEmpty(did))
         {
-            Logger.LogError("did is null or empty.");
+            _logger.LogError("did is null or empty.");
             return null;
         }
 
-        string repoDir = Path.Combine(DataDir, "repos");
+        string repoDir = Path.Combine(_dataDir, "repos");
         string safeDid = GetSafeString(did);
         string repoFile = Path.Combine(repoDir, $"{safeDid}.car");
         return repoFile;
@@ -156,11 +166,11 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("actorInfo is null or empty.");
+            _logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
-        string backupDir = Path.Combine(DataDir, "backups");
+        string backupDir = Path.Combine(_dataDir, "backups");
         string safeDid = GetSafeString(actorInfo.Did);
         string accountBackupDir = Path.Combine(backupDir, safeDid);
         return accountBackupDir;
@@ -174,11 +184,11 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("actorInfo is null or empty.");
+            _logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
-        string prefsDir = Path.Combine(DataDir, "preferences");
+        string prefsDir = Path.Combine(_dataDir, "preferences");
         string safeDid = GetSafeString(actorInfo.Did);
         string prefsFile = Path.Combine(prefsDir, $"{safeDid}.json");
         return prefsFile;
@@ -186,7 +196,7 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
 
     public string? GetPath_ScratchDir()
     {
-        string scratchDir = Path.Combine(DataDir, "scratch");
+        string scratchDir = Path.Combine(_dataDir, "scratch");
         return scratchDir;
     }
 
@@ -199,11 +209,11 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogError("actorInfo is null or empty.");
+            _logger.LogError("actorInfo is null or empty.");
             return null;
         }
 
-        string sessionDir = Path.Combine(DataDir, "sessions");
+        string sessionDir = Path.Combine(_dataDir, "sessions");
         string safeDid = GetSafeString(actorInfo.Did);
         string sessionFile = Path.Combine(sessionDir, $"{safeDid}.json");
         return sessionFile;
@@ -218,7 +228,7 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
-            Logger.LogTrace("actorInfo is null or empty.");
+            _logger.LogTrace("actorInfo is null or empty.");
             return null;
         }
 
@@ -226,7 +236,7 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
         string? sessionFile = GetPath_SessionFile(actorInfo);
         if (string.IsNullOrEmpty(sessionFile) || File.Exists(sessionFile) == false)
         {
-            Logger.LogWarning($"Session file is null or empty: {sessionFile}");
+            _logger.LogWarning($"Session file is null or empty: {sessionFile}");
             return null;
         }
 
@@ -234,16 +244,16 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
         FileInfo fileInfo = new FileInfo(sessionFile);
         if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
         {
-            Logger.LogWarning($"Session file is older than 1 hour, will not use: {sessionFile}");
+            _logger.LogWarning($"Session file is older than 1 hour, will not use: {sessionFile}");
             return null;
         }
 
         // can't read json? return
-        Logger.LogInfo("Reading session file: " + sessionFile);
+        _logger.LogInfo("Reading session file: " + sessionFile);
         var session = JsonData.ReadJsonFromFile(sessionFile);
         if (session == null)
         {
-            Logger.LogWarning($"Failed to read session file: {sessionFile}");
+            _logger.LogWarning($"Failed to read session file: {sessionFile}");
             return null;
         }
 
@@ -255,7 +265,7 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
         // incorrect values? return
         if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(refreshJwt))
         {
-            Logger.LogWarning("Session file is missing required fields.");
+            _logger.LogWarning("Session file is missing required fields.");
             return null;
         }
 
@@ -271,10 +281,10 @@ public class LocalFileSystem(string dataDir, IDnProtoLogger logger)
         };
     }
 
-    public string? GetPath_PdsConfig()
+    public string GetPath_PdsDb()
     {
-        string configFilePath = Path.Combine(DataDir, "pds", "pds-config.json");
-        return configFilePath;
+        string dbFilePath = Path.Combine(_dataDir, "pds", "pds.db");
+        return dbFilePath;
     }
     
 

@@ -28,7 +28,11 @@ namespace dnproto.cli.commands
             //
             // Install db
             //
-            Installer.InstallDb(dataDir!, Logger, deleteExistingDb);
+            if(LocalFileSystem is null)
+            {
+                throw new Exception("LocalFileSystem is null");
+            }
+            Installer.InstallDb(LocalFileSystem, Logger, deleteExistingDb);
         }
     }
 }

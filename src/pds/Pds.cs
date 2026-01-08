@@ -3,17 +3,62 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using dnproto.auth;
 using dnproto.fs;
 using dnproto.pds.xrpc;
+using dnproto.repo;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds;
 
 
+
 /// <summary>
-/// Main class for pds implementation.
+/// Main class for PDS implementation.
+/// 
+/// Objects used by this class:
+///     Config - the config retrieved from the db
+///     LocalFileSystem (dataDir, logger) - writing/reading local files
+///     PdsDb (lfs, logger) - access to the sqlite db
+///     UserRepo (lfs, logger, db, signer, userDid) - operations for repo
+///     MstDb (lfs, logger, db) - operations for MST
+/// 
 /// </summary>
+
+
+
+/*
+    Structure of repo and MST:
+
+    RepoHeader (only one)
+        CidV1 RepoCommitCid (points to RepoCommit)
+        Int Version
+
+    RepoCommit (only one)
+        int Version (always 3)
+        CidV1 Cid;
+        CidV1 RootMstNodeCid;
+        string Rev (increases monotonically, typically timestamp)
+        CidV1? PrevMstNodeCid (usually null)
+        string Signature
+
+    MstNode (0 or more)
+        CidV1 Cid
+        "l" - CidV1? LeftMstNodeCid (optional to a sub-tree node)
+
+    MstEntry (0 or more)
+        CidV1 MstNodeCid
+        int EntryIndex (0-based index within parent MstNode)
+        "k" - string KeySuffix
+        "p" - int PrefixLength
+        "t" - CidV1? TreeMstNodeCid
+        "v" - CidV1 RecordCid (cid of atproto record)
+
+    RepoRecord (0 or more)
+        CidV1 Cid
+        DagCborObject Data (the actual atproto record)
+*/
+
+
 public class Pds
 {
     public required Config Config;
@@ -41,71 +86,42 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds? InitializePdsForRun(string? dataDir, dnproto.log.IDnProtoLogger logger)
+    public static Pds InitializePdsForRun(string dataDir, dnproto.log.IDnProtoLogger logger)
     {
         //
         // Get local file system
         //
-        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, logger);
-        if (lfs == null)
-        {
-            logger.LogError("Failed to initialize LocalFileSystem.");
-            return null;
-        }
+        LocalFileSystem lfs = LocalFileSystem.Initialize(dataDir, logger);
 
         //
         // Initialize PdsDb
         //
-        PdsDb? pdsDb = PdsDb.ConnectPdsDb(lfs.DataDir, logger);
-        if (pdsDb == null)
-        {
-            logger.LogError("Failed to initialize PDS database.");
-            return null;
-        }
+        PdsDb pdsDb = PdsDb.ConnectPdsDb(lfs, logger);
 
         //
         // Get PDS config from db
         //
-        var config = pdsDb.GetConfig();
-        if (config == null)
-        {
-            logger.LogError("Failed to get PDS config from database.");
-            return null;
-        }
+        Config config = pdsDb.GetConfig();
 
         //
         // Create commit signing function
         //
-        var commitSigningFunction = auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
-        if (commitSigningFunction == null)
-        {
-            logger.LogError("Failed to create commit signing function.");
-            return null;
-        }
-
+        Func<byte[], byte[]> commitSigningFunction = auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
 
         //
         // Load repo
         //
-        var repo = new UserRepo(pdsDb, logger, commitSigningFunction, config.UserDid);
+        UserRepo repo = UserRepo.ConnectUserRepo(lfs, logger, pdsDb, commitSigningFunction, config.UserDid);
 
         //
         // Print repo commit
         //
-        var repoCommit = pdsDb.GetRepoCommit();
-        if (repoCommit != null)
-        {
-            logger.LogInfo($"Loaded repo commit: {repoCommit.Cid}");
-        }
-        else
-        {
-            logger.LogWarning("No repo commit found in database.");
-        }
+        RepoCommit repoCommit = pdsDb.GetRepoCommit();
 
         //
         // Configure to listen
         //
-        var builder = WebApplication.CreateBuilder();
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
         
         // Clear default logging providers and add custom logger

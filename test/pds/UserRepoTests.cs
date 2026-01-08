@@ -12,23 +12,36 @@ using Xunit.v3;
 public class UserRepoTestsFixture : IDisposable
 {
     public Logger Logger { get; set; } = new Logger();
-    public LocalFileSystem? Lfs { get; set; }
+    public LocalFileSystem Lfs { get; set; }
 
-    public PdsDb? PdsDb { get; set; }
+    public PdsDb PdsDb { get; set; }
+    
+    public string DataDir { get; set; }
 
     public UserRepoTestsFixture()
     {
+        //
+        // Create temp dir
+        //
         Logger.AddDestination(new ConsoleLogDestination());
         string tempDir = Path.Combine(Path.GetTempPath(), "userrepo-tests-data-dir");
         Logger.LogInfo($"Using temp dir for tests: {tempDir}");
+        DataDir = tempDir;
 
         if(!Directory.Exists(tempDir))
         {
             Directory.CreateDirectory(tempDir);            
         }
 
+        //
+        // Initialize LFS
+        //
         Lfs = LocalFileSystem.Initialize(tempDir, Logger);
 
+
+        //
+        // Install db
+        //
         string pdsDbFile = Path.Combine(tempDir, "pds", "pds.db");
         Logger.LogInfo($"PDS database file path: {pdsDbFile}");
         if (File.Exists(pdsDbFile))
@@ -36,9 +49,24 @@ public class UserRepoTestsFixture : IDisposable
             File.Delete(pdsDbFile);
         }
 
-        Installer.InstallDb(tempDir, Logger, deleteExistingDb: false);
-        Installer.InstallRepo(tempDir, Logger, TestCommitSigner);
-        PdsDb = PdsDb.ConnectPdsDb(tempDir, Logger);
+        Installer.InstallDb(Lfs, Logger, deleteExistingDb: false);
+        PdsDb = PdsDb.ConnectPdsDb(Lfs, Logger);
+
+
+
+        //
+        // Install config
+        //
+        Installer.InstallConfig(Lfs, Logger, "example.com", "availabledomain", "userhandle", "userdid", "useremail");
+
+
+        //
+        // Install repo
+        //
+        Installer.InstallRepo(Lfs, Logger, TestCommitSigner);
+
+
+
     }
 
     public static Func<byte[], byte[]> TestCommitSigner = (data) =>
@@ -75,8 +103,8 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //
         // Create record
@@ -112,8 +140,8 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //
         // Create record
@@ -156,8 +184,8 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //
         // Create record
@@ -200,8 +228,8 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        Installer.InstallRepo(_fixture.Lfs!.DataDir, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = new UserRepo(_fixture.PdsDb, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
 
         //
         // Create record

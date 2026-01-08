@@ -45,23 +45,17 @@ public static class CommandLineInterface
         //
         // See if they set datadir
         //
-        LocalFileSystem? localFileSystem = null;
-        string? dataDir = GetArgumentValue(arguments, "datadir");
-        if (string.IsNullOrEmpty(dataDir) == false)
-        {
-            localFileSystem = LocalFileSystem.Initialize(dataDir, logger);
-            logger.LogTrace($"Using data directory: {dataDir}");
-        }
+        LocalFileSystem lfs = LocalFileSystem.Initialize(GetArgumentValue(arguments, "datadir"), logger);
 
 
         //
         // See if they want to log to data dir
         //
         bool logToDataDir = GetArgumentValueWithDefault(arguments, "logtodatadir", false);
-        if (logToDataDir && localFileSystem != null)
+        if (logToDataDir)
         {
             string? logFileName = GetArgumentValue(arguments, "logfilename");
-            var fileLogDestination = FileLogDestination.CreateFromDataDir(localFileSystem.DataDir, GetArgumentValueWithDefault(arguments, "command", "dnproto"), logFileName: logFileName);
+            var fileLogDestination = FileLogDestination.CreateFromDataDir(lfs.GetDataDir(), GetArgumentValueWithDefault(arguments, "command", "dnproto"), logFileName: logFileName);
 
             if (fileLogDestination != null)
             {
@@ -143,7 +137,7 @@ public static class CommandLineInterface
         // Add some common services to the command
         //
         commandInstance.Logger = logger;
-        commandInstance.LocalFileSystem = localFileSystem;
+        commandInstance.LocalFileSystem = lfs;
 
 
         //

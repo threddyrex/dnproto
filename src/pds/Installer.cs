@@ -1,6 +1,7 @@
 
 
 using dnproto.auth;
+using dnproto.fs;
 using dnproto.log;
 using dnproto.repo;
 
@@ -28,13 +29,13 @@ public class Installer
     /// If deleteExistingDb is true, will delete any existing database before installing.
     /// This will run the CreateTables regardless. So it's re-runnable for schema updates.
     /// </summary>
-    public static void InstallDb(string dataDir, IDnProtoLogger logger, bool deleteExistingDb)
+    public static void InstallDb(LocalFileSystem lfs, IDnProtoLogger logger, bool deleteExistingDb)
     {
         //
         // Paths
         //
-        string dbDir = Path.Combine(dataDir, "pds");
-        string dbFilePath = Path.Combine(dataDir, "pds", "pds.db");
+        string dbDir = Path.Combine(lfs.GetDataDir(), "pds");
+        string dbFilePath = Path.Combine(lfs.GetDataDir(), "pds", "pds.db");
 
 
         //
@@ -65,7 +66,7 @@ public class Installer
         // run create table commands
         //
         logger.LogInfo("Creating PDS database tables (if not exist).");
-        using (var connection = PdsDb.GetConnectionCreate(dataDir))
+        using (var connection = PdsDb.GetConnectionCreate(lfs))
         {
             connection.Open();
             PdsDb.CreateTable_Config(connection, logger);
@@ -100,7 +101,7 @@ public class Installer
     /// <param name="userHandle"></param>
     /// <param name="userDid"></param>
     /// <param name="userEmail"></param>
-    public static void InstallConfig(string? dataDir, IDnProtoLogger logger, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
+    public static void InstallConfig(LocalFileSystem lfs, IDnProtoLogger logger, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
     {
         //
         // Create fresh config
@@ -130,17 +131,12 @@ public class Installer
         //
         // Insert config into db
         //
-        var db = PdsDb.ConnectPdsDb(dataDir!, logger);
-        if(db == null)
-        {
-            logger.LogError("Failed to connect to PDS database to insert config.");
-            return;
-        }
+        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+
         bool insertResult = db.InsertConfig(config);
         if (insertResult == false)
         {
-            logger.LogError("Failed to insert config into PDS database.");
-            return;
+            throw new Exception("Failed to insert config into database.");
         }
 
 
@@ -178,7 +174,7 @@ public class Installer
     /// </summary>
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
-    public static void InstallRepo(string? dataDir, IDnProtoLogger logger, Func<byte[], byte[]>? commitSigningFunction)
+    public static void InstallRepo(LocalFileSystem lfs, IDnProtoLogger logger, Func<byte[], byte[]>? commitSigningFunction)
     {
         if(commitSigningFunction is null)
         {
@@ -190,7 +186,7 @@ public class Installer
         //
         // Connect to db
         //
-        var db = PdsDb.ConnectPdsDb(dataDir!, logger);
+        var db = PdsDb.ConnectPdsDb(lfs, logger);
         if (db == null)
         {
             logger.LogError("Failed to connect to PDS database to get config.");
@@ -201,12 +197,7 @@ public class Installer
         //
         // Get config
         //
-        var config = db.GetConfig();
-        if (config == null)
-        {
-            logger.LogError("Failed to get config from PDS database.");
-            return;
-        }
+        Config config = db.GetConfig();
         
 
         //

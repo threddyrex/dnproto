@@ -1,63 +1,42 @@
 
+using dnproto.fs;
 using dnproto.log;
 using dnproto.repo;
+using Microsoft.Extensions.Primitives;
 
 namespace dnproto.pds;
 
 
-/// <summary>
-/// Repo implementation for PDS, including MST.
-/// </summary>
-/*
-    ✅ RepoHeader (only one)
-        CidV1 RepoCommitCid (points to RepoCommit)
-        Int Version
-
-    ✅ RepoCommit (only one)
-        int Version (always 3)
-        CidV1 Cid;
-        CidV1 RootMstNodeCid;
-        string Rev (increases monotonically, typically timestamp)
-        CidV1? PrevMstNodeCid (usually null)
-        string Signature
-
-    ✅ MstNode (0 or more)
-        CidV1 Cid
-        "l" - CidV1? LeftMstNodeCid (optional to a sub-tree node)
-
-    ✅ MstEntry (0 or more)
-        CidV1 MstNodeCid
-        int EntryIndex (0-based index within parent MstNode)
-        "k" - string KeySuffix
-        "p" - int PrefixLength
-        "t" - CidV1? TreeMstNodeCid
-        "v" - CidV1 RecordCid (cid of atproto record)
-
-    ✅ RepoRecord (0 or more)
-        CidV1 Cid
-        DagCborObject Data (the actual atproto record)
-*/
 
 
 public class UserRepo
 {
-    private PdsDb _db;
+    private LocalFileSystem _lfs;
 
     private IDnProtoLogger _logger;
 
-    private string? _userDid = null;
+    private PdsDb _db;
 
-    Func<byte[], byte[]>? _commitSigningFunction = null;
+    private string _userDid;
+
+    private Func<byte[], byte[]> _commitSigningFunction;
 
     private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     
-    public UserRepo(PdsDb db, IDnProtoLogger logger, Func<byte[], byte[]> commitSigningFunction, string? userDid = null)
+    private UserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db, Func<byte[], byte[]> commitSigningFunction, string userDid)
     {
-        _db = db;
+        _lfs = lfs;
         _logger = logger;
+        _db = db;
         _commitSigningFunction = commitSigningFunction;
         _userDid = userDid;
     }
+
+    public static UserRepo ConnectUserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db, Func<byte[], byte[]> commitSigningFunction, string userDid)
+    {
+        return new UserRepo(lfs, logger, db, commitSigningFunction, userDid);
+    }
+
 
 
 
@@ -125,7 +104,7 @@ public class UserRepo
             //
             // MST Nodes
             //
-            var mst = new MstDb(_db);
+            MstDb mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
             var allMstNodes = _db.GetAllMstNodes();
             var allMstEntriesByNode = _db.GetAllMstEntriesByNodeObjectId();
             foreach (MstNode mstNode in allMstNodes)
@@ -235,7 +214,7 @@ public class UserRepo
         //
         // MST
         //
-        var mst = new MstDb(_db);
+        var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
         (CidV1 originalRootMstNodeCid, 
             CidV1 newRootMstNodeCid, 
             List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
@@ -309,7 +288,7 @@ public class UserRepo
         //
         // MST
         //
-        var mst = new MstDb(_db);
+        var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
         (CidV1 originalRootMstNodeCid, 
             CidV1 newRootMstNodeCid, 
             List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
@@ -380,7 +359,7 @@ public class UserRepo
         //
         // MST
         //
-        var mst = new MstDb(_db);
+        var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
         (CidV1 originalRootMstNodeCid, 
             CidV1 newRootMstNodeCid, 
             List<Guid> updatedNodeObjectIds) = mst.DeleteEntry($"{collection}/{rkey}");

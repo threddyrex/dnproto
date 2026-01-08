@@ -1,4 +1,5 @@
 
+using dnproto.fs;
 using dnproto.log;
 using dnproto.repo;
 using Microsoft.Extensions.Logging;
@@ -15,14 +16,21 @@ namespace dnproto.pds;
 /// </summary>
 public class MstDb
 {
+    private LocalFileSystem _lfs;
+    private IDnProtoLogger _logger;
     private PdsDb _db;
 
-    private IDnProtoLogger _logger;
 
-    public MstDb(PdsDb db)
+    private MstDb(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db)
     {
+        _lfs = lfs;
         _db = db;
-        _logger = db._logger;
+        _logger = logger;
+    }
+
+    public static MstDb ConnectMstDb(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db)
+    {
+        return new MstDb(lfs, logger, db);
     }
 
 
@@ -188,7 +196,7 @@ public class MstDb
             for(int i = 0; i < currentEntries.Count; i++)
             {
                 var entry = currentEntries[i];
-                _db._logger.LogTrace($"   !! MST Entry {i}: EntryIndex={entry.EntryIndex}, PrefixLength={entry.PrefixLength}, KeySuffix={entry.KeySuffix}");
+                _logger.LogTrace($"   !! MST Entry {i}: EntryIndex={entry.EntryIndex}, PrefixLength={entry.PrefixLength}, KeySuffix={entry.KeySuffix}");
             }
 
             currentNode.RecomputeCid(currentEntries);

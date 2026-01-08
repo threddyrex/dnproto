@@ -13,8 +13,8 @@ using dnproto.repo;
 
 public class MstTestsFixture : IDisposable
 {
-    Logger Logger { get; set; } = new Logger();
-    public LocalFileSystem? Lfs { get; set; }
+    public Logger Logger { get; set; } = new Logger();
+    public LocalFileSystem Lfs { get; set; }
 
     public PdsDb? PdsDb { get; set; }
 
@@ -38,8 +38,8 @@ public class MstTestsFixture : IDisposable
             File.Delete(pdsDbFile);
         }
 
-        Installer.InstallDb(tempDir, Logger, deleteExistingDb: false);
-        PdsDb = PdsDb.ConnectPdsDb(tempDir, Logger);
+        Installer.InstallDb(Lfs, Logger, deleteExistingDb: false);
+        PdsDb = PdsDb.ConnectPdsDb(Lfs, Logger);
     }
 
     public void Dispose()
@@ -84,7 +84,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
 
 
         // Act
-        var mst = new MstDb(_fixture.PdsDb);
+        var mst = MstDb.ConnectMstDb(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
         bool exists = mst.KeyExists("app.bsky.actor.profile/self");
         bool doesntExist = mst.KeyExists("app.bsky.actor.profile/other");
 
@@ -132,7 +132,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
         };
         _fixture.PdsDb.InsertMstEntries((Guid)mstNode.NodeObjectId, mstEntries);
 
-        var mst = new MstDb(_fixture.PdsDb);
+        var mst = MstDb.ConnectMstDb(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         // Act
         bool exists = mst.KeyExists("app.bsky.actor.profile/other");
