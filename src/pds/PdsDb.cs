@@ -1241,4 +1241,78 @@ DELETE FROM RepoRecord
     }
 
     #endregion
+
+
+    #region SEQ
+
+
+    public static void CreateTable_SequenceNumber(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: SequenceNumber");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS SequenceNumber (
+Seq INTEGER NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+
+    public long IncrementSequenceNumber()
+    {
+        long currentSeq = GetSequenceNumber();
+        DeleteSequenceNumber();
+        long newSeq = currentSeq + 1;
+        InsertSequenceNumber(newSeq);
+        return newSeq;
+    }
+
+
+
+
+    private long GetSequenceNumber()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT Seq FROM SequenceNumber LIMIT 1";
+            
+            var result = command.ExecuteScalar();
+            return result != null ? Convert.ToInt64(result) : 0;
+        }
+    }    
+
+    public void InsertSequenceNumber(long seq)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO SequenceNumber (Seq) VALUES (@Seq);
+            ";
+            command.Parameters.AddWithValue("@Seq", seq);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+
+
+    public void DeleteSequenceNumber()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM SequenceNumber
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+
+    #endregion
 }

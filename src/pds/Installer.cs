@@ -82,6 +82,7 @@ public class Installer
             PdsDb.CreateTable_MstNode(connection, logger);
             PdsDb.CreateTable_MstEntry(connection, logger);
             PdsDb.CreateTable_RepoRecord(connection, logger);
+            PdsDb.CreateTable_SequenceNumber(connection, logger);
         }
 
     }

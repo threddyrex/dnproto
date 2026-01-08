@@ -647,4 +647,37 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Null(retrievedAfterDelete2);
     }
     #endregion
+
+
+    #region SEQ
+
+    [Fact]
+    public void SequenceNumber()
+    {
+        var pdsDb = _fixture.PdsDb;
+
+        pdsDb.DeleteSequenceNumber();
+        Assert.Equal(1, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(2, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(3, pdsDb.IncrementSequenceNumber());
+    }
+
+
+    [Fact]
+    public void SequenceNumber2()
+    {
+        var pdsDb = _fixture.PdsDb;
+
+        pdsDb.DeleteSequenceNumber();
+        Assert.Equal(1, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(2, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(3, pdsDb.IncrementSequenceNumber());
+        pdsDb.DeleteSequenceNumber();
+        Assert.Equal(1, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(2, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(3, pdsDb.IncrementSequenceNumber());
+    }
+
+
+    #endregion
 }
