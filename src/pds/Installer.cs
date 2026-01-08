@@ -13,12 +13,15 @@ namespace dnproto.pds;
 /// <summary>
 /// Installer class for PDS.
 /// 
-/// Available methods (run in this order):
+/// Available methods:
 /// 
-///     1. InstallDb (can be called multiple times, to create/update schema)
-///     2. InstallConfig (one-time only, creates full config in db)
-///     3. InstallRepo (can be called multiple times, to reset repo)
+///     1. InstallDb (creates database schema)
+///     2. InstallConfig (creates full config for PDS and user)
+///     3. InstallRepo (creates fresh repo for user)
 /// 
+/// Run the methods in order: InstallDb, InstallConfig, InstallRepo.
+/// Some of the methods can be re-run. For example, 
+/// InstallDb will re-run CreateTable commands.
 /// </summary>
 public class Installer
 {
