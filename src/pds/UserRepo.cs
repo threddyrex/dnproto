@@ -190,16 +190,19 @@ public class UserRepo
         RepoRecord? repoRecord, 
         RepoCommit? repoCommit, 
         string? validationStatus) 
-            CreateRecord(string collection, DagCborObject record)
+            CreateRecord(string collection, DagCborObject record, string? rkey = null)
     {
         //
         // Create rkey and uri
         //
-        string rkey = RecordKey.GenerateRkey(collection);
+        if(rkey is null || string.IsNullOrEmpty(rkey))
+        {
+            rkey = RecordKey.GenerateRkey(collection);
+        }
         string fullKey = $"{collection}/{rkey}";
         string uri = $"at://{_userDid}/{collection}/{rkey}";
-        _logger.LogInfo($"Generated rkey for new record: {rkey}");
-        _logger.LogInfo($"Generated uri for new record: {uri}");
+        _logger.LogInfo($"rkey for new record: {rkey}");
+        _logger.LogInfo($"uri for new record: {uri}");
 
 
         //

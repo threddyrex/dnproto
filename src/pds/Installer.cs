@@ -1,5 +1,6 @@
 
 
+using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.fs;
 using dnproto.log;
@@ -204,6 +205,7 @@ public class Installer
         //
         // Delete everything
         //
+        logger.LogInfo("Deleting existing repo data (if any).");
         db.DeleteRepoCommit();
         db.DeleteAllMstNodes();
         db.DeleteAllMstEntries();
@@ -256,10 +258,25 @@ public class Installer
         //
         // Insert everything into the database
         //
+        logger.LogInfo("Inserting initial MST node, repo commit, and repo header into the database.");
         db.InsertMstNode(mstNode); // no entries
         db.InsertUpdateRepoCommit(repoCommit);
         db.InsertUpdateRepoHeader(repoHeader);
 
+
+        //
+        // Add a Bluesky profile record.
+        //
+        logger.LogInfo("Creating initial Bluesky profile record in the repo.");
+        var userRepo = UserRepo.ConnectUserRepo(lfs, logger, db, commitSigningFunction, config.UserDid);
+        var profileJsonObject = new JsonObject()
+        {
+            ["displayName"] = config.UserHandle,
+            ["description"] = "This is my Bluesky profile."
+        };
+
+        DagCborObject profileRecord = DagCborObject.FromJsonString(profileJsonObject.ToJsonString());
+        userRepo.CreateRecord("app.bsky.actor.profile", profileRecord, rkey: "self");
     }
 
     #endregion
