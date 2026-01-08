@@ -197,7 +197,7 @@ public class UserRepo
         //
         if(rkey is null || string.IsNullOrEmpty(rkey))
         {
-            rkey = RecordKey.GenerateRkey(collection);
+            rkey = RecordKey.GenerateRkey();
         }
         string fullKey = $"{collection}/{rkey}";
         string uri = $"at://{_userDid}/{collection}/{rkey}";

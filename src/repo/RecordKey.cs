@@ -217,7 +217,7 @@ public static class RecordKey
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    public static string GenerateRkey(string collection)
+    public static string GenerateRkey()
     {
         string tid = GenerateTid();
         return tid;
