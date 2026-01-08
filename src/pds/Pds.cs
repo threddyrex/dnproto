@@ -117,6 +117,7 @@ public class Pds
         // Print repo commit
         //
         RepoCommit repoCommit = pdsDb.GetRepoCommit();
+        logger.LogInfo($"Loaded user repo with DID {config.UserDid}, current commit CID: {repoCommit.Cid}");
 
         //
         // Configure to listen
