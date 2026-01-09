@@ -64,7 +64,6 @@ public class UserRepo
         {
             var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
             List<Guid> allUpdatedNodeObjectIds = new List<Guid>();
-            CidV1? mostRecentRootMstNodeCid = null;
             List<ApplyWritesResult> results = new List<ApplyWritesResult>();
 
             //
@@ -113,7 +112,28 @@ public class UserRepo
                             CidV1 newRootMstNodeCid, 
                             List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
                         allUpdatedNodeObjectIds.AddRange(updatedNodeObjectIds);
-                        mostRecentRootMstNodeCid = newRootMstNodeCid;
+
+
+                        //
+                        // REPO COMMIT
+                        //
+                        // (we don't send the commit for every iteration, but methods in
+                        // MstDb require the commit to be updated for each write operation)
+                        //
+                        var repoCommit = _db.GetRepoCommit()!;
+                        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
+                        _db.InsertUpdateRepoCommit(repoCommit);
+
+
+                        //
+                        // REPO HEADER (we need to do this every iteration, because Mst pulls the commit and header)
+                        //
+                        // (we don't send the commit for every iteration, but methods in
+                        // MstDb require the commit to be updated for each write operation)
+                        //
+                        var repoHeader = _db.GetRepoHeader()!;
+                        repoHeader.RepoCommitCid = repoCommit.Cid!;
+                        _db.InsertUpdateRepoHeader(repoHeader);
 
 
                         //
@@ -150,7 +170,27 @@ public class UserRepo
                             CidV1 newRootMstNodeCid1, 
                             List<Guid> updatedNodeObjectIds1) = mst.DeleteEntry($"{write.Collection}/{write.Rkey}");
                         allUpdatedNodeObjectIds.AddRange(updatedNodeObjectIds1);
-                        mostRecentRootMstNodeCid = newRootMstNodeCid1;
+
+                        //
+                        // REPO COMMIT
+                        //
+                        // (we don't send the commit for every iteration, but methods in
+                        // MstDb require the commit to be updated for each write operation)
+                        //
+                        var repoCommit_delete = _db.GetRepoCommit()!;
+                        repoCommit_delete.SignAndRecomputeCid(newRootMstNodeCid1, _commitSigningFunction!);
+                        _db.InsertUpdateRepoCommit(repoCommit_delete);
+
+
+                        //
+                        // REPO HEADER (we need to do this every iteration, because Mst pulls the commit and header)
+                        //
+                        // (we don't send the commit for every iteration, but methods in
+                        // MstDb require the commit to be updated for each write operation)
+                        //
+                        var repoHeader_delete = _db.GetRepoHeader()!;
+                        repoHeader_delete.RepoCommitCid = repoCommit_delete.Cid!;
+                        _db.InsertUpdateRepoHeader(repoHeader_delete);
 
                         //
                         // Add to return list
@@ -166,28 +206,6 @@ public class UserRepo
                 }
             }
 
-
-            if(mostRecentRootMstNodeCid is null)
-            {
-                _logger.LogError("No MST root CID found after applying writes.");
-                return new List<ApplyWritesResult>();
-            }
-
-
-            //
-            // REPO COMMIT
-            //
-            var repoCommit = _db.GetRepoCommit()!;
-            repoCommit.SignAndRecomputeCid(mostRecentRootMstNodeCid, _commitSigningFunction!);
-            _db.InsertUpdateRepoCommit(repoCommit);
-
-
-            //
-            // REPO HEADER
-            //
-            var repoHeader = _db.GetRepoHeader()!;
-            repoHeader.RepoCommitCid = repoCommit.Cid!;
-            _db.InsertUpdateRepoHeader(repoHeader);
 
 
 

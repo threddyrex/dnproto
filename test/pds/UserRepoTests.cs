@@ -314,4 +314,64 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
 
 
     }
+
+
+    [Fact]
+    public void CreateTwoRecordsInOneCallToApplyWrites()
+    {
+        Assert.NotNull(_fixture.PdsDb);
+
+
+        //
+        // Start with fresh repo
+        //
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+
+        //
+        // Create two records
+        //
+        JsonNode post1Node = new JsonObject
+        {
+            ["text"] = "record was created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2Node = new JsonObject
+        {
+            ["text"] = "record was also created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        List<UserRepo.ApplyWritesResult> results = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = RecordKey.GenerateTid(),
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = RecordKey.GenerateTid(),
+                Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
+            }
+        });
+
+        AtUri? atUri1 = AtUri.FromAtUri(results[0].Uri);
+        AtUri? atUri2 = AtUri.FromAtUri(results[1].Uri);
+
+        //
+        // Get records
+        //
+        RepoRecord? fetchedRecord1 = userRepo.GetRecord(atUri1!.Collection!, atUri1.Rkey!);
+        Assert.Equal("record was created", fetchedRecord1!.DataBlock.SelectString(["text"]));
+
+        RepoRecord? fetchedRecord2 = userRepo.GetRecord(atUri2!.Collection!, atUri2.Rkey!);
+        Assert.Equal("record was also created", fetchedRecord2!.DataBlock.SelectString(["text"]));
+
+    }
 }
