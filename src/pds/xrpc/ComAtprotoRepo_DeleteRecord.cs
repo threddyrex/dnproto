@@ -40,7 +40,20 @@ public class ComAtprotoRepo_DeleteRecord : BaseXrpcCommand
         //
         // Call UserRepo to delete record
         //
-        var (repoHeader, repoCommit) = Pds.UserRepo.DeleteRecord(collection, rkey);
+        UserRepo.ApplyWritesResult result = Pds.UserRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Delete,
+                Collection = collection,
+                Rkey = rkey
+            }
+        }).First();
+    
+        //
+        // Get the new stuff
+        //
+        RepoCommit? repoCommit = Pds.PdsDb.GetRepoCommit();
 
         //
         // Return response

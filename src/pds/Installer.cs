@@ -281,7 +281,17 @@ public class Installer
         };
 
         DagCborObject profileRecord = DagCborObject.FromJsonString(profileJsonObject.ToJsonString());
-        userRepo.CreateRecord("app.bsky.actor.profile", profileRecord, rkey: "self");
+
+        userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.actor.profile",
+                Rkey = "self",
+                Record = profileRecord
+            }
+        });
     }
 
     #endregion

@@ -45,8 +45,24 @@ public class ComAtprotoRepo_PutRecord : BaseXrpcCommand
         //
         // Call UserRepo to put record
         //
-        var (uri, repoRecord, repoCommit, validationStatus) = Pds.UserRepo.PutRecord(collection, rkey, record);
+        UserRepo.ApplyWritesResult result = Pds.UserRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Update,
+                Collection = collection,
+                Rkey = rkey,
+                Record = record
+            }
+        }).First();
 
+        //
+        // Get the new stuff
+        //
+        RepoRecord? repoRecord = Pds.UserRepo.GetRecord(collection, rkey);
+        RepoCommit? repoCommit = Pds.PdsDb.GetRepoCommit();
+        string? validationStatus = result.ValidationStatus;
+        string? uri = result.Uri;
 
         //
         // Return response

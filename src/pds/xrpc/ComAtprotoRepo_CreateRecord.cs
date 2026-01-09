@@ -42,12 +42,33 @@ public class ComAtprotoRepo_CreateRecord : BaseXrpcCommand
         // rkey is optional
         CheckRequestBodyParam(requestBody, "rkey", out rkey);
 
+        if(rkey is null)
+        {
+            rkey = RecordKey.GenerateTid();
+        }
 
         //
         // Call UserRepo to create record
         //
-        var (uri, repoRecord, repoCommit, validationStatus) = Pds.UserRepo.CreateRecord(collection, record, rkey);
+        UserRepo.ApplyWritesResult result = Pds.UserRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = collection,
+                Rkey = rkey,
+                Record = record
+            }
+        }).First();
 
+
+        //
+        // Get the new stuff
+        //
+        RepoRecord? repoRecord = Pds.UserRepo.GetRecord(collection, rkey);
+        RepoCommit? repoCommit = Pds.PdsDb.GetRepoCommit();
+        string? validationStatus = result.ValidationStatus;
+        string? uri = result.Uri;
 
         //
         // Return response

@@ -115,20 +115,25 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
             ["createdAt"] = DateTime.UtcNow.ToString("o")
         };
 
-        (string? uri, 
-        RepoRecord? repoRecord, 
-        RepoCommit? repoCommit, 
-        string? validationStatus)  = userRepo.CreateRecord("app.bsky.feed.post", DagCborObject.FromJsonString(post1Node.ToJsonString())!);
+        UserRepo.ApplyWritesResult result = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = RecordKey.GenerateTid(),
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            }
+        }).First();
 
 
         //
         // Assert
         //
-        Assert.NotNull(uri);
-        Assert.NotNull(repoRecord);
-        Assert.NotNull(repoCommit);
-        Assert.Equal("valid", validationStatus);
-        _output.WriteLine($"Created record URI: {uri}");
+        Assert.NotNull(result.Uri);
+        Assert.NotNull(result.Cid);
+        Assert.Equal("valid", result.ValidationStatus);
+        _output.WriteLine($"Created record URI: {result.Uri}");
     }
 
     
@@ -152,15 +157,21 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
             ["createdAt"] = DateTime.UtcNow.ToString("o")
         };
 
-        (string? uri, 
-        RepoRecord? repoRecord, 
-        RepoCommit? repoCommit, 
-        string? validationStatus)  = userRepo.CreateRecord("app.bsky.feed.post", DagCborObject.FromJsonString(post1Node.ToJsonString())!);
+        UserRepo.ApplyWritesResult result = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = RecordKey.GenerateTid(),
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            }
+        }).First();
 
         //
         // Get record
         //
-        AtUri? atUri = AtUri.FromAtUri(uri);
+        AtUri? atUri = AtUri.FromAtUri(result.Uri);
         Assert.NotNull(atUri);
         Assert.NotNull(atUri?.Collection);
         Assert.NotNull(atUri?.Rkey);
@@ -171,8 +182,8 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Assert
         //
         Assert.NotNull(fetchedRecord);
-        Assert.Equal(repoRecord!.Cid, fetchedRecord!.Cid);
-        _output.WriteLine($"Fetched record URI: {uri}");
+        Assert.Equal(result.Cid, fetchedRecord!.Cid);
+        _output.WriteLine($"Fetched record URI: {result.Uri}");
 
     }
 
@@ -196,16 +207,31 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
             ["createdAt"] = DateTime.UtcNow.ToString("o")
         };
 
-        (string? uri, 
-        RepoRecord? repoRecord, 
-        RepoCommit? repoCommit, 
-        string? validationStatus)  = userRepo.CreateRecord("app.bsky.feed.post", DagCborObject.FromJsonString(post1Node.ToJsonString())!);
+        UserRepo.ApplyWritesResult result = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = RecordKey.GenerateTid(),
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            }
+        }).First();
 
         //
         // Delete record
         //
-        AtUri? atUriToDelete = AtUri.FromAtUri(uri);
-        userRepo.DeleteRecord("app.bsky.feed.post", atUriToDelete!.Rkey!);
+        AtUri? atUriToDelete = AtUri.FromAtUri(result.Uri);
+        Assert.NotNull(atUriToDelete);
+        userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Delete,
+                Collection = "app.bsky.feed.post",
+                Rkey = atUriToDelete!.Rkey!
+            }
+        }).First();
 
 
         //
@@ -240,11 +266,17 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
             ["createdAt"] = DateTime.UtcNow.ToString("o")
         };
 
-        (string? uri, 
-        RepoRecord? repoRecord, 
-        RepoCommit? repoCommit, 
-        string? validationStatus)  = userRepo.CreateRecord("app.bsky.feed.post", DagCborObject.FromJsonString(post1Node.ToJsonString())!);
-        AtUri? atUri = AtUri.FromAtUri(uri);
+        UserRepo.ApplyWritesResult result = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = RecordKey.GenerateTid(),
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            }
+        }).First();
+        AtUri? atUri = AtUri.FromAtUri(result.Uri);
 
         //
         // Get record
@@ -262,11 +294,16 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
             ["createdAt"] = DateTime.UtcNow.ToString("o")
         };
 
-        (string? uri2, 
-        RepoRecord? repoRecord2, 
-        RepoCommit? repoCommit2, 
-        string? validationStatus2)  = userRepo.PutRecord("app.bsky.feed.post", atUri!.Rkey!, DagCborObject.FromJsonString(post2Node.ToJsonString())!);
-
+        UserRepo.ApplyWritesResult result2 = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Update,
+                Collection = "app.bsky.feed.post",
+                Rkey = atUri!.Rkey!,
+                Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
+            }
+        }).First();
 
         //
         // Get record

@@ -40,6 +40,203 @@ public class UserRepo
 
 
 
+    #region APPLYWRITES
+
+
+
+    /// <summary>
+    /// Main entry point for making any changes to the repo (create, update, delete).
+    /// 
+    /// This method updates the following:
+    /// 
+    ///     1. MST (MstNode, MstEntry)
+    ///     2. Repo Record (RepoRecord)
+    ///     3. Repo Commit (RepoCommit)
+    ///     4. Repo Header (RepoHeader)
+    ///     5. Firehose (FirehoseEvent)
+    /// 
+    /// </summary>
+    /// <param name="writes"></param>
+    /// <returns></returns>
+    public List<ApplyWritesResult> ApplyWrites(List<ApplyWritesOperation> writes)
+    {
+        lock(this)
+        {
+            var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
+            List<Guid> allUpdatedNodeObjectIds = new List<Guid>();
+            CidV1? mostRecentRootMstNodeCid = null;
+            List<ApplyWritesResult> results = new List<ApplyWritesResult>();
+
+            //
+            // Loop through operations and do initial writes for MST and Repo Record.
+            //
+            foreach(var write in writes)
+            {
+                _logger.LogInfo($"Applying write operation: {write.Type} on collection: {write.Collection} with rkey: {write.Rkey}");
+
+                string uri = $"at://{_userDid}/{write.Collection}/{write.Rkey}";
+                string fullKey = $"{write.Collection}/{write.Rkey}";
+
+
+                switch(write.Type)
+                {
+                    //
+                    // CREATE/UPDATE
+                    //
+                    case ApplyWritesType.Create:
+                    case ApplyWritesType.Update:
+
+                        if(write.Record is null)
+                        {
+                            _logger.LogError($"Update operation missing record for collection: {write.Collection} with rkey: {write.Rkey}");
+                            continue;
+                        }
+
+                        //
+                        // REPO RECORD
+                        //
+                        write.Record.SetString(new string[] { "$type" }, write.Collection);
+                        CidV1 recordCid = CidV1.ComputeCidForDagCbor(write.Record)!;
+
+                        if(write.Type == ApplyWritesType.Update && _db.RecordExists(write.Collection, write.Rkey))
+                        {
+                            _db.DeleteRepoRecord(write.Collection, write.Rkey);
+                        }
+
+                        _db.InsertRepoRecord(write.Collection, write.Rkey, recordCid, write.Record);
+
+
+                        //
+                        // MST
+                        //
+                        (CidV1 originalRootMstNodeCid, 
+                            CidV1 newRootMstNodeCid, 
+                            List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
+                        allUpdatedNodeObjectIds.AddRange(updatedNodeObjectIds);
+                        mostRecentRootMstNodeCid = newRootMstNodeCid;
+
+
+                        //
+                        // Add to return list
+                        //
+                        string resultType = write.Type == ApplyWritesType.Create ? ApplyWritesType.CreateResult : ApplyWritesType.UpdateResult;
+
+                        results.Add(new ApplyWritesResult
+                        {
+                            Type = resultType,
+                            Uri = uri,
+                            Cid = recordCid,
+                            ValidationStatus = "valid"
+                        });
+
+                        break;
+                    
+
+                    //
+                    // DELETE
+                    //
+                    case ApplyWritesType.Delete:
+
+                        //
+                        // REPO RECORD
+                        //
+                        _db.DeleteRepoRecord(write.Collection, write.Rkey);
+
+
+                        //
+                        // MST
+                        //
+                        (CidV1 originalRootMstNodeCid1, 
+                            CidV1 newRootMstNodeCid1, 
+                            List<Guid> updatedNodeObjectIds1) = mst.DeleteEntry($"{write.Collection}/{write.Rkey}");
+                        allUpdatedNodeObjectIds.AddRange(updatedNodeObjectIds1);
+                        mostRecentRootMstNodeCid = newRootMstNodeCid1;
+
+                        //
+                        // Add to return list
+                        //
+                        results.Add(new ApplyWritesResult
+                        {
+                            Type = ApplyWritesType.DeleteResult,
+                            Uri = uri,
+                            Cid = null
+                        });
+
+                        break;
+                }
+            }
+
+
+            if(mostRecentRootMstNodeCid is null)
+            {
+                _logger.LogError("No MST root CID found after applying writes.");
+                return new List<ApplyWritesResult>();
+            }
+
+
+            //
+            // REPO COMMIT
+            //
+            var repoCommit = _db.GetRepoCommit()!;
+            repoCommit.SignAndRecomputeCid(mostRecentRootMstNodeCid, _commitSigningFunction!);
+            _db.InsertUpdateRepoCommit(repoCommit);
+
+
+            //
+            // REPO HEADER
+            //
+            var repoHeader = _db.GetRepoHeader()!;
+            repoHeader.RepoCommitCid = repoCommit.Cid!;
+            _db.InsertUpdateRepoHeader(repoHeader);
+
+
+
+            //
+            // TODO: FIREHOSE
+            //
+
+
+            //
+            // Return
+            //
+            return results;
+        }
+
+    }
+
+
+    public class ApplyWritesOperation
+    {
+        public required string Type;
+        public required string Collection;
+        public required string Rkey;
+        public DagCborObject? Record = null;
+    }
+
+    public class ApplyWritesResult
+    {
+        public required string Type;
+        public string? Uri = null;
+        public CidV1? Cid = null;
+        public string? ValidationStatus = null;
+    }
+
+
+
+    public class ApplyWritesType
+    {
+        public const string Create = "com.atproto.repo.applyWrites#create";
+        public const string Update = "com.atproto.repo.applyWrites#update";
+        public const string Delete = "com.atproto.repo.applyWrites#delete";
+        public const string CreateResult = "com.atproto.repo.applyWrites#createResult";
+        public const string UpdateResult = "com.atproto.repo.applyWrites#updateResult";
+        public const string DeleteResult = "com.atproto.repo.applyWrites#deleteResult";
+    }
+
+
+    #endregion
+
+
 
     #region CREATE
 
@@ -49,139 +246,66 @@ public class UserRepo
     /// <param name="collection"></param>
     /// <param name="record"></param>
     /// <returns></returns>
-    public 
-        (string? uri, 
-        RepoRecord? repoRecord, 
-        RepoCommit? repoCommit, 
-        string? validationStatus) 
-            CreateRecord(string collection, DagCborObject record, string? rkey = null)
+    public ApplyWritesResult CreateRecord(string collection, string rkey, DagCborObject record)
     {
-        //
-        // Create rkey and uri
-        //
-        if(rkey is null || string.IsNullOrEmpty(rkey))
+        List<ApplyWritesResult> results = ApplyWrites(new List<ApplyWritesOperation>
         {
-            rkey = RecordKey.GenerateRkey();
+            new ApplyWritesOperation
+            {
+                Type = ApplyWritesType.Create,
+                Collection = collection,
+                Rkey = rkey,
+                Record = record
+            }
+        });
+
+        if(results.Count == 0)
+        {
+            _logger.LogError("No results returned from ApplyWrites for CreateRecord.");
+            throw new Exception("Failed to create record.");
         }
-        string fullKey = $"{collection}/{rkey}";
-        string uri = $"at://{_userDid}/{collection}/{rkey}";
-        _logger.LogInfo($"rkey for new record: {rkey}");
-        _logger.LogInfo($"uri for new record: {uri}");
 
+        if(results.Count > 1)
+        {
+            _logger.LogError("Multiple results returned from ApplyWrites for CreateRecord. Returning the first one.");
+            throw new Exception("Multiple results returned from ApplyWrites for CreateRecord.");
+        }
 
-        //
-        // REPO RECORD
-        //
-        record.SetString(new string[] { "$type" }, collection);
-        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
-        RepoRecord repoRecord = RepoRecord.FromDagCborObject(recordCid, record);
-        _db.InsertRepoRecord(collection, rkey, recordCid, record);
-
-
-        //
-        // MST
-        //
-        var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
-        (CidV1 originalRootMstNodeCid, 
-            CidV1 newRootMstNodeCid, 
-            List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
-
-
-        //
-        // REPO COMMIT
-        //
-        var repoCommit = _db.GetRepoCommit()!;
-        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
-        _db.InsertUpdateRepoCommit(repoCommit);
-
-
-        //
-        // REPO HEADER
-        //
-        var repoHeader = _db.GetRepoHeader()!;
-        repoHeader.RepoCommitCid = repoCommit.Cid!;
-        _db.InsertUpdateRepoHeader(repoHeader);
-
-
-        //
-        // Return everything.
-        //
-        return (uri, repoRecord, repoCommit, "valid");
-
+        return results[0];
     }
 
     #endregion
 
 
 
-    #region PUT
+    #region UPDATE
 
-    /// <summary>
-    /// Creates (or updates) a new record in the repo. Takes care of everything (rkey, uri, mst, repo record, etc).
-    /// </summary>
-    /// <param name="collection"></param>
-    /// <param name="record"></param>
-    /// <returns></returns>
-    public 
-        (string? uri, 
-        RepoRecord? repoRecord, 
-        RepoCommit? repoCommit, 
-        string? validationStatus) 
-            PutRecord(string collection, string rkey, DagCborObject record)
+    public ApplyWritesResult UpdateRecord(string collection, string rkey, DagCborObject record)
     {
-        //
-        // Create uri
-        //
-        string fullKey = $"{collection}/{rkey}";
-        string uri = $"at://{_userDid}/{collection}/{rkey}";
-        _logger.LogInfo($"rkey for record: {rkey}");
-        _logger.LogInfo($"uri for record: {uri}");
-
-
-        //
-        // REPO RECORD
-        //
-        record.SetString(new string[] { "$type" }, collection);
-        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record)!;
-        RepoRecord repoRecord = RepoRecord.FromDagCborObject(recordCid, record);
-        if(_db.GetRepoRecord(collection, rkey) != null)
+        List<ApplyWritesResult> results = ApplyWrites(new List<ApplyWritesOperation>
         {
-            _db.DeleteRepoRecord(collection, rkey);
+            new ApplyWritesOperation
+            {
+                Type = ApplyWritesType.Update,
+                Collection = collection,
+                Rkey = rkey,
+                Record = record
+            }
+        });
+
+        if(results.Count == 0)
+        {
+            _logger.LogError("No results returned from ApplyWrites for UpdateRecord.");
+            throw new Exception("Failed to update record.");
         }
 
-        _db.InsertRepoRecord(collection, rkey, recordCid, record);
+        if(results.Count > 1)
+        {
+            _logger.LogError("Multiple results returned from ApplyWrites for UpdateRecord. Returning the first one.");
+            throw new Exception("Multiple results returned from ApplyWrites for UpdateRecord.");
+        }
 
-
-        //
-        // MST
-        //
-        var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
-        (CidV1 originalRootMstNodeCid, 
-            CidV1 newRootMstNodeCid, 
-            List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
-
-
-        //
-        // REPO COMMIT
-        //
-        var repoCommit = _db.GetRepoCommit()!;
-        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
-        _db.InsertUpdateRepoCommit(repoCommit);
-
-
-        //
-        // REPO HEADER
-        //
-        var repoHeader = _db.GetRepoHeader()!;
-        repoHeader.RepoCommitCid = repoCommit.Cid!;
-        _db.InsertUpdateRepoHeader(repoHeader);
-
-
-        //
-        // Return everything.
-        //
-        return (uri, repoRecord, repoCommit, "valid");
-
+        return results[0];
     }
 
     #endregion
@@ -203,59 +327,6 @@ public class UserRepo
     #endregion
 
 
-
-
-    #region DELETE
-
-    /// <summary>
-    /// Deletes record.
-    /// </summary>
-    /// <param name="collection"></param>
-    /// <param name="rkey"></param>
-    /// <returns></returns>
-    public 
-        (RepoHeader? repoHeader, RepoCommit? repoCommit) 
-        DeleteRecord(string collection, string rkey)
-    {
-        //
-        // REPO RECORD
-        //
-        _db.DeleteRepoRecord(collection, rkey);
-
-
-        //
-        // MST
-        //
-        var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
-        (CidV1 originalRootMstNodeCid, 
-            CidV1 newRootMstNodeCid, 
-            List<Guid> updatedNodeObjectIds) = mst.DeleteEntry($"{collection}/{rkey}");
-
-
-        //
-        // REPO COMMIT
-        //
-        var repoCommit = _db.GetRepoCommit()!;
-        repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
-        _db.InsertUpdateRepoCommit(repoCommit);
-
-
-        //
-        // REPO HEADER
-        //
-        var repoHeader = _db.GetRepoHeader()!;
-        repoHeader.RepoCommitCid = repoCommit.Cid!;
-        _db.InsertUpdateRepoHeader(repoHeader);
-
-
-        //
-        // Return
-        //
-        return (repoHeader, repoCommit);
-    }
-
-
-    #endregion
 
 
 
