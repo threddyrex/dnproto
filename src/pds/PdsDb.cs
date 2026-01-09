@@ -1186,6 +1186,22 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
         return null;
     }
 
+    public bool RecordExists(string collection, string rkey)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT 1 FROM RepoRecord WHERE Collection = @Collection AND Rkey = @Rkey LIMIT 1";
+            command.Parameters.AddWithValue("@Collection", collection);
+            command.Parameters.AddWithValue("@Rkey", rkey);
+            
+            var result = command.ExecuteScalar();
+            return result != null;
+        }
+    }
+
+
+
     public List<RepoRecord> GetAllRepoRecords()
     {
         var repoRecords = new List<RepoRecord>();

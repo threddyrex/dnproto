@@ -541,6 +541,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     {
         // Arrange
         var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllRepoRecords();
 
         var repoRecordToInsert = RepoRecord.FromDagCborObject(
             CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
@@ -566,6 +567,34 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
 
         pdsDb.DeleteRepoRecord("collection1", "rkey1");
+    }
+
+
+    [Fact]
+    public void RepoRecord_Exists()
+    {
+        // Arrange
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllRepoRecords();
+
+        var repoRecordToInsert = RepoRecord.FromDagCborObject(
+            CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
+            new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data" } }
+                }
+            }
+        );
+
+        // Act
+        pdsDb!.InsertRepoRecord("collection1", "rkey1", repoRecordToInsert.Cid!, repoRecordToInsert.DataBlock!);
+
+        // Assert
+        Assert.True(pdsDb.RecordExists("collection1", "rkey1"));
+        Assert.False(pdsDb.RecordExists("collection1", "rkey2"));
     }
 
     [Fact]
