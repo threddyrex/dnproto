@@ -207,7 +207,10 @@ public class UserRepo
             }
 
 
-
+            //
+            // We need only unique node ids
+            //
+            allUpdatedNodeObjectIds = allUpdatedNodeObjectIds.Distinct().ToList();
 
             //
             // TODO: FIREHOSE
