@@ -680,4 +680,165 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
 
     #endregion
+
+
+    #region FIREHOSE
+
+    [Fact]
+    public void FirehoseEvent_Insert()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllFirehoseEvents();
+        var firehoseEvent = new FirehoseEvent
+        {
+            SequenceNumber = 1,
+            CreatedDate = DateTime.UtcNow.ToString("o"),
+            Header_op = 1,
+            Header_t = "test header_t",
+            Header_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example header", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data header" } }
+                }
+            },
+            Body_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example body", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data body" } }
+                }
+            }
+        };
+
+        pdsDb.InsertFirehoseEvent(firehoseEvent);
+
+        var retrievedEvent = pdsDb.GetFirehoseEvent(firehoseEvent.SequenceNumber);
+        Assert.NotNull(retrievedEvent);
+        Assert.Equal(firehoseEvent.SequenceNumber, retrievedEvent.SequenceNumber);
+        Assert.Equal(firehoseEvent.CreatedDate, retrievedEvent.CreatedDate);
+        Assert.Equal(firehoseEvent.Header_op, retrievedEvent.Header_op);
+        Assert.Equal(firehoseEvent.Header_t, retrievedEvent.Header_t);
+        Assert.Equal(firehoseEvent.Header_DagCborObject.ToString(), retrievedEvent.Header_DagCborObject.ToString());
+        Assert.Equal(firehoseEvent.Body_DagCborObject.ToString(), retrievedEvent.Body_DagCborObject?.ToString());
+    }
+
+
+    
+    [Fact]
+    public void FirehoseEvent_Insert2()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllFirehoseEvents();
+
+
+        var firehoseEvent = new FirehoseEvent
+        {
+            SequenceNumber = 1,
+            CreatedDate = DateTime.UtcNow.ToString("o"),
+            Header_op = 1,
+            Header_t = "test header_t",
+            Header_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example header", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data header" } }
+                }
+            },
+            Body_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example body", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data body" } }
+                }
+            }
+        };
+
+        pdsDb.InsertFirehoseEvent(firehoseEvent);
+
+
+
+        var firehoseEvent2 = new FirehoseEvent
+        {
+            SequenceNumber = 2,
+            CreatedDate = DateTime.UtcNow.ToString("o"),
+            Header_op = 1,
+            Header_t = "test header_t",
+            Header_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example header", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data header" } }
+                }
+            },
+            Body_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example body", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data body" } }
+                }
+            }
+        };
+
+        pdsDb.InsertFirehoseEvent(firehoseEvent2);
+
+
+
+        var retrievedEvent = pdsDb.GetFirehoseEvent(firehoseEvent2.SequenceNumber);
+        Assert.NotNull(retrievedEvent);
+        Assert.Equal(firehoseEvent2.SequenceNumber, retrievedEvent.SequenceNumber);
+        Assert.Equal(firehoseEvent2.CreatedDate, retrievedEvent.CreatedDate);
+        Assert.Equal(firehoseEvent2.Header_op, retrievedEvent.Header_op);
+        Assert.Equal(firehoseEvent2.Header_t, retrievedEvent.Header_t);
+        Assert.Equal(firehoseEvent2.Header_DagCborObject.ToString(), retrievedEvent.Header_DagCborObject.ToString());
+        Assert.Equal(firehoseEvent2.Body_DagCborObject.ToString(), retrievedEvent.Body_DagCborObject?.ToString());
+    }
+
+
+
+    [Fact]
+    public void FirehoseEvent_DoesntExist()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllFirehoseEvents();
+        var firehoseEvent = new FirehoseEvent
+        {
+            SequenceNumber = 1,
+            CreatedDate = DateTime.UtcNow.ToString("o"),
+            Header_op = 1,
+            Header_t = "test header_t",
+            Header_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example header", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data header" } }
+                }
+            },
+            Body_DagCborObject = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_MAP, AdditionalInfo = 1 },
+                Value = new Dictionary<string, DagCborObject>
+                {
+                    { "example body", new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT, AdditionalInfo = 7 }, Value = "data body" } }
+                }
+            }
+        };
+
+        pdsDb.InsertFirehoseEvent(firehoseEvent);
+
+        Assert.Throws<Exception>(() => pdsDb.GetFirehoseEvent(3));
+    }
+
+
+
+
+
+    #endregion
 }

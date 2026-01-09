@@ -1315,4 +1315,105 @@ DELETE FROM SequenceNumber
 
 
     #endregion
+
+
+    #region FIREHOSE
+
+    public static void CreateTable_FirehoseEvent(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: FirehoseEvent");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS FirehoseEvent (
+SequenceNumber INTEGER PRIMARY KEY,
+CreatedDate TEXT NOT NULL,
+Header_op INTEGER NOT NULL,
+Header_t TEXT,
+Header_DagCborObject BLOB NOT NULL,
+Body_DagCborObject BLOB
+);
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+    
+
+    public void InsertFirehoseEvent(FirehoseEvent firehoseEvent)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO FirehoseEvent (SequenceNumber, CreatedDate, Header_op, Header_t, Header_DagCborObject, Body_DagCborObject)
+VALUES (@SequenceNumber, @CreatedDate, @Header_op, @Header_t, @Header_DagCborObject, @Body_DagCborObject)
+            ";
+            command.Parameters.AddWithValue("@SequenceNumber", firehoseEvent.SequenceNumber);
+            command.Parameters.AddWithValue("@CreatedDate", firehoseEvent.CreatedDate);
+            command.Parameters.AddWithValue("@Header_op", firehoseEvent.Header_op);
+            command.Parameters.AddWithValue("@Header_t", firehoseEvent.Header_t);
+            command.Parameters.AddWithValue("@Header_DagCborObject", firehoseEvent.Header_DagCborObject.ToBytes());
+
+            if(firehoseEvent.Body_DagCborObject != null)
+            {
+                command.Parameters.AddWithValue("@Body_DagCborObject", firehoseEvent.Body_DagCborObject.ToBytes());
+            }
+            else
+            {
+                command.Parameters.AddWithValue("@Body_DagCborObject", DBNull.Value);
+            }
+
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public FirehoseEvent GetFirehoseEvent(long sequenceNumber)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SequenceNumber, CreatedDate, Header_op, Header_t, Header_DagCborObject, Body_DagCborObject
+FROM FirehoseEvent
+WHERE SequenceNumber = @SequenceNumber
+LIMIT 1
+            ";
+            command.Parameters.AddWithValue("@SequenceNumber", sequenceNumber);
+
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var firehoseEvent = new FirehoseEvent
+                    {
+                        SequenceNumber = reader.GetInt32(reader.GetOrdinal("SequenceNumber")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        Header_op = reader.GetInt32(reader.GetOrdinal("Header_op")),
+                        Header_t = reader.IsDBNull(reader.GetOrdinal("Header_t")) ? null : reader.GetString(reader.GetOrdinal("Header_t")),
+                        Header_DagCborObject = DagCborObject.FromBytes((byte[])reader["Header_DagCborObject"]),
+                        Body_DagCborObject = reader.IsDBNull(reader.GetOrdinal("Body_DagCborObject")) ? null : DagCborObject.FromBytes((byte[])reader["Body_DagCborObject"])
+                    };
+                    return firehoseEvent;
+                }
+            }
+        }
+
+        throw new Exception($"FirehoseEvent with SequenceNumber {sequenceNumber} not found.");
+    }
+
+
+    public void DeleteAllFirehoseEvents()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM FirehoseEvent
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    #endregion
+
 }

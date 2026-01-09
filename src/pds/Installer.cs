@@ -83,6 +83,7 @@ public class Installer
             PdsDb.CreateTable_MstEntry(connection, logger);
             PdsDb.CreateTable_RepoRecord(connection, logger);
             PdsDb.CreateTable_SequenceNumber(connection, logger);
+            PdsDb.CreateTable_FirehoseEvent(connection, logger);
         }
 
     }
