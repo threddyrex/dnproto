@@ -67,7 +67,7 @@ public class UserRepo
             List<ApplyWritesResult> results = new List<ApplyWritesResult>();
 
             //
-            // Loop through operations and do initial writes for MST and Repo Record.
+            // Loop through operations and do writes.
             //
             foreach(var write in writes)
             {
@@ -126,7 +126,7 @@ public class UserRepo
 
 
                         //
-                        // REPO HEADER (we need to do this every iteration, because Mst pulls the commit and header)
+                        // REPO HEADER
                         //
                         // (we don't send the commit for every iteration, but methods in
                         // MstDb require the commit to be updated for each write operation)
@@ -183,7 +183,7 @@ public class UserRepo
 
 
                         //
-                        // REPO HEADER (we need to do this every iteration, because Mst pulls the commit and header)
+                        // REPO HEADER
                         //
                         // (we don't send the commit for every iteration, but methods in
                         // MstDb require the commit to be updated for each write operation)
