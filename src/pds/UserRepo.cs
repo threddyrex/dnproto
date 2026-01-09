@@ -40,142 +40,6 @@ public class UserRepo
 
 
 
-    #region STREAM
-
-    /// <summary>
-    /// Loads entire repo from our database and writes it to the stream.
-    /// For example, this is called by getRepo.
-    /// </summary>
-    /// <param name="stream"></param>
-    /// <returns></returns>
-    public async Task WriteToStreamAsync(System.IO.Stream stream)
-    {
-        await _lock.WaitAsync();
-        try
-        {
-            //
-            // Header
-            //
-            var header = _db.GetRepoHeader();
-            if (header == null)
-            {
-                _logger.LogError("Cannot write MST to stream: repo header is null.");
-                return;
-            }
-            var headerDagCbor = header.ToDagCborObject();
-            if (headerDagCbor == null)
-            {
-                _logger.LogError("Cannot write MST to stream: failed to convert repo header to DagCborObject.");
-                return;
-            }
-
-            var headerDagCborBytes = headerDagCbor.ToBytes();
-            var headerLengthVarInt = VarInt.FromLong((long)headerDagCborBytes.Length);
-            await VarInt.WriteVarIntAsync(stream, headerLengthVarInt);
-            await stream.WriteAsync(headerDagCborBytes, 0, headerDagCborBytes.Length);
-
-
-            //
-            // Repo Commit
-            //
-            var repoCommit = _db.GetRepoCommit();
-            if (repoCommit == null)
-            {
-                _logger.LogError("Cannot write MST to stream: repo commit is null.");
-                return;
-            }
-
-            var repoCommitDagCbor = repoCommit.ToDagCborObject();
-            if (repoCommitDagCbor == null)
-            {
-                _logger.LogError("Cannot write MST to stream: failed to convert repo commit to DagCborObject.");
-                return;
-            }
-            var repoCommitCid = repoCommit.Cid;
-            if (repoCommitCid == null)
-            {
-                _logger.LogError("Cannot write MST to stream: repo commit CID is null.");
-                return;
-            }
-
-            await WriteBlockAsync(stream, repoCommitCid, repoCommitDagCbor);
-
-
-            //
-            // MST Nodes
-            //
-            MstDb mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
-            var allMstNodes = _db.GetAllMstNodes();
-            var allMstEntriesByNode = _db.GetAllMstEntriesByNodeObjectId();
-            foreach (MstNode mstNode in allMstNodes)
-            {
-                if (mstNode.Cid == null)
-                {
-                    _logger.LogError("Cannot write MST to stream: MST node CID is null.");
-                    return;
-                }
-                
-                List<MstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey((Guid) mstNode.NodeObjectId!) ? allMstEntriesByNode[(Guid) mstNode.NodeObjectId!] : new List<MstEntry>();
-                
-                var mstNodeDagCbor = mstNode.ToDagCborObject(mstEntriesForNode);
-                if (mstNodeDagCbor == null)
-                {
-                    _logger.LogError($"Cannot write MST to stream: failed to convert MST node {mstNode.Cid?.Base32} to DagCborObject.");
-                    return;
-                }
-                var mstNodeCid = mstNode.Cid;
-                if (mstNodeCid == null)
-                {
-                    _logger.LogError("Cannot write MST to stream: MST node CID is null.");
-                    return;
-                }
-
-                await WriteBlockAsync(stream, mstNodeCid, mstNodeDagCbor);
-            }
-
-            //
-            // Repo records (atproto records - like posts, profiles, etc)
-            //
-            var repoRecords = _db.GetAllRepoRecords();
-            foreach (var repoRecord in repoRecords)
-            {
-                if (repoRecord.DataBlock == null || repoRecord.Cid == null)
-                {
-                    _logger.LogError($"Cannot write MST to stream: failed to convert repo record {repoRecord.Cid?.Base32} to DagCborObject.");
-                    return;
-                }
-
-                await WriteBlockAsync(stream, repoRecord.Cid, repoRecord.DataBlock);
-            }
-
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    /// <summary>
-    /// Writing one record. The format is [VarInt | CidV1 | DagCborObject] (see Repo.cs)
-    /// </summary>
-    /// <param name="stream"></param>
-    /// <param name="cid"></param>
-    /// <param name="dagCbor"></param>
-    /// <returns></returns>
-    private async Task WriteBlockAsync(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
-    {
-        var cidBytes = cid.AllBytes;
-        var dagCborBytes = dagCbor.ToBytes();
-        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
-
-        await VarInt.WriteVarIntAsync(stream, blockLengthVarInt);
-        await CidV1.WriteCidAsync(stream, cid);
-        await stream.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
-    }
-
-    #endregion
-
-
 
     #region CREATE
 
@@ -392,4 +256,144 @@ public class UserRepo
 
 
     #endregion
+
+
+
+    
+
+    #region STREAM
+
+    /// <summary>
+    /// Loads entire repo from our database and writes it to the stream.
+    /// For example, this is called by getRepo.
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <returns></returns>
+    public async Task WriteToStreamAsync(System.IO.Stream stream)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            //
+            // Header
+            //
+            var header = _db.GetRepoHeader();
+            if (header == null)
+            {
+                _logger.LogError("Cannot write MST to stream: repo header is null.");
+                return;
+            }
+            var headerDagCbor = header.ToDagCborObject();
+            if (headerDagCbor == null)
+            {
+                _logger.LogError("Cannot write MST to stream: failed to convert repo header to DagCborObject.");
+                return;
+            }
+
+            var headerDagCborBytes = headerDagCbor.ToBytes();
+            var headerLengthVarInt = VarInt.FromLong((long)headerDagCborBytes.Length);
+            await VarInt.WriteVarIntAsync(stream, headerLengthVarInt);
+            await stream.WriteAsync(headerDagCborBytes, 0, headerDagCborBytes.Length);
+
+
+            //
+            // Repo Commit
+            //
+            var repoCommit = _db.GetRepoCommit();
+            if (repoCommit == null)
+            {
+                _logger.LogError("Cannot write MST to stream: repo commit is null.");
+                return;
+            }
+
+            var repoCommitDagCbor = repoCommit.ToDagCborObject();
+            if (repoCommitDagCbor == null)
+            {
+                _logger.LogError("Cannot write MST to stream: failed to convert repo commit to DagCborObject.");
+                return;
+            }
+            var repoCommitCid = repoCommit.Cid;
+            if (repoCommitCid == null)
+            {
+                _logger.LogError("Cannot write MST to stream: repo commit CID is null.");
+                return;
+            }
+
+            await WriteBlockAsync(stream, repoCommitCid, repoCommitDagCbor);
+
+
+            //
+            // MST Nodes
+            //
+            MstDb mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
+            var allMstNodes = _db.GetAllMstNodes();
+            var allMstEntriesByNode = _db.GetAllMstEntriesByNodeObjectId();
+            foreach (MstNode mstNode in allMstNodes)
+            {
+                if (mstNode.Cid == null)
+                {
+                    _logger.LogError("Cannot write MST to stream: MST node CID is null.");
+                    return;
+                }
+                
+                List<MstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey((Guid) mstNode.NodeObjectId!) ? allMstEntriesByNode[(Guid) mstNode.NodeObjectId!] : new List<MstEntry>();
+                
+                var mstNodeDagCbor = mstNode.ToDagCborObject(mstEntriesForNode);
+                if (mstNodeDagCbor == null)
+                {
+                    _logger.LogError($"Cannot write MST to stream: failed to convert MST node {mstNode.Cid?.Base32} to DagCborObject.");
+                    return;
+                }
+                var mstNodeCid = mstNode.Cid;
+                if (mstNodeCid == null)
+                {
+                    _logger.LogError("Cannot write MST to stream: MST node CID is null.");
+                    return;
+                }
+
+                await WriteBlockAsync(stream, mstNodeCid, mstNodeDagCbor);
+            }
+
+            //
+            // Repo records (atproto records - like posts, profiles, etc)
+            //
+            var repoRecords = _db.GetAllRepoRecords();
+            foreach (var repoRecord in repoRecords)
+            {
+                if (repoRecord.DataBlock == null || repoRecord.Cid == null)
+                {
+                    _logger.LogError($"Cannot write MST to stream: failed to convert repo record {repoRecord.Cid?.Base32} to DagCborObject.");
+                    return;
+                }
+
+                await WriteBlockAsync(stream, repoRecord.Cid, repoRecord.DataBlock);
+            }
+
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Writing one record. The format is [VarInt | CidV1 | DagCborObject] (see Repo.cs)
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <param name="cid"></param>
+    /// <param name="dagCbor"></param>
+    /// <returns></returns>
+    private async Task WriteBlockAsync(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
+    {
+        var cidBytes = cid.AllBytes;
+        var dagCborBytes = dagCbor.ToBytes();
+        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
+
+        await VarInt.WriteVarIntAsync(stream, blockLengthVarInt);
+        await CidV1.WriteCidAsync(stream, cid);
+        await stream.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
+    }
+
+    #endregion
+
 }
