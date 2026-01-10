@@ -643,6 +643,8 @@ Signature BLOB NOT NULL
 
     private void InsertRepoCommit(RepoCommit repoCommit)
     {
+        ValidateRepoCommit(repoCommit);
+
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
@@ -670,6 +672,8 @@ VALUES (@Version, @Cid, @RootMstNodeCid, @Rev, @PrevMstNodeCid, @Signature)
 
     private void UpdateRepoCommit(RepoCommit repoCommit)
     {
+        ValidateRepoCommit(repoCommit);
+
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
@@ -692,6 +696,18 @@ SET Version = @Version, Cid = @Cid, RootMstNodeCid = @RootMstNodeCid, Rev = @Rev
             command.Parameters.AddWithValue("@Signature", repoCommit.Signature);
 
             command.ExecuteNonQuery();
+        }
+    }
+
+    private void ValidateRepoCommit(RepoCommit repoCommit)
+    {
+        if(repoCommit.Cid is null 
+            || string.IsNullOrEmpty(repoCommit.Rev)
+            || repoCommit.Signature is null
+            || repoCommit.Signature.Length == 0
+            )
+        {
+            throw new Exception("RepoCommit in the db needs Rev, Signature, Cid.");
         }
     }
 
@@ -760,15 +776,8 @@ LeftMstNodeCid TEXT
         return node.Cid == null ? null : node;
     }
 
-    public MstNode? GetMstNodeByObjectId(Guid? objectId)
+    public MstNode GetMstNodeByObjectId(Guid objectId)
     {
-        if(objectId == null)
-        {
-            return null;
-        }
-
-        MstNode? node = null;
-
         using(var sqlConnection = GetConnectionReadOnly())
         {
 
@@ -780,12 +789,12 @@ LeftMstNodeCid TEXT
             {
                 if(reader.Read())
                 {
-                    node = CreateNodeObjectFromReader(reader);
+                    return CreateNodeObjectFromReader(reader);
                 }
             }
         }
 
-        return node;
+        throw new ArgumentException($"No MstNode found with ObjectId: {objectId}");
     }
 
     public bool MstNodeExistsByCid(CidV1? cid)

@@ -216,6 +216,13 @@ public class Installer
         db.DeleteAllMstEntries();
         db.DeleteAllRepoRecords();
         db.DeleteRepoHeader();
+        db.DeleteAllFirehoseEvents();
+
+
+        //
+        // Increment sequence number
+        //
+        db.IncrementSequenceNumber();
 
         //
         // Create Mst Node

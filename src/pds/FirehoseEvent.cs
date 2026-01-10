@@ -18,7 +18,7 @@ public class FirehoseEvent
     /// <summary>
     /// The sequence number of the event in the firehose stream.
     /// </summary>
-    public required int SequenceNumber;
+    public required long SequenceNumber;
 
     /// <summary>
     /// The creation date of the event.

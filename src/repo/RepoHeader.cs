@@ -18,13 +18,25 @@ public class RepoHeader
     public required int Version;
 
 
+    #region STREAM
+
     public static RepoHeader ReadFromStream(Stream s)
     {
         var headerLength = VarInt.ReadVarInt(s);
         var header = DagCborObject.ReadFromStream(s);
-
         return FromDagCborObject(header);
     }
+
+    public void WriteToStream(Stream s)
+    {
+        var headerDagCbor = this.ToDagCborObject();
+        var headerDagCborBytes = headerDagCbor.ToBytes();
+        var headerLengthVarInt = VarInt.FromLong((long)headerDagCborBytes.Length);
+        VarInt.WriteVarInt(s, headerLengthVarInt);
+        s.Write(headerDagCborBytes, 0, headerDagCborBytes.Length);
+    }
+
+    #endregion
 
 
     #region DAG-CBOR

@@ -280,7 +280,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         pdsDb!.InsertMstNode(mstNodeToInsert);
 
         var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
+        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
@@ -312,7 +312,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         pdsDb!.InsertMstNode(mstNodeToInsert);
 
         var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
+        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
 
         // Assert
         Assert.NotNull(retrievedMstNode);
@@ -346,7 +346,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         pdsDb!.InsertMstNode(mstNodeToInsert);
 
         var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
+        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
 
         Assert.NotNull(retrievedMstNode);
         Assert.NotNull(retrievedMstNodeById);

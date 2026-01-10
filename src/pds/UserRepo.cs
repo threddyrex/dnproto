@@ -3,6 +3,7 @@ using dnproto.fs;
 using dnproto.log;
 using dnproto.repo;
 using Microsoft.Extensions.Primitives;
+using System.Text.Json.Nodes;
 
 namespace dnproto.pds;
 
@@ -63,8 +64,18 @@ public class UserRepo
         lock(this)
         {
             var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
-            List<Guid> allUpdatedNodeObjectIds = new List<Guid>();
             List<ApplyWritesResult> results = new List<ApplyWritesResult>();
+
+
+            //
+            // FIREHOSE: for saving state
+            //
+            List<Guid> firehoseState_NodeObjectIds = new List<Guid>();
+            List<(string collection, string rkey)> firehoseState_RecordKeyPaths = new List<(string collection, string rkey)>();
+            JsonArray firehoseState_Ops = new JsonArray();
+
+            RepoCommit firehoseBefore_OriginalRepoCommit = _db.GetRepoCommit();
+
 
             //
             // Loop through operations and do writes.
@@ -111,7 +122,6 @@ public class UserRepo
                         (CidV1 originalRootMstNodeCid, 
                             CidV1 newRootMstNodeCid, 
                             List<Guid> updatedNodeObjectIds) = mst.PutEntry(fullKey, recordCid);
-                        allUpdatedNodeObjectIds.AddRange(updatedNodeObjectIds);
 
 
                         //
@@ -149,6 +159,27 @@ public class UserRepo
                             ValidationStatus = "valid"
                         });
 
+
+                        //
+                        // FIREHOSE: save state
+                        //
+                        foreach(var nodeObjectId in updatedNodeObjectIds)
+                        {
+                            if(!firehoseState_NodeObjectIds.Contains(nodeObjectId))
+                            {
+                                firehoseState_NodeObjectIds.Add(nodeObjectId);                                
+                            }
+                        }
+                        firehoseState_RecordKeyPaths.Add((write.Collection, write.Rkey));
+                        firehoseState_Ops.Add(new JsonObject()
+                        {
+                            ["cid"] = recordCid.ToString(),
+                            ["path"] = fullKey,
+                            ["action"] = write.Type == ApplyWritesType.Create ? "create" : "update"
+                        });
+
+
+
                         break;
                     
 
@@ -157,9 +188,13 @@ public class UserRepo
                     //
                     case ApplyWritesType.Delete:
 
+                        if(! _db.RecordExists(write.Collection, write.Rkey)) break;
+
                         //
                         // REPO RECORD
                         //
+                        RepoRecord originalRepoRecord = _db.GetRepoRecord(write.Collection, write.Rkey);
+                        CidV1 originalRepoRecordCid = originalRepoRecord.Cid;
                         _db.DeleteRepoRecord(write.Collection, write.Rkey);
 
 
@@ -169,7 +204,7 @@ public class UserRepo
                         (CidV1 originalRootMstNodeCid1, 
                             CidV1 newRootMstNodeCid1, 
                             List<Guid> updatedNodeObjectIds1) = mst.DeleteEntry($"{write.Collection}/{write.Rkey}");
-                        allUpdatedNodeObjectIds.AddRange(updatedNodeObjectIds1);
+
 
                         //
                         // REPO COMMIT
@@ -202,19 +237,126 @@ public class UserRepo
                             Cid = null
                         });
 
+
+
+                        //
+                        // FIREHOSE: save state
+                        //
+                        foreach(var nodeObjectId in updatedNodeObjectIds1)
+                        {
+                            if(!firehoseState_NodeObjectIds.Contains(nodeObjectId))
+                            {
+                                firehoseState_NodeObjectIds.Add(nodeObjectId);                                
+                            }
+                        }
+
+                        firehoseState_Ops.Add(new JsonObject()
+                        {
+                            ["cid"] = "null",
+                            ["path"] = $"{write.Collection}/{write.Rkey}",
+                            ["prev"] = originalRepoRecordCid.ToString(),
+                            ["action"] = "delete",
+                        });
+
+
+
                         break;
                 }
             }
 
 
             //
-            // We need only unique node ids
+            // FIREHOSE: OBJECT 1 (header)
             //
-            allUpdatedNodeObjectIds = allUpdatedNodeObjectIds.Distinct().ToList();
+            int header_op = 1;
+            string header_t = "#commit";
+            var object1Json = new JsonObject()
+            {
+                ["t"] = header_t,
+                ["op"] = header_op
+            };
+
+            DagCborObject object1DagCbor = DagCborObject.FromJsonString(object1Json.ToString());
+
+            
 
             //
-            // TODO: FIREHOSE
+            // FIREHOSE: BLOCKS (header, commit, nodes, records)
             //
+            /// Format from spec:
+            /// 
+            ///    [---  header  -------- ]   [----------------- data ---------------------------------]
+            ///    [varint | header block ]   [varint | cid | data block]....[varint | cid | data block] 
+            /// 
+            MemoryStream blockStream = new MemoryStream();
+
+            // header
+            var firehoseFinal_RepoHeader = _db.GetRepoHeader();
+            firehoseFinal_RepoHeader.WriteToStream(blockStream);
+
+            // commit
+            var firehoseFinal_RepoCommit = _db.GetRepoCommit();
+            WriteBlock(blockStream, firehoseFinal_RepoCommit.Cid!, firehoseFinal_RepoCommit.ToDagCborObject());
+
+            // mst nodes
+            foreach(var nodeObjectId in firehoseState_NodeObjectIds)
+            {
+                var mstNode = _db.GetMstNodeByObjectId(nodeObjectId);
+                var mstEntries = _db.GetMstEntriesForNodeObjectId(nodeObjectId);
+                DagCborObject mstNodeDagCbor = mstNode.ToDagCborObject(mstEntries);
+                WriteBlock(blockStream, mstNode.Cid!, mstNodeDagCbor);
+            }
+
+            // records
+            foreach(var (collection, rkey) in firehoseState_RecordKeyPaths)
+            {
+                if(_db.RecordExists(collection, rkey))
+                {
+                    var record = _db.GetRepoRecord(collection, rkey);
+                    WriteBlock(blockStream, record.Cid!, record.DataBlock);
+                }
+            }
+
+
+            //
+            // FIREHOSE: OBJECT 2
+            //
+            long sequenceNumber = _db.IncrementSequenceNumber();
+            string createdDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            var object2Json = new JsonObject()
+            {
+                ["ops"] = firehoseState_Ops,
+                ["rev"] = firehoseFinal_RepoCommit.Rev,
+                ["seq"] = sequenceNumber,
+                ["repo"] = _userDid,
+                // format: "2026-01-10T18:46:58.383Z"
+                ["time"] = createdDate,
+                ["blobs"] = new JsonArray(),
+                ["since"] = firehoseBefore_OriginalRepoCommit.Rev,
+                ["blocks"] = Convert.ToBase64String(blockStream.ToArray()),
+                ["commit"] = firehoseFinal_RepoCommit.Cid!.ToString(),
+                ["rebase"] = false,
+                ["tooBig"] = false,
+                ["prevData"] = firehoseBefore_OriginalRepoCommit.Cid!.ToString()
+            };
+
+            var object2DagCbor = DagCborObject.FromJsonString(object2Json.ToString());
+
+
+            //
+            // FIREHOSE: database object
+            //
+            FirehoseEvent firehoseEvent = new FirehoseEvent()
+            {
+                SequenceNumber = sequenceNumber,
+                CreatedDate = createdDate,
+                Header_op = header_op,
+                Header_t = header_t,
+                Header_DagCborObject = object1DagCbor,
+                Body_DagCborObject = object2DagCbor
+            };
+
+            _db.InsertFirehoseEvent(firehoseEvent);
 
 
             //
@@ -303,18 +445,7 @@ public class UserRepo
             // Header
             //
             var header = _db.GetRepoHeader();
-            if (header == null)
-            {
-                _logger.LogError("Cannot write MST to stream: repo header is null.");
-                return;
-            }
             var headerDagCbor = header.ToDagCborObject();
-            if (headerDagCbor == null)
-            {
-                _logger.LogError("Cannot write MST to stream: failed to convert repo header to DagCborObject.");
-                return;
-            }
-
             var headerDagCborBytes = headerDagCbor.ToBytes();
             var headerLengthVarInt = VarInt.FromLong((long)headerDagCborBytes.Length);
             await VarInt.WriteVarIntAsync(stream, headerLengthVarInt);
@@ -417,6 +548,17 @@ public class UserRepo
         await VarInt.WriteVarIntAsync(stream, blockLengthVarInt);
         await CidV1.WriteCidAsync(stream, cid);
         await stream.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
+    }
+
+    private void WriteBlock(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
+    {
+        var cidBytes = cid.AllBytes;
+        var dagCborBytes = dagCbor.ToBytes();
+        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
+
+        VarInt.WriteVarInt(stream, blockLengthVarInt);
+        CidV1.WriteCid(stream, cid);
+        stream.Write(dagCborBytes, 0, dagCborBytes.Length);
     }
 
     #endregion
