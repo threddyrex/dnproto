@@ -48,6 +48,19 @@ public class ComAtprotoRepo_CreateRecord : BaseXrpcCommand
         }
 
         //
+        // Optional: swapCommit check
+        //
+        string? swapCommit = requestBody["swapCommit"]?.ToString();
+        if(!string.IsNullOrEmpty(swapCommit))
+        {
+            var currentCommit = Pds.PdsDb.GetRepoCommit();
+            if(currentCommit?.Cid?.Base32 != swapCommit)
+            {
+                return Results.Json(new { error = "InvalidSwap", message = "Commit CID mismatch." }, statusCode: 400);
+            }
+        }
+
+        //
         // Call UserRepo to create record
         //
         UserRepo.ApplyWritesResult result = Pds.UserRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
