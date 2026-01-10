@@ -117,6 +117,11 @@ public class DagCborObject
         }
     }
 
+    public void WriteToStream(Stream s)
+    {
+        WriteToStream(this, s);
+    }
+    
     /// <summary>
     /// Write a DagCbor object to a stream. Recursively writes maps and arrays.
     /// This is the mirror operation to ReadFromStream.
