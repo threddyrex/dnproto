@@ -1164,7 +1164,7 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
         }
     }
 
-    public RepoRecord? GetRepoRecord(string collection, string rkey)
+    public RepoRecord GetRepoRecord(string collection, string rkey)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -1183,7 +1183,8 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
             }
         }
 
-        return null;
+        throw new Exception($"RepoRecord not found for collection: {collection}, rkey: {rkey}");
+
     }
 
     public bool RecordExists(string collection, string rkey)

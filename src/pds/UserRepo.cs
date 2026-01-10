@@ -268,9 +268,14 @@ public class UserRepo
     /// <param name="collection"></param>
     /// <param name="rkey"></param>
     /// <returns></returns>
-    public RepoRecord? GetRecord(string collection, string rkey)
+    public RepoRecord GetRecord(string collection, string rkey)
     {
         return _db.GetRepoRecord(collection, rkey);
+    }
+
+    public bool RecordExists(string collection, string rkey)
+    {
+        return _db.RecordExists(collection, rkey);
     }
 
     #endregion

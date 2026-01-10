@@ -237,12 +237,12 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Get record
         //
-        RepoRecord? fetchedRecord = userRepo.GetRecord(atUriToDelete!.Collection!, atUriToDelete.Rkey!);
+        Assert.Throws<Exception>(() => userRepo.GetRecord(atUriToDelete!.Collection!, atUriToDelete.Rkey!));
 
         //
         // Assert
         //
-        Assert.Null(fetchedRecord);
+        Assert.False(userRepo.RecordExists(atUriToDelete!.Collection!, atUriToDelete.Rkey!));
 
     }
 
@@ -317,7 +317,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
 
 
     [Fact]
-    public void CreateTwoRecordsInOneCallToApplyWrites()
+    public void TwoCreates()
     {
         Assert.NotNull(_fixture.PdsDb);
 
@@ -373,5 +373,144 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         RepoRecord? fetchedRecord2 = userRepo.GetRecord(atUri2!.Collection!, atUri2.Rkey!);
         Assert.Equal("record was also created", fetchedRecord2!.DataBlock.SelectString(["text"]));
 
+    }
+
+
+    [Fact]
+    public void TwoCreatesOneDelete()
+    {
+        Assert.NotNull(_fixture.PdsDb);
+
+
+        //
+        // Start with fresh repo
+        //
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+
+        //
+        // Create two records
+        //
+        string post1nodeRkey = RecordKey.GenerateTid();
+        string post2nodeRkey = RecordKey.GenerateTid();
+
+        JsonNode post1Node = new JsonObject
+        {
+            ["text"] = "record was created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2Node = new JsonObject
+        {
+            ["text"] = "record was also created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+
+        List<UserRepo.ApplyWritesResult> results = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post1nodeRkey,
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Delete,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey
+            }
+        });
+
+
+        //
+        // Assert
+        //
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post1nodeRkey));
+        Assert.False(userRepo.RecordExists("app.bsky.feed.post", post2nodeRkey));
+    }
+
+
+
+    [Fact]
+    public void TwoCreatesOneUpdate()
+    {
+        Assert.NotNull(_fixture.PdsDb);
+
+
+        //
+        // Start with fresh repo
+        //
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+
+        //
+        // Create two records
+        //
+        string post1nodeRkey = RecordKey.GenerateTid();
+        string post2nodeRkey = RecordKey.GenerateTid();
+
+        JsonNode post1Node = new JsonObject
+        {
+            ["text"] = "record was created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2Node = new JsonObject
+        {
+            ["text"] = "record was also created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2NodeUpdated = new JsonObject
+        {
+            ["text"] = "record was also updated",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        List<UserRepo.ApplyWritesResult> results = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post1nodeRkey,
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Update,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2NodeUpdated.ToJsonString())
+            }
+        });
+
+
+        //
+        // Assert
+        //
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post1nodeRkey));
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post2nodeRkey));
+
+        var post2Record = userRepo.GetRecord("app.bsky.feed.post", post2nodeRkey);
+        Assert.NotNull(post2Record);
+        Assert.Equal("record was also updated", post2Record.DataBlock.SelectString(["text"]));
     }
 }

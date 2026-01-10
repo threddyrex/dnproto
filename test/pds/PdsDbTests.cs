@@ -627,10 +627,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteRepoRecord(collection, rkey);
 
-        var retrievedAfterDelete = pdsDb.GetRepoRecord(collection, rkey);
-
-        // Assert
-        Assert.Null(retrievedAfterDelete);
+        Assert.Throws<Exception>(() => pdsDb.GetRepoRecord(collection, rkey));
+        Assert.False(pdsDb.RecordExists(collection, rkey));
     }
 
     [Fact]
@@ -668,12 +666,10 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
         pdsDb.DeleteAllRepoRecords();
 
-        var retrievedAfterDelete1 = pdsDb.GetRepoRecord("collection1", "rkey1");
-        var retrievedAfterDelete2 = pdsDb.GetRepoRecord("collection2", "rkey2");
-
-        // Assert
-        Assert.Null(retrievedAfterDelete1);
-        Assert.Null(retrievedAfterDelete2);
+        Assert.Throws<Exception>(() => pdsDb.GetRepoRecord("collection1", "rkey1"));
+        Assert.Throws<Exception>(() => pdsDb.GetRepoRecord("collection2", "rkey2"));
+        Assert.False(pdsDb.RecordExists("collection1", "rkey1"));
+        Assert.False(pdsDb.RecordExists("collection2", "rkey2"));
     }
     #endregion
 
