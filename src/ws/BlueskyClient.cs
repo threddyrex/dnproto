@@ -418,10 +418,9 @@ public class BlueskyClient
         string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
         Logger.LogTrace($"GetRepo: url: {url}");
 
-        BlueskyClient.SendRequest(url,
+        BlueskyClient.SendRequestStreaming(url,
             HttpMethod.Get,
-            outputFilePath: repoFile,
-            parseJsonResponse: false);
+            outputFilePath: repoFile);
 
     }
 
@@ -1142,6 +1141,132 @@ public class BlueskyClient
             }
 
             return jsonResponse;
+        }
+    }
+
+    /// <summary>
+    /// Streaming version of SendRequest that writes to disk as data is received.
+    /// Useful for large file downloads where you don't want to buffer the entire response in memory.
+    /// </summary>
+    /// <param name="url">The URL to send the request to.</param>
+    /// <param name="getOrPut">The HTTP method to use.</param>
+    /// <param name="outputFilePath">The file path to write the response to.</param>
+    /// <param name="accessJwt">Optional access JWT for authentication.</param>
+    /// <param name="acceptHeader">Optional Accept header value.</param>
+    /// <param name="userAgent">Optional User-Agent header value.</param>
+    /// <param name="basicAuth">Optional Basic auth credentials (base64 encoded).</param>
+    /// <param name="bufferSize">Size of the buffer for streaming (default 81920 bytes).</param>
+    /// <returns>True if the request succeeded and file was written, false otherwise.</returns>
+    public static bool SendRequestStreaming(string url, HttpMethod getOrPut, string outputFilePath, string? accessJwt = null, string? acceptHeader = null, string? userAgent = "dnproto", string? basicAuth = null, int bufferSize = 81920)
+    {
+        Logger.LogInfo($"SendRequestStreaming: {url}");
+
+        if (string.IsNullOrEmpty(outputFilePath))
+        {
+            Logger.LogError("SendRequestStreaming: outputFilePath is required.");
+            return false;
+        }
+
+        using (HttpClient client = new HttpClient())
+        {
+            //
+            // Set up request
+            //
+            var request = new HttpRequestMessage(getOrPut, url);
+
+            if (accessJwt != null)
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            }
+
+            if (!string.IsNullOrEmpty(basicAuth))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+            }
+
+            if (!string.IsNullOrEmpty(acceptHeader))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
+            }
+
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                request.Headers.UserAgent.TryParseAdd(userAgent);
+            }
+
+            Logger.LogTrace($"REQUEST:\n{request}");
+
+            //
+            // Send request with ResponseHeadersRead to enable streaming
+            //
+            HttpResponseMessage? response = null;
+
+            try
+            {
+                response = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Exception sending request: {ex.Message}");
+                return false;
+            }
+
+            if (response == null)
+            {
+                Logger.LogError("In SendRequestStreaming, response is null.");
+                return false;
+            }
+
+            Logger.LogTrace($"RESPONSE: {response}");
+
+            bool succeeded = response.StatusCode == HttpStatusCode.OK;
+
+            if (!succeeded)
+            {
+                Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
+                return false;
+            }
+
+            //
+            // Stream response directly to file
+            //
+            try
+            {
+                Logger.LogTrace($"Streaming to: {outputFilePath}");
+
+                long totalBytesRead = 0;
+                long? contentLength = response.Content.Headers.ContentLength;
+
+                using (var responseStream = response.Content.ReadAsStream())
+                using (var fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.SequentialScan))
+                {
+                    byte[] buffer = new byte[bufferSize];
+                    int bytesRead;
+
+                    while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        fileStream.Write(buffer, 0, bytesRead);
+                        totalBytesRead += bytesRead;
+
+                        if (contentLength.HasValue)
+                        {
+                            Logger.LogTrace($"Progress: {totalBytesRead} / {contentLength} bytes ({(double)totalBytesRead / contentLength * 100:F1}%)");
+                        }
+                        else
+                        {
+                            Logger.LogTrace($"Downloaded: {totalBytesRead} bytes");
+                        }
+                    }
+                }
+
+                Logger.LogInfo($"SendRequestStreaming: Completed. Total bytes written: {totalBytesRead}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Exception writing to file: {ex.Message}");
+                return false;
+            }
         }
     }
 
