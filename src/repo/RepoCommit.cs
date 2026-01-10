@@ -15,12 +15,18 @@ public class RepoCommit
     public required int Version;
 
     /// <summary>
+    /// 
+    /// "data"
+    /// 
     /// Points to the cid of the root MST node for the repo.
     /// Base 32, starting with "b".
     /// </summary>
     public required CidV1 RootMstNodeCid;
 
     /// <summary>
+    /// 
+    /// "rev"
+    /// 
     /// Revision string for this commit.
     /// Increases monotonically. Typically a timestamp-based string.
     /// </summary>
@@ -41,6 +47,9 @@ public class RepoCommit
 
 
     /// <summary>
+    /// 
+    /// "sig"
+    /// 
     /// Signature of this commit.
     /// Base 64.
     /// </summary>
