@@ -57,31 +57,57 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         Pds.Logger.LogInfo($"cursor param: {cursorParam}");
         Pds.Logger.LogInfo($"actual cursor: {cursor}");
 
-
+        // Use the request's cancellation token to handle graceful shutdown
+        CancellationToken cancellationToken = HttpContext.RequestAborted;
 
         //
         // Stream events
         //
-        while (webSocket.State == WebSocketState.Open)
+        try
         {
-            List<FirehoseEvent> events = Pds.PdsDb.GetFirehoseEventsForSubscribeRepos(cursor);
-            foreach (FirehoseEvent ev in events)
+            while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
-                Pds.Logger.LogTrace($"Sending firehose event. seq:{ev.SequenceNumber}");
+                List<FirehoseEvent> events = Pds.PdsDb.GetFirehoseEventsForSubscribeRepos(cursor);
+                foreach (FirehoseEvent ev in events)
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
 
-                byte[] header = ev.Header_DagCborObject.ToBytes();
-                byte[] body = ev.Body_DagCborObject.ToBytes();
+                    Pds.Logger.LogTrace($"Sending firehose event. seq:{ev.SequenceNumber}");
 
-                byte[] combined = new byte[header.Length + body.Length];
-                Buffer.BlockCopy(header, 0, combined, 0, header.Length);
-                Buffer.BlockCopy(body, 0, combined, header.Length, body.Length);
+                    byte[] header = ev.Header_DagCborObject.ToBytes();
+                    byte[] body = ev.Body_DagCborObject.ToBytes();
 
-                await webSocket.SendAsync(new ArraySegment<byte>(combined), WebSocketMessageType.Binary, true, CancellationToken.None);
-                cursor = ev.SequenceNumber;
+                    byte[] combined = new byte[header.Length + body.Length];
+                    Buffer.BlockCopy(header, 0, combined, 0, header.Length);
+                    Buffer.BlockCopy(body, 0, combined, header.Length, body.Length);
+
+                    await webSocket.SendAsync(new ArraySegment<byte>(combined), WebSocketMessageType.Binary, true, cancellationToken);
+                    cursor = ev.SequenceNumber;
+                }
+
+                await Task.Delay(1000, cancellationToken);
             }
-
-            await Task.Delay(1000);
         }
+        catch (OperationCanceledException)
+        {
+            // Expected during graceful shutdown
+        }
+
+        // Close the WebSocket gracefully if still open
+        if (webSocket.State == WebSocketState.Open || webSocket.State == WebSocketState.CloseReceived)
+        {
+            try
+            {
+                using var closeTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server shutting down", closeTimeout.Token);
+            }
+            catch
+            {
+                // Ignore errors during close - we're shutting down anyway
+            }
+        }
+
+        Pds.Logger.LogInfo("WebSocket client disconnected or process is shutting down.");
     }
 
 }

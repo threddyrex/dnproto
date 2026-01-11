@@ -54,57 +54,75 @@ public class Firehose
             // Listen for messages
             //
             bool keepGoing = true;
-            while (ws.State == WebSocketState.Open && keepGoing)
+            try
             {
-                ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
-                WebSocketReceiveResult? result = null;
-
-                using (var ms = new MemoryStream())
+                while (ws.State == WebSocketState.Open && keepGoing)
                 {
-                    //
-                    // Read until the end of the message.
-                    // It might arrive in multiple chunks.
-                    //
-                    do
+                    ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
+                    WebSocketReceiveResult? result = null;
+
+                    using (var ms = new MemoryStream())
                     {
-                        result = await ws.ReceiveAsync(buffer, CancellationToken.None);
-
-                        if (result.Count > 0 && buffer.Array != null)
+                        //
+                        // Read until the end of the message.
+                        // It might arrive in multiple chunks.
+                        //
+                        do
                         {
-                            ms.Write(buffer.Array, buffer.Offset, result.Count);
-                        }
-                    } while (!result.EndOfMessage && ws.State == WebSocketState.Open);
+                            result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+
+                            //
+                            // Check if server is closing the connection
+                            //
+                            if (result.MessageType == WebSocketMessageType.Close)
+                            {
+                                // Complete the close handshake
+                                if (ws.State == WebSocketState.CloseReceived)
+                                {
+                                    await ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Server closed", CancellationToken.None);
+                                }
+                                return;
+                            }
+
+                            if (result.Count > 0 && buffer.Array != null)
+                            {
+                                ms.Write(buffer.Array, buffer.Offset, result.Count);
+                            }
+                        } while (!result.EndOfMessage && ws.State == WebSocketState.Open);
 
 
-                    //
-                    // Reset memory stream
-                    //
-                    ms.Seek(0, SeekOrigin.Begin);
+                        //
+                        // Reset memory stream
+                        //
+                        ms.Seek(0, SeekOrigin.Begin);
 
 
-                    //
-                    // The first DAG-CBOR object: the header
-                    //
-                    DagCborObject? header = DagCborObject.ReadFromStream(ms);
+                        //
+                        // The first DAG-CBOR object: the header
+                        //
+                        DagCborObject? header = DagCborObject.ReadFromStream(ms);
 
-                    //
-                    // The second DAG-CBOR object: the message
-                    //
-                    DagCborObject? body = DagCborObject.ReadFromStream(ms);
+                        //
+                        // The second DAG-CBOR object: the message
+                        //
+                        DagCborObject? body = DagCborObject.ReadFromStream(ms);
 
-                    //
-                    // Send back to caller
-                    //
-                    keepGoing = messageCallback(header, body);
+                        //
+                        // Send back to caller
+                        //
+                        keepGoing = messageCallback(header, body);
+                    }
                 }
+            }
+            catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+            {
+                // Server closed connection - this is expected during shutdown
+            }
 
-                //
-                // Check if we're closed.
-                //
-                if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    break;
-                }
+            // Close gracefully if still open
+            if (ws.State == WebSocketState.Open)
+            {
+                await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
             }
         }
     }

@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using dnproto.fs;
 using dnproto.pds.xrpc;
@@ -139,6 +140,12 @@ public class Pds
         builder.Logging.ClearProviders();
         builder.Logging.AddProvider(new dnproto.log.CustomLoggerProvider(logger));
         
+        // Reduce shutdown timeout from default 30 seconds to 5 seconds
+        builder.Services.Configure<Microsoft.Extensions.Hosting.HostOptions>(options =>
+        {
+            options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+        });
+
         builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 

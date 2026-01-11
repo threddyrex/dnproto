@@ -88,9 +88,7 @@ public class StartFirehoseConsumer : BaseCommand
                     Logger.LogInfo($"DAG CBOR OBJECT 1 (HEADER):\n{JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
                     Logger.LogInfo($"DAG CBOR OBJECT 2 (MESSAGE):\n{JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
 
-                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
                     Logger.LogInfo(" PARSING BLOCKS");
-                    Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
 
                     //
                     // Ok now that we have the message, let's look for a "blocks" key.
