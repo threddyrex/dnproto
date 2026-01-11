@@ -602,6 +602,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     {
         // Arrange
         var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllRepoRecords();
 
         var repoRecordToInsert = RepoRecord.FromDagCborObject(
             CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
@@ -636,6 +637,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     {
         // Arrange
         var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllRepoRecords();
 
         var repoRecord1 = RepoRecord.FromDagCborObject(
             CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
