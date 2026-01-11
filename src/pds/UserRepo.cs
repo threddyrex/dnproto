@@ -295,7 +295,7 @@ public class UserRepo
 
             // commit
             var firehoseFinal_RepoCommit = _db.GetRepoCommit();
-            WriteBlock(blockStream, firehoseFinal_RepoCommit.Cid!, firehoseFinal_RepoCommit.ToDagCborObject());
+            DagCborObject.WriteToRepoStream(blockStream, firehoseFinal_RepoCommit.Cid!, firehoseFinal_RepoCommit.ToDagCborObject());
 
             // mst nodes
             foreach(var nodeObjectId in firehoseState_NodeObjectIds)
@@ -303,7 +303,7 @@ public class UserRepo
                 var mstNode = _db.GetMstNodeByObjectId(nodeObjectId);
                 var mstEntries = _db.GetMstEntriesForNodeObjectId(nodeObjectId);
                 DagCborObject mstNodeDagCbor = mstNode.ToDagCborObject(mstEntries);
-                WriteBlock(blockStream, mstNode.Cid!, mstNodeDagCbor);
+                DagCborObject.WriteToRepoStream(blockStream, mstNode.Cid!, mstNodeDagCbor);
             }
 
             // records
@@ -312,7 +312,7 @@ public class UserRepo
                 if(_db.RecordExists(collection, rkey))
                 {
                     var record = _db.GetRepoRecord(collection, rkey);
-                    WriteBlock(blockStream, record.Cid!, record.DataBlock);
+                    DagCborObject.WriteToRepoStream(blockStream, record.Cid!, record.DataBlock);
                 }
             }
 
@@ -556,17 +556,6 @@ public class UserRepo
         await VarInt.WriteVarIntAsync(stream, blockLengthVarInt);
         await CidV1.WriteCidAsync(stream, cid);
         await stream.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
-    }
-
-    private void WriteBlock(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
-    {
-        var cidBytes = cid.AllBytes;
-        var dagCborBytes = dagCbor.ToBytes();
-        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
-
-        VarInt.WriteVarInt(stream, blockLengthVarInt);
-        CidV1.WriteCid(stream, cid);
-        stream.Write(dagCborBytes, 0, dagCborBytes.Length);
     }
 
     #endregion

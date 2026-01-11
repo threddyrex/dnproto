@@ -301,6 +301,26 @@ public class Pds
                 });
 
 
+            //
+            // FIREHOSE (#sync)
+            //
+            RepoCommit repoCommit = PdsDb.GetRepoCommit();
+            RepoHeader repoHeader = PdsDb.GetRepoHeader();
+            FirehoseEventGenerator.GenerateFrameWithBlocks(
+                header_t: "#sync", 
+                header_op: 1, 
+                object2Json: new JsonObject()
+                {
+                    ["did"] = Config.UserDid,
+                    ["rev"] = repoCommit.Rev,
+                },
+                repoHeader: repoHeader,
+                dagCborObjects: new List<(CidV1 cid, DagCborObject dagCbor)>()
+                {
+                    (repoCommit.Cid!, repoCommit.ToDagCborObject())
+                }
+            );
+
 
 
         }

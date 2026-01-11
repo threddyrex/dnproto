@@ -305,6 +305,18 @@ public class DagCborObject
         }
     }
 
+    public static void WriteToRepoStream(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
+    {
+        var cidBytes = cid.AllBytes;
+        var dagCborBytes = dagCbor.ToBytes();
+        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
+
+        VarInt.WriteVarInt(stream, blockLengthVarInt);
+        CidV1.WriteCid(stream, cid);
+        stream.Write(dagCborBytes, 0, dagCborBytes.Length);
+    }
+
+
 
     /// <summary>
     /// Read the next length value from the stream.

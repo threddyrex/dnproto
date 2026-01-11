@@ -255,7 +255,7 @@ DELETE FROM Config
             return Convert.ToInt32(result) != 0;
         }
     }
-    
+
 
     public void SetUserActive(bool isActive)
     {
@@ -651,6 +651,12 @@ Signature BLOB NOT NULL
                         PrevMstNodeCid = reader.IsDBNull(reader.GetOrdinal("PrevMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("PrevMstNodeCid"))),
                         Signature = reader.GetFieldValue<byte[]>(reader.GetOrdinal("Signature"))
                     };
+
+                    if(repoCommit.Cid is null)
+                    {
+                        throw new Exception("RepoCommit CID is null.");
+                    }
+                    
                     return repoCommit;
                 }
                 else
