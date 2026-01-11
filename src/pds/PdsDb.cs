@@ -125,7 +125,8 @@ CREATE TABLE IF NOT EXISTS Config (
     UserHashedPassword TEXT NOT NULL,
     UserEmail TEXT NOT NULL,
     UserPublicKeyMultibase TEXT NOT NULL,
-    UserPrivateKeyMultibase TEXT NOT NULL
+    UserPrivateKeyMultibase TEXT NOT NULL,
+    UserIsActive INTEGER NOT NULL
 )
         ";
             
@@ -144,8 +145,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase)
-VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase)
+INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive)
+VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive)
             ";
             command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
@@ -161,7 +162,7 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             command.Parameters.AddWithValue("@UserEmail", config.UserEmail);
             command.Parameters.AddWithValue("@UserPublicKeyMultibase", config.UserPublicKeyMultibase);
             command.Parameters.AddWithValue("@UserPrivateKeyMultibase", config.UserPrivateKeyMultibase);
-
+            command.Parameters.AddWithValue("@UserIsActive", config.UserIsActive ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
@@ -194,7 +195,8 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                         UserHashedPassword = reader.GetString(reader.GetOrdinal("UserHashedPassword")),
                         UserEmail = reader.GetString(reader.GetOrdinal("UserEmail")),
                         UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase")),
-                        UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase"))
+                        UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase")),
+                        UserIsActive = reader.GetInt32(reader.GetOrdinal("UserIsActive")) != 0
                     };
 
                     return config;
@@ -235,6 +237,38 @@ DELETE FROM Config
     #endregion
 
 
+    #region USERACTIVE
+
+    public bool IsUserActive()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT UserIsActive FROM Config LIMIT 1";
+            
+            var result = command.ExecuteScalar();
+            if(result is null)
+            {
+                throw new Exception("No config found in database.");
+            }
+
+            return Convert.ToInt32(result) != 0;
+        }
+    }
+    
+
+    public void SetUserActive(bool isActive)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "UPDATE Config SET UserIsActive = @UserIsActive";
+            command.Parameters.AddWithValue("@UserIsActive", isActive ? 1 : 0);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    #endregion
 
     #region BLOB
 

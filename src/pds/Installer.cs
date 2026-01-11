@@ -132,6 +132,7 @@ public class Installer
             UserEmail = userEmail!,
             UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
             UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
+            UserIsActive = true
         };
 
 

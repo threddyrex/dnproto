@@ -34,4 +34,6 @@ public class Config
     public required string UserPublicKeyMultibase;
 
     public required string UserPrivateKeyMultibase;
+
+    public required bool UserIsActive;
 }

@@ -109,7 +109,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserHashedPassword = "hashed_user_password",
             UserEmail = "user@example.com",
             UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
-            UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample"
+            UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample",
+            UserIsActive = true
         };
 
         // Act
@@ -133,7 +134,18 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.UserEmail, retrievedConfig.UserEmail);
         Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
         Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
+        Assert.Equal(configToInsert.UserIsActive, retrievedConfig.UserIsActive);
         Assert.Equal(1, configCount);
+    }
+
+    [Fact]
+    public void Config_SetUserActive()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.SetUserActive(false);
+        Assert.False(pdsDb.IsUserActive());
+        pdsDb.SetUserActive(true);
+        Assert.True(pdsDb.IsUserActive());
     }
 
     #endregion
