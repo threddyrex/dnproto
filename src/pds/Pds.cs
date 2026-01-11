@@ -7,6 +7,7 @@ using dnproto.fs;
 using dnproto.pds.xrpc;
 using dnproto.repo;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json.Nodes;
 
 namespace dnproto.pds;
 
@@ -75,6 +76,13 @@ public class Pds
 
     public required UserRepo UserRepo;
 
+
+    /// <summary>
+    /// Shared lock for synchronizing access to the PDS.
+    /// Use Lock.Wait() for synchronous code and Lock.WaitAsync() for async code.
+    /// Always release with Lock.Release() in a finally block.
+    /// </summary>
+    public static SemaphoreSlim GLOBAL_PDS_LOCK = new SemaphoreSlim(1, 1);
 
 
 
@@ -232,6 +240,84 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.subscribeRepos (WebSocket)");
         Logger.LogInfo("");
     }
+
+    #endregion
+
+
+    #region ACTIVATE
+
+
+    /// <summary>
+    /// Activates the user by setting the user as active in the database and updating the in-memory configuration.
+    /// Also generates firehose events for the activation.
+    /// </summary>
+    public void ActivateUser()
+    {
+        Pds.GLOBAL_PDS_LOCK.Wait();
+        try
+        {
+            //
+            // Set db
+            //
+            PdsDb.SetUserActive(true);
+
+
+            //
+            // Update in-memory config
+            //
+            Config.UserIsActive = true;
+
+
+            //
+            // FIREHOSE
+            //
+
+            // OBJECT 1 (header)
+            int header_op = 1;
+            string header_t = "#account";
+            var object1Json = new JsonObject()
+            {
+                ["t"] = header_t,
+                ["op"] = header_op
+            };
+
+            DagCborObject object1DagCbor = DagCborObject.FromJsonString(object1Json.ToString());
+
+            // OBJECT 2 (message)
+            long sequenceNumber = PdsDb.GetNewSequenceNumberForFirehose();
+            string createdDate = FirehoseEvent.GetNewCreatedDate();
+            var object2Json = new JsonObject()
+            {
+                ["did"] = Config.UserDid,
+                ["seq"] = sequenceNumber,
+                ["time"] = createdDate,
+                ["active"] = false,
+                ["status"] = "deactivated",
+            };
+
+            var object2DagCbor = DagCborObject.FromJsonString(object2Json.ToString());
+
+            // insert into db
+            FirehoseEvent firehoseEvent = new FirehoseEvent()
+            {
+                SequenceNumber = sequenceNumber,
+                CreatedDate = createdDate,
+                Header_op = header_op,
+                Header_t = header_t,
+                Header_DagCborObject = object1DagCbor,
+                Body_DagCborObject = object2DagCbor
+            };
+
+            PdsDb.InsertFirehoseEvent(firehoseEvent);
+
+
+        }
+        finally
+        {
+            Pds.GLOBAL_PDS_LOCK.Release();
+        }
+    }
+
 
     #endregion
 }

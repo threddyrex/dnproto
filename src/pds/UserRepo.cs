@@ -21,8 +21,6 @@ public class UserRepo
     private string _userDid;
 
     private Func<byte[], byte[]> _commitSigningFunction;
-
-    private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     
     private UserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db, Func<byte[], byte[]> commitSigningFunction, string userDid)
     {
@@ -61,7 +59,8 @@ public class UserRepo
     /// <returns></returns>
     public List<ApplyWritesResult> ApplyWrites(List<ApplyWritesOperation> writes)
     {
-        lock(this)
+        Pds.GLOBAL_PDS_LOCK.Wait();
+        try
         {
             var mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
             List<ApplyWritesResult> results = new List<ApplyWritesResult>();
@@ -371,7 +370,10 @@ public class UserRepo
             //
             return results;
         }
-
+        finally
+        {
+            Pds.GLOBAL_PDS_LOCK.Release();
+        }
     }
 
 
@@ -432,7 +434,6 @@ public class UserRepo
 
 
 
-
     
 
     #region STREAM
@@ -445,7 +446,7 @@ public class UserRepo
     /// <returns></returns>
     public async Task WriteToStreamAsync(System.IO.Stream stream)
     {
-        await _lock.WaitAsync();
+        await Pds.GLOBAL_PDS_LOCK.WaitAsync();
         try
         {
             //
@@ -535,7 +536,7 @@ public class UserRepo
         }
         finally
         {
-            _lock.Release();
+            Pds.GLOBAL_PDS_LOCK.Release();
         }
     }
 
