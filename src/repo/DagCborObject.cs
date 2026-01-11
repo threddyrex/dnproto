@@ -395,7 +395,17 @@ public class DagCborObject
     {
         object? o = SelectObjectValue(propertyNames);
 
-        if(o as int? != null) return o as int?;
+        if(o is int i) return i;
+
+        return null;
+    }
+
+    public long? SelectLong(string[] propertyNames)
+    {
+        object? o = SelectObjectValue(propertyNames);
+
+        if(o is long l) return l;
+        if(o is int i) return (long)i;
 
         return null;
     }

@@ -513,4 +513,182 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         Assert.NotNull(post2Record);
         Assert.Equal("record was also updated", post2Record.DataBlock.SelectString(["text"]));
     }
+
+    
+
+    [Fact]
+    public void FirehoseEvent_TwoCreatesOneUpdate()
+    {
+        Assert.NotNull(_fixture.PdsDb);
+
+
+        //
+        // Start with fresh repo
+        //
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        long mostRecentlyUsedSequenceNumber = _fixture.PdsDb.GetMostRecentlyUsedSequenceNumber();
+
+        //
+        // Create two records
+        //
+        string post1nodeRkey = RecordKey.GenerateTid();
+        string post2nodeRkey = RecordKey.GenerateTid();
+
+        JsonNode post1Node = new JsonObject
+        {
+            ["text"] = "record was created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2Node = new JsonObject
+        {
+            ["text"] = "record was also created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2NodeUpdated = new JsonObject
+        {
+            ["text"] = "record was also updated",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        List<UserRepo.ApplyWritesResult> results = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post1nodeRkey,
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Update,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2NodeUpdated.ToJsonString())
+            }
+        });
+
+
+        //
+        // Assert the records
+        //
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post1nodeRkey));
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post2nodeRkey));
+
+        var post2Record = userRepo.GetRecord("app.bsky.feed.post", post2nodeRkey);
+        Assert.NotNull(post2Record);
+        Assert.Equal("record was also updated", post2Record.DataBlock.SelectString(["text"]));
+
+
+        //
+        // Get the firehose event
+        //
+        List<FirehoseEvent> firehoseEvents = _fixture.PdsDb.GetFirehoseEventsForSubscribeRepos(mostRecentlyUsedSequenceNumber);
+        Assert.Single(firehoseEvents);
+    }
+
+
+    
+    [Fact]
+    public void FirehoseEvent_TwoCreatesOneUpdate_CheckProperties()
+    {
+        Assert.NotNull(_fixture.PdsDb);
+
+
+        //
+        // Start with fresh repo
+        //
+        string userDid = "did:example:testuser";
+        Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, userDid);
+        long mostRecentlyUsedSequenceNumber = _fixture.PdsDb.GetMostRecentlyUsedSequenceNumber();
+
+        //
+        // Create two records
+        //
+        string post1nodeRkey = RecordKey.GenerateTid();
+        string post2nodeRkey = RecordKey.GenerateTid();
+
+        JsonNode post1Node = new JsonObject
+        {
+            ["text"] = "record was created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2Node = new JsonObject
+        {
+            ["text"] = "record was also created",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        JsonNode post2NodeUpdated = new JsonObject
+        {
+            ["text"] = "record was also updated",
+            ["createdAt"] = DateTime.UtcNow.ToString("o")
+        };
+
+        List<UserRepo.ApplyWritesResult> results = userRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        {
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post1nodeRkey,
+                Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Create,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
+            },
+            new UserRepo.ApplyWritesOperation
+            {
+                Type = UserRepo.ApplyWritesType.Update,
+                Collection = "app.bsky.feed.post",
+                Rkey = post2nodeRkey,
+                Record = DagCborObject.FromJsonString(post2NodeUpdated.ToJsonString())
+            }
+        });
+
+
+        //
+        // Assert the records
+        //
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post1nodeRkey));
+        Assert.True(userRepo.RecordExists("app.bsky.feed.post", post2nodeRkey));
+
+        var post2Record = userRepo.GetRecord("app.bsky.feed.post", post2nodeRkey);
+        Assert.NotNull(post2Record);
+        Assert.Equal("record was also updated", post2Record.DataBlock.SelectString(["text"]));
+
+
+        //
+        // Get the firehose event
+        //
+        List<FirehoseEvent> firehoseEvents = _fixture.PdsDb.GetFirehoseEventsForSubscribeRepos(mostRecentlyUsedSequenceNumber);
+        Assert.Single(firehoseEvents);
+
+        DagCborObject dagCborHeader = firehoseEvents[0].Header_DagCborObject;
+        DagCborObject dagCborBody = firehoseEvents[0].Body_DagCborObject;
+
+        Assert.Equal("#commit", dagCborHeader.SelectString(["t"]));
+        Assert.Equal(1, dagCborHeader.SelectInt(["op"]));
+        Assert.Equal(25, dagCborBody.SelectLong(["seq"]));
+        Assert.Equal((mostRecentlyUsedSequenceNumber+1), dagCborBody.SelectLong(["seq"]));
+        Assert.Equal(_fixture.PdsDb.GetRepoCommit()!.Cid!.Base32, dagCborBody.SelectString(["commit"]));
+        Assert.Equal(userDid, dagCborBody.SelectString(["repo"]));
+    }
+
 }
