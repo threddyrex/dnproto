@@ -1271,6 +1271,7 @@ DELETE FROM RepoRecord
 
     #region SEQ
 
+    private static object SequenceNumberLock = new object();
 
     public static void CreateTable_SequenceNumber(SqliteConnection connection, IDnProtoLogger logger)
     {
@@ -1286,31 +1287,43 @@ Seq INTEGER NOT NULL
     }
 
 
-    public long IncrementSequenceNumber()
+    public long GetNewSequenceNumberForFirehose()
     {
-        long currentSeq = GetSequenceNumber();
-        DeleteSequenceNumber();
-        long newSeq = currentSeq + 1;
-        InsertSequenceNumber(newSeq);
-        return newSeq;
+        lock(SequenceNumberLock)
+        {
+            long currentSeq = InternalGetCurrentSequenceNumber();
+            DeleteSequenceNumber();
+            long newSeq = currentSeq + 1;
+            InternalInsertSequenceNumber(newSeq);
+            return newSeq;
+        }
+    }
+
+    public long GetMostRecentlyUsedSequenceNumber()
+    {
+        lock(SequenceNumberLock)
+        {
+            return InternalGetCurrentSequenceNumber();
+        }
     }
 
 
-
-
-    private long GetSequenceNumber()
+    private long InternalGetCurrentSequenceNumber()
     {
-        using(var sqlConnection = GetConnectionReadOnly())
+        lock(SequenceNumberLock)
         {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT Seq FROM SequenceNumber LIMIT 1";
-            
-            var result = command.ExecuteScalar();
-            return result != null ? Convert.ToInt64(result) : 0;
+            using(var sqlConnection = GetConnectionReadOnly())
+            {
+                var command = sqlConnection.CreateCommand();
+                command.CommandText = "SELECT Seq FROM SequenceNumber LIMIT 1";
+                
+                var result = command.ExecuteScalar();
+                return result != null ? Convert.ToInt64(result) : 0;
+            }
         }
     }    
 
-    public void InsertSequenceNumber(long seq)
+    private void InternalInsertSequenceNumber(long seq)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -1356,7 +1369,7 @@ CreatedDate TEXT NOT NULL,
 Header_op INTEGER NOT NULL,
 Header_t TEXT,
 Header_DagCborObject BLOB NOT NULL,
-Body_DagCborObject BLOB
+Body_DagCborObject BLOB NOT NULL
 );
         ";
         
@@ -1378,15 +1391,7 @@ VALUES (@SequenceNumber, @CreatedDate, @Header_op, @Header_t, @Header_DagCborObj
             command.Parameters.AddWithValue("@Header_op", firehoseEvent.Header_op);
             command.Parameters.AddWithValue("@Header_t", firehoseEvent.Header_t);
             command.Parameters.AddWithValue("@Header_DagCborObject", firehoseEvent.Header_DagCborObject.ToBytes());
-
-            if(firehoseEvent.Body_DagCborObject != null)
-            {
-                command.Parameters.AddWithValue("@Body_DagCborObject", firehoseEvent.Body_DagCborObject.ToBytes());
-            }
-            else
-            {
-                command.Parameters.AddWithValue("@Body_DagCborObject", DBNull.Value);
-            }
+            command.Parameters.AddWithValue("@Body_DagCborObject", firehoseEvent.Body_DagCborObject.ToBytes());
 
             command.ExecuteNonQuery();
         }
@@ -1416,7 +1421,7 @@ LIMIT 1
                         Header_op = reader.GetInt32(reader.GetOrdinal("Header_op")),
                         Header_t = reader.IsDBNull(reader.GetOrdinal("Header_t")) ? null : reader.GetString(reader.GetOrdinal("Header_t")),
                         Header_DagCborObject = DagCborObject.FromBytes((byte[])reader["Header_DagCborObject"]),
-                        Body_DagCborObject = reader.IsDBNull(reader.GetOrdinal("Body_DagCborObject")) ? null : DagCborObject.FromBytes((byte[])reader["Body_DagCborObject"])
+                        Body_DagCborObject = DagCborObject.FromBytes((byte[])reader["Body_DagCborObject"])
                     };
                     return firehoseEvent;
                 }
@@ -1425,6 +1430,54 @@ LIMIT 1
 
         throw new Exception($"FirehoseEvent with SequenceNumber {sequenceNumber} not found.");
     }
+
+
+    /// <summary>
+    /// Gets firehose events after the specified cursor (sequence number).
+    /// If cursor is null, returns events from the beginning.
+    /// </summary>
+    /// <param name="cursor">The sequence number to start after (exclusive)</param>
+    /// <param name="limit">Maximum number of events to return</param>
+    /// <returns>List of FirehoseEvents ordered by SequenceNumber ascending</returns>
+    public List<FirehoseEvent> GetFirehoseEventsAfterCursor(long cursor, int limit = 100)
+    {
+        var events = new List<FirehoseEvent>();
+
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+
+            command.CommandText = @"
+SELECT SequenceNumber, CreatedDate, Header_op, Header_t, Header_DagCborObject, Body_DagCborObject
+FROM FirehoseEvent
+WHERE SequenceNumber > @Cursor
+ORDER BY SequenceNumber ASC
+LIMIT @Limit
+            ";
+            command.Parameters.AddWithValue("@Cursor", cursor);    
+            command.Parameters.AddWithValue("@Limit", limit);
+
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var firehoseEvent = new FirehoseEvent
+                    {
+                        SequenceNumber = reader.GetInt64(reader.GetOrdinal("SequenceNumber")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        Header_op = reader.GetInt32(reader.GetOrdinal("Header_op")),
+                        Header_t = reader.IsDBNull(reader.GetOrdinal("Header_t")) ? null : reader.GetString(reader.GetOrdinal("Header_t")),
+                        Header_DagCborObject = DagCborObject.FromBytes((byte[])reader["Header_DagCborObject"]),
+                        Body_DagCborObject = DagCborObject.FromBytes((byte[])reader["Body_DagCborObject"])
+                    };
+                    events.Add(firehoseEvent);
+                }
+            }
+        }
+
+        return events;
+    }
+
 
 
     public void DeleteAllFirehoseEvents()

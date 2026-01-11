@@ -222,7 +222,7 @@ public class Installer
         //
         // Increment sequence number
         //
-        db.IncrementSequenceNumber();
+        db.GetNewSequenceNumberForFirehose();
 
         //
         // Create Mst Node

@@ -682,26 +682,12 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
 
         pdsDb.DeleteSequenceNumber();
-        Assert.Equal(1, pdsDb.IncrementSequenceNumber());
-        Assert.Equal(2, pdsDb.IncrementSequenceNumber());
-        Assert.Equal(3, pdsDb.IncrementSequenceNumber());
+        Assert.Equal(0, pdsDb.GetMostRecentlyUsedSequenceNumber());
+        Assert.Equal(1, pdsDb.GetNewSequenceNumberForFirehose());
+        Assert.Equal(2, pdsDb.GetNewSequenceNumberForFirehose());
+        Assert.Equal(3, pdsDb.GetNewSequenceNumberForFirehose());
     }
 
-
-    [Fact]
-    public void SequenceNumber2()
-    {
-        var pdsDb = _fixture.PdsDb;
-
-        pdsDb.DeleteSequenceNumber();
-        Assert.Equal(1, pdsDb.IncrementSequenceNumber());
-        Assert.Equal(2, pdsDb.IncrementSequenceNumber());
-        Assert.Equal(3, pdsDb.IncrementSequenceNumber());
-        pdsDb.DeleteSequenceNumber();
-        Assert.Equal(1, pdsDb.IncrementSequenceNumber());
-        Assert.Equal(2, pdsDb.IncrementSequenceNumber());
-        Assert.Equal(3, pdsDb.IncrementSequenceNumber());
-    }
 
 
     #endregion

@@ -55,7 +55,7 @@ public class FirehoseEvent
     /// The full body object in DAG-CBOR format.
     /// (Object 2 of 2)
     /// </summary>
-    public DagCborObject? Body_DagCborObject;
+    public required DagCborObject Body_DagCborObject;
 
 
 }

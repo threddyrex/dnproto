@@ -321,7 +321,7 @@ public class UserRepo
             //
             // FIREHOSE: OBJECT 2
             //
-            long sequenceNumber = _db.IncrementSequenceNumber();
+            long sequenceNumber = _db.GetNewSequenceNumberForFirehose();
             string createdDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
             var object2Json = new JsonObject()
             {
@@ -333,7 +333,7 @@ public class UserRepo
                 ["time"] = createdDate,
                 ["blobs"] = new JsonArray(),
                 ["since"] = firehoseBefore_OriginalRepoCommit.Rev,
-                ["blocks"] = Convert.ToBase64String(blockStream.ToArray()),
+                ["blocks"] = "", // placeholder - will be replaced with byte[] below
                 ["commit"] = firehoseFinal_RepoCommit.Cid!.ToString(),
                 ["rebase"] = false,
                 ["tooBig"] = false,
@@ -341,6 +341,14 @@ public class UserRepo
             };
 
             var object2DagCbor = DagCborObject.FromJsonString(object2Json.ToString());
+
+            // Replace "blocks" with proper byte string (JSON serialization loses byte[] type)
+            var object2Dict = (Dictionary<string, DagCborObject>)object2DagCbor.Value;
+            object2Dict["blocks"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_BYTE_STRING, AdditionalInfo = 0, OriginalByte = 0 },
+                Value = blockStream.ToArray()
+            };
 
 
             //

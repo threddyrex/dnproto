@@ -132,6 +132,11 @@ public class Pds
         builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
 
+        //
+        // Enable WebSockets for firehose subscribeRepos endpoint
+        //
+        app.UseWebSockets();
+
 
         //
         // Construct pds object
@@ -186,6 +191,7 @@ public class Pds
         App.MapPost("/xrpc/com.atproto.repo.deleteRecord", (HttpContext context) => new ComAtprotoRepo_DeleteRecord(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.repo.putRecord", (HttpContext context) => new ComAtprotoRepo_PutRecord(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.repo.applyWrites", (HttpContext context) => new ComAtprotoRepo_ApplyWrites(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/com.atproto.sync.subscribeRepos", async (HttpContext context) => { var cmd = new ComAtprotoSync_SubscribeRepos(){Pds = this, HttpContext = context}; await cmd.HandleWebSocketAsync(); });
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
@@ -223,6 +229,7 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.deleteRecord");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.putRecord");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.applyWrites");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.subscribeRepos (WebSocket)");
         Logger.LogInfo("");
     }
 
