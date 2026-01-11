@@ -76,6 +76,8 @@ public class Pds
 
     public required UserRepo UserRepo;
 
+    public required FirehoseEventGenerator FirehoseEventGenerator;
+
 
     /// <summary>
     /// Shared lock for synchronizing access to the PDS.
@@ -157,7 +159,8 @@ public class Pds
             PdsDb = pdsDb,
             App = app,
             CommitSigningFunction = commitSigningFunction,
-            UserRepo = repo
+            UserRepo = repo,
+            FirehoseEventGenerator = new FirehoseEventGenerator(pdsDb)
         };
 
 
@@ -200,6 +203,7 @@ public class Pds
         App.MapPost("/xrpc/com.atproto.repo.putRecord", (HttpContext context) => new ComAtprotoRepo_PutRecord(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.repo.applyWrites", (HttpContext context) => new ComAtprotoRepo_ApplyWrites(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.subscribeRepos", async (HttpContext context) => { var cmd = new ComAtprotoSync_SubscribeRepos(){Pds = this, HttpContext = context}; await cmd.HandleWebSocketAsync(); });
+        App.MapPost("/xrpc/com.atproto.server.activateAccount", (HttpContext context) => new ComAtprotoServer_ActivateAccount(){Pds = this, HttpContext = context}.GetResponse());
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
@@ -238,6 +242,7 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.putRecord");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.applyWrites");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.subscribeRepos (WebSocket)");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.activateAccount");
         Logger.LogInfo("");
     }
 
@@ -251,7 +256,7 @@ public class Pds
     /// Activates the user by setting the user as active in the database and updating the in-memory configuration.
     /// Also generates firehose events for the activation.
     /// </summary>
-    public void ActivateUser()
+    public void ActivateAccount()
     {
         Pds.GLOBAL_PDS_LOCK.Wait();
         try
@@ -268,47 +273,34 @@ public class Pds
             Config.UserIsActive = true;
 
 
+
             //
-            // FIREHOSE
+            // FIREHOSE (#account)
             //
+            FirehoseEventGenerator.GenerateFrame(
+                header_t: "#account", 
+                header_op: 1, 
+                object2Json: new JsonObject()
+                {
+                    ["did"] = Config.UserDid,
+                    ["active"] = true
+                });
 
-            // OBJECT 1 (header)
-            int header_op = 1;
-            string header_t = "#account";
-            var object1Json = new JsonObject()
-            {
-                ["t"] = header_t,
-                ["op"] = header_op
-            };
 
-            DagCborObject object1DagCbor = DagCborObject.FromJsonString(object1Json.ToString());
 
-            // OBJECT 2 (message)
-            long sequenceNumber = PdsDb.GetNewSequenceNumberForFirehose();
-            string createdDate = FirehoseEvent.GetNewCreatedDate();
-            var object2Json = new JsonObject()
-            {
-                ["did"] = Config.UserDid,
-                ["seq"] = sequenceNumber,
-                ["time"] = createdDate,
-                ["active"] = false,
-                ["status"] = "deactivated",
-            };
+            //
+            // FIREHOSE (#identity)
+            //
+            FirehoseEventGenerator.GenerateFrame(
+                header_t: "#identity", 
+                header_op: 1, 
+                object2Json: new JsonObject()
+                {
+                    ["did"] = Config.UserDid,
+                    ["handle"] = Config.UserHandle
+                });
 
-            var object2DagCbor = DagCborObject.FromJsonString(object2Json.ToString());
 
-            // insert into db
-            FirehoseEvent firehoseEvent = new FirehoseEvent()
-            {
-                SequenceNumber = sequenceNumber,
-                CreatedDate = createdDate,
-                Header_op = header_op,
-                Header_t = header_t,
-                Header_DagCborObject = object1DagCbor,
-                Body_DagCborObject = object2DagCbor
-            };
-
-            PdsDb.InsertFirehoseEvent(firehoseEvent);
 
 
         }
