@@ -66,12 +66,13 @@ namespace dnproto.cli.commands
                     Logger.LogInfo($"   RepoCommit.RootMstNodeCid: {repoCommit.RootMstNodeCid}");
                     Logger.LogInfo($"   Total MST Nodes Loaded: {mstNodes.Count}");
                     Logger.LogInfo($"   Total AtProto Record CIDs: {atProtoRecordCids.Count}");
+                    Logger.LogTrace("");
                     return true;
                 },
                 // mst node callback
                 (direction, mstNode, currentDepth, mstEntries) =>
                 {
-                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}({currentDepth}) {direction}{mstNode.Cid}");
+                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{currentDepth}] [{direction}] {mstNode.Cid}");
                     nodeCount++;
 
                     var fullKeys = MstEntry.GetFullKeys(mstEntries);
@@ -80,9 +81,10 @@ namespace dnproto.cli.commands
                     {
                         var entry = mstEntries[i];
                         var fullKey = fullKeys[i];
-                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}- {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}");
+                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}  [ENTRY] {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}");
                     }
 
+                    Logger.LogTrace("");
                     return true;
                 },
                 // error callback

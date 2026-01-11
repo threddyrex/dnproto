@@ -129,7 +129,7 @@ public class Mst
             return;
         }
 
-        VisitNode("(root) ", rootNode, 0, mstNodes, mstNodeEntries, mstNodeCallback, errorCallback);
+        VisitNode("ROOT", rootNode, 0, mstNodes, mstNodeEntries, mstNodeCallback, errorCallback);
     }
 
     private static bool VisitNode(string direction, MstNode currentNode, 
@@ -167,7 +167,7 @@ public class Mst
             if(allMstNodes.ContainsKey(currentNode.LeftMstNodeCid))
             {
                 var leftNode = allMstNodes[currentNode.LeftMstNodeCid];
-                continueWalk = VisitNode("(left) ", leftNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
+                continueWalk = VisitNode("LEFT", leftNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
                 if(!continueWalk)
                 {
                     return false;
@@ -187,7 +187,7 @@ public class Mst
                 if(allMstNodes.ContainsKey(entry.TreeMstNodeCid))
                 {
                     var rightNode = allMstNodes[entry.TreeMstNodeCid];
-                    continueWalk = VisitNode("(right) ", rightNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
+                    continueWalk = VisitNode("RIGHT", rightNode, currentDepth + 1, allMstNodes, allMstNodeEntries, mstNodeCallback, errorCallback);
                     if(!continueWalk)
                     {
                         return false;

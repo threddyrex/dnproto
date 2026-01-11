@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using dnproto.log;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
@@ -52,7 +53,9 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        Pds.Logger.LogInfo($"WebSocket client connected for subscribeRepos, cursor: {cursorParam}");
+        Pds.Logger.LogInfo($"WebSocket client connected for subscribeRepos.");
+        Pds.Logger.LogInfo($"cursor param: {cursorParam}");
+        Pds.Logger.LogInfo($"actual cursor: {cursor}");
 
 
 
@@ -61,9 +64,11 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         while (webSocket.State == WebSocketState.Open)
         {
-            List<FirehoseEvent> events = Pds.PdsDb.GetFirehoseEventsAfterCursor(cursor);
+            List<FirehoseEvent> events = Pds.PdsDb.GetFirehoseEventsForSubscribeRepos(cursor);
             foreach (FirehoseEvent ev in events)
             {
+                Pds.Logger.LogTrace($"Sending firehose event. seq:{ev.SequenceNumber}");
+
                 byte[] header = ev.Header_DagCborObject.ToBytes();
                 byte[] body = ev.Body_DagCborObject.ToBytes();
 
@@ -76,8 +81,6 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
             }
 
             await Task.Delay(1000);
-
-            
         }
     }
 

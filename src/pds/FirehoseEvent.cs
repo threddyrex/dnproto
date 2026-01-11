@@ -58,4 +58,19 @@ public class FirehoseEvent
     public required DagCborObject Body_DagCborObject;
 
 
+    /// <summary>
+    /// Centralize the createdDate functions here to make sure we keep the
+    /// format consistent.
+    /// </summary>
+    /// <returns></returns>
+    public static string GetNewCreatedDate()
+    {
+        return DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+    }
+
+    public static string GetCreatedDateMinusHours(int hours)
+    {
+        return DateTimeOffset.UtcNow.AddHours(-hours).ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+    }
+
 }

@@ -322,14 +322,13 @@ public class UserRepo
             // FIREHOSE: OBJECT 2
             //
             long sequenceNumber = _db.GetNewSequenceNumberForFirehose();
-            string createdDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            string createdDate = FirehoseEvent.GetNewCreatedDate();
             var object2Json = new JsonObject()
             {
                 ["ops"] = firehoseState_Ops,
                 ["rev"] = firehoseFinal_RepoCommit.Rev,
                 ["seq"] = sequenceNumber,
                 ["repo"] = _userDid,
-                // format: "2026-01-10T18:46:58.383Z"
                 ["time"] = createdDate,
                 ["blobs"] = new JsonArray(),
                 ["since"] = firehoseBefore_OriginalRepoCommit.Rev,

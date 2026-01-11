@@ -1439,7 +1439,7 @@ LIMIT 1
     /// <param name="cursor">The sequence number to start after (exclusive)</param>
     /// <param name="limit">Maximum number of events to return</param>
     /// <returns>List of FirehoseEvents ordered by SequenceNumber ascending</returns>
-    public List<FirehoseEvent> GetFirehoseEventsAfterCursor(long cursor, int limit = 100)
+    public List<FirehoseEvent> GetFirehoseEventsForSubscribeRepos(long cursor, int limit = 100, int numHoursLookBack = 12)
     {
         var events = new List<FirehoseEvent>();
 
@@ -1447,15 +1447,17 @@ LIMIT 1
         {
             var command = sqlConnection.CreateCommand();
 
+            string afterDate = FirehoseEvent.GetCreatedDateMinusHours(numHoursLookBack);
             command.CommandText = @"
 SELECT SequenceNumber, CreatedDate, Header_op, Header_t, Header_DagCborObject, Body_DagCborObject
 FROM FirehoseEvent
-WHERE SequenceNumber > @Cursor
+WHERE SequenceNumber > @Cursor AND CreatedDate >= @AfterDate
 ORDER BY SequenceNumber ASC
 LIMIT @Limit
             ";
-            command.Parameters.AddWithValue("@Cursor", cursor);    
+            command.Parameters.AddWithValue("@Cursor", cursor);
             command.Parameters.AddWithValue("@Limit", limit);
+            command.Parameters.AddWithValue("@AfterDate", afterDate);
 
             using(var reader = command.ExecuteReader())
             {
