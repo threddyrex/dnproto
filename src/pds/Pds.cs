@@ -225,7 +225,7 @@ public class Pds
         App.MapPost("/xrpc/com.atproto.repo.applyWrites", (HttpContext context) => new ComAtprotoRepo_ApplyWrites(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.subscribeRepos", async (HttpContext context) => { var cmd = new ComAtprotoSync_SubscribeRepos(){Pds = this, HttpContext = context}; await cmd.HandleWebSocketAsync(); });
         App.MapPost("/xrpc/com.atproto.server.activateAccount", (HttpContext context) => new ComAtprotoServer_ActivateAccount(){Pds = this, HttpContext = context}.GetResponse());
-        App.MapGet("/xrpc/app.bsky.convo.getLog", (HttpContext context) => new ChatBskyConvo_GetLog(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/chat.bsky.convo.getLog", (HttpContext context) => new ChatBskyConvo_GetLog(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/app.bsky.convo.listRepos", (HttpContext context) => new ChatBskyConvo_ListRepos(){Pds = this, HttpContext = context}.GetResponse());
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
