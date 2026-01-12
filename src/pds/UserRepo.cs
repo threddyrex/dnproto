@@ -442,60 +442,47 @@ public class UserRepo
         }
     }
 
-    private void FixBlobRefsInDagCbor(DagCborObject? parentObj, DagCborObject currentObj)
+    private void FixBlobRefsInDagCbor(string? key, DagCborObject obj)
     {
-        if (currentObj.Type.MajorType == DagCborType.TYPE_MAP)
+        if (obj.Type.MajorType == DagCborType.TYPE_MAP)
         {
-            var dict = currentObj.Value as Dictionary<string, DagCborObject>;
+            var dict = obj.Value as Dictionary<string, DagCborObject>;
             if (dict != null)
             {
-                if(dict.ContainsKey("image") 
-                    && dict.Keys.Count == 1 
-                    && dict["image"].Type.MajorType == DagCborType.TYPE_MAP
-                    && dict["image"].Value is Dictionary<string, DagCborObject>)
+                foreach (var k in dict.Keys.ToList())
                 {
-                    Dictionary<string, DagCborObject>? imageDict = dict["image"].Value as Dictionary<string, DagCborObject>;
-
-                    if(imageDict != null && imageDict.ContainsKey("ref") && imageDict["ref"].Type.MajorType == DagCborType.TYPE_TEXT)
-                    {
-                        string? refStr = imageDict["ref"].Value as string;
-                        if(refStr != null && refStr != "null")
-                        {
-                            try
-                            {
-                                CidV1 cid = CidV1.FromBase32(refStr);
-                                imageDict["ref"] = new DagCborObject()
-                                {
-                                    Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
-                                    Value = cid
-                                };
-                            }
-                            catch
-                            {
-                                // Not a valid CID, leave as is
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    foreach (var key in dict.Keys.ToList())
-                    {
-                        var value = dict[key];
-                        FixBlobRefsInDagCbor(currentObj, value);
-                    }                    
-                }
+                    FixBlobRefsInDagCbor(k, dict[k]);
+                }                    
             }
         }
-        else if (currentObj.Type.MajorType == DagCborType.TYPE_ARRAY)
+        else if (obj.Type.MajorType == DagCborType.TYPE_ARRAY)
         {
-            var list = currentObj.Value as List<DagCborObject>;
+            var list = obj.Value as List<DagCborObject>;
             if (list != null)
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    FixBlobRefsInDagCbor(currentObj, list[i]);
+                    FixBlobRefsInDagCbor(null, list[i]);
                 }
+            }
+        }
+        else if (string.Equals("ref", key) 
+            && obj.Type.MajorType == DagCborType.TYPE_TEXT 
+            && obj.Value is string strValue 
+            && strValue != "null"
+            // check length of cid
+            && strValue.Length == 59
+            )
+        {
+            try
+            {
+                CidV1 cidValue = CidV1.FromBase32(strValue);
+                obj.Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 };
+                obj.Value = cidValue;                
+            }
+            catch
+            {
+                // that's ok
             }
         }
     }
