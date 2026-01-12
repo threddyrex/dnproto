@@ -38,7 +38,8 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         // Write the MST to stream, using "application/vnd.ipld.car" content type
         //
         HttpContext.Response.ContentType = "application/vnd.ipld.car";
-        await Pds.UserRepo.WriteBlockAsync(HttpContext.Response.Body, record.Cid, record.DataBlock);
+        var dagCborBytes = record.DataBlock.ToBytes();
+        await HttpContext.Response.Body.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
         return Results.Empty;
     }
 }
