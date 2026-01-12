@@ -710,7 +710,7 @@ VALUES (@Version, @Cid, @RootMstNodeCid, @Rev, @PrevMstNodeCid, @Signature)
         }
     }
 
-    private void UpdateRepoCommit(RepoCommit repoCommit)
+    public void UpdateRepoCommit(RepoCommit repoCommit)
     {
         ValidateRepoCommit(repoCommit);
 

@@ -83,6 +83,12 @@ public class MstDb
     /// all the way to the root *will be* recalculated. 
     /// (because a cid is a hash of the node and its entries).
     /// Db updates happen inside InternalPutEntry.
+    /// 
+    /// MST Layer Logic (per AT Protocol spec):
+    /// - Each key has a "depth" = number of leading zero pairs in SHA-256 hash
+    /// - Higher depth keys are stored at higher layers (closer to root)
+    /// - Root node layer = max depth of any key in the tree
+    /// - Children have layer = parent layer - 1
     /// </summary>
     /// <param name="db"></param>
     /// <param name="key"></param>
@@ -99,17 +105,80 @@ public class MstDb
         var originalRootMstNodeCid = repoCommit!.RootMstNodeCid!;
 
         //
-        // Recursive put
+        // Calculate the key depth and current root layer
+        //
+        int keyDepth = MstEntry.GetKeyDepth(key);
+        int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
+
+        //
+        // If the key depth is higher than the current root layer,
+        // we need to create new parent nodes to accommodate it.
         //
         List<Guid> updatedNodeObjectIds = new List<Guid>();
-        InternalPutEntry(key, recordCid, mstNodeRoot!, mstNodeRootEntries, currentDepth: 0, updatedNodeObjectIds);
+        while (keyDepth > rootLayer)
+        {
+            // Create a new parent node with the current root as its left child
+            var newParent = new MstNode();
+            newParent.NodeObjectId = Guid.NewGuid();
+            newParent.LeftMstNodeCid = mstNodeRoot!.Cid;
+            newParent.RecomputeCid(new List<MstEntry>());
+            _db.InsertMstNode(newParent);
+            updatedNodeObjectIds.Add((Guid)newParent.NodeObjectId!);
+
+            // Update root reference
+            mstNodeRoot = newParent;
+            mstNodeRootEntries = new List<MstEntry>();
+            rootLayer++;
+        }
+
+        //
+        // Recursive put - now using layer (higher = closer to root)
+        //
+        InternalPutEntry(key, recordCid, mstNodeRoot!, mstNodeRootEntries, currentLayer: rootLayer, updatedNodeObjectIds);
 
         var newRootMstNodeCid = mstNodeRoot!.Cid!;
+
+        //
+        // Update repo commit if root changed
+        //
+        if (!originalRootMstNodeCid.Equals(newRootMstNodeCid))
+        {
+            repoCommit.RootMstNodeCid = newRootMstNodeCid;
+            _db.UpdateRepoCommit(repoCommit);
+        }
 
         //
         // Return
         //
         return (originalRootMstNodeCid, newRootMstNodeCid, updatedNodeObjectIds);
+    }
+
+    /// <summary>
+    /// Calculate the layer of the root node based on the highest key depth in the tree.
+    /// If the tree is empty, returns 0.
+    /// </summary>
+    private int GetRootLayer(MstNode rootNode, List<MstEntry> rootEntries)
+    {
+        // If root has entries, the layer is the depth of the first key
+        if (rootEntries.Count > 0)
+        {
+            string firstKey = rootEntries[0].KeySuffix ?? string.Empty;
+            return MstEntry.GetKeyDepth(firstKey);
+        }
+
+        // If root has a left child, recurse to find layer
+        if (rootNode.LeftMstNodeCid != null)
+        {
+            var leftNode = _db.GetMstNodeByCid(rootNode.LeftMstNodeCid);
+            if (leftNode != null)
+            {
+                var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode.NodeObjectId!);
+                return GetRootLayer(leftNode, leftEntries) + 1;
+            }
+        }
+
+        // Empty tree
+        return 0;
     }
 
 
@@ -126,8 +195,11 @@ public class MstDb
     ///     3) next level - insert into MstNode.LeftMstNodeCid (go left)
     ///     4) next level - insert into MstEntry.TreeMstNodeCid (go right)
     /// 
+    /// Note: currentLayer represents the MST layer where higher values are closer to root.
+    /// Keys with depth == currentLayer belong at this node.
+    /// Keys with depth < currentLayer go to child nodes (layer - 1).
     /// </summary>
-    private void InternalPutEntry(string recordKeyToInsert, CidV1 recordCidToInsert, MstNode currentNode, List<MstEntry> currentEntries, int currentDepth, List<Guid> updatedNodeObjectIds)
+    private void InternalPutEntry(string recordKeyToInsert, CidV1 recordCidToInsert, MstNode currentNode, List<MstEntry> currentEntries, int currentLayer, List<Guid> updatedNodeObjectIds)
     {
         //
         // Calculate full keys and depth.
@@ -137,8 +209,9 @@ public class MstDb
 
         //
         // Insert at this level?
+        // Key belongs here if its depth equals the current layer.
         //
-        if(keyDepthToInsert == currentDepth)
+        if(keyDepthToInsert == currentLayer)
         {
             int insertIndex = 0;
 
@@ -259,9 +332,9 @@ public class MstDb
 
 
                 //
-                // Recurse
+                // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
                 //
-                InternalPutEntry(recordKeyToInsert, recordCidToInsert, leftNode!, leftEntries, currentDepth + 1, updatedNodeObjectIds);
+                InternalPutEntry(recordKeyToInsert, recordCidToInsert, leftNode!, leftEntries, currentLayer - 1, updatedNodeObjectIds);
 
 
                 //
@@ -300,9 +373,9 @@ public class MstDb
                 List<MstEntry> rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode?.NodeObjectId!);
 
                 //
-                // Recurse
+                // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
                 //
-                InternalPutEntry(recordKeyToInsert, recordCidToInsert, rightNode!, rightEntries, currentDepth + 1, updatedNodeObjectIds);
+                InternalPutEntry(recordKeyToInsert, recordCidToInsert, rightNode!, rightEntries, currentLayer - 1, updatedNodeObjectIds);
 
                 //
                 // Update currentNode (because currentEntries[insertPos - 1].TreeMstNodeCid changed)
@@ -336,10 +409,15 @@ public class MstDb
         var originalRootMstNodeCid = repoCommit!.RootMstNodeCid!;
 
         //
-        // Recursive put
+        // Calculate root layer
+        //
+        int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
+
+        //
+        // Recursive delete
         //
         List<Guid> updatedNodeObjectIds = new List<Guid>();
-        InternalDeleteEntry(recordKeyToDelete, mstNodeRoot!, mstNodeRootEntries, currentDepth: 0, updatedNodeObjectIds);
+        InternalDeleteEntry(recordKeyToDelete, mstNodeRoot!, mstNodeRootEntries, currentLayer: rootLayer, updatedNodeObjectIds);
 
         var newRootMstNodeCid = mstNodeRoot!.Cid!;
 
@@ -362,13 +440,16 @@ public class MstDb
     ///     2) next level - delete from MstNode.LeftMstNodeCid (go left)
     ///     3) next level - delete from MstEntry.TreeMstNodeCid (go right)
     /// 
+    /// Note: currentLayer represents the MST layer where higher values are closer to root.
+    /// Keys with depth == currentLayer belong at this node.
+    /// Keys with depth < currentLayer go to child nodes (layer - 1).
     /// </summary>
     /// <param name="recordKeyToDelete"></param>
     /// <param name="currentNode"></param>
     /// <param name="currentEntries"></param>
-    /// <param name="currentDepth"></param>
+    /// <param name="currentLayer"></param>
     /// <param name="updatedNodeObjectIds"></param>
-    private void InternalDeleteEntry(string recordKeyToDelete, MstNode? currentNode, List<MstEntry> currentEntries, int currentDepth, List<Guid> updatedNodeObjectIds)
+    private void InternalDeleteEntry(string recordKeyToDelete, MstNode? currentNode, List<MstEntry> currentEntries, int currentLayer, List<Guid> updatedNodeObjectIds)
     {
         if(currentNode is null)
         {
@@ -381,12 +462,13 @@ public class MstDb
         var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
         int keyDepthToDelete = MstEntry.GetKeyDepth(recordKeyToDelete);
 
-        _logger.LogTrace($"MstDb.InternalDeleteEntry: currentDepth={currentDepth}, keyDepthToDelete={keyDepthToDelete}, currentNodeCid={currentNode.Cid?.Base32}");
+        _logger.LogTrace($"MstDb.InternalDeleteEntry: currentLayer={currentLayer}, keyDepthToDelete={keyDepthToDelete}, currentNodeCid={currentNode.Cid?.Base32}");
 
         //
         // Delete from this level?
+        // Key belongs here if its depth equals the current layer.
         //
-        if(keyDepthToDelete == currentDepth)
+        if(keyDepthToDelete == currentLayer)
         {
             //
             // Find entry to delete
@@ -466,9 +548,9 @@ public class MstDb
                     var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode!.NodeObjectId!);
 
                     //
-                    // Recurse
+                    // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
                     //
-                    InternalDeleteEntry(recordKeyToDelete, leftNode, leftEntries, currentDepth + 1, updatedNodeObjectIds);
+                    InternalDeleteEntry(recordKeyToDelete, leftNode, leftEntries, currentLayer - 1, updatedNodeObjectIds);
 
                     //
                     // Update currentNode (because its LeftMstNodeCid might have changed)
@@ -504,9 +586,9 @@ public class MstDb
                 var rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode!.NodeObjectId!);
 
                 //
-                // Recurse.
+                // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
                 //
-                InternalDeleteEntry(recordKeyToDelete, rightNode, rightEntries, currentDepth + 1, updatedNodeObjectIds);
+                InternalDeleteEntry(recordKeyToDelete, rightNode, rightEntries, currentLayer - 1, updatedNodeObjectIds);
 
                 //
                 // Update currentNode (because currentEntries[deletePos - 1].TreeMstNodeCid might have changed)
@@ -540,10 +622,15 @@ public class MstDb
         var originalRootMstNodeCid = repoCommit!.RootMstNodeCid!;
 
         //
-        // Recursive put
+        // Calculate root layer
+        //
+        int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
+
+        //
+        // Recursive walk
         //
         List<Guid> visitedNodeObjectIds = new List<Guid>();
-        InternalWalkEntry(recordKey, mstNodeRoot!, mstNodeRootEntries, currentDepth: 0, visitedNodeObjectIds);
+        InternalWalkEntry(recordKey, mstNodeRoot!, mstNodeRootEntries, currentLayer: rootLayer, visitedNodeObjectIds);
 
         var newRootMstNodeCid = mstNodeRoot!.Cid!;
 
@@ -566,13 +653,16 @@ public class MstDb
     ///     2) next level - visit from MstNode.LeftMstNodeCid (go left)
     ///     3) next level - visit from MstEntry.TreeMstNodeCid (go right)
     /// 
+    /// Note: currentLayer represents the MST layer where higher values are closer to root.
+    /// Keys with depth == currentLayer belong at this node.
+    /// Keys with depth < currentLayer go to child nodes (layer - 1).
     /// </summary>
     /// <param name="recordKey"></param>
     /// <param name="currentNode"></param>
     /// <param name="currentEntries"></param>
-    /// <param name="currentDepth"></param>
+    /// <param name="currentLayer"></param>
     /// <param name="visitedNodeObjectIds"></param>
-    private void InternalWalkEntry(string recordKey, MstNode? currentNode, List<MstEntry> currentEntries, int currentDepth, List<Guid> visitedNodeObjectIds)
+    private void InternalWalkEntry(string recordKey, MstNode? currentNode, List<MstEntry> currentEntries, int currentLayer, List<Guid> visitedNodeObjectIds)
     {
         if(currentNode is null)
         {
@@ -585,12 +675,13 @@ public class MstDb
         var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
         int keyDepthToVisit = MstEntry.GetKeyDepth(recordKey);
 
-        _logger.LogTrace($"MstDb.InternalWalkEntry: currentDepth={currentDepth}, keyDepthToVisit={keyDepthToVisit}, currentNodeCid={currentNode.Cid?.Base32}");
+        _logger.LogTrace($"MstDb.InternalWalkEntry: currentLayer={currentLayer}, keyDepthToVisit={keyDepthToVisit}, currentNodeCid={currentNode.Cid?.Base32}");
 
         //
         // Visit from this level?
+        // Key belongs here if its depth equals the current layer.
         //
-        if(keyDepthToVisit == currentDepth)
+        if(keyDepthToVisit == currentLayer)
         {
             //
             // Find entry to visit
@@ -660,9 +751,9 @@ public class MstDb
                     var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode!.NodeObjectId!);
 
                     //
-                    // Recurse
+                    // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
                     //
-                    InternalWalkEntry(recordKey, leftNode, leftEntries, currentDepth + 1, visitedNodeObjectIds);
+                    InternalWalkEntry(recordKey, leftNode, leftEntries, currentLayer - 1, visitedNodeObjectIds);
 
                     //
                     // Add this object id
@@ -695,9 +786,9 @@ public class MstDb
                 var rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode!.NodeObjectId!);
 
                 //
-                // Recurse.
+                // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
                 //
-                InternalWalkEntry(recordKey, rightNode, rightEntries, currentDepth + 1, visitedNodeObjectIds);
+                InternalWalkEntry(recordKey, rightNode, rightEntries, currentLayer - 1, visitedNodeObjectIds);
                 //
                 // Add this object id
                 //
