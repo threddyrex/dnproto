@@ -87,10 +87,18 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
 
                 await Task.Delay(1000, cancellationToken);
             }
+
+            // Log why we exited the loop
+            Pds.Logger.LogInfo($"[FIREHOSE] Exited main loop. WebSocket.State={webSocket.State}, CancellationRequested={cancellationToken.IsCancellationRequested}");
         }
         catch (OperationCanceledException)
         {
-            // Expected during graceful shutdown
+            Pds.Logger.LogInfo("[FIREHOSE] OperationCanceledException caught (graceful shutdown)");
+        }
+        catch (Exception ex)
+        {
+            Pds.Logger.LogError($"[FIREHOSE] Unexpected exception: {ex.Message}");
+            Pds.Logger.LogError($"[FIREHOSE] Stack trace: {ex.StackTrace}");
         }
 
         // Close the WebSocket gracefully if still open
