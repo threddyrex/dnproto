@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-ource ../data/pds/setup.env
+source ../data/pds/setup.env
 
 echo ""
 echo "CONFIG FROM ../data/pds/setup.env:"
