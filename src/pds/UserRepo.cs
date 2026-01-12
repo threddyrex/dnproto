@@ -59,6 +59,14 @@ public class UserRepo
     /// <returns></returns>
     public List<ApplyWritesResult> ApplyWrites(List<ApplyWritesOperation> writes)
     {
+        //
+        // The caller probably parsed this from json request.
+        // If so, cids might have ended up as strings in the Dag Cbor.
+        // Fix that.
+        //
+        FixCids(writes);
+
+
         Pds.GLOBAL_PDS_LOCK.Wait();
         try
         {
@@ -421,6 +429,59 @@ public class UserRepo
         }
     }
 
+    private void FixCids(List<ApplyWritesOperation> writes)
+    {
+        // loop through all writes and replace items that are probably cids.
+        // convert from string to cid in the dagcbor
+
+        foreach (var write in writes)
+        {
+            if (write.Record != null)
+            {
+
+            }
+        }
+    }
+
+    private void FixCidsInDagCbor(DagCborObject obj)
+    {
+        if (obj.Type.MajorType == DagCborType.TYPE_MAP)
+        {
+            var dict = obj.Value as Dictionary<string, DagCborObject>;
+            if (dict != null)
+            {
+                foreach (var key in dict.Keys.ToList())
+                {
+                    var value = dict[key];
+                    FixCidsInDagCbor(value);
+                }
+            }
+        }
+        else if (obj.Type.MajorType == DagCborType.TYPE_ARRAY)
+        {
+            var list = obj.Value as List<DagCborObject>;
+            if (list != null)
+            {
+                for (int i = 0; i < list.Count; i++)
+                {
+                    FixCidsInDagCbor(list[i]);
+                }
+            }
+        }
+        else if (obj.Type.MajorType == DagCborType.TYPE_TEXT && obj.Value is string strValue && strValue != "null")
+        {
+            try
+            {
+                CidV1 cid = CidV1.FromBase32(strValue);
+                obj.Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 };
+                obj.Value = cid;
+            }
+            catch
+            {
+                // Not a valid CID, leave as is
+            }
+        }
+    }
 
     public class ApplyWritesOperation
     {
