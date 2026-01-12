@@ -59,6 +59,10 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         await HttpContext.Response.Body.WriteAsync(cidBytes, 0, cidBytes.Length);
         await HttpContext.Response.Body.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
 
+        var repoCommit = Pds.PdsDb.GetRepoCommit();
+        DagCborObject.WriteToRepoStream(HttpContext.Response.Body, repoCommit.Cid!, repoCommit.ToDagCborObject());
+
+
         return Results.Empty;
     }
 }
