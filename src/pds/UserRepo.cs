@@ -547,7 +547,7 @@ public class UserRepo
     /// <param name="cid"></param>
     /// <param name="dagCbor"></param>
     /// <returns></returns>
-    private async Task WriteBlockAsync(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
+    public async Task WriteBlockAsync(System.IO.Stream stream, CidV1 cid, DagCborObject dagCbor)
     {
         var cidBytes = cid.AllBytes;
         var dagCborBytes = dagCbor.ToBytes();
