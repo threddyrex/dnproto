@@ -44,7 +44,7 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         var header = new RepoHeader
         {
             Version = 1,
-            RepoCommitCid = cid
+            RepoCommitCid = Pds.PdsDb.GetRepoCommit()!.Cid!
         };
         var headerDagCbor = header.ToDagCborObject();
         var headerBytes = headerDagCbor.ToBytes();
