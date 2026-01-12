@@ -695,45 +695,8 @@ public class DagCborObject
         }
         else if(value is string stringValue)
         {
-            // Check if it's a CID (starts with "b" for base32)
-            // CIDv1 with SHA-256 has minimum length of 59 characters
-            if(stringValue.StartsWith("b") && stringValue.Length >= 59)
-            {
-                // Additional validation: check if characters are valid base32 (a-z, 2-7)
-                bool isValidBase32 = true;
-                for(int i = 1; i < stringValue.Length && i < 100; i++) // Check first 100 chars for performance
-                {
-                    char c = stringValue[i];
-                    if (!((c >= 'a' && c <= 'z') || (c >= '2' && c <= '7')))
-                    {
-                        isValidBase32 = false;
-                        break;
-                    }
-                }
-
-                if(isValidBase32)
-                {
-                    try
-                    {
-                        CidV1 cid = CidV1.FromBase32(stringValue);
-                        return new DagCborObject
-                        {
-                            Type = new DagCborType
-                            {
-                                MajorType = DagCborType.TYPE_TAG,
-                                AdditionalInfo = 24,
-                                OriginalByte = 0
-                            },
-                            Value = cid
-                        };
-                    }
-                    catch
-                    {
-                        // Not a valid CID, treat as regular string
-                    }
-                }
-            }
-
+            // Don't auto-convert CID strings to Tag 42
+            // CID strings should remain as text unless explicitly using {"$link": "..."} notation
             return new DagCborObject
             {
                 Type = new DagCborType
@@ -783,6 +746,29 @@ public class DagCborObject
         }
         else if(value is Dictionary<string, object> dict)
         {
+            // Check if this is a CID link: {"$link": "bafyrei..."}
+            if(dict.Count == 1 && dict.ContainsKey("$link") && dict["$link"] is string linkValue)
+            {
+                try
+                {
+                    CidV1 cid = CidV1.FromBase32(linkValue);
+                    return new DagCborObject
+                    {
+                        Type = new DagCborType
+                        {
+                            MajorType = DagCborType.TYPE_TAG,
+                            AdditionalInfo = 24,
+                            OriginalByte = 0
+                        },
+                        Value = cid
+                    };
+                }
+                catch
+                {
+                    // Not a valid CID, treat as regular dict
+                }
+            }
+
             Dictionary<string, DagCborObject> cborDict = new Dictionary<string, DagCborObject>();
             foreach(var kvp in dict)
             {
@@ -858,6 +844,30 @@ public class DagCborObject
     }
 
 
+    public static string GetRecursiveDebugString(DagCborObject obj, int indent = 0)
+    {
+        string indentStr = new string(' ', indent * 2);
+        string result = $"{indentStr}Type: {obj.Type.GetMajorTypeString()}, Value: {obj.Value}\n";
+
+        if (obj.Type.MajorType == DagCborType.TYPE_MAP && obj.Value is Dictionary<string, DagCborObject> dict)
+        {
+            foreach (var kvp in dict)
+            {
+                result += $"{indentStr}Key: {kvp.Key}\n";
+                result += GetRecursiveDebugString(kvp.Value, indent + 1);
+            }
+        }
+        else if (obj.Type.MajorType == DagCborType.TYPE_ARRAY && obj.Value is List<DagCborObject> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                result += $"{indentStr}Index: {i}\n";
+                result += GetRecursiveDebugString(list[i], indent + 1);
+            }
+        }
+
+        return result;
+    }
 }
 
 public class DagCborType
@@ -880,6 +890,7 @@ public class DagCborType
     {
         return $"CborType -> {GetMajorTypeString()} ({MajorType}), AdditionalInfo: {AdditionalInfo}";
     }
+
 
     public string GetMajorTypeString()
     {

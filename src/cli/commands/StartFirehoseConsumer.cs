@@ -17,7 +17,7 @@ public class StartFirehoseConsumer : BaseCommand
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(["cursor"]);
+        return new HashSet<string>(["cursor", "showDagCborTypes"]);
     }
 
 
@@ -36,7 +36,8 @@ public class StartFirehoseConsumer : BaseCommand
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
         string? cursorStr = CommandLineInterface.GetArgumentValue(arguments, "cursor");
-
+        string? showDagCborTypesStr = CommandLineInterface.GetArgumentValue(arguments, "showDagCborTypes");
+        bool showDagCborTypes = !string.IsNullOrEmpty(showDagCborTypesStr) && bool.TryParse(showDagCborTypesStr, out bool result) && result;
 
         //
         // Load lfs
@@ -116,7 +117,15 @@ public class StartFirehoseConsumer : BaseCommand
                                 {
                                     Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
                                     Logger.LogInfo($"BLOCK JSON:");
-                                    Logger.LogInfo($"\n{repoRecord.JsonString}");
+
+                                    if(showDagCborTypes)
+                                    {
+                                        Logger.LogInfo($"\n{DagCborObject.GetRecursiveDebugString(repoRecord.DataBlock, 0)}");
+                                    }
+                                    else
+                                    {
+                                        Logger.LogInfo($"\n{repoRecord.JsonString}");
+                                    }
 
                                     return true;
                                 }
