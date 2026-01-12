@@ -142,7 +142,13 @@ public class DagCborObject
                 
                 WriteLengthToStream(DagCborType.TYPE_MAP, dict.Count, s);
                 
-                foreach(var kvp in dict)
+                // DAG-CBOR requires map keys to be sorted in canonical order:
+                // first by byte length, then lexicographically by bytes
+                var sortedKeys = dict.Keys.OrderBy(k => System.Text.Encoding.UTF8.GetByteCount(k))
+                                          .ThenBy(k => k, StringComparer.Ordinal)
+                                          .ToList();
+                
+                foreach(var key in sortedKeys)
                 {
                     // Write key as text string
                     DagCborObject keyObj = new DagCborObject 
@@ -150,15 +156,15 @@ public class DagCborObject
                         Type = new DagCborType 
                         { 
                             MajorType = DagCborType.TYPE_TEXT, 
-                            AdditionalInfo = kvp.Key.Length,
+                            AdditionalInfo = key.Length,
                             OriginalByte = 0
                         }, 
-                        Value = kvp.Key 
+                        Value = key 
                     };
                     WriteToStream(keyObj, s);
                     
                     // Write value
-                    WriteToStream(kvp.Value, s);
+                    WriteToStream(dict[key], s);
                 }
                 break;
 
