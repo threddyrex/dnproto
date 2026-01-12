@@ -232,6 +232,7 @@ public class Pds
         App.MapGet("/xrpc/com.atproto.repo.listRecords", (HttpContext context) => new ComAtprotoRepo_ListRecords(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.getRecord", async (HttpContext context) => { var cmd = new ComAtprotoSync_GetRecord(){Pds = this, HttpContext = context}; return await cmd.GetResponseAsync(); });
         App.MapGet("/xrpc/com.atproto.sync.getRepoStatus", (HttpContext context) => new ComAtprotoSync_GetRepoStatus(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/xrpc/com.atproto.server.deactivateAccount", (HttpContext context) => new ComAtprotoServer_DeactivateAccount(){Pds = this, HttpContext = context}.GetResponse());
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
@@ -281,6 +282,7 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.listRecords");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getRecord");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getRepoStatus");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.deactivateAccount");
         Logger.LogInfo("");
     }
 
@@ -358,6 +360,49 @@ public class Pds
                     (repoCommit.Cid!, repoCommit.ToDagCborObject())
                 }
             );
+
+
+
+        }
+        finally
+        {
+            Pds.GLOBAL_PDS_LOCK.Release();
+        }
+    }
+
+
+    public void DeactivateAccount()
+    {
+        Pds.GLOBAL_PDS_LOCK.Wait();
+        try
+        {
+            //
+            // Set db
+            //
+            PdsDb.SetUserActive(false);
+
+
+            //
+            // Update in-memory config
+            //
+            Config.UserIsActive = true;
+
+
+
+            //
+            // FIREHOSE (#account)
+            //
+            FirehoseEventGenerator.GenerateFrame(
+                header_t: "#account", 
+                header_op: 1, 
+                object2Json: new JsonObject()
+                {
+                    ["did"] = Config.UserDid,
+                    ["active"] = false,
+                    ["status"] = "deactivated"
+                });
+
+
 
 
 
