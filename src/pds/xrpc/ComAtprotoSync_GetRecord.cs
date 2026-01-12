@@ -35,11 +35,31 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
 
 
         //
-        // Write the MST to stream, using "application/vnd.ipld.car" content type
+        // Write a CAR file to stream, using "application/vnd.ipld.car" content type
+        // CAR format: [header length varint][header dag-cbor][block length varint][cid][data]...
         //
         HttpContext.Response.ContentType = "application/vnd.ipld.car";
+
+        // Write CAR header (version 1, roots pointing to the record CID)
+        var header = new RepoHeader
+        {
+            Version = 1,
+            RepoCommitCid = record.Cid
+        };
+        var headerDagCbor = header.ToDagCborObject();
+        var headerBytes = headerDagCbor.ToBytes();
+        var headerLengthVarInt = VarInt.FromLong((long)headerBytes.Length);
+        await VarInt.WriteVarIntAsync(HttpContext.Response.Body, headerLengthVarInt);
+        await HttpContext.Response.Body.WriteAsync(headerBytes, 0, headerBytes.Length);
+
+        // Write the record block (length varint + cid + dag-cbor data)
+        var cidBytes = record.Cid.AllBytes;
         var dagCborBytes = record.DataBlock.ToBytes();
+        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
+        await VarInt.WriteVarIntAsync(HttpContext.Response.Body, blockLengthVarInt);
+        await HttpContext.Response.Body.WriteAsync(cidBytes, 0, cidBytes.Length);
         await HttpContext.Response.Body.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
+
         return Results.Empty;
     }
 }
