@@ -13,28 +13,36 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
     {
 
         //
-        // Get the jwt from the caller's Authorization header
+        // Get the refresh jwt from the caller's Authorization header
         //
         string? originalRefreshJwt = GetAccessJwt();
         ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(originalRefreshJwt, Pds.Config.JwtSecret);
-        bool claimsPrincipalExists = claimsPrincipal != null;
+        
+        if (claimsPrincipal == null)
+        {
+            return Results.Json(new 
+            {
+                error = "ExpiredToken",
+                message = "Token has expired"
+            },
+            statusCode: 400);
+        }
+
         string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
-        bool didMatches = userDid == Pds.Config.UserDid;
-        string? handle = null;
-
-        if(didMatches)
+        
+        if (userDid != Pds.Config.UserDid)
         {
-            handle = Pds.Config.UserHandle;
+            return Results.Json(new 
+            {
+                error = "InvalidToken",
+                message = "Token did not match expected user"
+            },
+            statusCode: 401);
         }
 
-        string? accessJwt = null;
-        string? newRefreshJwt = null;
-
-        if(claimsPrincipalExists && didMatches)
-        {
-            accessJwt = JwtSecret.GenerateAccessJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
-            newRefreshJwt = JwtSecret.GenerateRefreshJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
-        }
+        string? handle = Pds.Config.UserHandle;
+        string? accessJwt = JwtSecret.GenerateAccessJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+        string? newRefreshJwt = JwtSecret.GenerateRefreshJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
 
         //
         // Return session info
@@ -44,9 +52,7 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
             did = userDid,
             handle = handle,
             accessJwt = accessJwt,
-            refreshJwt = newRefreshJwt,
-            claimsPrincipalExists = claimsPrincipalExists,
-            didMatches = didMatches
+            refreshJwt = newRefreshJwt
         },
         statusCode: 200);
     }
