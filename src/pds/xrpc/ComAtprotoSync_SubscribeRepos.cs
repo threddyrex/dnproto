@@ -53,9 +53,9 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        Pds.Logger.LogInfo($"WebSocket client connected for subscribeRepos.");
-        Pds.Logger.LogInfo($"cursor param: {cursorParam}");
-        Pds.Logger.LogInfo($"actual cursor: {cursor}");
+        Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos.");
+        Pds.Logger.LogInfo($"[FIREHOSE] cursor param: {cursorParam}");
+        Pds.Logger.LogInfo($"[FIREHOSE] actual cursor: {cursor}");
 
         // Use the request's cancellation token to handle graceful shutdown
         CancellationToken cancellationToken = HttpContext.RequestAborted;
@@ -72,7 +72,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    Pds.Logger.LogTrace($"Sending firehose event. seq:{ev.SequenceNumber}");
+                    Pds.Logger.LogTrace($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber}");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
@@ -107,7 +107,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
             }
         }
 
-        Pds.Logger.LogInfo("WebSocket client disconnected or process is shutting down.");
+        Pds.Logger.LogInfo("[FIREHOSE] WebSocket client disconnected or process is shutting down.");
     }
 
 }
