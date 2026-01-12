@@ -143,9 +143,8 @@ public class DagCborObject
                 WriteLengthToStream(DagCborType.TYPE_MAP, dict.Count, s);
                 
                 // DAG-CBOR requires map keys to be sorted in canonical order:
-                // first by byte length, then lexicographically by bytes
-                var sortedKeys = dict.Keys.OrderBy(k => System.Text.Encoding.UTF8.GetByteCount(k))
-                                          .ThenBy(k => k, StringComparer.Ordinal)
+                // Let's just do a simple lexicographical sort for now
+                var sortedKeys = dict.Keys.OrderBy(k => k, StringComparer.Ordinal)
                                           .ToList();
                 
                 foreach(var key in sortedKeys)
