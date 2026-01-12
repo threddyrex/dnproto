@@ -340,13 +340,58 @@ public class UserRepo
 
             var object2DagCbor = DagCborObject.FromJsonString(object2Json.ToString());
 
-            // Replace "blocks" with proper byte string (JSON serialization loses byte[] type)
+            // Replace fields with proper types (JSON serialization loses CID link and byte[] types)
             var object2Dict = (Dictionary<string, DagCborObject>)object2DagCbor.Value;
+            
+            // "blocks" - byte string
             object2Dict["blocks"] = new DagCborObject
             {
                 Type = new DagCborType { MajorType = DagCborType.TYPE_BYTE_STRING, AdditionalInfo = 0, OriginalByte = 0 },
                 Value = blockStream.ToArray()
             };
+
+            // "commit" - CID link (TAG 42)
+            object2Dict["commit"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                Value = firehoseFinal_RepoCommit.Cid!
+            };
+
+            // "prevData" - CID link (TAG 42)
+            object2Dict["prevData"] = new DagCborObject
+            {
+                Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                Value = firehoseBefore_OriginalRepoCommit.Cid!
+            };
+
+            // "ops[].cid" - CID links (TAG 42)
+            var opsArray = (List<DagCborObject>)object2Dict["ops"].Value;
+            for (int i = 0; i < opsArray.Count; i++)
+            {
+                var opDict = (Dictionary<string, DagCborObject>)opsArray[i].Value;
+                if (opDict.ContainsKey("cid"))
+                {
+                    var cidObj = opDict["cid"];
+                    // Check if it's already a CID (shouldn't happen, but be safe)
+                    if (cidObj.Value is CidV1 existingCid)
+                    {
+                        opDict["cid"] = new DagCborObject
+                        {
+                            Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                            Value = existingCid
+                        };
+                    }
+                    else if (cidObj.Value is string cidString && cidString != "null")
+                    {
+                        CidV1 cidValue = CidV1.FromBase32(cidString);
+                        opDict["cid"] = new DagCborObject
+                        {
+                            Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                            Value = cidValue
+                        };
+                    }
+                }
+            }
 
 
             //

@@ -70,9 +70,9 @@ namespace dnproto.cli.commands
                     return true;
                 },
                 // mst node callback
-                (direction, mstNode, currentDepth, mstEntries) =>
+                (direction, mstNode, currentDepth, keyDepth, mstEntries) =>
                 {
-                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{currentDepth}] [{direction}] {mstNode.Cid}");
+                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{keyDepth}] [{direction}] {mstNode.Cid}");
                     nodeCount++;
 
                     var fullKeys = MstEntry.GetFullKeys(mstEntries);
