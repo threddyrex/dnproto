@@ -1236,6 +1236,33 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
 
     }
 
+    /// <summary>
+    /// Gets the raw CID and DAG-CBOR bytes for a record, without re-serializing.
+    /// This is needed when serving records over the wire, since the CID must match the exact bytes.
+    /// </summary>
+    public (CidV1 Cid, byte[] DagCborBytes) GetRepoRecordRawBytes(string collection, string rkey)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT Cid, DagCborObject FROM RepoRecord WHERE Collection = @Collection AND Rkey = @Rkey LIMIT 1";
+            command.Parameters.AddWithValue("@Collection", collection);
+            command.Parameters.AddWithValue("@Rkey", rkey);
+            
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    var cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid")));
+                    var dagCborBytes = reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject"));
+                    return (cid, dagCborBytes);
+                }
+            }
+        }
+
+        throw new Exception($"RepoRecord not found for collection: {collection}, rkey: {rkey}");
+    }
+
     public bool RecordExists(string collection, string rkey)
     {
         using(var sqlConnection = GetConnectionReadOnly())

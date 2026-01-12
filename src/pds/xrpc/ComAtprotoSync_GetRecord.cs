@@ -25,13 +25,13 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         }
 
         //
-        // Get record
+        // Get record raw bytes (must use original bytes to match CID)
         //
         if(! Pds.PdsDb.RecordExists(collection!, rkey!))
         {
             return Results.Json(new { error = "NotFound", message = "Record not found" }, statusCode: 404);
         }
-        RepoRecord record = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
+        var (cid, dagCborBytes) = Pds.PdsDb.GetRepoRecordRawBytes(collection!, rkey!);
 
 
         //
@@ -44,7 +44,7 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         var header = new RepoHeader
         {
             Version = 1,
-            RepoCommitCid = record.Cid
+            RepoCommitCid = cid
         };
         var headerDagCbor = header.ToDagCborObject();
         var headerBytes = headerDagCbor.ToBytes();
@@ -53,8 +53,7 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         await HttpContext.Response.Body.WriteAsync(headerBytes, 0, headerBytes.Length);
 
         // Write the record block (length varint + cid + dag-cbor data)
-        var cidBytes = record.Cid.AllBytes;
-        var dagCborBytes = record.DataBlock.ToBytes();
+        var cidBytes = cid.AllBytes;
         var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
         await VarInt.WriteVarIntAsync(HttpContext.Response.Body, blockLengthVarInt);
         await HttpContext.Response.Body.WriteAsync(cidBytes, 0, cidBytes.Length);
