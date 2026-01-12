@@ -146,8 +146,22 @@ public class Pds
             options.ShutdownTimeout = TimeSpan.FromSeconds(5);
         });
 
+        // Add CORS services to allow cross-origin requests from Bluesky app
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+
         builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
+
+        // Enable CORS middleware - must be before routing/endpoints
+        app.UseCors();
 
         //
         // Enable WebSockets for firehose subscribeRepos endpoint
@@ -223,7 +237,10 @@ public class Pds
                 return await cmd.ProxyToAppView(context);
             }
 
-            return Results.NotFound();
+            // Log unimplemented endpoints so we can track what's being called
+            Logger.LogWarning($"UNIMPLEMENTED ENDPOINT: {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
+
+            return Results.Json(new { error = "MethodNotImplemented", message = $"Endpoint not implemented: {context.Request.Path}" }, statusCode: 501);
         });
 
 
