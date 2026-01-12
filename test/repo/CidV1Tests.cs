@@ -231,4 +231,98 @@ public class CidV1Tests
             Assert.Equal(cids[i].DigestBytes, readCids[i].DigestBytes);
         }
     }
+
+    [Fact]
+    public void ComputeCidForDagCbor_ToBytes_Deterministic()
+    {
+        // Arrange - Create a DagCborObject from JSON similar to a post
+        string jsonString = @"{
+            ""$type"": ""app.bsky.feed.post"",
+            ""createdAt"": ""2026-01-12T08:53:11.276Z"",
+            ""langs"": [""en""],
+            ""text"": ""hey there another new post""
+        }";
+        
+        var dagCbor = DagCborObject.FromJsonString(jsonString);
+        
+        // Act - Compute CID and get bytes multiple times
+        var cid1 = CidV1.ComputeCidForDagCbor(dagCbor);
+        var bytes1 = dagCbor.ToBytes();
+        
+        var cid2 = CidV1.ComputeCidForDagCbor(dagCbor);
+        var bytes2 = dagCbor.ToBytes();
+        
+        // Assert - Should be identical
+        Assert.Equal(cid1.Base32, cid2.Base32);
+        Assert.Equal(bytes1, bytes2);
+        
+        // Verify CID matches hash of bytes
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes1);
+        Assert.Equal(hash, cid1.DigestBytes);
+    }
+    
+    [Fact]
+    public void ComputeCidForDagCbor_CanonicalOrder()
+    {
+        // Arrange - Verify canonical key ordering (by length, then lexicographic)
+        string jsonString = @"{
+            ""$type"": ""app.bsky.feed.post"",
+            ""createdAt"": ""2026-01-12T08:53:11.276Z"",
+            ""langs"": [""en""],
+            ""text"": ""hey there another new post""
+        }";
+        
+        var dagCbor = DagCborObject.FromJsonString(jsonString);
+        var bytes = dagCbor.ToBytes();
+        
+        // Parse back and verify order
+        using var ms = new MemoryStream(bytes);
+        var parsed = DagCborObject.ReadFromStream(ms);
+        var dict = parsed.Value as Dictionary<string, DagCborObject>;
+        
+        // Keys should be in canonical order: text (4), $type (5), langs (5), createdAt (9)
+        var keys = dict!.Keys.ToList();
+        Assert.Equal(4, keys.Count);
+        Assert.Equal("text", keys[0]);      // 4 bytes
+        Assert.Equal("$type", keys[1]);     // 5 bytes  
+        Assert.Equal("langs", keys[2]);     // 5 bytes (after $type lexicographically)
+        Assert.Equal("createdAt", keys[3]); // 9 bytes
+    }
+
+    [Fact]
+    public void InsertAndRetrieve_CidMatchesBytes()
+    {
+        // Simulate the exact flow in UserRepo.ApplyWrites and GetRepoRecordRawBytes
+        
+        // Step 1: Create DagCborObject from JSON (like ComAtprotoRepo_ApplyWrites does)
+        string jsonString = @"{
+            ""createdAt"": ""2026-01-12T08:53:11.276Z"",
+            ""langs"": [""en""],
+            ""text"": ""hey there another new post""
+        }";
+        var record = DagCborObject.FromJsonString(jsonString);
+        
+        // Step 2: Set $type (like UserRepo.ApplyWrites does)
+        record.SetString(new string[] { "$type" }, "app.bsky.feed.post");
+        
+        // Step 3: Compute CID (like UserRepo.ApplyWrites does)
+        CidV1 recordCid = CidV1.ComputeCidForDagCbor(record);
+        
+        // Step 4: Get bytes for storage (like InsertRepoRecord does)
+        byte[] storedBytes = record.ToBytes();
+        
+        // Step 5: Simulate retrieval - get CID from base32 (like GetRepoRecordRawBytes does)
+        CidV1 retrievedCid = CidV1.FromBase32(recordCid.Base32);
+        
+        // Step 6: Verify CID bytes match
+        Assert.Equal(recordCid.AllBytes, retrievedCid.AllBytes);
+        
+        // Step 7: Verify hash of stored bytes matches CID
+        var hash = System.Security.Cryptography.SHA256.HashData(storedBytes);
+        Assert.Equal(hash, retrievedCid.DigestBytes);
+        
+        // Step 8: Verify ToBytes is deterministic
+        byte[] bytesAgain = record.ToBytes();
+        Assert.Equal(storedBytes, bytesAgain);
+    }
 }

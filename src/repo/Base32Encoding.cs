@@ -90,8 +90,9 @@ public class Base32Encoding
         string charMap = "abcdefghijklmnopqrstuvwxyz234567";
         
         // Calculate output size: 5 bits per character, pack into 8-bit bytes
+        // Use floor division since trailing bits are padding
         int bitCount = base32String.Length * 5;
-        int byteCount = (bitCount + 7) / 8; // Round up
+        int byteCount = bitCount / 8; // Floor division - ignore padding bits
         byte[] result = new byte[byteCount];
 
         int currentByte = 0;
@@ -99,6 +100,12 @@ public class Base32Encoding
 
         foreach (char c in base32String)
         {
+            // Stop if we've filled all the bytes we need
+            if (currentByte >= byteCount)
+            {
+                break;
+            }
+
             // Get the 5-bit value for this character
             int value = charMap.IndexOf(char.ToLower(c));
             if (value == -1)
@@ -109,7 +116,7 @@ public class Base32Encoding
             // We have 5 bits to add to our output
             int bitsToAdd = 5;
 
-            while (bitsToAdd > 0)
+            while (bitsToAdd > 0 && currentByte < byteCount)
             {
                 int bitsAvailableInCurrentByte = 8 - bitsInCurrentByte;
 

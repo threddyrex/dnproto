@@ -151,9 +151,15 @@ public class CidV1
             throw new Exception("CID base32 string must start with 'b'");
         }
 
-        byte[] allBytes = Base32Encoding.Base32ToBytes(base32.Substring(1));
-        using var ms = new MemoryStream(allBytes);
-        return ReadCid(ms);
+        byte[] originalBytes = Base32Encoding.Base32ToBytes(base32.Substring(1));
+        using var ms = new MemoryStream(originalBytes);
+        var cid = ReadCid(ms);
+        
+        // Use the original bytes instead of reconstructed ones to preserve exact encoding
+        cid.AllBytes = originalBytes;
+        cid.Base32 = base32;
+        
+        return cid;
     }
 
     public static CidV1 ComputeCidForDagCbor(DagCborObject dagCborObject)
