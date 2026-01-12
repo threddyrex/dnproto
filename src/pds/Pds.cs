@@ -229,6 +229,7 @@ public class Pds
         App.MapGet("/xrpc/com.atproto.sync.listRepos", (HttpContext context) => new ChatBskyConvo_ListRepos(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/chat.bsky.convo.listConvos", (HttpContext context) => new ChatBskyConvo_ListConvos(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.describeRepo", (HttpContext context) => new ComAtprotoRepo_DescribeRepo(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/com.atproto.repo.listRecords", (HttpContext context) => new ComAtprotoRepo_ListRecords(){Pds = this, HttpContext = context}.GetResponse());
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
@@ -275,6 +276,7 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.convo.listRepos");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/chat.bsky.convo.listConvos");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.describeRepo");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.listRecords");
         Logger.LogInfo("");
     }
 

@@ -1325,6 +1325,42 @@ DELETE FROM RepoRecord
         return collections;
     }
 
+
+    public List<(string rkey, RepoRecord)> ListRepoRecordsByCollection(string collection, int limit = 100, string? cursor = null)
+    {
+        if(string.IsNullOrEmpty(cursor))
+        {
+            cursor = "0";
+        }
+
+        var repoRecords = new List<(string rkey, RepoRecord)>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT * FROM RepoRecord
+WHERE Collection = @Collection
+AND Rkey > @Cursor
+ORDER BY Rkey ASC
+LIMIT @Limit
+            ";
+            command.Parameters.AddWithValue("@Collection", collection);
+            command.Parameters.AddWithValue("@Cursor", cursor);
+            command.Parameters.AddWithValue("@Limit", limit);
+
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    var repoRecord = RepoRecord.FromDagCborObject(CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
+                        DagCborObject.FromBytes(reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject"))));
+                    repoRecords.Add((reader.GetString(reader.GetOrdinal("Rkey")), repoRecord));
+                }
+            }
+        }
+        return repoRecords;
+    }
+
     #endregion
 
 
