@@ -1,5 +1,6 @@
 
 
+using dnproto.fs;
 using dnproto.repo;
 using Microsoft.AspNetCore.Http;
 
@@ -24,15 +25,33 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
             return Results.Json(new { error = "InvalidRequest", message = "Error: Param 'rkey' is required." }, statusCode: 400);
         }
 
+
         //
-        // Get record raw bytes (must use original bytes to match CID)
+        // Get things
         //
+        MstDb mst = MstDb.ConnectMstDb(Pds.LocalFileSystem, Pds.Logger, Pds.PdsDb);
+        RepoHeader repoHeader = Pds.PdsDb.GetRepoHeader();
+        RepoCommit repoCommit = Pds.PdsDb.GetRepoCommit();
+
         if(! Pds.PdsDb.RecordExists(collection!, rkey!))
         {
             return Results.Json(new { error = "NotFound", message = "Record not found" }, statusCode: 404);
         }
-        var (cid, dagCborBytes) = Pds.PdsDb.GetRepoRecordRawBytes(collection!, rkey!);
 
+        var repoRecord = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
+
+
+        //
+        // Get mst nodes
+        //
+        List<(MstNode node, List<MstEntry> entries)> mstNodes = new List<(MstNode node, List<MstEntry> entries)>();
+
+        foreach(Guid nodeObjectId in mst.WalkEntry($"{collection}/{rkey}"))
+        {
+            MstNode node = Pds.PdsDb.GetMstNodeByObjectId(nodeObjectId);
+            List<MstEntry> entries = Pds.PdsDb.GetMstEntriesForNodeObjectId(nodeObjectId);
+            mstNodes.Add((node, entries));
+        }
 
         //
         // Write a CAR file to stream, using "application/vnd.ipld.car" content type
@@ -40,26 +59,30 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         //
         HttpContext.Response.ContentType = "application/vnd.ipld.car";
 
-        // Write CAR header (version 1, roots pointing to the record CID)
-        var header = new RepoHeader
+        Stream stream = HttpContext.Response.Body;
+
+        // repo header
+        var headerDagCbor = repoHeader.ToDagCborObject();
+        var headerDagCborBytes = headerDagCbor.ToBytes();
+        var headerLengthVarInt = VarInt.FromLong((long)headerDagCborBytes.Length);
+        await VarInt.WriteVarIntAsync(stream, headerLengthVarInt);
+        await stream.WriteAsync(headerDagCborBytes, 0, headerDagCborBytes.Length);
+
+        // repo commit
+        var repoCommitDagCbor = repoCommit.ToDagCborObject();
+        var repoCommitCid = repoCommit.Cid;
+        await UserRepo.WriteBlockAsync(stream, repoCommitCid!, repoCommitDagCbor);
+
+        // mst nodes
+        foreach(var (node, entries) in mstNodes)
         {
-            Version = 1,
-            RepoCommitCid = cid
-        };
-        var headerDagCbor = header.ToDagCborObject();
-        var headerBytes = headerDagCbor.ToBytes();
-        var headerLengthVarInt = VarInt.FromLong((long)headerBytes.Length);
-        await VarInt.WriteVarIntAsync(HttpContext.Response.Body, headerLengthVarInt);
-        await HttpContext.Response.Body.WriteAsync(headerBytes, 0, headerBytes.Length);
+            var nodeDagCbor = node.ToDagCborObject(entries);
+            var nodeCid = node.Cid;
+            await UserRepo.WriteBlockAsync(stream, nodeCid!, nodeDagCbor);
+        }
 
-        // Write the record block (length varint + cid + dag-cbor data)
-        var cidBytes = cid.AllBytes;
-        var blockLengthVarInt = VarInt.FromLong((long)(cidBytes.Length + dagCborBytes.Length));
-        await VarInt.WriteVarIntAsync(HttpContext.Response.Body, blockLengthVarInt);
-        await HttpContext.Response.Body.WriteAsync(cidBytes, 0, cidBytes.Length);
-        await HttpContext.Response.Body.WriteAsync(dagCborBytes, 0, dagCborBytes.Length);
-
-
+        // record
+        await UserRepo.WriteBlockAsync(stream, repoRecord.Cid!, repoRecord.DataBlock);
 
         return Results.Empty;
     }

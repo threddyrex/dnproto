@@ -523,4 +523,190 @@ public class MstDb
 
 
     #endregion
+
+
+    #region WALK
+
+    public List<Guid> WalkEntry(string recordKey)
+    {
+        _logger.LogTrace($"MstDb.WalkEntry: Walking key: {recordKey}");
+
+        //
+        // Load from db
+        //
+        var repoCommit = _db.GetRepoCommit();
+        var mstNodeRoot = _db.GetMstNodeByCid(repoCommit!.RootMstNodeCid!);
+        var mstNodeRootEntries = _db.GetMstEntriesForNodeObjectId((Guid)mstNodeRoot!.NodeObjectId!);
+        var originalRootMstNodeCid = repoCommit!.RootMstNodeCid!;
+
+        //
+        // Recursive put
+        //
+        List<Guid> visitedNodeObjectIds = new List<Guid>();
+        InternalWalkEntry(recordKey, mstNodeRoot!, mstNodeRootEntries, currentDepth: 0, visitedNodeObjectIds);
+
+        var newRootMstNodeCid = mstNodeRoot!.Cid!;
+
+        //
+        // Return
+        //
+        return visitedNodeObjectIds;
+    }
+
+
+
+    /// <summary>
+    /// Internal recursive function to walk an entry in the MST.
+    /// Caller passes in currentNode and currentEntries.
+    /// On return, currentNode and currentEntries are updated in db.
+    /// 
+    /// Possible scenarios for one iteration:
+    /// 
+    ///     1) this level - visit existing MstEntry with identical key (visit)
+    ///     2) next level - visit from MstNode.LeftMstNodeCid (go left)
+    ///     3) next level - visit from MstEntry.TreeMstNodeCid (go right)
+    /// 
+    /// </summary>
+    /// <param name="recordKey"></param>
+    /// <param name="currentNode"></param>
+    /// <param name="currentEntries"></param>
+    /// <param name="currentDepth"></param>
+    /// <param name="visitedNodeObjectIds"></param>
+    private void InternalWalkEntry(string recordKey, MstNode? currentNode, List<MstEntry> currentEntries, int currentDepth, List<Guid> visitedNodeObjectIds)
+    {
+        if(currentNode is null)
+        {
+            return;
+        }
+
+        //
+        // Calculate full keys and depth.
+        //
+        var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
+        int keyDepthToVisit = MstEntry.GetKeyDepth(recordKey);
+
+        _logger.LogTrace($"MstDb.InternalWalkEntry: currentDepth={currentDepth}, keyDepthToVisit={keyDepthToVisit}, currentNodeCid={currentNode.Cid?.Base32}");
+
+        //
+        // Visit from this level?
+        //
+        if(keyDepthToVisit == currentDepth)
+        {
+            //
+            // Find entry to visit
+            //
+            int visitIndex = -1;
+            for(int i = 0; i < currentEntries.Count; i++)
+            {
+                var entry = currentEntries[i];
+                string fullKey = currentEntryKeys[i];
+                _logger.LogTrace($"     MstDb.InternalWalkEntry: Checking entry {i}, fullKey={fullKey}, recordKey={recordKey}");
+                int comparison = MstEntry.CompareKeys(recordKey, fullKey);
+
+                if(comparison == 0)
+                {
+                    visitIndex = i;
+                    break;
+                }
+            }
+
+            _logger.LogTrace($"MstDb.InternalWalkEntry: visitIndex={visitIndex}");
+            //
+            // If found, visit it
+            //
+            if(visitIndex != -1)
+            {
+                visitedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
+            }
+
+            return;
+        }
+        //
+        // Else: Need to go to next level
+        //
+        else
+        {
+            //
+            // Find visit position to traverse.
+            //
+            int visitPos = 0;
+            for (int i = 0; i < currentEntries.Count; i++)
+            {
+                var entry = currentEntries[i];
+                string entryKey = currentEntryKeys[i];
+                
+                if (MstEntry.CompareKeys(recordKey, entryKey) < 0)
+                {
+                    break;
+                }
+                
+                visitPos = i + 1;
+            }
+
+            _logger.LogTrace($"MstDb.InternalWalkEntry: next level, visitPos={visitPos}");
+
+            //
+            // If 0, go left.
+            //
+            if(visitPos == 0)
+            {
+                //
+                // Get left subtree
+                //
+                if (currentNode.LeftMstNodeCid != null)
+                {
+                    var leftNode = _db.GetMstNodeByCid(currentNode.LeftMstNodeCid);
+                    if(leftNode is null) { return; }
+                    var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode!.NodeObjectId!);
+
+                    //
+                    // Recurse
+                    //
+                    InternalWalkEntry(recordKey, leftNode, leftEntries, currentDepth + 1, visitedNodeObjectIds);
+
+                    //
+                    // Add this object id
+                    //
+                    visitedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
+                }
+                else
+                {
+                    _logger.LogTrace($"MstDb.InternalWalkEntry: LeftMstNodeCid is null, cannot go left.");
+                }
+
+                return;
+            }
+            //
+            // Else, go right into the selected entry.
+            //
+            else
+            {
+                MstNode? rightNode = null;
+                if (currentEntries[visitPos - 1].TreeMstNodeCid != null)
+                {
+                    rightNode = _db.GetMstNodeByCid(currentEntries[visitPos - 1].TreeMstNodeCid);
+                }
+                if(rightNode is null) 
+                { 
+                    _logger.LogTrace($"MstDb.InternalWalkEntry: Right subtree node is null, cannot go right.");
+                    return; 
+                }
+
+                var rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode!.NodeObjectId!);
+
+                //
+                // Recurse.
+                //
+                InternalWalkEntry(recordKey, rightNode, rightEntries, currentDepth + 1, visitedNodeObjectIds);
+                //
+                // Add this object id
+                //
+                visitedNodeObjectIds.Add((Guid) currentNode.NodeObjectId!);
+                return;
+            }
+        }
+
+    }
+
+    #endregion
 }

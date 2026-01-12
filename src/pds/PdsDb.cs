@@ -784,14 +784,13 @@ LeftMstNodeCid TEXT
         command.ExecuteNonQuery();        
     }
 
-    public MstNode? GetMstNodeByCid(CidV1? cid)
+    public MstNode GetMstNodeByCid(CidV1? cid)
     {
         if(cid == null)
         {
             throw new ArgumentException("cid cannot be null when retrieving MstNode by Cid.");
         }
 
-        var node = new MstNode();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -804,7 +803,7 @@ LeftMstNodeCid TEXT
             {
                 if(reader.Read())
                 {
-                    node = CreateNodeObjectFromReader(reader);
+                    return CreateNodeObjectFromReader(reader);
                 }
                 else
                 {
@@ -812,8 +811,6 @@ LeftMstNodeCid TEXT
                 }
             }
         }
-
-        return node.Cid == null ? null : node;
     }
 
     public MstNode GetMstNodeByObjectId(Guid objectId)

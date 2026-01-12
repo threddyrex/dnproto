@@ -1,14 +1,14 @@
-[2026-01-12 00:47:56.801] [TRACE] Parsed arguments length: 6
-[2026-01-12 00:47:56.828] [TRACE] Parsed arguments:
-[2026-01-12 00:47:56.829] [TRACE]     command: PrintRepoRecords
-[2026-01-12 00:47:56.829] [TRACE]     datadir: ..\data\
-[2026-01-12 00:47:56.829] [TRACE]     loglevel: trace
-[2026-01-12 00:47:56.829] [TRACE]     logtodatadir: False
-[2026-01-12 00:47:56.829] [TRACE]     collection: 
-[2026-01-12 00:47:56.829] [TRACE]     actor: threddyrex.net
-[2026-01-12 00:47:56.848] [TRACE] Running command.
-[2026-01-12 00:47:56.851] [INFO] Actor info file exists and is recent, loading: ..\data\actors\threddyrex_net.json
-[2026-01-12 00:47:56.852] [TRACE] file text: {
+[2026-01-12 01:18:27.002] [TRACE] Parsed arguments length: 6
+[2026-01-12 01:18:27.019] [TRACE] Parsed arguments:
+[2026-01-12 01:18:27.019] [TRACE]     command: PrintRepoRecords
+[2026-01-12 01:18:27.019] [TRACE]     datadir: ..\data\
+[2026-01-12 01:18:27.019] [TRACE]     loglevel: trace
+[2026-01-12 01:18:27.019] [TRACE]     logtodatadir: False
+[2026-01-12 01:18:27.019] [TRACE]     collection: 
+[2026-01-12 01:18:27.019] [TRACE]     actor: threddyrex.net
+[2026-01-12 01:18:27.031] [TRACE] Running command.
+[2026-01-12 01:18:27.033] [INFO] Actor info file exists and is recent, loading: ..\data\actors\threddyrex_net.json
+[2026-01-12 01:18:27.034] [TRACE] file text: {
   "Actor": "threddyrex.net",
   "Handle": "threddyrex.net",
   "Did": "did:web:didweb.threddyrex.net",
@@ -19,26 +19,26 @@
   "Pds": "dnproto.threddyrex.net",
   "PublicKeyMultibase": "zDnaeUYUQEccGKujbKvGYD9Ls1ZhL8eL4wo2ZHqRypwsL81LG"
 }
-[2026-01-12 00:47:56.937] [TRACE] 
-[2026-01-12 00:47:56.937] [TRACE] REPO HEADER:
-[2026-01-12 00:47:56.937] [TRACE]    roots: bafyreicoi5aofigpwaw3rme3tj3waccine2iqda3cbrvjyoftrc34froqa
-[2026-01-12 00:47:56.938] [TRACE]    version: 1
-[2026-01-12 00:47:56.945] [TRACE] 
-[2026-01-12 00:47:56.945] [TRACE] REPO COMMIT:
-[2026-01-12 00:47:56.945] [TRACE]   cid: bafyreicoi5aofigpwaw3rme3tj3waccine2iqda3cbrvjyoftrc34froqa
-[2026-01-12 00:47:56.945] [TRACE]   blockJson:
+[2026-01-12 01:18:27.105] [TRACE] 
+[2026-01-12 01:18:27.105] [TRACE] REPO HEADER:
+[2026-01-12 01:18:27.105] [TRACE]    roots: bafyreibrzz3j7aokns4ldaztcrl3wswwvbvvr6vlmj44ic2eps32pd2wjq
+[2026-01-12 01:18:27.106] [TRACE]    version: 1
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] REPO COMMIT:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreibrzz3j7aokns4ldaztcrl3wswwvbvvr6vlmj44ic2eps32pd2wjq
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
+  "data": "bafyreiat7uvlwrnjq35wo4ubbvl2252dy45imsigmede65yofvfd63f5wm",
   "did": "did:web:didweb.threddyrex.net",
-  "rev": "3mc7n44dkg2am",
-  "sig": "dzZB7ci1PhFkzOga8mjF9/TKcsT9LbQDCSMT5hLwfSphBAwPGdHO4/rY/Vaa88jvmHsfG4zPioIA1itWEeBXIw==",
-  "data": "bafyreiczjkwdj6zswlmnsohvlg3iw6mxavol2hlodafsmxnowyn5ocialm",
   "prev": "null",
+  "rev": "3mc7o2pjkvcuw",
+  "sig": "BGLN9GhJGuty0ymnrRS4YQZ6hJ3AImRemGRDtCDMdd5A38N3Xu3IElvg7Vjrv/UM/KBOlJta7h0CEK83xP9qcQ==",
   "version": 3
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] MST NODE:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreiedn2zjrdinowv7xxzipfc4hzd7jkuq7uam6brgxknvfr6qvetc3y
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] MST NODE:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreiedn2zjrdinowv7xxzipfc4hzd7jkuq7uam6brgxknvfr6qvetc3y
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
   "e": [
     {
@@ -50,10 +50,10 @@
   ],
   "l": "null"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] MST NODE:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreiae4ra25mayn6op3s4jau3ykkcz75p6vcydd26hyszxr5ksbnma5e
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] MST NODE:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreiae4ra25mayn6op3s4jau3ykkcz75p6vcydd26hyszxr5ksbnma5e
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
   "e": [
     {
@@ -65,10 +65,10 @@
   ],
   "l": "null"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] MST NODE:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreihl2xv3hyxr7ykf3kwsjugfjvfbsfmsv6k732ib45cno7jcofp6v4
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] MST NODE:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreihl2xv3hyxr7ykf3kwsjugfjvfbsfmsv6k732ib45cno7jcofp6v4
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
   "e": [
     {
@@ -80,10 +80,10 @@
   ],
   "l": "null"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] MST NODE:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreie6gyiinh4ifkwqgc7rsb5rgq4rjbcbqfvgxjrolt242jszoizbva
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] MST NODE:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreie6gyiinh4ifkwqgc7rsb5rgq4rjbcbqfvgxjrolt242jszoizbva
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
   "e": [
     {
@@ -95,10 +95,10 @@
   ],
   "l": "null"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] MST NODE:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreiczjkwdj6zswlmnsohvlg3iw6mxavol2hlodafsmxnowyn5ocialm
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] MST NODE:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreiat7uvlwrnjq35wo4ubbvl2252dy45imsigmede65yofvfd63f5wm
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
   "e": [
     {
@@ -180,6 +180,12 @@
       "v": "bafyreibzmzrncb7iyqs4s4mhv3fx7lll7tjzt5nss7mawyhpwxftzzgtxe"
     },
     {
+      "k": "bzJuZjJqMjJt",
+      "p": 23,
+      "t": "null",
+      "v": "bafyreiewbprhopfrs6v3dwrgcey7bd23tf5zz3lpxjn5le2kyzmk3jqyli"
+    },
+    {
       "k": "Z3JhcGguZm9sbG93LzNtYzdqb2FnYWtzY3k=",
       "p": 9,
       "t": "null",
@@ -188,180 +194,192 @@
   ],
   "l": "bafyreie6gyiinh4ifkwqgc7rsb5rgq4rjbcbqfvgxjrolt242jszoizbva"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreiaecofyxmthsu3spordsq5quktkikmu4kyxopfq2evdthxaek34eu
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreiaecofyxmthsu3spordsq5quktkikmu4kyxopfq2evdthxaek34eu
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
-  "text": "this is a test post in prod - 3",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-06T23:52:18.914Z"
+  "createdAt": "2026-01-06T23:52:18.914Z",
+  "text": "this is a test post in prod - 3"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreid42i35wtreyw7k5d22h7cozem2owcxoy5lyuryiglkwep6losymm
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreid42i35wtreyw7k5d22h7cozem2owcxoy5lyuryiglkwep6losymm
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
-  "text": "this is a test post in prod - 11:15",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-08T07:14:44.739Z"
+  "createdAt": "2026-01-08T07:14:44.739Z",
+  "text": "this is a test post in prod - 11:15"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreibanzy6qyjhh6tmfurc3jrg66gmfida5ziydgbiwlzaak5i6xm6m4
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreibanzy6qyjhh6tmfurc3jrg66gmfida5ziydgbiwlzaak5i6xm6m4
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
-  "text": "this is a test post in prod - 11:16",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-08T07:15:03.935Z"
+  "createdAt": "2026-01-08T07:15:03.935Z",
+  "text": "this is a test post in prod - 11:16"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreih7fzizr7ij35yf3sxjwwnsuhrlkn2ptgsczvmjulai2jcucryj6i
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreih7fzizr7ij35yf3sxjwwnsuhrlkn2ptgsczvmjulai2jcucryj6i
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 01",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:19:34.858Z"
+  "createdAt": "2026-01-11T19:19:34.858Z",
+  "text": "this is a test post on linux - jan 11 - 01"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreidkdn6lnnl5yzyfvugmwd53cmu3wfjop6kf5nzlro6dvjchmbakbm
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.113] [TRACE] 
+[2026-01-12 01:18:27.113] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.113] [TRACE]   cid: bafyreidkdn6lnnl5yzyfvugmwd53cmu3wfjop6kf5nzlro6dvjchmbakbm
+[2026-01-12 01:18:27.113] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 02",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:35:45.263Z"
+  "createdAt": "2026-01-11T19:35:45.263Z",
+  "text": "this is a test post on linux - jan 11 - 02"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreigibu3ehc4uscwzu4wcdrupgbcouylxlvghhf5n6yan2eeohdqvp4
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreigibu3ehc4uscwzu4wcdrupgbcouylxlvghhf5n6yan2eeohdqvp4
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 03",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:35:47.175Z"
+  "createdAt": "2026-01-11T19:35:47.175Z",
+  "text": "this is a test post on linux - jan 11 - 03"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreicvzbkj2mbqnvn7gcjtk7aq2dcy6y3ryxrrscgxii3n74lz2mhvgu
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreicvzbkj2mbqnvn7gcjtk7aq2dcy6y3ryxrrscgxii3n74lz2mhvgu
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 04",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:35:48.749Z"
+  "createdAt": "2026-01-11T19:35:48.749Z",
+  "text": "this is a test post on linux - jan 11 - 04"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreifudbbxw57zq2qbabsp3aonpyzlvcaejrr5sctjpnqmcqcuvbknba
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreifudbbxw57zq2qbabsp3aonpyzlvcaejrr5sctjpnqmcqcuvbknba
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 05",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:35:50.230Z"
+  "createdAt": "2026-01-11T19:35:50.230Z",
+  "text": "this is a test post on linux - jan 11 - 05"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreicfpdcnm2uzthtm37adpngxtjlht32sqhxetkicunahv3r6rgtifu
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreicfpdcnm2uzthtm37adpngxtjlht32sqhxetkicunahv3r6rgtifu
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 06",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:35:51.860Z"
+  "createdAt": "2026-01-11T19:35:51.860Z",
+  "text": "this is a test post on linux - jan 11 - 06"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreifmlpdr24sx3ztjtcmq5h7l7cgeu7jvebpgidtczqlf7ngcoc55my
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreifmlpdr24sx3ztjtcmq5h7l7cgeu7jvebpgidtczqlf7ngcoc55my
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 07",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-11T19:43:15.219Z"
+  "createdAt": "2026-01-11T19:43:15.219Z",
+  "text": "this is a test post on linux - jan 11 - 07"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreidiuv27yjtd47hgehrb7s5dbjyow2b2jxtjntsfynmt3leb5sh3ge
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreidiuv27yjtd47hgehrb7s5dbjyow2b2jxtjntsfynmt3leb5sh3ge
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 443",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-12T00:34:35.356Z"
+  "createdAt": "2026-01-12T00:34:35.356Z",
+  "text": "this is a test post on linux - jan 11 - 443"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreicqrxjzg7a47kbwca2zcjwpj5pzueuax6svaux7zv57q4drungmza
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreicqrxjzg7a47kbwca2zcjwpj5pzueuax6svaux7zv57q4drungmza
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "this is a test post on linux - jan 11 - 545",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-12T01:45:23.487Z"
+  "createdAt": "2026-01-12T01:45:23.487Z",
+  "text": "this is a test post on linux - jan 11 - 545"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreigbvavo45dvy2ap2zj6eww6ou5u5hg6cfzihj2gyb5oekphe4tjny
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreigbvavo45dvy2ap2zj6eww6ou5u5hg6cfzihj2gyb5oekphe4tjny
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "hello - jan 11 - 1041",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-12T06:41:27.748Z"
+  "createdAt": "2026-01-12T06:41:27.748Z",
+  "text": "hello - jan 11 - 1041"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreid5jm4qvyyqyaqjxfhukwxwzna2i442457dbk5wdpdfuxtvpdkxem
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreid5jm4qvyyqyaqjxfhukwxwzna2i442457dbk5wdpdfuxtvpdkxem
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "write a post",
   "$type": "app.bsky.feed.post",
+  "createdAt": "2026-01-12T07:20:41.836Z",
   "langs": [
     "en"
   ],
-  "createdAt": "2026-01-12T07:20:41.836Z"
+  "text": "write a post"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreieqtr7zow7dheiktqc4yw4wlswpvid7dn6xnjnvke6az6kzfnvbt4
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreieqtr7zow7dheiktqc4yw4wlswpvid7dn6xnjnvke6az6kzfnvbt4
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
   "$type": "app.bsky.graph.follow",
-  "subject": "did:plc:watmxkxfjbwyxfuutganopfk",
-  "createdAt": "2026-01-12T07:34:37.989Z"
+  "createdAt": "2026-01-12T07:34:37.989Z",
+  "subject": "did:plc:watmxkxfjbwyxfuutganopfk"
 }
-[2026-01-12 00:47:56.946] [TRACE] 
-[2026-01-12 00:47:56.946] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.946] [TRACE]   cid: bafyreibvkznydlu7adq7l6ni7ixp3qjzhpvq7arqu3urbblr4mtx4zfffq
-[2026-01-12 00:47:56.946] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreibvkznydlu7adq7l6ni7ixp3qjzhpvq7arqu3urbblr4mtx4zfffq
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "hello - jan 11 - 11:40",
   "$type": "app.bsky.feed.post",
-  "createdAt": "2026-01-12T07:40:12.688Z"
+  "createdAt": "2026-01-12T07:40:12.688Z",
+  "text": "hello - jan 11 - 11:40"
 }
-[2026-01-12 00:47:56.947] [TRACE] 
-[2026-01-12 00:47:56.947] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.947] [TRACE]   cid: bafyreidq7zyxb6emklf3sukjfrwacp3irn6d6fvz5icccslvobwk5lwzny
-[2026-01-12 00:47:56.947] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreidq7zyxb6emklf3sukjfrwacp3irn6d6fvz5icccslvobwk5lwzny
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
   "$type": "app.bsky.actor.profile",
   "description": "hello",
   "displayName": "run again"
 }
-[2026-01-12 00:47:56.947] [TRACE] 
-[2026-01-12 00:47:56.947] [TRACE] ATPROTO RECORD:
-[2026-01-12 00:47:56.947] [TRACE]   cid: bafyreibzmzrncb7iyqs4s4mhv3fx7lll7tjzt5nss7mawyhpwxftzzgtxe
-[2026-01-12 00:47:56.947] [TRACE]   blockJson:
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreibzmzrncb7iyqs4s4mhv3fx7lll7tjzt5nss7mawyhpwxftzzgtxe
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
  {
-  "text": "another new post",
   "$type": "app.bsky.feed.post",
+  "createdAt": "2026-01-12T08:36:04.534Z",
   "langs": [
     "en"
   ],
-  "createdAt": "2026-01-12T08:36:04.534Z"
+  "text": "another new post"
 }
-[2026-01-12 00:47:56.947] [INFO] TOTAL RECORDS:
-[2026-01-12 00:47:56.947] [INFO]    24
-[2026-01-12 00:47:56.947] [TRACE] DAG CBOR TYPE COUNTS:
-[2026-01-12 00:47:56.947] [TRACE]   TYPE_MAP - 24
-[2026-01-12 00:47:56.947] [INFO] RECORD TYPE COUNTS:
-[2026-01-12 00:47:56.951] [INFO]   app.bsky.feed.post - 16
-[2026-01-12 00:47:56.951] [INFO]   <null> - 6
-[2026-01-12 00:47:56.951] [INFO]   app.bsky.graph.follow - 1
-[2026-01-12 00:47:56.951] [INFO]   app.bsky.actor.profile - 1
+[2026-01-12 01:18:27.114] [TRACE] 
+[2026-01-12 01:18:27.114] [TRACE] ATPROTO RECORD:
+[2026-01-12 01:18:27.114] [TRACE]   cid: bafyreiewbprhopfrs6v3dwrgcey7bd23tf5zz3lpxjn5le2kyzmk3jqyli
+[2026-01-12 01:18:27.114] [TRACE]   blockJson:
+ {
+  "$type": "app.bsky.feed.post",
+  "createdAt": "2026-01-12T08:53:11.276Z",
+  "langs": [
+    "en"
+  ],
+  "text": "hey there another new post"
+}
+[2026-01-12 01:18:27.114] [INFO] TOTAL RECORDS:
+[2026-01-12 01:18:27.114] [INFO]    25
+[2026-01-12 01:18:27.114] [TRACE] DAG CBOR TYPE COUNTS:
+[2026-01-12 01:18:27.114] [TRACE]   TYPE_MAP - 25
+[2026-01-12 01:18:27.114] [INFO] RECORD TYPE COUNTS:
+[2026-01-12 01:18:27.119] [INFO]   app.bsky.feed.post - 17
+[2026-01-12 01:18:27.119] [INFO]   <null> - 6
+[2026-01-12 01:18:27.119] [INFO]   app.bsky.graph.follow - 1
+[2026-01-12 01:18:27.119] [INFO]   app.bsky.actor.profile - 1
