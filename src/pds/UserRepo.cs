@@ -61,10 +61,9 @@ public class UserRepo
     {
         //
         // The caller probably parsed this from json request.
-        // If so, cids might have ended up as strings in the Dag Cbor.
-        // Fix that.
+        // If so, blob refs will need to be corrected.
         //
-        FixCids(writes);
+        FixBlobRefs(writes);
 
 
         Pds.GLOBAL_PDS_LOCK.Wait();
@@ -429,7 +428,7 @@ public class UserRepo
         }
     }
 
-    private void FixCids(List<ApplyWritesOperation> writes)
+    private void FixBlobRefs(List<ApplyWritesOperation> writes)
     {
         // loop through all writes and replace items that are probably cids.
         // convert from string to cid in the dagcbor
@@ -438,47 +437,65 @@ public class UserRepo
         {
             if (write.Record != null)
             {
-
+                FixBlobRefsInDagCbor(null, write.Record);
             }
         }
     }
 
-    private void FixCidsInDagCbor(DagCborObject obj)
+    private void FixBlobRefsInDagCbor(DagCborObject? parentObj, DagCborObject currentObj)
     {
-        if (obj.Type.MajorType == DagCborType.TYPE_MAP)
+        if (currentObj.Type.MajorType == DagCborType.TYPE_MAP)
         {
-            var dict = obj.Value as Dictionary<string, DagCborObject>;
+            var dict = currentObj.Value as Dictionary<string, DagCborObject>;
             if (dict != null)
             {
-                foreach (var key in dict.Keys.ToList())
+                if(dict.ContainsKey("image") 
+                    && dict.Keys.Count == 1 
+                    && dict["image"].Type.MajorType == DagCborType.TYPE_MAP
+                    && dict["image"].Value is Dictionary<string, DagCborObject>)
                 {
-                    var value = dict[key];
-                    FixCidsInDagCbor(value);
+                    Dictionary<string, DagCborObject>? imageDict = dict["image"].Value as Dictionary<string, DagCborObject>;
+
+                    if(imageDict != null && imageDict.ContainsKey("ref") && imageDict["ref"].Type.MajorType == DagCborType.TYPE_TEXT)
+                    {
+                        string? refStr = imageDict["ref"].Value as string;
+                        if(refStr != null && refStr != "null")
+                        {
+                            try
+                            {
+                                CidV1 cid = CidV1.FromBase32(refStr);
+                                imageDict["ref"] = new DagCborObject()
+                                {
+                                    Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                                    Value = cid
+                                };
+                            }
+                            catch
+                            {
+                                // Not a valid CID, leave as is
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var key in dict.Keys.ToList())
+                    {
+                        var value = dict[key];
+                        FixBlobRefsInDagCbor(currentObj, value);
+                    }                    
                 }
             }
         }
-        else if (obj.Type.MajorType == DagCborType.TYPE_ARRAY)
+        else if (currentObj.Type.MajorType == DagCborType.TYPE_ARRAY)
         {
-            var list = obj.Value as List<DagCborObject>;
+            var list = currentObj.Value as List<DagCborObject>;
             if (list != null)
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    FixCidsInDagCbor(list[i]);
+                    FixBlobRefsInDagCbor(currentObj, list[i]);
                 }
-            }
-        }
-        else if (obj.Type.MajorType == DagCborType.TYPE_TEXT && obj.Value is string strValue && strValue != "null")
-        {
-            try
-            {
-                CidV1 cid = CidV1.FromBase32(strValue);
-                obj.Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 };
-                obj.Value = cid;
-            }
-            catch
-            {
-                // Not a valid CID, leave as is
             }
         }
     }

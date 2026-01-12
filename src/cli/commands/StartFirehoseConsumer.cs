@@ -117,14 +117,11 @@ public class StartFirehoseConsumer : BaseCommand
                                 {
                                     Logger.LogInfo($"cid: {repoRecord.Cid.GetBase32()}");
                                     Logger.LogInfo($"BLOCK JSON:");
+                                    Logger.LogInfo($"\n{repoRecord.JsonString}");
 
                                     if(showDagCborTypes)
                                     {
-                                        Logger.LogInfo($"\n{DagCborObject.GetRecursiveDebugString(repoRecord.DataBlock, 0)}");
-                                    }
-                                    else
-                                    {
-                                        Logger.LogInfo($"\n{repoRecord.JsonString}");
+                                        Logger.LogTrace($"\n{DagCborObject.GetRecursiveDebugString(repoRecord.DataBlock, 0)}");
                                     }
 
                                     return true;
