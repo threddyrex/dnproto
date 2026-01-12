@@ -293,10 +293,6 @@ public class UserRepo
             var firehoseFinal_RepoHeader = _db.GetRepoHeader();
             firehoseFinal_RepoHeader.WriteToStream(blockStream);
 
-            // commit
-            var firehoseFinal_RepoCommit = _db.GetRepoCommit();
-            DagCborObject.WriteToRepoStream(blockStream, firehoseFinal_RepoCommit.Cid!, firehoseFinal_RepoCommit.ToDagCborObject());
-
             // mst nodes
             foreach(var nodeObjectId in firehoseState_NodeObjectIds)
             {
@@ -315,6 +311,10 @@ public class UserRepo
                     DagCborObject.WriteToRepoStream(blockStream, record.Cid!, record.DataBlock);
                 }
             }
+
+            // commit
+            var firehoseFinal_RepoCommit = _db.GetRepoCommit();
+            DagCborObject.WriteToRepoStream(blockStream, firehoseFinal_RepoCommit.Cid!, firehoseFinal_RepoCommit.ToDagCborObject());
 
 
             //
