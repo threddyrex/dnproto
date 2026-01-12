@@ -1306,6 +1306,25 @@ DELETE FROM RepoRecord
         }
     }
 
+    public List<String> GetUniqueCollections()
+    {
+        var collections = new List<string>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT DISTINCT Collection FROM RepoRecord";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    collections.Add(reader.GetString(reader.GetOrdinal("Collection")));
+                }
+            }
+        }
+        return collections;
+    }
+
     #endregion
 
 
