@@ -94,6 +94,7 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
             DagCborObject? avatarRef = repoRecord.DataBlock.SelectObject(new string[] { "avatar", "ref" });
 
             Pds.Logger.LogInfo($"Found avatar ref: {avatarRef?.Value}");
+            Pds.Logger.LogInfo($"Object debug: {DagCborObject.GetRecursiveDebugString(avatarRef!)}");
 
             if (avatarRef != null)
             {
