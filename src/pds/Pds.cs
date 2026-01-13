@@ -129,6 +129,12 @@ public class Pds
         //
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
+        // Configure Kestrel to disable minimum data rates for long-lived WebSocket connections
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.Limits.MinRequestBodyDataRate = null;
+            options.Limits.MinResponseDataRate = null;
+        });
         
         // Clear default logging providers and add custom logger
         builder.Logging.ClearProviders();
@@ -153,6 +159,17 @@ public class Pds
 
         builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
         var app = builder.Build();
+
+        // Log Kestrel timeout settings
+        var kestrelLimits = app.Services.GetService<Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>>()?.Value?.Limits;
+        if (kestrelLimits != null)
+        {
+            logger.LogInfo($"[KESTREL] KeepAliveTimeout: {kestrelLimits.KeepAliveTimeout}");
+            logger.LogInfo($"[KESTREL] RequestHeadersTimeout: {kestrelLimits.RequestHeadersTimeout}");
+            logger.LogInfo($"[KESTREL] MaxRequestBodySize: {kestrelLimits.MaxRequestBodySize}");
+            logger.LogInfo($"[KESTREL] MinRequestBodyDataRate: {kestrelLimits.MinRequestBodyDataRate?.BytesPerSecond ?? 0} bytes/sec");
+            logger.LogInfo($"[KESTREL] MinResponseDataRate: {kestrelLimits.MinResponseDataRate?.BytesPerSecond ?? 0} bytes/sec");
+        }
 
         // Enable CORS middleware - must be before routing/endpoints
         app.UseCors();
@@ -183,6 +200,7 @@ public class Pds
         // Map endpoints
         //
         pds.MapEndpoints();
+
 
         //
         // return
