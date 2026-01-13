@@ -1653,6 +1653,68 @@ LIMIT 1
         return "info"; // default log level
     }
 
+    public int GetLogLevelCount()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(*)
+FROM LogLevel
+            ";
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+    }
+
+    public void SetLogLevel(string level)
+    {
+        if (GetLogLevelCount() > 0)
+        {
+            DeleteLogLevel();
+        }
+
+        InsertLogLevel(level);
+    }
+
+    public void InsertLogLevel(string level)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO LogLevel (Level)
+VALUES (@Level)
+            ";
+            command.Parameters.AddWithValue("@Level", level);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void UpdateLogLevel(string level)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE LogLevel
+SET Level = @Level
+            ";
+            command.Parameters.AddWithValue("@Level", level);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteLogLevel()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM LogLevel
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
 
     #endregion
 }

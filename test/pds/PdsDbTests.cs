@@ -866,4 +866,34 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
 
     #endregion
+
+
+    #region LogLevel
+
+    [Fact]
+    public void LogLevel_SetLevel()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteLogLevel();
+
+        Assert.Equal(0, pdsDb.GetLogLevelCount());
+        Assert.Equal("info", pdsDb.GetLogLevel());
+
+        pdsDb.SetLogLevel("trace");
+        Assert.Equal(1, pdsDb.GetLogLevelCount());
+        Assert.Equal("trace", pdsDb.GetLogLevel());
+
+        pdsDb.SetLogLevel("trace");
+        Assert.Equal(1, pdsDb.GetLogLevelCount());
+        Assert.Equal("trace", pdsDb.GetLogLevel());
+
+        pdsDb.SetLogLevel("debug");
+        Assert.Equal(1, pdsDb.GetLogLevelCount());
+        Assert.Equal("debug", pdsDb.GetLogLevel());
+
+        pdsDb.SetLogLevel("error");
+        Assert.Equal(1, pdsDb.GetLogLevelCount());
+        Assert.Equal("error", pdsDb.GetLogLevel());
+    }
+    #endregion
 }
