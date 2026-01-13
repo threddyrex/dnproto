@@ -219,6 +219,7 @@ public class Installer
         db.DeleteAllRepoRecords();
         db.DeleteRepoHeader();
         db.DeleteAllFirehoseEvents();
+        db.DeletePreferences();
 
 
         //
@@ -270,12 +271,44 @@ public class Installer
 
 
         //
+        // Create fresh preferences
+        //
+        var prefs = new JsonObject()
+        {
+            ["preferences"] = new JsonArray()
+            {
+                new JsonObject()
+                {
+                    ["$type"] = "app.bsky.actor.defs#savedFeedsPrefV2",
+                    ["items"] = new JsonArray()
+                    {
+                        new JsonObject()
+                        {
+                            ["id"] = RecordKey.GenerateTid(),
+                            ["type"] = "timeline",
+                            ["value"] = "following",
+                            ["pinned"] = true
+                        }
+                    }
+                },
+                new JsonObject()
+                {
+                    ["$type"] = "app.bsky.actor.defs#personalDetailsPref",
+                    ["birthDate"] = "1991-06-03T00:00:00.000Z"
+                }
+            }
+        };
+
+        string prefsJsonString = prefs.ToJsonString();
+
+        //
         // Insert everything into the database
         //
         logger.LogInfo("Inserting initial MST node, repo commit, and repo header into the database.");
         db.InsertMstNode(mstNode); // no entries
         db.InsertUpdateRepoCommit(repoCommit);
         db.InsertUpdateRepoHeader(repoHeader);
+        db.InsertPreferences(prefsJsonString);
 
 
         //

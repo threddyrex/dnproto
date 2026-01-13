@@ -473,6 +473,15 @@ SET Prefs = @Prefs
             command.ExecuteNonQuery();
         }
     }
+    public void DeletePreferences()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "DELETE FROM Preferences";
+            command.ExecuteNonQuery();
+        }
+    }
 
     #endregion
 

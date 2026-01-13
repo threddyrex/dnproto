@@ -71,6 +71,7 @@ namespace dnproto.cli.commands
                 accessJwt: session.accessJwt,
                 outputFilePath: preferencesFile);
 
+            BlueskyClient.LogTraceJsonResponse(response);
         }
     }
 }
