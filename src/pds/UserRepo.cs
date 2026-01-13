@@ -62,6 +62,9 @@ public class UserRepo
         //
         // The caller probably parsed this from json request.
         // If so, blob refs will need to be corrected.
+        // Caught this by adding trace logging to the firehose consumer,
+        // so that it prints out the types of DagCbor objects (and not just
+        // the JSON representation)
         //
         FixBlobRefs(writes);
 

@@ -119,6 +119,10 @@ public class StartFirehoseConsumer : BaseCommand
                                     Logger.LogInfo($"BLOCK JSON:");
                                     Logger.LogInfo($"\n{repoRecord.JsonString}");
 
+                                    //
+                                    // This helps to show *exactly* what the DagCbor objects look like,
+                                    // including their types, and not just the JSON representation.
+                                    //
                                     if(showDagCborTypes)
                                     {
                                         Logger.LogTrace($"\n{DagCborObject.GetRecursiveDebugString(repoRecord.DataBlock, 0)}");

@@ -624,6 +624,9 @@ public class MstDb
         //
         // Calculate root layer
         //
+        // (note: I had this backwards at first. The correct way to represent the
+        // tree is to have the "largest" key depths towards the top - at the root)
+        //
         int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
 
         //
