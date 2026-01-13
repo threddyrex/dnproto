@@ -438,8 +438,7 @@ public class UserRepo
 
         foreach (var write in writes)
         {
-            if (write.Record != null 
-                && string.Equals("app.bsky.actor.profile", write.Collection) == false)
+            if (write.Record != null)
             {
                 FixBlobRefsInDagCbor(null, write.Record);
             }
