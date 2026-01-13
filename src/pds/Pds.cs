@@ -79,6 +79,8 @@ public class Pds
 
     public required FirehoseEventGenerator FirehoseEventGenerator;
 
+    public required BackgroundJobs BackgroundJobs;
+
 
     /// <summary>
     /// Shared lock for synchronizing access to the PDS.
@@ -192,7 +194,8 @@ public class Pds
             App = app,
             CommitSigningFunction = commitSigningFunction,
             UserRepo = repo,
-            FirehoseEventGenerator = new FirehoseEventGenerator(pdsDb)
+            FirehoseEventGenerator = new FirehoseEventGenerator(pdsDb),
+            BackgroundJobs = new BackgroundJobs(lfs, (dnproto.log.Logger)logger, pdsDb)
         };
 
 
@@ -211,6 +214,7 @@ public class Pds
     public void Run()
     {
         Logger.LogInfo("Running PDS...");
+        BackgroundJobs.Start();
         App.Run();
     }
     

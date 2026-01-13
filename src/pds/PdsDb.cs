@@ -1616,4 +1616,43 @@ DELETE FROM FirehoseEvent
 
     #endregion
 
+
+    #region LOGLEVEL
+
+    public static void CreateTable_LogLevel(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: LogLevel");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS LogLevel (
+Level TEXT NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+    public string GetLogLevel()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Level
+FROM LogLevel
+LIMIT 1
+            ";
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return reader.GetString(reader.GetOrdinal("Level"));
+                }
+            }
+        }
+        return "info"; // default log level
+    }
+
+
+    #endregion
 }

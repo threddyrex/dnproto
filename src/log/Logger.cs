@@ -45,6 +45,21 @@ public class Logger : IDnProtoLogger
         }
     }
 
+    public string GetLogLevel()
+    {
+        switch(_level)
+        {
+            case 0:
+                return "trace";
+            case 1:
+                return "info";
+            case 2:
+                return "warning";
+            default:
+                return "info";
+        }
+    }
+
     private string GetTimestamp()
     {
         return DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff] ");
