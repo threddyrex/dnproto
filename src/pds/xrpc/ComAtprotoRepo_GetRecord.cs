@@ -93,12 +93,11 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
 
             if (avatarRef != null)
             {
-                // Convert from string/cid to a map with $link
-                if (avatarRef.Value is string strValue)
+                if(avatarRef.Type.MajorType == DagCborType.TYPE_TEXT)
                 {
                     try
                     {
-                        CidV1 cid = CidV1.FromBase32(strValue);
+                        CidV1 cid = CidV1.FromBase32((string)avatarRef.Value);
                         avatarRef.Value = new Dictionary<string, DagCborObject>
                         {
                             ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cid.ToString() }
@@ -108,6 +107,14 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
                     {
                         Pds.Logger.LogError($"Error converting avatar ref to CidV1: {ex.Message}");
                     }
+                }
+                // Convert from string/cid to a map with $link
+                else if (avatarRef.Value is CidV1 cidValue)
+                {
+                    avatarRef.Value = new Dictionary<string, DagCborObject>
+                    {
+                        ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cidValue.ToString() }
+                    };
                 }
             }
         }
