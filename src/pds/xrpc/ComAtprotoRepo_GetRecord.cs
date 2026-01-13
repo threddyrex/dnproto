@@ -84,44 +84,6 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
         RepoRecord repoRecord = Pds.UserRepo.GetRecord(collection!, rkey!);
 
 
-        //
-        // Fix up profile record if needed
-        //
-        if (string.Equals("app.bsky.actor.profile", collection))
-        {
-            Pds.Logger.LogInfo($"Fixing up profile record for {uri}");
-
-            DagCborObject? avatarRef = repoRecord.DataBlock.SelectObject(new string[] { "avatar", "ref" });
-
-            Pds.Logger.LogInfo($"Found avatar ref: {avatarRef?.Value}");
-            Pds.Logger.LogInfo($"Object debug: {DagCborObject.GetRecursiveDebugString(avatarRef!)}");
-
-            if (avatarRef != null)
-            {
-                if (avatarRef.Type.MajorType == DagCborType.TYPE_TAG && avatarRef.Value is CidV1 cidValue)
-                {
-                    avatarRef.Type = new DagCborType { MajorType = DagCborType.TYPE_MAP };
-                    avatarRef.Value = new Dictionary<string, DagCborObject>
-                    {
-                        ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cidValue.ToString() }
-                    };
-
-                    string? returnStringValue = JsonData.ConvertObjectToJsonString(repoRecord.DataBlock.GetRawValue());
-
-                    //
-                    // Return success
-                    //
-                    return Results.Json(new JsonObject
-                    {
-                        ["uri"] = uri,
-                        ["cid"] = repoRecord.Cid.Base32,
-                        ["value"] = returnStringValue != null ? JsonNode.Parse(returnStringValue)! : null
-
-                    }, statusCode: 200);
-                }
-            }
-        }
-
 
         //
         // Return success

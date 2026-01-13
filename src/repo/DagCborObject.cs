@@ -765,29 +765,6 @@ public class DagCborObject
         }
         else if(value is Dictionary<string, object> dict)
         {
-            // Check if this is a CID link: {"$link": "bafyrei..."}
-            if(dict.Count == 1 && dict.ContainsKey("$link") && dict["$link"] is string linkValue)
-            {
-                try
-                {
-                    CidV1 cid = CidV1.FromBase32(linkValue);
-                    return new DagCborObject
-                    {
-                        Type = new DagCborType
-                        {
-                            MajorType = DagCborType.TYPE_TAG,
-                            AdditionalInfo = 24,
-                            OriginalByte = 0
-                        },
-                        Value = cid
-                    };
-                }
-                catch
-                {
-                    // Not a valid CID, treat as regular dict
-                }
-            }
-
             Dictionary<string, DagCborObject> cborDict = new Dictionary<string, DagCborObject>();
             foreach(var kvp in dict)
             {
