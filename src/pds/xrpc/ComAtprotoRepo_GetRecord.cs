@@ -114,11 +114,11 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
                     }
                 }
                 // Convert from string/cid to a map with $link
-                else if (avatarRef.Value is CidV1 cidValue)
+                else if (avatarRef.Type.MajorType == DagCborType.TYPE_TAG)
                 {
                     avatarRef.Value = new Dictionary<string, DagCborObject>
                     {
-                        ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cidValue.ToString() }
+                        ["$link"] = avatarRef
                     };
                 }
             }
