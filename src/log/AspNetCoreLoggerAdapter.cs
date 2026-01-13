@@ -44,18 +44,25 @@ public class AspNetCoreLoggerAdapter : Microsoft.Extensions.Logging.ILogger
         var message = formatter(state, exception);
         
         // Include category name for context (e.g., "Microsoft.Hosting.Lifetime")
-        var fullMessage = $"{_categoryName}: {message}";
+        var fullMessage = $"[ASP.NET] [{_categoryName}]: {message}";
 
         // Map ASP.NET Core log levels to our custom logger methods
         switch (logLevel)
         {
             case LogLevel.Trace:
             case LogLevel.Debug:
-                _customLogger.LogTrace(fullMessage);
-                break;
             case LogLevel.Information:
-                _customLogger.LogInfo(fullMessage);
+                if(string.Equals("Microsoft.AspNetCore.Hosting.Diagnostics", _categoryName)
+                    && message.StartsWith("Request finished"))
+                {
+                    _customLogger.LogInfo(fullMessage);
+                }
+                else
+                {
+                    _customLogger.LogTrace(fullMessage);
+                }
                 break;
+                
             case LogLevel.Warning:
                 _customLogger.LogWarning(fullMessage);
                 break;
