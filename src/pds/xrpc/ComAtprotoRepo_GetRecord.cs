@@ -98,44 +98,28 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
 
             if (avatarRef != null)
             {
-                if(avatarRef.Type.MajorType == DagCborType.TYPE_TEXT)
+                if (avatarRef.Type.MajorType == DagCborType.TYPE_TAG && avatarRef.Value is CidV1 cidValue)
                 {
-                    try
-                    {
-                        CidV1 cid = CidV1.FromBase32((string)avatarRef.Value);
-                        avatarRef.Value = new Dictionary<string, DagCborObject>
-                        {
-                            ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cid.ToString() }
-                        };
-                    }
-                    catch (Exception ex)
-                    {
-                        Pds.Logger.LogError($"Error converting avatar ref to CidV1: {ex.Message}");
-                    }
-                }
-                // Convert from string/cid to a map with $link
-                else if (avatarRef.Type.MajorType == DagCborType.TYPE_TAG && avatarRef.Value is CidV1 cidValue)
-                {
+                    avatarRef.Type = new DagCborType { MajorType = DagCborType.TYPE_MAP };
                     avatarRef.Value = new Dictionary<string, DagCborObject>
                     {
                         ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cidValue.ToString() }
                     };
+
+                    string? returnStringValue = JsonData.ConvertObjectToJsonString(repoRecord.DataBlock.GetRawValue());
+
+                    //
+                    // Return success
+                    //
+                    return Results.Json(new JsonObject
+                    {
+                        ["uri"] = uri,
+                        ["cid"] = repoRecord.Cid.Base32,
+                        ["value"] = returnStringValue != null ? JsonNode.Parse(returnStringValue)! : null
+
+                    }, statusCode: 200);
                 }
             }
-
-            string? returnStringValue = JsonData.ConvertObjectToJsonString(repoRecord.DataBlock.GetRawValue());
-
-
-            //
-            // Return success
-            //
-            return Results.Json(new JsonObject
-            {
-                ["uri"] = uri,
-                ["cid"] = repoRecord.Cid.Base32,
-                ["value"] = returnStringValue != null ? JsonNode.Parse(returnStringValue)! : null
-
-            }, statusCode: 200);
         }
 
 
