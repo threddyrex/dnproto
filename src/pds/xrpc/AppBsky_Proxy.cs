@@ -82,7 +82,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
                 if(!string.IsNullOrEmpty(serviceEndpointCandidate))
                 {
                     serviceEndpoint = serviceEndpointCandidate;
-                    Pds.Logger.LogInfo($"Resolved service endpoint for {atprotoProxy.Did}#{atprotoProxy.ServiceId} to {serviceEndpoint}");
+                    Pds.Logger.LogTrace($"Resolved service endpoint for {atprotoProxy.Did}#{atprotoProxy.ServiceId} to {serviceEndpoint}");
                 }
             }
         }
@@ -110,7 +110,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
         {
             lxm = lxm.Substring(5); // Remove "xrpc/" prefix
         }
-        Pds.Logger.LogInfo($"Creating service auth JWT for lxm: {lxm}");
+        Pds.Logger.LogTrace($"Creating service auth JWT for lxm: {lxm}");
         var serviceDid = atprotoProxy.Did;
 
         // Get signing keys for the authenticated user

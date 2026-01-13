@@ -84,11 +84,11 @@ public class LocalFileSystem
                 FileInfo fileInfo = new FileInfo(actorFile);
                 if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
                 {
-                    _logger.LogInfo($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
+                    _logger.LogTrace($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
                 }
                 else
                 {
-                    _logger.LogInfo($"Actor info file exists and is recent, loading: {actorFile}");
+                    _logger.LogTrace($"Actor info file exists and is recent, loading: {actorFile}");
                     string actorJson = File.ReadAllText(actorFile);
                     _logger.LogTrace($"file text: {actorJson}");
                     var info = ActorInfo.FromJsonString(actorJson);
@@ -108,7 +108,7 @@ public class LocalFileSystem
             //
             // Otherwise, resolve and save to file.
             //
-            _logger.LogInfo($"Resolving actor info and writing to file: {actorFile}");
+            _logger.LogTrace($"Resolving actor info and writing to file: {actorFile}");
             var actorInfo = BlueskyClient.ResolveActorInfo(actor);
 
             if (actorInfo == null)
@@ -117,7 +117,7 @@ public class LocalFileSystem
                 return null;
             }
 
-            _logger.LogInfo($"Saving actor info to file: {actorFile}");
+            _logger.LogTrace($"Saving actor info to file: {actorFile}");
             File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
 
             //
