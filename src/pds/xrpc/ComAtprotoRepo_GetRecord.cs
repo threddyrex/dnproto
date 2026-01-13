@@ -89,7 +89,11 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
         //
         if (string.Equals("app.bsky.actor.profile", collection))
         {
+            Pds.Logger.LogInfo($"Fixing up profile record for {uri}");
+
             DagCborObject? avatarRef = repoRecord.DataBlock.SelectObject(new string[] { "avatar", "ref" });
+
+            Pds.Logger.LogInfo($"Found avatar ref: {avatarRef?.Value}");
 
             if (avatarRef != null)
             {
