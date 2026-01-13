@@ -385,6 +385,25 @@ public class DagCborObject
         return current != null ? current.Value : null;
     }
 
+    public DagCborObject? SelectObject(string[] propertyNames)
+    {
+        DagCborObject? current = this;
+
+        foreach(string propertyName in propertyNames)
+        {
+            if(current.Type.MajorType != DagCborType.TYPE_MAP) return null;
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null) return null;
+
+            if(dict.ContainsKey(propertyName)) current = dict[propertyName];
+            else return null;
+        }
+
+        return current;
+    }
+
     /// <summary>
     /// Finds an object at the path specified by the property names, 
     /// and returns as string if possible.

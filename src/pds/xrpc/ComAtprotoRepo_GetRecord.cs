@@ -83,6 +83,36 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
 
         RepoRecord repoRecord = Pds.UserRepo.GetRecord(collection!, rkey!);
 
+
+        //
+        // Fix up profile record if needed
+        //
+        if (string.Equals("app.bsky.actor.profile", collection))
+        {
+            DagCborObject? avatarRef = repoRecord.DataBlock.SelectObject(new string[] { "avatar", "ref" });
+
+            if (avatarRef != null)
+            {
+                // Convert from string/cid to a map with $link
+                if (avatarRef.Value is string strValue)
+                {
+                    try
+                    {
+                        CidV1 cid = CidV1.FromBase32(strValue);
+                        avatarRef.Value = new Dictionary<string, DagCborObject>
+                        {
+                            ["$link"] = new DagCborObject { Type = new DagCborType { MajorType = DagCborType.TYPE_TEXT }, Value = cid.ToString() }
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        Pds.Logger.LogError($"Error converting avatar ref to CidV1: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+
         //
         // Return success
         //
