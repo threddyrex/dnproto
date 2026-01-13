@@ -438,7 +438,8 @@ public class UserRepo
 
         foreach (var write in writes)
         {
-            if (write.Record != null)
+            if (write.Record != null 
+                && string.Equals("app.bsky.actor.profile", write.Collection) == false)
             {
                 FixBlobRefsInDagCbor(null, write.Record);
             }
@@ -479,6 +480,7 @@ public class UserRepo
         {
             try
             {
+                _logger.LogInfo($"Converting string '{strValue}' to CidV1");
                 CidV1 cidValue = CidV1.FromBase32(strValue);
                 obj.Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 };
                 obj.Value = cidValue;                
