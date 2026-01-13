@@ -91,7 +91,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         }
         catch (OperationCanceledException)
         {
-            Pds.Logger.LogInfo("[FIREHOSE] OperationCanceledException caught (graceful shutdown)");
+            Pds.Logger.LogTrace("[FIREHOSE] OperationCanceledException caught (graceful shutdown)");
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
             }
         }
 
-        Pds.Logger.LogInfo("[FIREHOSE] WebSocket client disconnected or process is shutting down.");
+        Pds.Logger.LogTrace("[FIREHOSE] WebSocket client disconnected or process is shutting down.");
     }
 
 }
