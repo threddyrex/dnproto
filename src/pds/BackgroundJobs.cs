@@ -16,6 +16,8 @@ public class BackgroundJobs
 
     private PdsDb _db;
 
+    private System.Threading.Timer? _timerLogLevel;
+
     public BackgroundJobs(LocalFileSystem lfs, Logger logger, PdsDb db)
     {
         _lfs = lfs;
@@ -26,7 +28,7 @@ public class BackgroundJobs
     public void Start()
     {
         // run Job_UpdateLogLevel every 15 seconds
-        System.Threading.Timer timer = new System.Threading.Timer(_ => Job_UpdateLogLevel(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
+        _timerLogLevel = new System.Threading.Timer(_ => Job_UpdateLogLevel(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
     }
 
 

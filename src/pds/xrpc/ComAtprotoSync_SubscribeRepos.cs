@@ -53,7 +53,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos, cursorParam: {cursorParam}, cursor: {cursor}");
+        Pds.Logger.LogTrace($"[FIREHOSE] WebSocket client connected for subscribeRepos, cursorParam: {cursorParam}, cursor: {cursor}");
 
         // Use the request's cancellation token to handle graceful shutdown
         CancellationToken cancellationToken = HttpContext.RequestAborted;
