@@ -122,6 +122,20 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
                     };
                 }
             }
+
+            string? returnStringValue = JsonData.ConvertObjectToJsonString(repoRecord.DataBlock.GetRawValue());
+
+
+            //
+            // Return success
+            //
+            return Results.Json(new JsonObject
+            {
+                ["uri"] = uri,
+                ["cid"] = repoRecord.Cid.Base32,
+                ["value"] = returnStringValue != null ? JsonNode.Parse(returnStringValue)! : null
+
+            }, statusCode: 200);
         }
 
 
