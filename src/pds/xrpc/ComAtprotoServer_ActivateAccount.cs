@@ -12,18 +12,21 @@ public class ComAtprotoServer_ActivateAccount : BaseXrpcCommand
     public IResult GetResponse()
     {
         //
-        // Check auth
+        // Require auth
         //
-        if(CheckUserAuth() == false)
+        if(UserIsFullyAuthorized() == false)
         {
-            Pds.Logger.LogInfo("ComAtprotoServer_ActivateAccount: Unauthorized call to ActivateAccount.");
-            return Results.Json(new { error = "InvalidRequest", message = "Need auth" }, statusCode: 204);
+            var (response, statusCode) = GetAuthFailureResponse();
+            return Results.Json(response, statusCode: statusCode);
         }
+
+
 
         //
         // Activate account
         //
         Pds.ActivateAccount();
+
 
         //
         // Return OK (no body)

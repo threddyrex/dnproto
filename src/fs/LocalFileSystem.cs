@@ -1,9 +1,7 @@
+using dnproto.auth;
 using dnproto.log;
 using dnproto.repo;
 using dnproto.ws;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace dnproto.fs;
 
@@ -25,7 +23,9 @@ public class LocalFileSystem
 
     private readonly object _lock = new object();
 
-    private int cacheExpiryMinutes = 60;
+    private int cacheExpiryMinutes_Sessions = 60*24;
+
+    private int cacheExpiryMinutes_Actors = 60;
 
     public string GetDataDir()
     {
@@ -82,9 +82,9 @@ public class LocalFileSystem
             {
                 // if the file is older than an hour, don't use it
                 FileInfo fileInfo = new FileInfo(actorFile);
-                if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
+                if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Actors))
                 {
-                    _logger.LogTrace($"Actor info file is older than 1 hour, will re-resolve: {actorFile}");
+                    _logger.LogTrace($"Actor info file is older than {cacheExpiryMinutes_Actors} minutes, will re-resolve: {actorFile}");
                 }
                 else
                 {
@@ -240,11 +240,11 @@ public class LocalFileSystem
             return null;
         }
 
-        // if session file is older than an hour, don't use it
+        // if session file is old, don't use it
         FileInfo fileInfo = new FileInfo(sessionFile);
-        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
+        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Sessions))
         {
-            _logger.LogWarning($"Session file is older than 1 hour, will not use: {sessionFile}");
+            _logger.LogWarning($"Session file is older than {cacheExpiryMinutes_Sessions} minutes, will not use: {sessionFile}");
             return null;
         }
 
@@ -268,6 +268,10 @@ public class LocalFileSystem
             _logger.LogWarning("Session file is missing required fields.");
             return null;
         }
+
+        // Print expiration date for accessJwt and refreshJwt
+        _logger.LogTrace($"Access JWT expires at: {JwtSecret.GetExpirationDateForAccessJwt(accessJwt).ToLocalTime()} (local time)");
+        _logger.LogTrace($"Refresh JWT expires at: {JwtSecret.GetExpirationDateForAccessJwt(refreshJwt).ToLocalTime()} (local time)");
 
         // if we've gotten this far, return the session file.
         return new SessionFile()

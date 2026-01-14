@@ -60,13 +60,48 @@ public abstract class BaseXrpcCommand
     /// Returns true if the client is authenticated as the PDS user.
     /// </summary>
     /// <returns></returns>
-    public bool CheckUserAuth()
+    public bool UserIsFullyAuthorized()
     {
-        string? accessJwt = GetAccessJwt();
-        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
-        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
-        bool didMatches = userDid == Pds.Config.UserDid;
-        return didMatches;
+        return JwtSecret.AccessJwtIsValid(GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+    }
+
+    /// <summary>
+    /// Returns true if the client is authenticated as the PDS user, but the token has expired.
+    /// </summary>
+    /// <returns></returns>
+    public bool UserIsAuthorizedButExpired()
+    {
+        return JwtSecret.AccessJwtIsValid(GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+    }
+
+    /// <summary>
+    /// Returns a JSON response and status code for an authentication failure.
+    /// If the user's token has expired, returns a 400 status code with an "ExpiredToken" error.
+    /// Otherwise, returns a 401 status code with an "Unauthorized" error.
+    /// </summary>
+    /// <returns></returns>
+    public (JsonObject response, int statusCode) GetAuthFailureResponse()
+    {
+        if (UserIsAuthorizedButExpired())
+        {
+            return (
+                new JsonObject
+                {
+                    ["error"] = "ExpiredToken",
+                    ["message"] = "Please refresh the token."
+                }, 
+                400);
+        }
+        else
+        {
+            return (
+                new JsonObject
+                {
+                    ["error"] = "Unauthorized",
+                    ["message"] = "User is not authorized."
+                }, 
+                401);
+        }
     }
 
 

@@ -14,18 +14,15 @@ public class AppBskyActor_PutPreferences : BaseXrpcCommand
     public async Task<IResult> GetResponseAsync()
     {
         //
-        // Get the jwt from the caller's Authorization header
+        // Require auth
         //
-        string? accessJwt = GetAccessJwt();
-        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
-
-        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
-        bool didMatches = userDid == Pds.Config.UserDid;
-
-        if(didMatches == false)
+        if(UserIsFullyAuthorized() == false)
         {
-            return Results.Json(new { error = "InvalidRequest", message = "Need auth" }, statusCode: 204);
+            var (response, statusCode) = GetAuthFailureResponse();
+            return Results.Json(response, statusCode: statusCode);
         }
+
+
 
 
         //
@@ -35,6 +32,7 @@ public class AppBskyActor_PutPreferences : BaseXrpcCommand
         int contentLength = (int)(HttpContext.Request.ContentLength ?? 0);
         byte[] blobBytes = new byte[contentLength];
         await HttpContext.Request.Body.ReadExactlyAsync(blobBytes, 0, contentLength);
+
 
 
         //

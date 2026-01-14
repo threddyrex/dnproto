@@ -47,7 +47,7 @@ namespace dnproto.cli.commands
             //
             // Call WS
             //
-            string url = $"https://{session?.pds}/xrpc/com.atproto.server.getSession";
+            string url = $"https://{actorInfo?.Pds}/xrpc/com.atproto.server.getSession";
             JsonNode? returnedSession = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
                 accessJwt: session?.accessJwt);

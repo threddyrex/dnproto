@@ -65,7 +65,7 @@ namespace dnproto.cli.commands
             // Call WS
             //
             Logger.LogInfo($"Writing preferences: {preferencesFile}");
-            string url = $"https://{session.pds}/xrpc/app.bsky.actor.getPreferences";
+            string url = $"https://{actorInfo?.Pds}/xrpc/app.bsky.actor.getPreferences";
             JsonNode? response = BlueskyClient.SendRequest(url,
                 HttpMethod.Get, 
                 accessJwt: session.accessJwt,

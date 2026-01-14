@@ -11,21 +11,15 @@ public class AppBskyActor_GetPreferences : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
-
         //
-        // Get the jwt from the caller's Authorization header
+        // Require auth
         //
-        string? accessJwt = GetAccessJwt();
-        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
-
-        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
-        bool didMatches = userDid == Pds.Config.UserDid;
-
-        if(!didMatches)
+        if(UserIsFullyAuthorized() == false)
         {
-            // return 204
-            return Results.Json(new { }, statusCode: 204);
+            var (response, statusCode) = GetAuthFailureResponse();
+            return Results.Json(response, statusCode: statusCode);
         }
+
 
         //
         // Get preferences from PDS config

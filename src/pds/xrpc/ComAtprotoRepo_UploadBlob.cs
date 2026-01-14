@@ -12,18 +12,14 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
     public async Task<IResult> GetResponseAsync()
     {
         //
-        // Get the jwt from the caller's Authorization header
+        // Require auth
         //
-        string? accessJwt = GetAccessJwt();
-        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
-
-        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
-        bool didMatches = userDid == Pds.Config.UserDid;
-
-        if(didMatches == false)
+        if(UserIsFullyAuthorized() == false)
         {
-            return Results.Json(new { error = "InvalidRequest", message = "Need auth" }, statusCode: 204);
+            var (response, statusCode) = GetAuthFailureResponse();
+            return Results.Json(response, statusCode: statusCode);
         }
+
 
 
         //
@@ -78,7 +74,7 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
             }
         };
 
-        Pds.Logger.LogInfo($"Uploaded blob cid={cid} contentType={contentType} contentLength={contentLength} userDid={userDid}");
+        Pds.Logger.LogInfo($"Uploaded blob cid={cid} contentType={contentType} contentLength={contentLength} userDid={Pds.Config.UserDid}");
         return Results.Json(responseObj, statusCode: 200);
     }
 }

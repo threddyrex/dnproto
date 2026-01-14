@@ -11,29 +11,24 @@ public class ComAtprotoServer_GetSession : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
-
         //
-        // Get the jwt from the caller's Authorization header
+        // Require auth
         //
-        string? accessJwt = GetAccessJwt();
-        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyAccessJwt(accessJwt, Pds.Config.JwtSecret);
-
-        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
-        bool didMatches = userDid == Pds.Config.UserDid;
-        string? handle = null;
-
-        if(didMatches)
+        if(UserIsFullyAuthorized() == false)
         {
-            handle = Pds.Config.UserHandle;
+            var (response, statusCode) = GetAuthFailureResponse();
+            return Results.Json(response, statusCode: statusCode);
         }
+
+
 
         //
         // Return session info
         //
         return Results.Json(new 
         {
-            did = userDid,
-            handle = handle
+            did = Pds.Config.UserDid,
+            handle = Pds.Config.UserHandle
         },
         statusCode: 200);
     }

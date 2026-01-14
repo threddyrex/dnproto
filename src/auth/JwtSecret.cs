@@ -171,18 +171,21 @@ public class JwtSecret
         }
     }
 
+
     /// <summary>
     /// Verify an access JWT token.
     /// Validates the signature, expiration, and scope of the access token.
     /// </summary>
     /// <param name="accessJwt">The access JWT token from the client</param>
     /// <param name="jwtSecret">The JWT secret from PdsConfig</param>
+    /// <param name="userDid">The DID of the user to validate against</param>
+    /// <param name="validateExpiry">Whether to validate the token's expiration</param>
     /// <returns>ClaimsPrincipal if valid, null if invalid</returns>
-    public static ClaimsPrincipal? VerifyAccessJwt(string? accessJwt, string jwtSecret)
+    public static bool AccessJwtIsValid(string? accessJwt, string jwtSecret, string userDid, bool validateExpiry = true)
     {
-        if (string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(jwtSecret))
+        if (string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(jwtSecret) || string.IsNullOrEmpty(userDid))
         {
-            return null;
+            return false;
         }
 
         var tokenHandler = new JsonWebTokenHandler();
@@ -190,51 +193,91 @@ public class JwtSecret
 
         try
         {
+            //
+            // JWT validation
+            //
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = false, // We don't set an issuer
                 ValidateAudience = false, // We validate audience manually if needed
-                ValidateLifetime = true, // Ensure token hasn't expired
+                ValidateLifetime = validateExpiry, // Check expiry only if validateExpiry is true
                 ClockSkew = TimeSpan.Zero // No clock skew tolerance
             };
 
-            var result = tokenHandler.ValidateTokenAsync(accessJwt, validationParameters).GetAwaiter().GetResult();
+            TokenValidationResult result = tokenHandler.ValidateTokenAsync(accessJwt, validationParameters).GetAwaiter().GetResult();
             
             if (!result.IsValid)
             {
-                return null;
+                return false;
             }
 
+            //
             // Verify the algorithm is HMAC SHA256
+            //
             if (result.SecurityToken is JsonWebToken jwt && 
                 !jwt.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
-                return null;
+                return false;
             }
 
+            //
             // Verify the scope is for access tokens
-            var principal = new ClaimsPrincipal(result.ClaimsIdentity);
-            var scopeClaim = principal.FindFirst("scope")?.Value;
+            //
+            var claimsPrincipal = new ClaimsPrincipal(result.ClaimsIdentity);
+            var scopeClaim = claimsPrincipal.FindFirst("scope")?.Value;
             if (scopeClaim != "com.atproto.access")
             {
-                return null;
+                return false;
             }
 
-            return principal;
+            //
+            // Check DID
+            //
+            string? claimsDid = GetDidFromClaimsPrincipal(claimsPrincipal);
+            bool didMatches = claimsDid == userDid;
+
+            if(!didMatches)
+            {
+                return false;
+            }
+
+
+            //
+            // Return true
+            //
+            return true;
         }
         catch (SecurityTokenException)
         {
             // Token validation failed (expired, invalid signature, etc.)
-            return null;
+            return false;
         }
         catch (Exception)
         {
             // Any other exception during validation
-            return null;
+            return false;
         }
     }
+
+    public static DateTime GetExpirationDateForAccessJwt(string accessJwt)
+    {
+        if (string.IsNullOrEmpty(accessJwt))
+        {
+            throw new ArgumentException("Access JWT cannot be null or empty.", nameof(accessJwt));
+        }
+
+        var tokenHandler = new JsonWebTokenHandler();
+        var jwt = tokenHandler.ReadJsonWebToken(accessJwt);
+        if (jwt == null)
+        {
+            throw new ArgumentException("Invalid JWT token.", nameof(accessJwt));
+        }
+
+        return jwt.ValidTo;
+    }
+
 
     public static string? GetDidFromClaimsPrincipal(ClaimsPrincipal? claimsPrincipal)
     {

@@ -11,13 +11,14 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
     public IResult GetResponse()
     {
         //
-        // Get the jwt from the caller's Authorization header
+        // Require auth
         //
-        if(CheckUserAuth() == false)
+        if(UserIsFullyAuthorized() == false)
         {
-            Pds.Logger.LogInfo("ComAtprotoRepo_ApplyWrites: Unauthorized call to ApplyWrites.");
-            return Results.Json(new { error = "InvalidRequest", message = "Need auth" }, statusCode: 204);
+            var (response, statusCode) = GetAuthFailureResponse();
+            return Results.Json(response, statusCode: statusCode);
         }
+
 
 
         //
