@@ -6,6 +6,9 @@ using System.Text;
 
 namespace dnproto.mst;
 
+/// <summary>
+/// In-memory representation of a Merkle Search Tree (MST).
+/// </summary>
 public class Mst
 {
     public required MstNode Root;
@@ -15,6 +18,7 @@ public class Mst
 
     /// <summary>
     /// Assemble a Merkle Search Tree (MST) from a flat list of items.
+    /// Caller can store these in a database.
     /// </summary>
     /// <param name="items"></param>
     /// <returns></returns>

@@ -7,13 +7,9 @@ namespace dnproto.repo;
 
 public class RepoMst
 {
-    public static Mst LoadMstFromRepo(string repoFile)
-    {
-        using(var fs = new FileStream(repoFile, FileMode.Open, FileAccess.Read))
-        {
-            return LoadMstFromRepo(fs);
-        }
-    }
+
+    #region LOADREPO
+
 
     public static Mst LoadMstFromRepo(Stream s)
     {
@@ -79,10 +75,20 @@ public class RepoMst
         return mst;
     }
 
+    public static Mst LoadMstFromRepo(string repoFile)
+    {
+        using(var fs = new FileStream(repoFile, FileMode.Open, FileAccess.Read))
+        {
+            return LoadMstFromRepo(fs);
+        }
+    }
+
+    #endregion
 
 
+    #region DAG CBOR
 
-    public static (CidV1, DagCborObject) ConvertMstNodeToDagCbor(Dictionary<MstNode, (CidV1, DagCborObject)> cache, MstNode node)
+    public static void ConvertMstNodeToDagCbor(Dictionary<MstNode, (CidV1, DagCborObject)> cache, MstNode node)
     {
         //
         // If not cached, create it.
@@ -210,16 +216,13 @@ public class RepoMst
             cache[node] = (CidV1.ComputeCidForDagCbor(nodeObj)!, nodeObj);
 
         }
-
-        
-        //
-        // Return
-        //
-        return cache[node];
     }
 
+    #endregion
 
 
+
+    #region ENTRIES
 
     public static bool IsMstNode(RepoRecord record)
     {
@@ -295,5 +298,6 @@ public class RepoMst
         
         return len;
     }
+    #endregion
 
 }
