@@ -6,7 +6,7 @@ namespace dnproto.repo;
 /// <summary>
 /// MST functions.
 /// </summary>
-public class Mst
+public class RepoMstWalker
 {
     /// <summary>
     /// Walks MST in a repo file, in tree node order.
@@ -15,8 +15,8 @@ public class Mst
     /// <param name="repoFile"></param>
     /// <param name="mstNodeCallback"></param>
     public static void WalkMst(string repoFile,
-        Func<RepoHeader, RepoCommit, Dictionary<CidV1, MstNode>, Dictionary<CidV1, List<MstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
-        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback,
+        Func<RepoHeader, RepoCommit, Dictionary<CidV1, RepoMstNode>, Dictionary<CidV1, List<RepoMstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
+        Func<string, RepoMstNode, int, List<RepoMstEntry>, bool> mstNodeCallback,
         Func<string, bool> errorCallback)
     {
         if (string.IsNullOrEmpty(repoFile)) return;
@@ -27,8 +27,8 @@ public class Mst
     }
 
     public static void WalkMst(Stream s,
-        Func<RepoHeader, RepoCommit, Dictionary<CidV1, MstNode>, Dictionary<CidV1, List<MstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
-        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback,
+        Func<RepoHeader, RepoCommit, Dictionary<CidV1, RepoMstNode>, Dictionary<CidV1, List<RepoMstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
+        Func<string, RepoMstNode, int, List<RepoMstEntry>, bool> mstNodeCallback,
         Func<string, bool> errorCallback)
     {
         //
@@ -43,8 +43,8 @@ public class Mst
         //
         RepoHeader? repoHeader = null;
         RepoCommit? repoCommit = null;
-        Dictionary<CidV1, MstNode> mstNodes = new Dictionary<CidV1, MstNode>();
-        Dictionary<CidV1, List<MstEntry>> mstNodeEntries = new Dictionary<CidV1, List<MstEntry>>();
+        Dictionary<CidV1, RepoMstNode> mstNodes = new Dictionary<CidV1, RepoMstNode>();
+        Dictionary<CidV1, List<RepoMstEntry>> mstNodeEntries = new Dictionary<CidV1, List<RepoMstEntry>>();
         HashSet<CidV1> atProtoRecordCids = new HashSet<CidV1>();
 
         Repo.WalkRepo(s,
@@ -72,7 +72,7 @@ public class Mst
                 }
                 else if(record.IsMstNode())
                 {
-                    (MstNode? mstNode, List<MstEntry>? mstEntries) = record.ToMstNode();
+                    (RepoMstNode? mstNode, List<RepoMstEntry>? mstEntries) = record.ToMstNode();
                     if(mstNode != null && mstNode.Cid != null && mstEntries != null)
                     {
                         mstNodes[mstNode.Cid] = mstNode;
@@ -109,7 +109,7 @@ public class Mst
         //
         // Start at the root node and walk the MST.
         //
-        MstNode? rootNode = null;
+        RepoMstNode? rootNode = null;
         if(repoCommit != null && repoCommit.RootMstNodeCid != null)
         {
             CidV1 rootCid = (CidV1)repoCommit.RootMstNodeCid;
@@ -132,11 +132,11 @@ public class Mst
         VisitNode("ROOT", rootNode, 0, mstNodes, mstNodeEntries, mstNodeCallback, errorCallback);
     }
 
-    private static bool VisitNode(string direction, MstNode currentNode, 
+    private static bool VisitNode(string direction, RepoMstNode currentNode, 
         int currentDepth,
-        Dictionary<CidV1, MstNode> allMstNodes, 
-        Dictionary<CidV1, List<MstEntry>> allMstNodeEntries, 
-        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback, 
+        Dictionary<CidV1, RepoMstNode> allMstNodes, 
+        Dictionary<CidV1, List<RepoMstEntry>> allMstNodeEntries, 
+        Func<string, RepoMstNode, int, List<RepoMstEntry>, bool> mstNodeCallback, 
         Func<string, bool> errorCallback)
     {
         if(currentNode is null || currentNode.Cid is null)

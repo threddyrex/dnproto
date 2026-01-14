@@ -606,7 +606,7 @@ public class UserRepo
             MstDb mst = MstDb.ConnectMstDb(_lfs, _logger, _db);
             var allMstNodes = _db.GetAllMstNodes();
             var allMstEntriesByNode = _db.GetAllMstEntriesByNodeObjectId();
-            foreach (MstNode mstNode in allMstNodes)
+            foreach (RepoMstNode mstNode in allMstNodes)
             {
                 if (mstNode.Cid == null)
                 {
@@ -614,7 +614,7 @@ public class UserRepo
                     return;
                 }
                 
-                List<MstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey((Guid) mstNode.NodeObjectId!) ? allMstEntriesByNode[(Guid) mstNode.NodeObjectId!] : new List<MstEntry>();
+                List<RepoMstEntry> mstEntriesForNode = allMstEntriesByNode.ContainsKey((Guid) mstNode.NodeObjectId!) ? allMstEntriesByNode[(Guid) mstNode.NodeObjectId!] : new List<RepoMstEntry>();
                 
                 var mstNodeDagCbor = mstNode.ToDagCborObject(mstEntriesForNode);
                 if (mstNodeDagCbor == null)

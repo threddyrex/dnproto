@@ -281,7 +281,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
@@ -313,7 +313,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
@@ -347,7 +347,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
@@ -375,14 +375,14 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNode1 = new MstNode
+        var mstNode1 = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
-        var mstNode2 = new MstNode
+        var mstNode2 = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
@@ -415,14 +415,14 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         // Arrange
         var pdsDb = _fixture.PdsDb;
 
-        var mstNode1 = new MstNode
+        var mstNode1 = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null
         };
 
-        var mstNode2 = new MstNode
+        var mstNode2 = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
@@ -447,15 +447,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         var nodeCid = Guid.NewGuid().ToString();
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
             LeftMstNodeCid = null
         };
-        var mstEntries = new List<MstEntry>
+        var mstEntries = new List<RepoMstEntry>
         {
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 0,
                 KeySuffix = "exampleKey",
@@ -492,15 +492,15 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         var nodeCid = Guid.NewGuid().ToString();
 
-        var mstNodeToInsert = new MstNode
+        var mstNodeToInsert = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
             LeftMstNodeCid = null,
         };
-        var mstEntriesToInsert = new List<MstEntry>
+        var mstEntriesToInsert = new List<RepoMstEntry>
             {
-                new MstEntry
+                new RepoMstEntry
                 {
                     KeySuffix = "exampleKey1",
                     EntryIndex = 0,
@@ -508,7 +508,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
                     TreeMstNodeCid = null,
                     RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
                 },
-                new MstEntry
+                new RepoMstEntry
                 {
                     KeySuffix = "ampleKey2",
                     EntryIndex = 1,

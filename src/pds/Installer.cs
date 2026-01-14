@@ -230,14 +230,14 @@ public class Installer
         //
         // Create Mst Node
         //
-        var mstNode = new MstNode
+        var mstNode = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = null, // to be set
             LeftMstNodeCid = null
         };
 
-        mstNode.RecomputeCid(new List<MstEntry>());
+        mstNode.RecomputeCid(new List<RepoMstEntry>());
 
 
         //

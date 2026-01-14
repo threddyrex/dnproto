@@ -9,7 +9,7 @@ namespace dnproto.repo;
 /// <summary>
 /// MST entry
 /// </summary>
-public class MstEntry
+public class RepoMstEntry
 {
     /// <summary>
     /// 
@@ -122,12 +122,12 @@ public class MstEntry
         };
     }
 
-    public static MstEntry? FromDagCborObject(DagCborObject? obj)
+    public static RepoMstEntry? FromDagCborObject(DagCborObject? obj)
     {
         if (obj == null || obj.Type.MajorType != DagCborType.TYPE_MAP)
             return null;
 
-        var entry = new MstEntry();
+        var entry = new RepoMstEntry();
 
         // "p" - prefix length
         entry.PrefixLength = obj.SelectInt(new[] { "p" }) ?? 0;
@@ -175,7 +175,7 @@ public class MstEntry
     /// </summary>
     /// <param name="entries"></param>
     /// <returns></returns>
-    public static List<string> GetFullKeys(List<MstEntry> entries)
+    public static List<string> GetFullKeys(List<RepoMstEntry> entries)
     {
         var fullKeys = new List<string>();
         string? previousFullKey = null;
@@ -209,7 +209,7 @@ public class MstEntry
     /// Loop through list of entries and fix their EntryIndex values (0 to n-1).
     /// </summary>
     /// <param name="entries"></param>
-    public static void FixEntryIndexes(List<MstEntry> entries)
+    public static void FixEntryIndexes(List<RepoMstEntry> entries)
     {
         for(int i = 0; i < entries.Count; i++)
         {
@@ -221,7 +221,7 @@ public class MstEntry
     /// Fix the PrefixLength and KeySuffix values for the given entries.
     /// </summary>
     /// <param name="entries"></param>
-    public static void FixPrefixLengths(List<MstEntry> entries)
+    public static void FixPrefixLengths(List<RepoMstEntry> entries)
     {
         string previousFullKey = string.Empty;
         for (int i = 0; i < entries.Count; i++)

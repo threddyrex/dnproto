@@ -793,7 +793,7 @@ LeftMstNodeCid TEXT
         command.ExecuteNonQuery();        
     }
 
-    public MstNode GetMstNodeByCid(CidV1? cid)
+    public RepoMstNode GetMstNodeByCid(CidV1? cid)
     {
         if(cid == null)
         {
@@ -822,7 +822,7 @@ LeftMstNodeCid TEXT
         }
     }
 
-    public MstNode GetMstNodeByObjectId(Guid objectId)
+    public RepoMstNode GetMstNodeByObjectId(Guid objectId)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -864,9 +864,9 @@ LeftMstNodeCid TEXT
 
 
 
-    public List<MstNode> GetAllMstNodes()
+    public List<RepoMstNode> GetAllMstNodes()
     {
-        var nodeList = new List<MstNode>();
+        var nodeList = new List<RepoMstNode>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -886,9 +886,9 @@ LeftMstNodeCid TEXT
         return nodeList;
     }
 
-    private MstNode CreateNodeObjectFromReader(SqliteDataReader reader)
+    private RepoMstNode CreateNodeObjectFromReader(SqliteDataReader reader)
     {
-        var node = new MstNode
+        var node = new RepoMstNode
         {
             NodeObjectId = Guid.Parse(reader.GetString(reader.GetOrdinal("NodeObjectId"))),
             Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
@@ -900,7 +900,7 @@ LeftMstNodeCid TEXT
 
 
 
-    public void InsertMstNode(MstNode mstNode)
+    public void InsertMstNode(RepoMstNode mstNode)
     {
         if(mstNode.NodeObjectId == null)
         {
@@ -930,7 +930,7 @@ VALUES (@NodeObjectId, @Cid, @LeftMstNodeCid)
     }
 
 
-    public void DeleteMstNode(MstNode mstNode)
+    public void DeleteMstNode(RepoMstNode mstNode)
     {
         DeleteMstNodeByObjectId(mstNode.NodeObjectId);
     }
@@ -993,9 +993,9 @@ PRIMARY KEY (NodeObjectId, KeySuffix)
     }
 
 
-    private MstEntry CreateMstEntryObjectFromReader(SqliteDataReader reader)
+    private RepoMstEntry CreateMstEntryObjectFromReader(SqliteDataReader reader)
     {
-        var entry = new MstEntry
+        var entry = new RepoMstEntry
         {
             NodeObjectId = Guid.Parse(reader.GetString(reader.GetOrdinal("NodeObjectId"))),
             EntryIndex = reader.GetInt32(reader.GetOrdinal("EntryIndex")),
@@ -1009,9 +1009,9 @@ PRIMARY KEY (NodeObjectId, KeySuffix)
     }
 
 
-    public List<MstEntry> GetMstEntriesForNodeObjectId(Guid nodeObjectId)
+    public List<RepoMstEntry> GetMstEntriesForNodeObjectId(Guid nodeObjectId)
     {
-        var entries = new List<MstEntry>();
+        var entries = new List<RepoMstEntry>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -1033,9 +1033,9 @@ PRIMARY KEY (NodeObjectId, KeySuffix)
     }
 
 
-    public List<MstEntry> GetAllMstEntries()
+    public List<RepoMstEntry> GetAllMstEntries()
     {
-        var entries = new List<MstEntry>();
+        var entries = new List<RepoMstEntry>();
 
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -1056,12 +1056,12 @@ PRIMARY KEY (NodeObjectId, KeySuffix)
     }
 
 
-    public Dictionary<Guid, List<MstEntry>> GetAllMstEntriesByNodeObjectId()
+    public Dictionary<Guid, List<RepoMstEntry>> GetAllMstEntriesByNodeObjectId()
     {
-        List<MstEntry> allEntries = GetAllMstEntries();
-        var dict = new Dictionary<Guid, List<MstEntry>>();
+        List<RepoMstEntry> allEntries = GetAllMstEntries();
+        var dict = new Dictionary<Guid, List<RepoMstEntry>>();
 
-        foreach(MstEntry entry in allEntries)
+        foreach(RepoMstEntry entry in allEntries)
         {
             if(entry.NodeObjectId is null)
             {
@@ -1070,7 +1070,7 @@ PRIMARY KEY (NodeObjectId, KeySuffix)
 
             if(!dict.ContainsKey((Guid)entry.NodeObjectId!))
             {
-                dict[(Guid)entry.NodeObjectId!] = new List<MstEntry>();
+                dict[(Guid)entry.NodeObjectId!] = new List<RepoMstEntry>();
             }
 
             dict[(Guid)entry.NodeObjectId!].Add(entry);
@@ -1081,15 +1081,15 @@ PRIMARY KEY (NodeObjectId, KeySuffix)
 
 
 
-    public void InsertMstEntries(Guid nodeObjectId, List<MstEntry> entries)
+    public void InsertMstEntries(Guid nodeObjectId, List<RepoMstEntry> entries)
     {
-        foreach(MstEntry entry in entries)
+        foreach(RepoMstEntry entry in entries)
         {
             InsertMstEntry(nodeObjectId, entry);
         }
     }
 
-    public void InsertMstEntry(Guid nodeObjectId, MstEntry mstEntry)
+    public void InsertMstEntry(Guid nodeObjectId, RepoMstEntry mstEntry)
     {
         
         using(var sqlConnection = GetConnection())
@@ -1144,7 +1144,7 @@ DELETE FROM MstEntry
     }
 
 
-    public void ReplaceMstEntriesForNode(Guid nodeObjectId, List<MstEntry> entries)
+    public void ReplaceMstEntriesForNode(Guid nodeObjectId, List<RepoMstEntry> entries)
     {
         if(nodeObjectId == Guid.Empty)
         {
@@ -1164,7 +1164,7 @@ DELETE FROM MstEntry
     /// <param name="newCid"></param>
     /// <param name="mstNode"></param>
     /// <param name="entries"></param>
-    public void ReplaceMstNode(MstNode mstNode, List<MstEntry> entries)
+    public void ReplaceMstNode(RepoMstNode mstNode, List<RepoMstEntry> entries)
     {
         if(mstNode.NodeObjectId == null)
         {

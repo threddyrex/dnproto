@@ -6,7 +6,7 @@ namespace dnproto.repo;
 /// <summary>
 /// MST node. A node will have 0 or more entries. See MstEntry.
 /// </summary>
-public class MstNode
+public class RepoMstNode
 {
     /// <summary>
     /// Cid for this node.
@@ -43,7 +43,7 @@ public class MstNode
         return notNull && isMap && containsE;        
     }
 
-    public byte[] ToDagCborBytes(List<MstEntry> entries)
+    public byte[] ToDagCborBytes(List<RepoMstEntry> entries)
     {
         var dagCborObject = ToDagCborObject(entries);
         using var ms = new MemoryStream();
@@ -51,7 +51,7 @@ public class MstNode
         return ms.ToArray();
     }
 
-    public DagCborObject ToDagCborObject(List<MstEntry> entries)
+    public DagCborObject ToDagCborObject(List<RepoMstEntry> entries)
     {
         // Create the node object
         var nodeDict = new Dictionary<string, DagCborObject>();
@@ -102,13 +102,13 @@ public class MstNode
     }
 
 
-    public static (MstNode?, List<MstEntry>?) FromDagCborObject(DagCborObject? obj)
+    public static (RepoMstNode?, List<RepoMstEntry>?) FromDagCborObject(DagCborObject? obj)
     {
         if (obj == null || obj.Type.MajorType != DagCborType.TYPE_MAP)
             return (null, null);
 
-        var node = new MstNode();
-        var entries = new List<MstEntry>();
+        var node = new RepoMstNode();
+        var entries = new List<RepoMstEntry>();
 
         // Left link
         var leftCid = obj.SelectObjectValue(new[] { "l" });
@@ -123,7 +123,7 @@ public class MstNode
         {
             foreach(var entryObject in entriesObj)
             {
-                entries.Add(MstEntry.FromDagCborObject(entryObject)!);
+                entries.Add(RepoMstEntry.FromDagCborObject(entryObject)!);
             }
         }
 
@@ -131,7 +131,7 @@ public class MstNode
     }
 
 
-    public void RecomputeCid(List<MstEntry> entries)
+    public void RecomputeCid(List<RepoMstEntry> entries)
     {
         this.Cid = CidV1.ComputeCidForDagCbor(this.ToDagCborObject(entries))!;
     }

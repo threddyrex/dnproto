@@ -10,7 +10,7 @@ public class MstEntryTests
         // Arrange
         string previousKey = "";
 
-        MstEntry entry = new MstEntry
+        RepoMstEntry entry = new RepoMstEntry
         {
             EntryIndex = 0,
             KeySuffix = "app.bsky.actor.profile/self",
@@ -30,7 +30,7 @@ public class MstEntryTests
         // Arrange
         string previousKey = "app.bsky.feed.like/3ma2awdxgy22k";
 
-        MstEntry entry = new MstEntry
+        RepoMstEntry entry = new RepoMstEntry
         {
             EntryIndex = 1,
             KeySuffix = "post/3kjcfuuylv624",
@@ -50,21 +50,21 @@ public class MstEntryTests
     public void GetFullKeys()
     {
         // Arrange
-        List<MstEntry> entries = new List<MstEntry>
+        List<RepoMstEntry> entries = new List<RepoMstEntry>
         {
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 0,
                 KeySuffix = "app.bsky.feed.like/3ma2awdxgy22k",
                 PrefixLength = 0
             },
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 1,
                 KeySuffix = "post/3kjcfuuylv624",
                 PrefixLength = 14
             },
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 2,
                 KeySuffix = "graph.follow/3las5ynsp4u2t",
@@ -73,8 +73,7 @@ public class MstEntryTests
         };
 
         // Act
-        List<string> fullKeys = MstEntry.GetFullKeys(entries);
-
+        List<string> fullKeys = RepoMstEntry.GetFullKeys(entries);
         // Assert
         Assert.Equal(3, fullKeys.Count);
         Assert.Equal("app.bsky.feed.like/3ma2awdxgy22k", fullKeys[0]);
@@ -88,16 +87,16 @@ public class MstEntryTests
     {
 
         // Arrange - Create MST node and entries
-        var mstNode = new MstNode
+        var mstNode = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
             LeftMstNodeCid = null
         };
 
-        var mstEntries = new List<MstEntry>
+        var mstEntries = new List<RepoMstEntry>
         {
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 0,
                 KeySuffix = "apple",
@@ -105,7 +104,7 @@ public class MstEntryTests
                 TreeMstNodeCid = null,
                 RecordCid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6")
             },
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 1,
                 KeySuffix = "banana",
@@ -118,7 +117,7 @@ public class MstEntryTests
         mstEntries[0].EntryIndex = 6;
         mstEntries[1].EntryIndex = 7;
 
-        MstEntry.FixEntryIndexes(mstEntries);
+        RepoMstEntry.FixEntryIndexes(mstEntries);
         Assert.Equal(0, mstEntries[0].EntryIndex);
         Assert.Equal(1, mstEntries[1].EntryIndex);
 
@@ -127,11 +126,11 @@ public class MstEntryTests
     [Fact]
     public void GetCommonPrefixLength_Test()
     {
-        Assert.Equal(0, MstEntry.GetCommonPrefixLength("apple", "banana"));
-        Assert.Equal(3, MstEntry.GetCommonPrefixLength("application", "appetite"));
-        Assert.Equal(5, MstEntry.GetCommonPrefixLength("hello", "hello"));
-        Assert.Equal(0, MstEntry.GetCommonPrefixLength("short", "longer"));
-        Assert.Equal(6, MstEntry.GetCommonPrefixLength("prefixes", "prefixation"));
+        Assert.Equal(0, RepoMstEntry.GetCommonPrefixLength("apple", "banana"));
+        Assert.Equal(3, RepoMstEntry.GetCommonPrefixLength("application", "appetite"));
+        Assert.Equal(5, RepoMstEntry.GetCommonPrefixLength("hello", "hello"));
+        Assert.Equal(0, RepoMstEntry.GetCommonPrefixLength("short", "longer"));
+        Assert.Equal(6, RepoMstEntry.GetCommonPrefixLength("prefixes", "prefixation"));
     }
 
 
@@ -139,21 +138,21 @@ public class MstEntryTests
     [Fact]
     public void GetKeyDepth()
     {
-        Assert.Equal(0, MstEntry.GetKeyDepth("2653ae71"));
-        Assert.Equal(1, MstEntry.GetKeyDepth("blue"));
-        Assert.Equal(4, MstEntry.GetKeyDepth("app.bsky.feed.post/454397e440ec"));
-        Assert.Equal(8, MstEntry.GetKeyDepth("app.bsky.feed.post/9adeb165882c"));
+        Assert.Equal(0, RepoMstEntry.GetKeyDepth("2653ae71"));
+        Assert.Equal(1, RepoMstEntry.GetKeyDepth("blue"));
+        Assert.Equal(4, RepoMstEntry.GetKeyDepth("app.bsky.feed.post/454397e440ec"));
+        Assert.Equal(8, RepoMstEntry.GetKeyDepth("app.bsky.feed.post/9adeb165882c"));
     }
 
 
     [Fact]
     public void CompareKeys()
     {
-        Assert.Equal(0, MstEntry.CompareKeys("apple", "apple"));
-        Assert.True(MstEntry.CompareKeys("apple", "banana") < 0);
-        Assert.True(MstEntry.CompareKeys("banana", "apple") > 0);
-        Assert.True(MstEntry.CompareKeys("app", "apple") < 0);
-        Assert.True(MstEntry.CompareKeys("apple", "app") > 0);
+        Assert.Equal(0, RepoMstEntry.CompareKeys("apple", "apple"));
+        Assert.True(RepoMstEntry.CompareKeys("apple", "banana") < 0);
+        Assert.True(RepoMstEntry.CompareKeys("banana", "apple") > 0);
+        Assert.True(RepoMstEntry.CompareKeys("app", "apple") < 0);
+        Assert.True(RepoMstEntry.CompareKeys("apple", "app") > 0);
     }
 
 }

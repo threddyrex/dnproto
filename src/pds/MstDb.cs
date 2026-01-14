@@ -45,7 +45,7 @@ public class MstDb
     /// <returns></returns>
     public bool KeyExists(string key)
     {
-        List<MstEntry> mstEntries = _db.GetAllMstEntries();
+        List<RepoMstEntry> mstEntries = _db.GetAllMstEntries();
 
         string? currentKey = null;
 
@@ -107,7 +107,7 @@ public class MstDb
         //
         // Calculate the key depth and current root layer
         //
-        int keyDepth = MstEntry.GetKeyDepth(key);
+        int keyDepth = RepoMstEntry.GetKeyDepth(key);
         int rootLayer = GetRootLayerKeyDepth(mstNodeRoot, mstNodeRootEntries);
 
         //
@@ -118,16 +118,16 @@ public class MstDb
         while (keyDepth > rootLayer)
         {
             // Create a new parent node with the current root as its left child
-            var newParent = new MstNode();
+            var newParent = new RepoMstNode();
             newParent.NodeObjectId = Guid.NewGuid();
             newParent.LeftMstNodeCid = mstNodeRoot!.Cid;
-            newParent.RecomputeCid(new List<MstEntry>());
+            newParent.RecomputeCid(new List<RepoMstEntry>());
             _db.InsertMstNode(newParent);
             updatedNodeObjectIds.Add((Guid)newParent.NodeObjectId!);
 
             // Update root reference
             mstNodeRoot = newParent;
-            mstNodeRootEntries = new List<MstEntry>();
+            mstNodeRootEntries = new List<RepoMstEntry>();
             rootLayer++;
         }
 
@@ -157,13 +157,13 @@ public class MstDb
     /// Calculate the layer of the root node based on the highest key depth in the tree.
     /// If the tree is empty, returns 0.
     /// </summary>
-    private int GetRootLayerKeyDepth(MstNode rootNode, List<MstEntry> rootEntries)
+    private int GetRootLayerKeyDepth(RepoMstNode rootNode, List<RepoMstEntry> rootEntries)
     {
         // If root has entries, the layer is the depth of the first key
         if (rootEntries.Count > 0)
         {
             string firstKey = rootEntries[0].KeySuffix ?? string.Empty;
-            return MstEntry.GetKeyDepth(firstKey);
+            return RepoMstEntry.GetKeyDepth(firstKey);
         }
 
         // If root has a left child, recurse to find layer
@@ -199,13 +199,13 @@ public class MstDb
     /// Keys with depth == currentLayer belong at this node.
     /// Keys with depth < currentLayer go to child nodes (layer - 1).
     /// </summary>
-    private void InternalPutEntry(string recordKeyToInsert, CidV1 recordCidToInsert, MstNode currentNode, List<MstEntry> currentEntries, int currentLayer, List<Guid> updatedNodeObjectIds)
+    private void InternalPutEntry(string recordKeyToInsert, CidV1 recordCidToInsert, RepoMstNode currentNode, List<RepoMstEntry> currentEntries, int currentLayer, List<Guid> updatedNodeObjectIds)
     {
         //
         // Calculate full keys and depth.
         //
-        var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
-        int keyDepthToInsert = MstEntry.GetKeyDepth(recordKeyToInsert);
+        var currentEntryKeys = RepoMstEntry.GetFullKeys(currentEntries);
+        int keyDepthToInsert = RepoMstEntry.GetKeyDepth(recordKeyToInsert);
 
         //
         // Insert at this level?
@@ -222,7 +222,7 @@ public class MstDb
             {
                 var entry = currentEntries[i];
                 string fullKey = currentEntryKeys[i];
-                int comparison = MstEntry.CompareKeys(recordKeyToInsert, fullKey);
+                int comparison = RepoMstEntry.CompareKeys(recordKeyToInsert, fullKey);
 
                 //
                 // CASE 1 - update existing MstEntry with identical key (update)
@@ -252,7 +252,7 @@ public class MstDb
             //
             // CASE 2 - insert new MstEntry (insert)
             //
-            var newEntry = new MstEntry
+            var newEntry = new RepoMstEntry
             {
                 RecordCid = recordCidToInsert,
                 TreeMstNodeCid = null,
@@ -266,8 +266,8 @@ public class MstDb
             currentEntryKeys.Insert(insertIndex, recordKeyToInsert);
 
             // fix up
-            MstEntry.FixEntryIndexes(currentEntries);
-            MstEntry.FixPrefixLengths(currentEntries);
+            RepoMstEntry.FixEntryIndexes(currentEntries);
+            RepoMstEntry.FixPrefixLengths(currentEntries);
 
             // log debug
             for(int i = 0; i < currentEntries.Count; i++)
@@ -296,7 +296,7 @@ public class MstDb
                 var entry = currentEntries[i];
                 string entryKey = currentEntryKeys[i];
                 
-                if (MstEntry.CompareKeys(recordKeyToInsert, entryKey) < 0)
+                if (RepoMstEntry.CompareKeys(recordKeyToInsert, entryKey) < 0)
                 {
                     break;
                 }
@@ -313,16 +313,16 @@ public class MstDb
                 //
                 // Get (or create) left subtree
                 //
-                MstNode? leftNode = null;                
+                RepoMstNode? leftNode = null;                
                 if (currentNode.LeftMstNodeCid != null)
                 {
                     leftNode = _db.GetMstNodeByCid(currentNode.LeftMstNodeCid);
                 }
                 else
                 {
-                    leftNode = new MstNode();
+                    leftNode = new RepoMstNode();
                     leftNode.NodeObjectId = Guid.NewGuid();
-                    leftNode.RecomputeCid(new List<MstEntry>());
+                    leftNode.RecomputeCid(new List<RepoMstEntry>());
                     _db.InsertMstNode(leftNode);
                     currentNode.LeftMstNodeCid = leftNode.Cid;
                 }
@@ -332,7 +332,7 @@ public class MstDb
                     throw new Exception("Left MST node is null after creation.");
                 }
 
-                List<MstEntry> leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode.NodeObjectId!);
+                List<RepoMstEntry> leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode.NodeObjectId!);
 
 
                 //
@@ -357,7 +357,7 @@ public class MstDb
             else
             {
                 // Go to right subtree of the selected entry
-                MstNode? rightNode = null;
+                RepoMstNode? rightNode = null;
                 if (currentEntries[insertPos - 1].TreeMstNodeCid != null)
                 {
                     rightNode = _db.GetMstNodeByCid(currentEntries[insertPos - 1].TreeMstNodeCid);
@@ -367,14 +367,14 @@ public class MstDb
                     //
                     // Create new right node
                     //
-                    rightNode = new MstNode();
+                    rightNode = new RepoMstNode();
                     rightNode.NodeObjectId = Guid.NewGuid();
-                    rightNode.RecomputeCid(new List<MstEntry>());
+                    rightNode.RecomputeCid(new List<RepoMstEntry>());
                     _db.InsertMstNode(rightNode);
                     currentEntries[insertPos - 1].TreeMstNodeCid = rightNode.Cid;
                 }
 
-                List<MstEntry> rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode?.NodeObjectId!);
+                List<RepoMstEntry> rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode?.NodeObjectId!);
 
                 //
                 // Recurse - child layer is currentLayer - 1 (lower layers are deeper in tree)
@@ -453,7 +453,7 @@ public class MstDb
     /// <param name="currentEntries"></param>
     /// <param name="currentLayer"></param>
     /// <param name="updatedNodeObjectIds"></param>
-    private void InternalDeleteEntry(string recordKeyToDelete, MstNode? currentNode, List<MstEntry> currentEntries, int currentLayer, List<Guid> updatedNodeObjectIds)
+    private void InternalDeleteEntry(string recordKeyToDelete, RepoMstNode? currentNode, List<RepoMstEntry> currentEntries, int currentLayer, List<Guid> updatedNodeObjectIds)
     {
         if(currentNode is null)
         {
@@ -463,8 +463,8 @@ public class MstDb
         //
         // Calculate full keys and depth.
         //
-        var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
-        int keyDepthToDelete = MstEntry.GetKeyDepth(recordKeyToDelete);
+        var currentEntryKeys = RepoMstEntry.GetFullKeys(currentEntries);
+        int keyDepthToDelete = RepoMstEntry.GetKeyDepth(recordKeyToDelete);
 
         _logger.LogTrace($"MstDb.InternalDeleteEntry: currentLayer={currentLayer}, keyDepthToDelete={keyDepthToDelete}, currentNodeCid={currentNode.Cid?.Base32}");
 
@@ -483,7 +483,7 @@ public class MstDb
                 var entry = currentEntries[i];
                 string currentEntryFullKey = currentEntryKeys[i];
                 _logger.LogTrace($"     MstDb.InternalDeleteEntry: Checking entry {i}, fullKey={currentEntryFullKey}, recordKeyToDelete={recordKeyToDelete}");
-                int comparison = MstEntry.CompareKeys(recordKeyToDelete, currentEntryFullKey);
+                int comparison = RepoMstEntry.CompareKeys(recordKeyToDelete, currentEntryFullKey);
 
                 if(comparison == 0)
                 {
@@ -555,8 +555,8 @@ public class MstDb
                 currentEntryKeys.RemoveAt(deleteIndex);
 
                 // fix up
-                MstEntry.FixEntryIndexes(currentEntries);
-                MstEntry.FixPrefixLengths(currentEntries);
+                RepoMstEntry.FixEntryIndexes(currentEntries);
+                RepoMstEntry.FixPrefixLengths(currentEntries);
 
                 currentNode.RecomputeCid(currentEntries);
                 _db.ReplaceMstNode(currentNode, currentEntries);
@@ -579,7 +579,7 @@ public class MstDb
                 var entry = currentEntries[i];
                 string entryKey = currentEntryKeys[i];
                 
-                if (MstEntry.CompareKeys(recordKeyToDelete, entryKey) < 0)
+                if (RepoMstEntry.CompareKeys(recordKeyToDelete, entryKey) < 0)
                 {
                     break;
                 }
@@ -628,7 +628,7 @@ public class MstDb
             //
             else
             {
-                MstNode? rightNode = null;
+                RepoMstNode? rightNode = null;
                 if (currentEntries[deletePos - 1].TreeMstNodeCid != null)
                 {
                     rightNode = _db.GetMstNodeByCid(currentEntries[deletePos - 1].TreeMstNodeCid);
@@ -726,7 +726,7 @@ public class MstDb
     /// <param name="currentEntries"></param>
     /// <param name="currentLayer"></param>
     /// <param name="visitedNodeObjectIds"></param>
-    private void InternalWalkEntry(string recordKey, MstNode? currentNode, List<MstEntry> currentEntries, int currentLayer, List<Guid> visitedNodeObjectIds)
+    private void InternalWalkEntry(string recordKey, RepoMstNode? currentNode, List<RepoMstEntry> currentEntries, int currentLayer, List<Guid> visitedNodeObjectIds)
     {
         if(currentNode is null)
         {
@@ -736,8 +736,8 @@ public class MstDb
         //
         // Calculate full keys and depth.
         //
-        var currentEntryKeys = MstEntry.GetFullKeys(currentEntries);
-        int keyDepthToVisit = MstEntry.GetKeyDepth(recordKey);
+        var currentEntryKeys = RepoMstEntry.GetFullKeys(currentEntries);
+        int keyDepthToVisit = RepoMstEntry.GetKeyDepth(recordKey);
 
         _logger.LogTrace($"MstDb.InternalWalkEntry: currentLayer={currentLayer}, keyDepthToVisit={keyDepthToVisit}, currentNodeCid={currentNode.Cid?.Base32}");
 
@@ -756,7 +756,7 @@ public class MstDb
                 var entry = currentEntries[i];
                 string fullKey = currentEntryKeys[i];
                 _logger.LogTrace($"     MstDb.InternalWalkEntry: Checking entry {i}, fullKey={fullKey}, recordKey={recordKey}");
-                int comparison = MstEntry.CompareKeys(recordKey, fullKey);
+                int comparison = RepoMstEntry.CompareKeys(recordKey, fullKey);
 
                 if(comparison == 0)
                 {
@@ -790,7 +790,7 @@ public class MstDb
                 var entry = currentEntries[i];
                 string entryKey = currentEntryKeys[i];
                 
-                if (MstEntry.CompareKeys(recordKey, entryKey) < 0)
+                if (RepoMstEntry.CompareKeys(recordKey, entryKey) < 0)
                 {
                     break;
                 }
@@ -836,7 +836,7 @@ public class MstDb
             //
             else
             {
-                MstNode? rightNode = null;
+                RepoMstNode? rightNode = null;
                 if (currentEntries[visitPos - 1].TreeMstNodeCid != null)
                 {
                     rightNode = _db.GetMstNodeByCid(currentEntries[visitPos - 1].TreeMstNodeCid);

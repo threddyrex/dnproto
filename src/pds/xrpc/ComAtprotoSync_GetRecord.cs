@@ -44,12 +44,12 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         //
         // Get mst nodes
         //
-        List<(MstNode node, List<MstEntry> entries)> mstNodes = new List<(MstNode node, List<MstEntry> entries)>();
+        List<(RepoMstNode node, List<RepoMstEntry> entries)> mstNodes = new List<(RepoMstNode node, List<RepoMstEntry> entries)>();
 
         foreach(Guid nodeObjectId in mst.WalkEntry($"{collection}/{rkey}"))
         {
-            MstNode node = Pds.PdsDb.GetMstNodeByObjectId(nodeObjectId);
-            List<MstEntry> entries = Pds.PdsDb.GetMstEntriesForNodeObjectId(nodeObjectId);
+            RepoMstNode node = Pds.PdsDb.GetMstNodeByObjectId(nodeObjectId);
+            List<RepoMstEntry> entries = Pds.PdsDb.GetMstEntriesForNodeObjectId(nodeObjectId);
             mstNodes.Add((node, entries));
         }
 

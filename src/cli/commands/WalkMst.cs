@@ -56,7 +56,7 @@ namespace dnproto.cli.commands
             //
             // Walk MST. It takes care of parsing RepoRecords.
             //
-            Mst.WalkMst(repoFile,
+            RepoMstWalker.WalkMst(repoFile,
                 // data loaded callback
                 (repoHeader, repoCommit, mstNodes, mstNodeEntries, atProtoRecordCids) =>
                 {
@@ -75,16 +75,16 @@ namespace dnproto.cli.commands
                     Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{direction}] {mstNode.Cid}");
                     nodeCount++;
 
-                    var fullKeys = MstEntry.GetFullKeys(mstEntries);
+                    var fullKeys = RepoMstEntry.GetFullKeys(mstEntries);
 
                     for(int i = 0; i < fullKeys.Count; i++)
                     {
                         var entry = mstEntries[i];
                         var fullKey = fullKeys[i];
-                        var keyDepth = MstEntry.GetKeyDepth(fullKey);
-                        if(i > 0 && keyDepth != MstEntry.GetKeyDepth(fullKeys[i-1]))
+                        var keyDepth = RepoMstEntry.GetKeyDepth(fullKey);
+                        if(i > 0 && keyDepth != RepoMstEntry.GetKeyDepth(fullKeys[i-1]))
                         {
-                            Logger.LogError($"Key depth {keyDepth} does not match previous key depth {MstEntry.GetKeyDepth(fullKeys[i-1])} for key {fullKey}");
+                            Logger.LogError($"Key depth {keyDepth} does not match previous key depth {RepoMstEntry.GetKeyDepth(fullKeys[i-1])} for key {fullKey}");
                         }
 
                         Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}  [ENTRY] [{keyDepth}] {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}, t: {entry.TreeMstNodeCid}");

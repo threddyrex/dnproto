@@ -65,7 +65,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
         _fixture.PdsDb.DeleteAllMstEntries();
 
         // Arrange - Create MST nodes and entries
-        var mstNode = new MstNode
+        var mstNode = new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
@@ -74,7 +74,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
 
         _fixture.PdsDb.InsertMstNode(mstNode);
 
-        _fixture.PdsDb.InsertMstEntry((Guid)mstNode.NodeObjectId, new MstEntry
+        _fixture.PdsDb.InsertMstEntry((Guid)mstNode.NodeObjectId, new RepoMstEntry
             {
                 KeySuffix = "app.bsky.actor.profile/self",
                 PrefixLength = 0,
@@ -101,7 +101,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
 
 
         // Arrange - Create MST nodes and entries
-        var mstNode =new MstNode
+        var mstNode =new RepoMstNode
         {
             NodeObjectId = Guid.NewGuid(),
             Cid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6"),
@@ -111,9 +111,9 @@ public class MstTests : IClassFixture<MstTestsFixture>
         _fixture.PdsDb.InsertMstNode(mstNode);
 
 
-        var mstEntries = new List<MstEntry>
+        var mstEntries = new List<RepoMstEntry>
         {
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 0,
                 KeySuffix = "app.bsky.actor.profile/self",
@@ -121,7 +121,7 @@ public class MstTests : IClassFixture<MstTestsFixture>
                 TreeMstNodeCid = null,
                 RecordCid = CidV1.FromBase32("bafyreia67z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6z7x2f5t3g5x7z5q4y6")
             },
-            new MstEntry
+            new RepoMstEntry
             {
                 EntryIndex = 1,
                 KeySuffix = "other",
