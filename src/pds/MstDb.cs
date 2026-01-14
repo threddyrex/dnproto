@@ -108,7 +108,7 @@ public class MstDb
         // Calculate the key depth and current root layer
         //
         int keyDepth = MstEntry.GetKeyDepth(key);
-        int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
+        int rootLayer = GetRootLayerKeyDepth(mstNodeRoot, mstNodeRootEntries);
 
         //
         // If the key depth is higher than the current root layer,
@@ -157,7 +157,7 @@ public class MstDb
     /// Calculate the layer of the root node based on the highest key depth in the tree.
     /// If the tree is empty, returns 0.
     /// </summary>
-    private int GetRootLayer(MstNode rootNode, List<MstEntry> rootEntries)
+    private int GetRootLayerKeyDepth(MstNode rootNode, List<MstEntry> rootEntries)
     {
         // If root has entries, the layer is the depth of the first key
         if (rootEntries.Count > 0)
@@ -173,7 +173,7 @@ public class MstDb
             if (leftNode != null)
             {
                 var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode.NodeObjectId!);
-                return GetRootLayer(leftNode, leftEntries) + 1;
+                return GetRootLayerKeyDepth(leftNode, leftEntries) + 1;
             }
         }
 
@@ -244,6 +244,10 @@ public class MstDb
 
                 insertIndex++;
             }
+
+            //
+            // TODO: figure out if we need to fix the LeftMstNodeCid (move it to entry?)
+            //
 
             //
             // CASE 2 - insert new MstEntry (insert)
@@ -411,7 +415,7 @@ public class MstDb
         //
         // Calculate root layer
         //
-        int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
+        int rootLayer = GetRootLayerKeyDepth(mstNodeRoot, mstNodeRootEntries);
 
         //
         // Recursive delete
@@ -477,9 +481,9 @@ public class MstDb
             for(int i = 0; i < currentEntries.Count; i++)
             {
                 var entry = currentEntries[i];
-                string fullKey = currentEntryKeys[i];
-                _logger.LogTrace($"     MstDb.InternalDeleteEntry: Checking entry {i}, fullKey={fullKey}, recordKeyToDelete={recordKeyToDelete}");
-                int comparison = MstEntry.CompareKeys(recordKeyToDelete, fullKey);
+                string currentEntryFullKey = currentEntryKeys[i];
+                _logger.LogTrace($"     MstDb.InternalDeleteEntry: Checking entry {i}, fullKey={currentEntryFullKey}, recordKeyToDelete={recordKeyToDelete}");
+                int comparison = MstEntry.CompareKeys(recordKeyToDelete, currentEntryFullKey);
 
                 if(comparison == 0)
                 {
@@ -496,41 +500,53 @@ public class MstDb
             if(deleteIndex != -1)
             {
                 //
-                // Get the subtree from the entry being deleted (if any)
+                // Get the subtree from the entry being deleted.
+                // If it exists, need to figure out where to put it.
                 //
                 CidV1? deletedEntrySubtreeCid = currentEntries[deleteIndex].TreeMstNodeCid;
 
-                //
-                // Determine the left subtree to merge with:
-                // - If deleteIndex == 0, it's currentNode.LeftMstNodeCid
-                // - Otherwise, it's currentEntries[deleteIndex - 1].TreeMstNodeCid
-                //
-                CidV1? leftSubtreeCid;
-                if (deleteIndex == 0)
+                if(deletedEntrySubtreeCid != null)
                 {
-                    leftSubtreeCid = currentNode.LeftMstNodeCid;
-                }
-                else
-                {
-                    leftSubtreeCid = currentEntries[deleteIndex - 1].TreeMstNodeCid;
+                    //
+                    // Possible cases:
+                    // 1) The deleted entry is the first entry in the node (deleteIndex == 0)
+                    //      1a) The node does not have a left subtree -> the deleted entry's subtree becomes the new left subtree
+                    //      1b) The node has a left subtree -> merge the deleted entry's subtree with the current left subtree
+                    // 2) The deleted entry is not the first entry in the node (deleteIndex > 0)
+                    //      2a) The entry previous to the deleted entry doesn't have a subtree -> the deleted entry's subtree becomes the new subtree of the previous entry
+                    //      2b) The entry previous to the deleted entry has a subtree -> merge the deleted entry's subtree with the previous entry's subtree
+                    //
+
+                    //
+                    // Case 1: The deleted entry is the first entry in the node (deleteIndex == 0) and there isn't a left subtree
+                    //
+                    if (deleteIndex == 0 && currentNode.LeftMstNodeCid == null)
+                    {
+                        currentNode.LeftMstNodeCid = deletedEntrySubtreeCid;
+                    }
+                    //
+                    // Case 2: The deleted entry is the first entry in the node (deleteIndex == 0) and there is a left subtree
+                    //
+                    else if (deleteIndex == 0 && currentNode.LeftMstNodeCid != null)
+                    {
+                        // TODO: Merge the deleted entry's subtree with the current left subtree
+                    }
+                    //
+                    // Case 3: The deleted entry is not the first entry in the node (deleteIndex > 0) and the previous entry doesn't have a subtree
+                    //
+                    else if (deleteIndex > 0 && currentEntries[deleteIndex - 1].TreeMstNodeCid == null)
+                    {
+                        currentEntries[deleteIndex - 1].TreeMstNodeCid = deletedEntrySubtreeCid;
+                    }
+                    //
+                    // Case 4: The deleted entry is not the first entry in the node (deleteIndex > 0) and the previous entry has a subtree
+                    //
+                    else if (deleteIndex > 0 && currentEntries[deleteIndex - 1].TreeMstNodeCid != null)
+                    {
+                        // TODO: Merge the deleted entry's subtree with the previous entry's subtree
+                    }
                 }
 
-                //
-                // Merge the two subtrees
-                //
-                CidV1? mergedSubtreeCid = MergeMstNodes(leftSubtreeCid, deletedEntrySubtreeCid, updatedNodeObjectIds);
-
-                //
-                // Update the subtree pointer to the merged result
-                //
-                if (deleteIndex == 0)
-                {
-                    currentNode.LeftMstNodeCid = mergedSubtreeCid;
-                }
-                else
-                {
-                    currentEntries[deleteIndex - 1].TreeMstNodeCid = mergedSubtreeCid;
-                }
 
                 //
                 // Now remove the entry
@@ -644,133 +660,12 @@ public class MstDb
     }
 
 
-    /// <summary>
-    /// Merge two MST subtrees into a single subtree.
-    /// This is needed when deleting an entry that has a subtree pointer (TreeMstNodeCid).
-    /// The left subtree from before the deleted entry must be merged with the 
-    /// deleted entry's subtree.
-    /// 
-    /// The merge algorithm:
-    /// 1. If either subtree is null, return the other
-    /// 2. Otherwise, create a new node containing:
-    ///    - All keys/vals from left node, followed by all keys/vals from right node
-    ///    - Subtrees: all but the last from left, merged(last of left, first of right), all but first from right
-    /// </summary>
-    /// <param name="leftCid">CID of the left subtree (can be null)</param>
-    /// <param name="rightCid">CID of the right subtree (can be null)</param>
-    /// <param name="updatedNodeObjectIds">List to track newly created nodes</param>
-    /// <returns>CID of the merged subtree, or null if both inputs are null</returns>
-    private CidV1? MergeMstNodes(CidV1? leftCid, CidV1? rightCid, List<Guid> updatedNodeObjectIds)
-    {
-        // If either is null, return the other
-        if (leftCid == null)
-        {
-            return rightCid;
-        }
-        if (rightCid == null)
-        {
-            return leftCid;
-        }
-
-        // Get both nodes
-        var leftNode = _db.GetMstNodeByCid(leftCid);
-        var rightNode = _db.GetMstNodeByCid(rightCid);
-
-        if (leftNode == null || rightNode == null)
-        {
-            _logger.LogError($"MstDb.MergeMstNodes: Could not find node for CID. leftCid={leftCid?.Base32}, rightCid={rightCid?.Base32}");
-            return leftCid ?? rightCid;
-        }
-
-        var leftEntries = _db.GetMstEntriesForNodeObjectId((Guid)leftNode.NodeObjectId!);
-        var rightEntries = _db.GetMstEntriesForNodeObjectId((Guid)rightNode.NodeObjectId!);
-
-        _logger.LogTrace($"MstDb.MergeMstNodes: Merging left node ({leftEntries.Count} entries) with right node ({rightEntries.Count} entries)");
-
-        // Recursively merge the rightmost subtree of left with the leftmost subtree of right
-        CidV1? leftRightmostSubtree = leftEntries.Count > 0 
-            ? leftEntries[leftEntries.Count - 1].TreeMstNodeCid 
-            : leftNode.LeftMstNodeCid;
-        CidV1? rightLeftmostSubtree = rightNode.LeftMstNodeCid;
-
-        CidV1? mergedMiddleSubtree = MergeMstNodes(leftRightmostSubtree, rightLeftmostSubtree, updatedNodeObjectIds);
-
-        // Create the merged node
-        var mergedNode = new MstNode();
-        mergedNode.NodeObjectId = Guid.NewGuid();
-        mergedNode.LeftMstNodeCid = leftNode.LeftMstNodeCid;
-
-        // Build merged entries list
-        var mergedEntries = new List<MstEntry>();
-
-        // Get full keys for proper reconstruction
-        var leftFullKeys = MstEntry.GetFullKeys(leftEntries);
-        var rightFullKeys = MstEntry.GetFullKeys(rightEntries);
-
-        // Add all entries from left node
-        for (int i = 0; i < leftEntries.Count; i++)
-        {
-            var entry = leftEntries[i];
-            var newEntry = new MstEntry
-            {
-                KeySuffix = leftFullKeys[i], // Use full key, will be fixed later
-                PrefixLength = 0,
-                RecordCid = entry.RecordCid,
-                TreeMstNodeCid = entry.TreeMstNodeCid,
-                EntryIndex = mergedEntries.Count,
-                NodeObjectId = mergedNode.NodeObjectId
-            };
-
-            // For the last entry from left, update its tree pointer to the merged middle subtree
-            if (i == leftEntries.Count - 1)
-            {
-                newEntry.TreeMstNodeCid = mergedMiddleSubtree;
-            }
-
-            mergedEntries.Add(newEntry);
-        }
-
-        // Special case: if left has no entries, the merged middle subtree becomes the LeftMstNodeCid
-        if (leftEntries.Count == 0)
-        {
-            mergedNode.LeftMstNodeCid = mergedMiddleSubtree;
-        }
-
-        // Add all entries from right node  
-        for (int i = 0; i < rightEntries.Count; i++)
-        {
-            var entry = rightEntries[i];
-            var newEntry = new MstEntry
-            {
-                KeySuffix = rightFullKeys[i], // Use full key, will be fixed later
-                PrefixLength = 0,
-                RecordCid = entry.RecordCid,
-                TreeMstNodeCid = entry.TreeMstNodeCid,
-                EntryIndex = mergedEntries.Count,
-                NodeObjectId = mergedNode.NodeObjectId
-            };
-            mergedEntries.Add(newEntry);
-        }
-
-        // Fix up indexes and prefix lengths
-        MstEntry.FixEntryIndexes(mergedEntries);
-        MstEntry.FixPrefixLengths(mergedEntries);
-
-        // Compute CID and save
-        mergedNode.RecomputeCid(mergedEntries);
-        _db.InsertMstNode(mergedNode);
-        
-        // Insert entries
-        _db.InsertMstEntries((Guid)mergedNode.NodeObjectId!, mergedEntries);
-
-        updatedNodeObjectIds.Add((Guid)mergedNode.NodeObjectId!);
-
-        _logger.LogTrace($"MstDb.MergeMstNodes: Created merged node with CID {mergedNode.Cid?.Base32} and {mergedEntries.Count} entries");
-
-        return mergedNode.Cid;
-    }
 
     #endregion
+
+
+
+
 
 
     #region WALK
@@ -793,7 +688,7 @@ public class MstDb
         // (note: I had this backwards at first. The correct way to represent the
         // tree is to have the "largest" key depths towards the top - at the root)
         //
-        int rootLayer = GetRootLayer(mstNodeRoot, mstNodeRootEntries);
+        int rootLayer = GetRootLayerKeyDepth(mstNodeRoot, mstNodeRootEntries);
 
         //
         // Recursive walk
