@@ -91,7 +91,7 @@ public class UserRepo
             //
             foreach(var write in writes)
             {
-                _logger.LogInfo($"Applying write operation: {write.Type} on collection: {write.Collection} with rkey: {write.Rkey}");
+                _logger.LogInfo($"[REPO] Applying write operation: {write.Type} on collection: {write.Collection} with rkey: {write.Rkey}");
 
                 string uri = $"at://{_userDid}/{write.Collection}/{write.Rkey}";
                 string fullKey = $"{write.Collection}/{write.Rkey}";
@@ -107,7 +107,7 @@ public class UserRepo
 
                         if(write.Record is null)
                         {
-                            _logger.LogError($"Update operation missing record for collection: {write.Collection} with rkey: {write.Rkey}");
+                            _logger.LogError($"[REPO] Update operation missing record for collection: {write.Collection} with rkey: {write.Rkey}");
                             continue;
                         }
 
