@@ -52,6 +52,7 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         //
         Mst mst = Mst.AssembleTreeFromItems(Pds.PdsDb.GetAllMstItems());
         List<MstNode> mstNodes = mst.FindNodesForKey(fullKey);
+        List<MstNode> allNodes = mst.FindAllNodes();
 
 
         //
@@ -74,11 +75,16 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         var repoCommitCid = repoCommit.Cid;
         await UserRepo.WriteBlockAsync(stream, repoCommitCid!, repoCommitDagCbor);
 
-        // mst nodes
+        // Convert all mst nodes first so CIDs are computed correctly (depends on full tree structure)
         Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
-        foreach(MstNode node in mstNodes)
+        foreach(MstNode node in allNodes)
         {
             RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, node);
+        }
+
+        // Write only the nodes on the path to the record
+        foreach(MstNode node in allNodes)
+        {
             var (nodeCid, nodeDagCbor) = mstNodeCache[node];
             await UserRepo.WriteBlockAsync(stream, nodeCid!, nodeDagCbor);
         }
