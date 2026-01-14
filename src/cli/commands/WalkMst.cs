@@ -1,9 +1,11 @@
 using System.Text;
 
 using dnproto.fs;
+using dnproto.mst;
 using dnproto.repo;
 using dnproto.ws;
 using dnproto.uri;
+using System.Security.Cryptography.X509Certificates;
 
 namespace dnproto.cli.commands
 {
@@ -47,64 +49,44 @@ namespace dnproto.cli.commands
 
 
             //
-            // For stats
+            // Load mst
             //
-            int nodeCount = 0;
-            int errorCount = 0;
+            Mst mst = RepoMst.LoadMstFromRepo(repoFile);
 
 
             //
-            // Walk MST. It takes care of parsing RepoRecords.
+            // Walk
             //
-            RepoMstWalker.WalkMst(repoFile,
-                // data loaded callback
-                (repoHeader, repoCommit, mstNodes, mstNodeEntries, atProtoRecordCids) =>
+            VisitNode(mst.Root, 0, "root");
+
+
+        }
+
+        public void VisitNode(MstNode node, int indent, string direction)
+        {
+            Logger.LogInfo($"{new string(' ', indent)} [{direction}] [{node.KeyDepth}] ");
+
+            foreach(var entry in node.Entries)
+            {
+                Logger.LogInfo($"{new string(' ', indent)} {entry.Key}: {entry.Value}");
+            }
+
+            Logger.LogInfo("");
+
+            if(node.LeftTree != null)
+            {
+                VisitNode(node.LeftTree, indent + 2, "left");                
+                Logger.LogInfo("");
+            }
+
+
+            foreach(var entry in node.Entries)
+            {
+                if(entry.RightTree != null)
                 {
-                    Logger.LogInfo("Beginning MST Walk...");
-                    Logger.LogInfo($"   RepoHeader.RepoCommitCid: {repoHeader.RepoCommitCid}");
-                    Logger.LogInfo($"   RepoCommit.Cid: {repoCommit.Cid}");
-                    Logger.LogInfo($"   RepoCommit.RootMstNodeCid: {repoCommit.RootMstNodeCid}");
-                    Logger.LogInfo($"   Total MST Nodes Loaded: {mstNodes.Count}");
-                    Logger.LogInfo($"   Total AtProto Record CIDs: {atProtoRecordCids.Count}");
-                    Logger.LogTrace("");
-                    return true;
-                },
-                // mst node callback
-                (direction, mstNode, currentDepth, mstEntries) =>
-                {
-                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{direction}] {mstNode.Cid}");
-                    nodeCount++;
-
-                    var fullKeys = RepoMstEntry.GetFullKeys(mstEntries);
-
-                    for(int i = 0; i < fullKeys.Count; i++)
-                    {
-                        var entry = mstEntries[i];
-                        var fullKey = fullKeys[i];
-                        var keyDepth = RepoMstEntry.GetKeyDepth(fullKey);
-                        if(i > 0 && keyDepth != RepoMstEntry.GetKeyDepth(fullKeys[i-1]))
-                        {
-                            Logger.LogError($"Key depth {keyDepth} does not match previous key depth {RepoMstEntry.GetKeyDepth(fullKeys[i-1])} for key {fullKey}");
-                        }
-
-                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}  [ENTRY] [{keyDepth}] {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}, t: {entry.TreeMstNodeCid}");
-                    }
-
-                    Logger.LogTrace("");
-                    return true;
-                },
-                // error callback
-                (errorMsg) =>
-                {
-                    Logger.LogError($"Error walking MST: {errorMsg}");
-                    errorCount++;
-                    return true;
-                });
-            
-
-            Logger.LogInfo($"MST walk complete.");
-            Logger.LogInfo($"   Nodes visited: {nodeCount}");
-            Logger.LogInfo($"   Errors found: {errorCount}");
+                    VisitNode(entry.RightTree, indent + 2, "right");
+                }
+            }
         }
 
    }

@@ -1,6 +1,7 @@
 
 
 using dnproto.fs;
+using dnproto.mst;
 using dnproto.repo;
 using Microsoft.AspNetCore.Http;
 
@@ -16,20 +17,20 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         //
         string? collection = HttpContext.Request.Query.ContainsKey("collection") ? (string?) HttpContext.Request.Query["collection"] : null;
         string? rkey = HttpContext.Request.Query.ContainsKey("rkey") ? (string?) HttpContext.Request.Query["rkey"] : null;
-        if(collection == null)
+        if(collection is null)
         {
             return Results.Json(new { error = "InvalidRequest", message = "Error: Param 'collection' is required." }, statusCode: 400);
         }
-        if(rkey == null)
+        if(rkey is null)
         {
             return Results.Json(new { error = "InvalidRequest", message = "Error: Param 'rkey' is required." }, statusCode: 400);
         }
 
+        string fullKey = $"{collection}/{rkey}";
 
         //
         // Get things
         //
-        MstDb mst = MstDb.ConnectMstDb(Pds.LocalFileSystem, Pds.Logger, Pds.PdsDb);
         RepoHeader repoHeader = Pds.PdsDb.GetRepoHeader();
         RepoCommit repoCommit = Pds.PdsDb.GetRepoCommit();
 
@@ -40,18 +41,18 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
 
         var repoRecord = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
 
+        if(Pds.PdsDb.MstItemExists(fullKey) == false)
+        {
+            return Results.Json(new { error = "NotFound", message = "Record not found" }, statusCode: 404);            
+        }
+
 
         //
         // Get mst nodes
         //
-        List<(RepoMstNode node, List<RepoMstEntry> entries)> mstNodes = new List<(RepoMstNode node, List<RepoMstEntry> entries)>();
+        Mst mst = Mst.AssembleTreeFromItems(Pds.PdsDb.GetAllMstItems());
+        List<MstNode> mstNodes = mst.FindNodesForKey(fullKey);
 
-        foreach(Guid nodeObjectId in mst.WalkEntry($"{collection}/{rkey}"))
-        {
-            RepoMstNode node = Pds.PdsDb.GetMstNodeByObjectId(nodeObjectId);
-            List<RepoMstEntry> entries = Pds.PdsDb.GetMstEntriesForNodeObjectId(nodeObjectId);
-            mstNodes.Add((node, entries));
-        }
 
         //
         // Write a CAR file to stream, using "application/vnd.ipld.car" content type
@@ -74,10 +75,11 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         await UserRepo.WriteBlockAsync(stream, repoCommitCid!, repoCommitDagCbor);
 
         // mst nodes
-        foreach(var (node, entries) in mstNodes)
+        Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
+        foreach(MstNode node in mstNodes)
         {
-            var nodeDagCbor = node.ToDagCborObject(entries);
-            var nodeCid = node.Cid;
+            RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, node);
+            var (nodeCid, nodeDagCbor) = mstNodeCache[node];
             await UserRepo.WriteBlockAsync(stream, nodeCid!, nodeDagCbor);
         }
 

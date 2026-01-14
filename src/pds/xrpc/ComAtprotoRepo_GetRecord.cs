@@ -73,7 +73,7 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
         //
         // Retrieve local record
         //
-        bool recordExists = Pds.UserRepo.RecordExists(collection!, rkey!);
+        bool recordExists = Pds.PdsDb.RecordExists(collection!, rkey!);
         if(!recordExists)
         {
             return Results.Json(new { error = "NotFound", message = "Error: Record not found." }, statusCode: 404);
@@ -81,7 +81,7 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
 
         string uri = $"at://{Pds.Config.UserDid}/{collection}/{rkey}";
 
-        RepoRecord repoRecord = Pds.UserRepo.GetRecord(collection!, rkey!);
+        RepoRecord repoRecord = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
 
 
 

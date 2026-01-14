@@ -100,20 +100,7 @@ public class RepoRecord
     }
 
 
-    public bool IsMstNode()
-    {
-        return RepoMstNode.IsMstNode(this.DataBlock);
-    }
 
-    public (RepoMstNode?, List<RepoMstEntry>?) ToMstNode()
-    {
-        if (!IsMstNode())
-            return (null, null);
-        
-        var (mstNode, mstEntries) = RepoMstNode.FromDagCborObject(this.DataBlock);
-        mstNode?.Cid = this.Cid;
-        return (mstNode, mstEntries);
-    }
 
     public bool IsRepoCommit()
     {

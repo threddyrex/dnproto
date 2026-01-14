@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.fs;
 using dnproto.log;
+using dnproto.mst;
 using dnproto.pds;
 using dnproto.repo;
 
@@ -79,12 +80,11 @@ public class Installer
             PdsDb.CreateTable_Preferences(connection, logger);
             PdsDb.CreateTable_RepoHeader(connection, logger);
             PdsDb.CreateTable_RepoCommit(connection, logger);
-            PdsDb.CreateTable_MstNode(connection, logger);
-            PdsDb.CreateTable_MstEntry(connection, logger);
             PdsDb.CreateTable_RepoRecord(connection, logger);
             PdsDb.CreateTable_SequenceNumber(connection, logger);
             PdsDb.CreateTable_FirehoseEvent(connection, logger);
             PdsDb.CreateTable_LogLevel(connection, logger);
+            PdsDb.CreateTable_MstItem(connection, logger);
         }
 
     }
@@ -214,12 +214,11 @@ public class Installer
         //
         logger.LogInfo("Deleting existing repo data (if any).");
         db.DeleteRepoCommit();
-        db.DeleteAllMstNodes();
-        db.DeleteAllMstEntries();
         db.DeleteAllRepoRecords();
         db.DeleteRepoHeader();
         db.DeleteAllFirehoseEvents();
         db.DeletePreferences();
+        db.DeleteAllMstItems();
 
 
         //
@@ -228,16 +227,12 @@ public class Installer
         db.GetNewSequenceNumberForFirehose();
 
         //
-        // Create Mst Node
+        // Create empty MST node
         //
-        var mstNode = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = null, // to be set
-            LeftMstNodeCid = null
-        };
-
-        mstNode.RecomputeCid(new List<RepoMstEntry>());
+        var mstNode = new MstNode() { KeyDepth = 0, Entries = new List<MstEntry>() };
+        Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
+        RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, mstNode);
+        CidV1 rootCid = mstNodeCache[mstNode].Item1;
 
 
         //
@@ -248,12 +243,11 @@ public class Installer
         {
             Did = config.UserDid,
             Version = 3,
-            RootMstNodeCid = mstNode.Cid!,
+            RootMstNodeCid = rootCid,
             Rev = RecordKey.GenerateTid()
         };
 
-        repoCommit.SignAndRecomputeCid(mstNode.Cid!, commitSigningFunction);
-
+        repoCommit.SignAndRecomputeCid(rootCid, commitSigningFunction);
 
         if(repoCommit.Cid is null)
         {
@@ -305,7 +299,6 @@ public class Installer
         // Insert everything into the database
         //
         logger.LogInfo("Inserting initial MST node, repo commit, and repo header into the database.");
-        db.InsertMstNode(mstNode); // no entries
         db.InsertUpdateRepoCommit(repoCommit);
         db.InsertUpdateRepoHeader(repoHeader);
         db.InsertPreferences(prefsJsonString);

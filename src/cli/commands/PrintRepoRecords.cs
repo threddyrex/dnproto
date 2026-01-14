@@ -4,6 +4,7 @@ using dnproto.fs;
 using dnproto.repo;
 using dnproto.ws;
 using dnproto.uri;
+using dnproto.mst;
 
 namespace dnproto.cli.commands
 {
@@ -106,7 +107,7 @@ namespace dnproto.cli.commands
                     {
                         repoRecordType = "ATPROTO RECORD";
                     }
-                    else if(repoRecord.IsMstNode())
+                    else if(RepoMst.IsMstNode(repoRecord))
                     {
                         repoRecordType = "MST NODE";
                     }

@@ -274,276 +274,6 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     #endregion
 
 
-    #region MSTNODE
-    [Fact]
-    public void MstNode_InsertAndRetrieve()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstNodeToInsert = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
-            LeftMstNodeCid = null
-        };
-
-        // Act
-        pdsDb!.InsertMstNode(mstNodeToInsert);
-
-        var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-
-        // Assert
-        Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid.Base32, retrievedMstNode!.Cid?.Base32);
-        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNode.LeftMstNodeCid?.Base32);
-
-        Assert.NotNull(retrievedMstNodeById);
-        Assert.Equal(mstNodeToInsert.Cid.Base32, retrievedMstNodeById!.Cid?.Base32);
-        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNodeById.LeftMstNodeCid?.Base32);
-        Assert.Equal(mstNodeToInsert.NodeObjectId, retrievedMstNodeById.NodeObjectId);
-
-        pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
-    }
-
-    [Fact]
-    public void MstNode_InsertAndRetrieve_WithLeftMstNodeCid()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstNodeToInsert = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
-            LeftMstNodeCid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai")
-        };
-
-        // Act
-        pdsDb!.InsertMstNode(mstNodeToInsert);
-
-        var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-
-        // Assert
-        Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
-        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNode.LeftMstNodeCid?.Base32);
-
-        Assert.NotNull(retrievedMstNodeById);
-        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNodeById!.Cid?.Base32);
-        Assert.Equal(mstNodeToInsert.LeftMstNodeCid?.Base32, retrievedMstNodeById.LeftMstNodeCid?.Base32);
-        Assert.Equal(mstNodeToInsert.NodeObjectId, retrievedMstNodeById.NodeObjectId);
-
-
-        pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
-    }
-
-
-    [Fact]
-    public void MstNode_DeleteMstNode()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstNodeToInsert = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm"),
-            LeftMstNodeCid = null
-        };
-
-        // Act
-        pdsDb!.InsertMstNode(mstNodeToInsert);
-
-        var retrievedMstNode = pdsDb.GetMstNodeByCid(mstNodeToInsert.Cid);
-        var retrievedMstNodeById = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-
-        Assert.NotNull(retrievedMstNode);
-        Assert.NotNull(retrievedMstNodeById);
-
-        pdsDb.DeleteMstNodeByObjectId(mstNodeToInsert.NodeObjectId);
-
-        // Assert
-        Assert.False(pdsDb.MstNodeExistsByCid(mstNodeToInsert.Cid));
-    }
-
-    [Fact]
-    public void MstNode_InsertTwo()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstNode1 = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
-            LeftMstNodeCid = null
-        };
-
-        var mstNode2 = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
-            LeftMstNodeCid = mstNode1.Cid
-        };
-
-        // Act
-        pdsDb!.InsertMstNode(mstNode1);
-        pdsDb.InsertMstNode(mstNode2);
-
-        var retrievedMstNode1 = pdsDb.GetMstNodeByCid(mstNode1.Cid);
-        var retrievedMstNode2 = pdsDb.GetMstNodeByCid(mstNode2.Cid);
-
-        // Assert
-        Assert.NotNull(retrievedMstNode1);
-        Assert.Equal(mstNode1.Cid?.Base32, retrievedMstNode1!.Cid?.Base32);
-
-        Assert.NotNull(retrievedMstNode2);
-        Assert.Equal(mstNode2.Cid?.Base32, retrievedMstNode2!.Cid?.Base32);
-        Assert.Equal(mstNode1.Cid?.Base32, retrievedMstNode2.LeftMstNodeCid?.Base32);
-
-
-        pdsDb.DeleteMstNodeByObjectId(mstNode1.NodeObjectId);
-        pdsDb.DeleteMstNodeByObjectId(mstNode2.NodeObjectId);
-    }
-
-    [Fact]
-    public void MstNode_DeleteAll()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-
-        var mstNode1 = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
-            LeftMstNodeCid = null
-        };
-
-        var mstNode2 = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
-            LeftMstNodeCid = mstNode1.Cid
-        };
-
-        // Act
-        pdsDb!.InsertMstNode(mstNode1);
-        pdsDb.InsertMstNode(mstNode2);
-
-        pdsDb.DeleteAllMstNodes();
-
-        // Assert
-        Assert.False(pdsDb.MstNodeExistsByCid(mstNode1.Cid));
-        Assert.False(pdsDb.MstNodeExistsByCid(mstNode2.Cid));
-    }
-
-    [Fact]
-    public void MstNode_InsertNodeWithOneEntry()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-        var nodeCid = Guid.NewGuid().ToString();
-
-        var mstNodeToInsert = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreiahyzvpofpsudabba2mhjw62k5h6jtotsn7mt7ja7ams5sjqdpbai"),
-            LeftMstNodeCid = null
-        };
-        var mstEntries = new List<RepoMstEntry>
-        {
-            new RepoMstEntry
-            {
-                EntryIndex = 0,
-                KeySuffix = "exampleKey",
-                PrefixLength = 0,
-                TreeMstNodeCid = null,
-                RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
-            }
-        };
-
-
-        // Act
-        pdsDb!.InsertMstNode(mstNodeToInsert);
-        pdsDb!.InsertMstEntries((Guid)mstNodeToInsert.NodeObjectId, mstEntries);
-
-        var retrievedMstNode = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-        var retrievedMstEntries = pdsDb.GetMstEntriesForNodeObjectId((Guid)mstNodeToInsert.NodeObjectId);
-
-        // Assert
-        Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
-        Assert.Single(retrievedMstEntries);
-        Assert.Equal("exampleKey", retrievedMstEntries[0].KeySuffix);
-        Assert.Equal(0, retrievedMstEntries[0].PrefixLength);
-        Assert.Equal(0, retrievedMstEntries[0].EntryIndex);
-
-        pdsDb.DeleteMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-}
-
-
-    [Fact]
-    public void MstNode_InsertNodeWithTwoEntries()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-        var nodeCid = Guid.NewGuid().ToString();
-
-        var mstNodeToInsert = new RepoMstNode
-        {
-            NodeObjectId = Guid.NewGuid(),
-            Cid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm"),
-            LeftMstNodeCid = null,
-        };
-        var mstEntriesToInsert = new List<RepoMstEntry>
-            {
-                new RepoMstEntry
-                {
-                    KeySuffix = "exampleKey1",
-                    EntryIndex = 0,
-                    PrefixLength = 0,
-                    TreeMstNodeCid = null,
-                    RecordCid = CidV1.FromBase32("bafyreifysqafipni5pe6dcxprngm3kybg5cyn5c4szstz6iedysdrcwjdm")
-                },
-                new RepoMstEntry
-                {
-                    KeySuffix = "ampleKey2",
-                    EntryIndex = 1,
-                    PrefixLength = 2,
-                    TreeMstNodeCid = CidV1.FromBase32("bafyreifjef7rncdlfq347oislx3qiss2gt5jydzquzpjpwye6tsdf4joom"),
-                    RecordCid = CidV1.FromBase32("bafyreiagh3ukdhtq2onx3pz2quesxvq5a4ucaqywvtqyjabqpkmibre7p4")
-                }
-            };
-
-        // Act
-        pdsDb!.InsertMstNode(mstNodeToInsert);
-        pdsDb!.InsertMstEntries((Guid)mstNodeToInsert.NodeObjectId, mstEntriesToInsert);
-
-        var retrievedMstNode = pdsDb.GetMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-        var retrievedMstEntries = pdsDb.GetMstEntriesForNodeObjectId((Guid)mstNodeToInsert.NodeObjectId);
-
-        // Assert
-        Assert.NotNull(retrievedMstNode);
-        Assert.Equal(mstNodeToInsert.Cid?.Base32, retrievedMstNode!.Cid?.Base32);
-        Assert.Equal(2, retrievedMstEntries.Count);
-        Assert.Equal("exampleKey1", retrievedMstEntries[0].KeySuffix);
-        Assert.Equal("ampleKey2", retrievedMstEntries[1].KeySuffix);
-        Assert.Equal(2, retrievedMstEntries[1].PrefixLength);
-        Assert.Equal(0, retrievedMstEntries[0].PrefixLength);
-        Assert.Equal(0, retrievedMstEntries[0].EntryIndex);
-        Assert.Equal(1, retrievedMstEntries[1].EntryIndex);
-
-        pdsDb.DeleteMstNodeByObjectId((Guid)mstNodeToInsert.NodeObjectId);
-
-    }
-
-    #endregion
-
-
-
 
 
     #region REPORECORD
@@ -896,4 +626,28 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal("error", pdsDb.GetLogLevel());
     }
     #endregion
+
+
+    #region MST ITEM
+
+    [Fact]
+    public void MstItem_AddGet()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllMstItems();
+
+        Assert.False(pdsDb.MstItemExists("key1"));
+
+        pdsDb.InsertMstItem("key1", "value1");
+        Assert.True(pdsDb.MstItemExists("key1"));
+
+        pdsDb.UpdateMstItem("key1", "value2");
+        Assert.True(pdsDb.MstItemExists("key1"));
+
+        pdsDb.DeleteMstItem("key1");
+        Assert.False(pdsDb.MstItemExists("key1"));
+    }
+
+    #endregion
+
 }

@@ -1,5 +1,6 @@
 using dnproto.fs;
 using dnproto.log;
+using dnproto.mst;
 using dnproto.repo;
 using Microsoft.Data.Sqlite;
 
@@ -776,410 +777,6 @@ DELETE FROM RepoCommit
     #endregion
 
 
-    #region MSTNODE
-
-    public static void CreateTable_MstNode(SqliteConnection connection, IDnProtoLogger logger)
-    {
-        logger.LogInfo("table: MstNode");
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-CREATE TABLE IF NOT EXISTS MstNode (
-NodeObjectId TEXT PRIMARY KEY,
-Cid TEXT NOT NULL,
-LeftMstNodeCid TEXT
-)
-        ";
-        
-        command.ExecuteNonQuery();        
-    }
-
-    public RepoMstNode GetMstNodeByCid(CidV1? cid)
-    {
-        if(cid == null)
-        {
-            throw new ArgumentException("cid cannot be null when retrieving MstNode by Cid.");
-        }
-
-
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstNode WHERE Cid = @Cid";
-            command.Parameters.AddWithValue("@Cid", cid?.Base32);
-            
-            using(var reader = command.ExecuteReader())
-            {
-                if(reader.Read())
-                {
-                    return CreateNodeObjectFromReader(reader);
-                }
-                else
-                {
-                    throw new ArgumentException($"No MstNode found with Cid: {cid?.Base32}");
-                }
-            }
-        }
-    }
-
-    public RepoMstNode GetMstNodeByObjectId(Guid objectId)
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstNode WHERE NodeObjectId = @NodeObjectId";
-            command.Parameters.AddWithValue("@NodeObjectId", objectId.ToString());
-            
-            using(var reader = command.ExecuteReader())
-            {
-                if(reader.Read())
-                {
-                    return CreateNodeObjectFromReader(reader);
-                }
-            }
-        }
-
-        throw new ArgumentException($"No MstNode found with ObjectId: {objectId}");
-    }
-
-    public bool MstNodeExistsByCid(CidV1? cid)
-    {
-        if(cid == null)
-        {
-            throw new ArgumentException("cid cannot be null when checking MstNode existence by Cid.");
-        }
-
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT COUNT(*) FROM MstNode WHERE Cid = @Cid";
-            command.Parameters.AddWithValue("@Cid", cid?.Base32);
-            
-            var result = command.ExecuteScalar();
-            int count = result != null ? Convert.ToInt32(result) : 0;
-            return count > 0;
-        }
-    }
-
-
-
-    public List<RepoMstNode> GetAllMstNodes()
-    {
-        var nodeList = new List<RepoMstNode>();
-
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstNode";
-            
-            using(var reader = command.ExecuteReader())
-            {
-                while(reader.Read())
-                {
-                    var node = CreateNodeObjectFromReader(reader);
-                    nodeList.Add(node);
-                }
-            }
-        }
-
-        return nodeList;
-    }
-
-    private RepoMstNode CreateNodeObjectFromReader(SqliteDataReader reader)
-    {
-        var node = new RepoMstNode
-        {
-            NodeObjectId = Guid.Parse(reader.GetString(reader.GetOrdinal("NodeObjectId"))),
-            Cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid"))),
-            LeftMstNodeCid = reader.IsDBNull(reader.GetOrdinal("LeftMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("LeftMstNodeCid")))
-        };
-
-        return node;
-    }
-
-
-
-    public void InsertMstNode(RepoMstNode mstNode)
-    {
-        if(mstNode.NodeObjectId == null)
-        {
-            throw new ArgumentException("MstNode.NodeObjectId cannot be null when inserting.");
-        }
-
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-INSERT INTO MstNode (NodeObjectId, Cid, LeftMstNodeCid)
-VALUES (@NodeObjectId, @Cid, @LeftMstNodeCid)
-            ";
-            command.Parameters.AddWithValue("@NodeObjectId", mstNode.NodeObjectId.ToString());
-            command.Parameters.AddWithValue("@Cid", mstNode.Cid?.Base32);
-            if(mstNode.LeftMstNodeCid != null)
-            {
-                command.Parameters.AddWithValue("@LeftMstNodeCid", mstNode.LeftMstNodeCid?.Base32);
-            }
-            else
-            {
-                command.Parameters.AddWithValue("@LeftMstNodeCid", DBNull.Value);
-            }
-
-            command.ExecuteNonQuery();
-        }
-    }
-
-
-    public void DeleteMstNode(RepoMstNode mstNode)
-    {
-        DeleteMstNodeByObjectId(mstNode.NodeObjectId);
-    }
-
-    public void DeleteMstNodeByObjectId(Guid? objectId)
-    {
-        if(objectId == null)
-        {
-            throw new ArgumentException("objectId cannot be null when deleting MstNode.");
-        }
-
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-DELETE FROM MstNode WHERE NodeObjectId = @NodeObjectId
-            ";
-            command.Parameters.AddWithValue("@NodeObjectId", objectId.ToString());
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public void DeleteAllMstNodes()
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-DELETE FROM MstNode
-            ";
-            command.ExecuteNonQuery();
-        }
-    }
-
-
-
-
-    #endregion
-
-
-    #region MSTENTRY
-
-    public static void CreateTable_MstEntry(SqliteConnection connection, IDnProtoLogger logger)
-    {
-        logger.LogInfo("table: MstEntry");
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-CREATE TABLE IF NOT EXISTS MstEntry (
-NodeObjectId TEXT NOT NULL,
-EntryIndex INTEGER NOT NULL,
-KeySuffix TEXT NOT NULL,
-PrefixLength INTEGER NOT NULL,
-TreeMstNodeCid TEXT,
-RecordCid TEXT NOT NULL,
-PRIMARY KEY (NodeObjectId, KeySuffix)
-)
-        ";
-        
-        command.ExecuteNonQuery();        
-    }
-
-
-    private RepoMstEntry CreateMstEntryObjectFromReader(SqliteDataReader reader)
-    {
-        var entry = new RepoMstEntry
-        {
-            NodeObjectId = Guid.Parse(reader.GetString(reader.GetOrdinal("NodeObjectId"))),
-            EntryIndex = reader.GetInt32(reader.GetOrdinal("EntryIndex")),
-            KeySuffix = reader.GetString(reader.GetOrdinal("KeySuffix")),
-            PrefixLength = reader.GetInt32(reader.GetOrdinal("PrefixLength")),
-            TreeMstNodeCid = reader.IsDBNull(reader.GetOrdinal("TreeMstNodeCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("TreeMstNodeCid"))),
-            RecordCid = reader.IsDBNull(reader.GetOrdinal("RecordCid")) ? null : CidV1.FromBase32(reader.GetString(reader.GetOrdinal("RecordCid")))
-        };
-
-        return entry;
-    }
-
-
-    public List<RepoMstEntry> GetMstEntriesForNodeObjectId(Guid nodeObjectId)
-    {
-        var entries = new List<RepoMstEntry>();
-
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstEntry WHERE NodeObjectId = @NodeObjectId ORDER BY EntryIndex ASC";
-            command.Parameters.AddWithValue("@NodeObjectId", nodeObjectId.ToString());
-            
-            using(var reader = command.ExecuteReader())
-            {
-                while(reader.Read())
-                {
-                    var entry = CreateMstEntryObjectFromReader(reader);
-                    entries.Add(entry);
-                }
-            }
-        }
-
-        return entries;
-    }
-
-
-    public List<RepoMstEntry> GetAllMstEntries()
-    {
-        var entries = new List<RepoMstEntry>();
-
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT * FROM MstEntry ORDER BY NodeObjectId ASC, EntryIndex ASC";
-            
-            using(var reader = command.ExecuteReader())
-            {
-                while(reader.Read())
-                {
-                    var entry = CreateMstEntryObjectFromReader(reader);
-                    entries.Add(entry);
-                }
-            }
-        }
-
-        return entries;
-    }
-
-
-    public Dictionary<Guid, List<RepoMstEntry>> GetAllMstEntriesByNodeObjectId()
-    {
-        List<RepoMstEntry> allEntries = GetAllMstEntries();
-        var dict = new Dictionary<Guid, List<RepoMstEntry>>();
-
-        foreach(RepoMstEntry entry in allEntries)
-        {
-            if(entry.NodeObjectId is null)
-            {
-                continue;
-            }
-
-            if(!dict.ContainsKey((Guid)entry.NodeObjectId!))
-            {
-                dict[(Guid)entry.NodeObjectId!] = new List<RepoMstEntry>();
-            }
-
-            dict[(Guid)entry.NodeObjectId!].Add(entry);
-        }
-
-        return dict;
-    }
-
-
-
-    public void InsertMstEntries(Guid nodeObjectId, List<RepoMstEntry> entries)
-    {
-        foreach(RepoMstEntry entry in entries)
-        {
-            InsertMstEntry(nodeObjectId, entry);
-        }
-    }
-
-    public void InsertMstEntry(Guid nodeObjectId, RepoMstEntry mstEntry)
-    {
-        
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-INSERT INTO MstEntry (NodeObjectId, EntryIndex, KeySuffix, PrefixLength, TreeMstNodeCid, RecordCid)
-VALUES (@NodeObjectId, @EntryIndex, @KeySuffix, @PrefixLength, @TreeMstNodeCid, @RecordCid)
-            ";
-            command.Parameters.AddWithValue("@NodeObjectId", nodeObjectId.ToString());
-            command.Parameters.AddWithValue("@EntryIndex", mstEntry.EntryIndex);
-            command.Parameters.AddWithValue("@KeySuffix", mstEntry.KeySuffix);
-            command.Parameters.AddWithValue("@PrefixLength", mstEntry.PrefixLength);
-            if(mstEntry.TreeMstNodeCid != null)
-            {
-                command.Parameters.AddWithValue("@TreeMstNodeCid", mstEntry.TreeMstNodeCid?.Base32);
-            }
-            else
-            {
-                command.Parameters.AddWithValue("@TreeMstNodeCid", DBNull.Value);
-            }
-            command.Parameters.AddWithValue("@RecordCid", mstEntry.RecordCid?.Base32 ?? (object)DBNull.Value);
-
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public void DeleteMstEntriesForNode(Guid nodeObjectId)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-DELETE FROM MstEntry WHERE NodeObjectId = @NodeObjectId
-            ";
-            command.Parameters.AddWithValue("@NodeObjectId", nodeObjectId.ToString());
-            command.ExecuteNonQuery();
-        }
-    }
-
-
-    public void DeleteAllMstEntries()
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-DELETE FROM MstEntry
-            ";
-            command.ExecuteNonQuery();
-        }
-    }
-
-
-    public void ReplaceMstEntriesForNode(Guid nodeObjectId, List<RepoMstEntry> entries)
-    {
-        if(nodeObjectId == Guid.Empty)
-        {
-            return;
-        }
-
-        DeleteMstEntriesForNode(nodeObjectId);
-        InsertMstEntries(nodeObjectId, entries);
-    }
-
-    /// <summary>
-    /// Replaces an existing MST node and its entries with a new node and entries.
-    /// This happens when a sub-tree changed, thus changing the sub-tree's cid,
-    /// which in turn changes this node's cid.
-    /// </summary>
-    /// <param name="oldCid"></param>
-    /// <param name="newCid"></param>
-    /// <param name="mstNode"></param>
-    /// <param name="entries"></param>
-    public void ReplaceMstNode(RepoMstNode mstNode, List<RepoMstEntry> entries)
-    {
-        if(mstNode.NodeObjectId == null)
-        {
-            throw new ArgumentException("MstNode.NodeObjectId cannot be null when replacing.");
-        }
-
-        DeleteMstNode(mstNode);
-        DeleteMstEntriesForNode((Guid) mstNode.NodeObjectId);
-        InsertMstNode(mstNode);
-        InsertMstEntries((Guid) mstNode.NodeObjectId, entries);
-    }
-
-    #endregion
-
-
 
 
 
@@ -1722,6 +1319,124 @@ SET Level = @Level
 DELETE FROM LogLevel
             ";
             command.ExecuteNonQuery();
+        }
+    }
+
+    #endregion
+
+
+
+
+    #region MST ITEM
+
+    public static void CreateTable_MstItem(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: MstItem");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS MstItem (
+Key TEXT PRIMARY KEY NOT NULL,
+Value TEXT NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();        
+    }
+
+    public bool MstItemExists(string key)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(*)
+FROM MstItem
+WHERE Key = @Key
+            ";
+            command.Parameters.AddWithValue("@Key", key);
+            var count = Convert.ToInt32(command.ExecuteScalar());
+            return count > 0;
+        }
+    }
+
+
+    public void InsertMstItem(string key, string value)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO MstItem (Key, Value)
+VALUES (@Key, @Value)
+            ";
+            command.Parameters.AddWithValue("@Key", key);
+            command.Parameters.AddWithValue("@Value", value);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void UpdateMstItem(string key, string value)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE MstItem
+SET Value = @Value
+WHERE Key = @Key
+            ";
+            command.Parameters.AddWithValue("@Key", key);
+            command.Parameters.AddWithValue("@Value", value);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteMstItem(string key)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM MstItem
+WHERE Key = @Key
+            ";
+            command.Parameters.AddWithValue("@Key", key);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteAllMstItems()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM MstItem
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public List<MstItem> GetAllMstItems()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Key, Value
+FROM MstItem
+            ";
+            var reader = command.ExecuteReader();
+            List<MstItem> items = new List<MstItem>();
+            while(reader.Read())
+            {
+                items.Add(new MstItem()
+                {
+                    Key = reader.GetString(0),
+                    Value = reader.GetString(1)
+                });
+            }
+            return items;
         }
     }
 
