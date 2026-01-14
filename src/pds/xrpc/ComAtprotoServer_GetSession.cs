@@ -28,7 +28,9 @@ public class ComAtprotoServer_GetSession : BaseXrpcCommand
         return Results.Json(new 
         {
             did = Pds.Config.UserDid,
-            handle = Pds.Config.UserHandle
+            handle = Pds.Config.UserHandle,
+            email = Pds.Config.UserEmail,
+            emailConfirmed = true
         },
         statusCode: 200);
     }
