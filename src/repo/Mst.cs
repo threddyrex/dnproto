@@ -16,7 +16,7 @@ public class Mst
     /// <param name="mstNodeCallback"></param>
     public static void WalkMst(string repoFile,
         Func<RepoHeader, RepoCommit, Dictionary<CidV1, MstNode>, Dictionary<CidV1, List<MstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
-        Func<string, MstNode, int, int, List<MstEntry>, bool> mstNodeCallback,
+        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback,
         Func<string, bool> errorCallback)
     {
         if (string.IsNullOrEmpty(repoFile)) return;
@@ -28,7 +28,7 @@ public class Mst
 
     public static void WalkMst(Stream s,
         Func<RepoHeader, RepoCommit, Dictionary<CidV1, MstNode>, Dictionary<CidV1, List<MstEntry>>, HashSet<CidV1>, bool> dataLoadedCallback,
-        Func<string, MstNode, int, int, List<MstEntry>, bool> mstNodeCallback,
+        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback,
         Func<string, bool> errorCallback)
     {
         //
@@ -136,7 +136,7 @@ public class Mst
         int currentDepth,
         Dictionary<CidV1, MstNode> allMstNodes, 
         Dictionary<CidV1, List<MstEntry>> allMstNodeEntries, 
-        Func<string, MstNode, int, int, List<MstEntry>, bool> mstNodeCallback, 
+        Func<string, MstNode, int, List<MstEntry>, bool> mstNodeCallback, 
         Func<string, bool> errorCallback)
     {
         if(currentNode is null || currentNode.Cid is null)
@@ -154,15 +154,9 @@ public class Mst
 
         var entries = allMstNodeEntries[currentNode.Cid];
 
-        // get key depth
-        int keyDepth = 0;
-        if(entries.Count > 0)
-        {
-            keyDepth = MstEntry.GetKeyDepth(entries[0].KeySuffix ?? string.Empty);
-        }
 
         // Call the callback
-        bool continueWalk = mstNodeCallback(direction, currentNode, currentDepth, keyDepth, entries);
+        bool continueWalk = mstNodeCallback(direction, currentNode, currentDepth, entries);
         if(!continueWalk)
         {
             return false;

@@ -70,9 +70,9 @@ namespace dnproto.cli.commands
                     return true;
                 },
                 // mst node callback
-                (direction, mstNode, currentDepth, keyDepth, mstEntries) =>
+                (direction, mstNode, currentDepth, mstEntries) =>
                 {
-                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{keyDepth}] [{direction}] {mstNode.Cid}");
+                    Logger.LogTrace($"{new string(' ', currentDepth * 2)}[NODE] [{direction}] {mstNode.Cid}");
                     nodeCount++;
 
                     var fullKeys = MstEntry.GetFullKeys(mstEntries);
@@ -81,7 +81,13 @@ namespace dnproto.cli.commands
                     {
                         var entry = mstEntries[i];
                         var fullKey = fullKeys[i];
-                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}  [ENTRY] {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}");
+                        var keyDepth = MstEntry.GetKeyDepth(fullKey);
+                        if(i > 0 && keyDepth != MstEntry.GetKeyDepth(fullKeys[i-1]))
+                        {
+                            Logger.LogError($"Key depth {keyDepth} does not match previous key depth {MstEntry.GetKeyDepth(fullKeys[i-1])} for key {fullKey}");
+                        }
+
+                        Logger.LogTrace($"{new string(' ', (currentDepth + 1) * 2)}  [ENTRY] [{keyDepth}] {fullKey}  -> p: {entry.PrefixLength}, k: {entry.KeySuffix}, t: {entry.TreeMstNodeCid}");
                     }
 
                     Logger.LogTrace("");
