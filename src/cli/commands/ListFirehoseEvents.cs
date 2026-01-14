@@ -31,17 +31,12 @@ public class ListFirehoseEvents : BaseCommand
         //
         // Init pds
         //
-        var pds = Pds.InitializePdsForRun(dataDir, Logger);
-        if (pds == null)
-        {
-            Logger.LogError("Failed to initialize PDS.");
-            return;
-        }
+        PdsDb db = PdsDb.ConnectPdsDb(LocalFileSystem!, Logger);
 
         //
         // Get firehose event
         //
-        var firehoseEvents = pds.PdsDb.GetFirehoseEventsForSubscribeRepos(0, 1000);
+        var firehoseEvents = db.GetFirehoseEventsForSubscribeRepos(-200000, 1000000);
 
         foreach (var firehoseEvent in firehoseEvents)
         {

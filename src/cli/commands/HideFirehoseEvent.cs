@@ -34,17 +34,12 @@ public class HideFirehoseEvent : BaseCommand
         //
         // Init pds
         //
-        var pds = Pds.InitializePdsForRun(dataDir, Logger);
-        if (pds == null)
-        {
-            Logger.LogError("Failed to initialize PDS.");
-            return;
-        }
+        PdsDb db = PdsDb.ConnectPdsDb(LocalFileSystem!, Logger);
 
         //
         // Hide firehose event
         //
-        pds.PdsDb.HideFirehoseEvent(seq);
+        db.HideFirehoseEvent(seq);
         Logger.LogInfo($"Firehose event with sequence {seq} hidden.");
     }
 }
