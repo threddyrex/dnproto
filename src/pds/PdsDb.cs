@@ -1220,6 +1220,24 @@ DELETE FROM FirehoseEvent
     }
 
 
+    public void HideFirehoseEvent(long sequenceNumber)
+    {
+        int newSequenceNumber = -1 * (int)sequenceNumber;
+
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE FirehoseEvent
+SET SequenceNumber = @NewSequenceNumber
+WHERE SequenceNumber = @SequenceNumber
+            ";
+            command.Parameters.AddWithValue("@NewSequenceNumber", newSequenceNumber);
+            command.Parameters.AddWithValue("@SequenceNumber", sequenceNumber);
+            command.ExecuteNonQuery();
+        }
+    }
+
     #endregion
 
 
