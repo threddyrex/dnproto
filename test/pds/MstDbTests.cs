@@ -11,14 +11,14 @@ using dnproto.repo;
 
 
 
-public class MstTestsFixture : IDisposable
+public class MstDbTestsFixture : IDisposable
 {
     public Logger Logger { get; set; } = new Logger();
     public LocalFileSystem Lfs { get; set; }
 
     public PdsDb? PdsDb { get; set; }
 
-    public MstTestsFixture()
+    public MstDbTestsFixture()
     {
         Logger.AddDestination(new ConsoleLogDestination());
         string tempDir = Path.Combine(Path.GetTempPath(), "mst-tests-data-dir");
@@ -49,11 +49,11 @@ public class MstTestsFixture : IDisposable
 
 
 
-public class MstTests : IClassFixture<MstTestsFixture>
+public class MstDbTests : IClassFixture<MstDbTestsFixture>
 {
-    private readonly MstTestsFixture _fixture;
+    private readonly MstDbTestsFixture _fixture;
 
-    public MstTests(MstTestsFixture fixture)
+    public MstDbTests(MstDbTestsFixture fixture)
     {
         _fixture = fixture;
     }
