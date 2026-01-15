@@ -82,8 +82,8 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
             RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, node);
         }
 
-        // Write only the nodes on the path to the record
-        foreach(MstNode node in allNodes)
+        // Write only the nodes on the path to the record (proof chain)
+        foreach(MstNode node in mstNodes)
         {
             var (nodeCid, nodeDagCbor) = mstNodeCache[node];
             await UserRepo.WriteBlockAsync(stream, nodeCid!, nodeDagCbor);

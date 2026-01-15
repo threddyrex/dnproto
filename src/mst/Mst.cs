@@ -213,9 +213,18 @@ public class Mst
     #region KEYCOMPARE
     public static int CompareKeys(string a, string b)
     {
-        return string.CompareOrdinal(a, b);
+        int minLen = Math.Min(a.Length, b.Length);
+        for (int i = 0; i < minLen; i++)
+        {
+            if (a[i] != b[i])
+            {
+                return a[i] - b[i];
+            }
+        }
+        return a.Length - b.Length;
     }
 
+    
     public static bool LessThan(string a, string b)
     {
         return CompareKeys(a, b) < 0;
