@@ -374,6 +374,15 @@ public class UserRepo
                             Value = cidValue
                         };
                     }
+                    else if (cidObj.Value is string cidStrNull && cidStrNull == "null")
+                    {
+                        // turn into simple value
+                        opDict["cid"] = new DagCborObject
+                        {
+                            Type = new DagCborType { MajorType = DagCborType.TYPE_SIMPLE_VALUE, AdditionalInfo = 0x16, OriginalByte = 0 },
+                            Value = "null"
+                        };
+                    }
                 }
                 if (opDict.ContainsKey("prev"))
                 {
