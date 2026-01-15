@@ -2,6 +2,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using dnproto.log;
 
 
 namespace dnproto.mst;
@@ -13,6 +14,8 @@ public class Mst
 {
     public required MstNode Root;
 
+    public required IDnProtoLogger Logger;
+
 
     #region ASSEMBLE
 
@@ -22,11 +25,11 @@ public class Mst
     /// </summary>
     /// <param name="items"></param>
     /// <returns></returns>
-    public static Mst AssembleTreeFromItems(List<MstItem> items)
+    public static Mst AssembleTreeFromItems(List<MstItem> items, IDnProtoLogger logger)
     {
         if(items.Count == 0)
         {
-            return new Mst() { Root = new MstNode() { KeyDepth = 0, Entries = new List<MstEntry>() } };
+            return new Mst() { Logger = logger, Root = new MstNode() { KeyDepth = 0, Entries = new List<MstEntry>() } };
         }
 
         //
@@ -51,7 +54,7 @@ public class Mst
         //
         // Return
         //
-        return new Mst() { Root = rootNode };
+        return new Mst() { Logger = logger, Root = rootNode };
     }
 
 
@@ -126,6 +129,7 @@ public class Mst
         //
         // Add this one
         //
+        Logger.LogTrace($"[MST] Visiting node at depth {currentNode.KeyDepth}");
         foundNodes.Add(currentNode);
 
 
@@ -134,6 +138,7 @@ public class Mst
         //
         if(currentNode.KeyDepth == targetKeyDepth)
         {
+            Logger.LogTrace("[MST] reached target key depth, returning");
             return;
         }
         else
@@ -144,19 +149,24 @@ public class Mst
             int entryIndex = 0;
             foreach(var entry in currentNode.Entries)
             {
+                Logger.LogTrace($"[MST] Comparing targetKey '{targetKey}' to entry.Key '{entry.Key}'");
                 if(LessThan(targetKey, entry.Key))
                 {
+                    Logger.LogTrace("[MST] less than break");
                     break;
                 }
 
                 entryIndex++;
             }
 
+            Logger.LogTrace($"[MST] entryIndex: {entryIndex}");
+
             //
             // Go left?
             //
             if (entryIndex == 0)
             {
+                Logger.LogTrace("[MST] going left");
                 if (currentNode.LeftTree != null)
                 {
                     InternalFindNodesForKey(targetKey, targetKeyDepth, currentNode.LeftTree, foundNodes);
@@ -167,6 +177,7 @@ public class Mst
             //
             else
             {
+                Logger.LogTrace("[MST] going right");
                 if (currentNode.Entries[entryIndex - 1].RightTree != null)
                 {
                     InternalFindNodesForKey(targetKey, targetKeyDepth, currentNode.Entries[entryIndex - 1].RightTree!, foundNodes);

@@ -214,7 +214,7 @@ public class UserRepo
             //
             // Find the nodes that we need to send back
             //
-            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems());
+            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems(), _logger);
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
             foreach(var write in writes)
             {
@@ -570,7 +570,7 @@ public class UserRepo
             //
             // MST Nodes
             //
-            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems());
+            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems(), _logger);
             List<MstNode> allNodes = mst.FindAllNodes();
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
             foreach(var node in allNodes)

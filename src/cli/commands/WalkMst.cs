@@ -51,7 +51,7 @@ namespace dnproto.cli.commands
             //
             // Load mst
             //
-            Mst mst = RepoMst.LoadMstFromRepo(repoFile);
+            Mst mst = RepoMst.LoadMstFromRepo(repoFile, Logger);
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
             foreach (MstNode node in mst.FindAllNodes())
             {

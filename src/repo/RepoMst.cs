@@ -1,5 +1,6 @@
 
 
+using dnproto.log;
 using dnproto.mst;
 
 namespace dnproto.repo;
@@ -11,7 +12,7 @@ public class RepoMst
     #region LOADREPO
 
 
-    public static Mst LoadMstFromRepo(Stream s)
+    public static Mst LoadMstFromRepo(Stream s, IDnProtoLogger logger)
     {
         List<MstItem> mstItems = new List<MstItem>();
 
@@ -67,7 +68,7 @@ public class RepoMst
         //
         // Make mst
         //
-        Mst mst = Mst.AssembleTreeFromItems(mstItems);
+        Mst mst = Mst.AssembleTreeFromItems(mstItems, logger);
 
         //
         // Return
@@ -75,11 +76,11 @@ public class RepoMst
         return mst;
     }
 
-    public static Mst LoadMstFromRepo(string repoFile)
+    public static Mst LoadMstFromRepo(string repoFile, IDnProtoLogger logger)
     {
         using(var fs = new FileStream(repoFile, FileMode.Open, FileAccess.Read))
         {
-            return LoadMstFromRepo(fs);
+            return LoadMstFromRepo(fs, logger);
         }
     }
 
