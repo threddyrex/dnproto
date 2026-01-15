@@ -15,7 +15,7 @@ public class GetRecordSync : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"actor", "collection", "rkey"});
+        return new HashSet<string>(new string[]{"actor", "key"});
     }
 
 
@@ -32,8 +32,7 @@ public class GetRecordSync : BaseCommand
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
-        string? collection = CommandLineInterface.GetArgumentValue(arguments, "collection");
-        string? rkey = CommandLineInterface.GetArgumentValue(arguments, "rkey");
+        string? fullKey = CommandLineInterface.GetArgumentValue(arguments, "key");
 
 
 
@@ -57,6 +56,8 @@ public class GetRecordSync : BaseCommand
         //
         // Call pds
         //
+        string collection = fullKey!.Split('/')[0];
+        string rkey = fullKey.Substring(collection.Length + 1);
         BlueskyClient.GetRecordSync(actorInfo.Pds, actorInfo.Did, collection, rkey, tempFile);
 
 

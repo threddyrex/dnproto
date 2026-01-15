@@ -4,11 +4,10 @@ param (
     [bool]$logToDataDir = $false,
     [string]$dataDir = $null,
     [string]$actor = $null,
-    [string]$collection,
-    [string]$rkey
+    [string]$key
 )
 
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command GetRecordSync /actor $actor /collection $collection /rkey $rkey /logLevel $logLevel /dataDir $dataDir /logToDataDir $logToDataDir
+& $dnprotoPath /command GetRecordSync /actor $actor /key $key /logLevel $logLevel /dataDir $dataDir /logToDataDir $logToDataDir

@@ -50,7 +50,7 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
         //
         // Get mst nodes
         //
-        Mst mst = Mst.AssembleTreeFromItems(Pds.PdsDb.GetAllMstItems(), Pds.Logger);
+        Mst mst = Mst.AssembleTreeFromItems(Pds.PdsDb.GetAllMstItems());
         List<MstNode> mstNodes = mst.FindNodesForKey(fullKey);
         List<MstNode> allNodes = mst.FindAllNodes();
 

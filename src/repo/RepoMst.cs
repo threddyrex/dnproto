@@ -68,7 +68,7 @@ public class RepoMst
         //
         // Make mst
         //
-        Mst mst = Mst.AssembleTreeFromItems(mstItems, logger);
+        Mst mst = Mst.AssembleTreeFromItems(mstItems);
 
         //
         // Return

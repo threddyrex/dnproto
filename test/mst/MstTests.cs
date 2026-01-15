@@ -15,7 +15,7 @@ public class MstTests
         };
 
         // Act
-        var tree = Mst.AssembleTreeFromItems(items, new dnproto.log.Logger());
+        var tree = Mst.AssembleTreeFromItems(items);
 
         // Assert
         Assert.NotNull(tree);
@@ -37,7 +37,7 @@ public class MstTests
         };
 
         // Act
-        var tree = Mst.AssembleTreeFromItems(items, new dnproto.log.Logger());
+        var tree = Mst.AssembleTreeFromItems(items);
 
         // Assert
         Assert.NotNull(tree);
