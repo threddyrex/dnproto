@@ -123,19 +123,6 @@ public class UserRepo
                         _db.InsertRepoRecord(write.Collection, write.Rkey, recordCid, write.Record);
 
 
-                        //
-                        // MST ITEM
-                        //
-                        if(_db.MstItemExists(fullKey))
-                        {
-                            _db.UpdateMstItem(fullKey, recordCid.Base32);
-                        }
-                        else
-                        {
-                            _db.InsertMstItem(fullKey, recordCid.Base32);
-                        }
-
-
 
                         //
                         // Add to return list
@@ -179,12 +166,6 @@ public class UserRepo
 
 
                         //
-                        // MST
-                        //
-                        _db.DeleteMstItem(fullKey);
-
-
-                        //
                         // Add to return list
                         //
                         results.Add(new ApplyWritesResult
@@ -214,7 +195,7 @@ public class UserRepo
             //
             // Find the nodes that we need to send back
             //
-            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems());
+            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllRepoRecordMstItems());
             HashSet<MstNode> nodesToSend = new HashSet<MstNode>();
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
 
@@ -614,7 +595,7 @@ public class UserRepo
             //
             // MST Nodes
             //
-            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems());
+            Mst mst = Mst.AssembleTreeFromItems(_db.GetAllRepoRecordMstItems());
             List<MstNode> allNodes = mst.FindAllNodes();
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
             foreach(var node in allNodes)

@@ -801,6 +801,11 @@ PRIMARY KEY (Collection, Rkey)
 
     public void InsertRepoRecord(string collection, string rkey, CidV1 cid, DagCborObject dagCborObject)
     {
+        if(string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
+        {
+            throw new Exception("Collection and Rkey cannot be null or empty.");
+        }
+
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
@@ -818,6 +823,11 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
 
     public RepoRecord GetRepoRecord(string collection, string rkey)
     {
+        if(string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
+        {
+            throw new Exception("Collection and Rkey cannot be null or empty.");
+        }
+
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
@@ -839,32 +849,6 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
 
     }
 
-    /// <summary>
-    /// Gets the raw CID and DAG-CBOR bytes for a record, without re-serializing.
-    /// This is needed when serving records over the wire, since the CID must match the exact bytes.
-    /// </summary>
-    public (CidV1 Cid, byte[] DagCborBytes) GetRepoRecordRawBytes(string collection, string rkey)
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT Cid, DagCborObject FROM RepoRecord WHERE Collection = @Collection AND Rkey = @Rkey LIMIT 1";
-            command.Parameters.AddWithValue("@Collection", collection);
-            command.Parameters.AddWithValue("@Rkey", rkey);
-            
-            using(var reader = command.ExecuteReader())
-            {
-                if(reader.Read())
-                {
-                    var cid = CidV1.FromBase32(reader.GetString(reader.GetOrdinal("Cid")));
-                    var dagCborBytes = reader.GetFieldValue<byte[]>(reader.GetOrdinal("DagCborObject"));
-                    return (cid, dagCborBytes);
-                }
-            }
-        }
-
-        throw new Exception($"RepoRecord not found for collection: {collection}, rkey: {rkey}");
-    }
 
     public bool RecordExists(string collection, string rkey)
     {
@@ -903,6 +887,36 @@ VALUES (@Collection, @Rkey, @Cid, @DagCborObject)
         }
         
         return repoRecords;
+    }
+
+    public List<MstItem> GetAllRepoRecordMstItems()
+    {
+        var mstItems = new List<MstItem>();
+        
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT Collection,Rkey,Cid FROM RepoRecord";
+            
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    string collection = reader.GetString(reader.GetOrdinal("Collection"));
+                    string rKey = reader.GetString(reader.GetOrdinal("Rkey"));
+                    string fullKey = $"{collection}/{rKey}";
+                    string cid = reader.GetString(reader.GetOrdinal("Cid"));
+
+                    mstItems.Add(new MstItem()
+                    {
+                        Key = fullKey,
+                        Value = cid
+                    });
+                }
+            }
+        }
+        
+        return mstItems;
     }
 
     public void DeleteRepoRecord(string collection, string rkey)
@@ -1337,124 +1351,6 @@ SET Level = @Level
 DELETE FROM LogLevel
             ";
             command.ExecuteNonQuery();
-        }
-    }
-
-    #endregion
-
-
-
-
-    #region MST ITEM
-
-    public static void CreateTable_MstItem(SqliteConnection connection, IDnProtoLogger logger)
-    {
-        logger.LogInfo("table: MstItem");
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-CREATE TABLE IF NOT EXISTS MstItem (
-Key TEXT PRIMARY KEY NOT NULL,
-Value TEXT NOT NULL
-);
-        ";
-        
-        command.ExecuteNonQuery();        
-    }
-
-    public bool MstItemExists(string key)
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-SELECT COUNT(*)
-FROM MstItem
-WHERE Key = @Key
-            ";
-            command.Parameters.AddWithValue("@Key", key);
-            var count = Convert.ToInt32(command.ExecuteScalar());
-            return count > 0;
-        }
-    }
-
-
-    public void InsertMstItem(string key, string value)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-INSERT INTO MstItem (Key, Value)
-VALUES (@Key, @Value)
-            ";
-            command.Parameters.AddWithValue("@Key", key);
-            command.Parameters.AddWithValue("@Value", value);
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public void UpdateMstItem(string key, string value)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-UPDATE MstItem
-SET Value = @Value
-WHERE Key = @Key
-            ";
-            command.Parameters.AddWithValue("@Key", key);
-            command.Parameters.AddWithValue("@Value", value);
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public void DeleteMstItem(string key)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-DELETE FROM MstItem
-WHERE Key = @Key
-            ";
-            command.Parameters.AddWithValue("@Key", key);
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public void DeleteAllMstItems()
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-DELETE FROM MstItem
-            ";
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public List<MstItem> GetAllMstItems()
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = @"
-SELECT Key, Value
-FROM MstItem
-            ";
-            var reader = command.ExecuteReader();
-            List<MstItem> items = new List<MstItem>();
-            while(reader.Read())
-            {
-                items.Add(new MstItem()
-                {
-                    Key = reader.GetString(0),
-                    Value = reader.GetString(1)
-                });
-            }
-            return items;
         }
     }
 

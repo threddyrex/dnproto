@@ -41,16 +41,11 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
 
         var repoRecord = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
 
-        if(Pds.PdsDb.MstItemExists(fullKey) == false)
-        {
-            return Results.Json(new { error = "NotFound", message = "Record not found" }, statusCode: 404);            
-        }
-
 
         //
         // Get mst nodes
         //
-        Mst mst = Mst.AssembleTreeFromItems(Pds.PdsDb.GetAllMstItems());
+        Mst mst = Mst.AssembleTreeFromItems(Pds.PdsDb.GetAllRepoRecordMstItems());
         List<MstNode> mstNodes = mst.FindNodesForKey(fullKey);
         List<MstNode> allNodes = mst.FindAllNodes();
 

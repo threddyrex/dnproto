@@ -628,26 +628,4 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     #endregion
 
 
-    #region MST ITEM
-
-    [Fact]
-    public void MstItem_AddGet()
-    {
-        var pdsDb = _fixture.PdsDb;
-        pdsDb.DeleteAllMstItems();
-
-        Assert.False(pdsDb.MstItemExists("key1"));
-
-        pdsDb.InsertMstItem("key1", "value1");
-        Assert.True(pdsDb.MstItemExists("key1"));
-
-        pdsDb.UpdateMstItem("key1", "value2");
-        Assert.True(pdsDb.MstItemExists("key1"));
-
-        pdsDb.DeleteMstItem("key1");
-        Assert.False(pdsDb.MstItemExists("key1"));
-    }
-
-    #endregion
-
 }

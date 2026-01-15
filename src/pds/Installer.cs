@@ -84,7 +84,6 @@ public class Installer
             PdsDb.CreateTable_SequenceNumber(connection, logger);
             PdsDb.CreateTable_FirehoseEvent(connection, logger);
             PdsDb.CreateTable_LogLevel(connection, logger);
-            PdsDb.CreateTable_MstItem(connection, logger);
         }
 
     }
@@ -218,7 +217,6 @@ public class Installer
         db.DeleteRepoHeader();
         db.DeleteAllFirehoseEvents();
         db.DeletePreferences();
-        db.DeleteAllMstItems();
 
 
         //
