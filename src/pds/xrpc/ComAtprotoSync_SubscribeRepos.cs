@@ -89,9 +89,10 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
             // Log why we exited the loop
             Pds.Logger.LogInfo($"[FIREHOSE] Exited main loop. WebSocket.State={webSocket.State}, CancellationRequested={cancellationToken.IsCancellationRequested}");
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            Pds.Logger.LogTrace("[FIREHOSE] OperationCanceledException caught (graceful shutdown)");
+            Pds.Logger.LogTrace($"[FIREHOSE] OperationCanceledException caught (graceful shutdown) {ex.Message}");
+            Pds.Logger.LogError($"[FIREHOSE] Stack trace: {ex.StackTrace}");
         }
         catch (Exception ex)
         {

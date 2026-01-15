@@ -312,7 +312,7 @@ public class UserRepo
                 ["commit"] = firehoseFinal_RepoCommit.Cid!.ToString(),
                 ["rebase"] = false,
                 ["tooBig"] = false,
-                ["prevData"] = before_repoCommit.Cid!.ToString()
+                ["prevData"] = before_repoCommit.RootMstNodeCid!.ToString()
             };
 
             var object2DagCbor = DagCborObject.FromJsonString(object2Json.ToString());
@@ -338,7 +338,7 @@ public class UserRepo
             object2Dict["prevData"] = new DagCborObject
             {
                 Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
-                Value = before_repoCommit.Cid!
+                Value = before_repoCommit.RootMstNodeCid!
             };
 
             // "ops[].cid" - CID links (TAG 42)

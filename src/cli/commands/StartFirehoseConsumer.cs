@@ -88,6 +88,11 @@ public class StartFirehoseConsumer : BaseCommand
 
                     Logger.LogInfo($"DAG CBOR OBJECT 1 (HEADER):\n{JsonData.ConvertObjectToJsonString(header.GetRawValue())}");
                     Logger.LogInfo($"DAG CBOR OBJECT 2 (MESSAGE):\n{JsonData.ConvertObjectToJsonString(message.GetRawValue())}");
+                    if(showDagCborTypes)
+                    {
+                        Logger.LogTrace($"\nDAG CBOR OBJECT 1 TYPES (HEADER):\n{DagCborObject.GetRecursiveDebugString(header, 0)}");
+                        Logger.LogTrace($"\nDAG CBOR OBJECT 2 TYPES (MESSAGE):\n{DagCborObject.GetRecursiveDebugString(message, 0)}");
+                    }
 
                     Logger.LogInfo(" PARSING BLOCKS");
 
