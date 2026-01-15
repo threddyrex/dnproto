@@ -368,6 +368,28 @@ public class UserRepo
                         };
                     }
                 }
+                if (opDict.ContainsKey("prev"))
+                {
+                    var cidObj = opDict["prev"];
+                    // Check if it's already a CID (shouldn't happen, but be safe)
+                    if (cidObj.Value is CidV1 existingCid)
+                    {
+                        opDict["prev"] = new DagCborObject
+                        {
+                            Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                            Value = existingCid
+                        };
+                    }
+                    else if (cidObj.Value is string cidString && cidString != "null")
+                    {
+                        CidV1 cidValue = CidV1.FromBase32(cidString);
+                        opDict["prev"] = new DagCborObject
+                        {
+                            Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 },
+                            Value = cidValue
+                        };
+                    }
+                }
             }
 
 
