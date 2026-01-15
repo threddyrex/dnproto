@@ -215,17 +215,22 @@ public class UserRepo
             // Find the nodes that we need to send back
             //
             Mst mst = Mst.AssembleTreeFromItems(_db.GetAllMstItems());
+            HashSet<MstNode> nodesToSend = new HashSet<MstNode>();
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
+
             foreach(var write in writes)
             {
                 string fullKey = $"{write.Collection}/{write.Rkey}";
                 List<MstNode> nodes = mst.FindNodesForKey(fullKey);
                 foreach(var node in nodes)
                 {
+                    nodesToSend.Add(node);
                     RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, node);
                 }
             }
-            
+
+
+
 
             //
             // REPO COMMIT
@@ -274,8 +279,10 @@ public class UserRepo
             firehoseFinal_RepoHeader.WriteToStream(blockStream);
 
             // mst nodes
-            foreach((CidV1 cid, DagCborObject dagCbor) in mstNodeCache.Values)
+            // order descending by key depth so that root is written first
+            foreach(var mstNode in nodesToSend.OrderByDescending(n => n.KeyDepth))
             {
+                var (cid, dagCbor) = mstNodeCache[mstNode];
                 DagCborObject.WriteToRepoStream(blockStream, cid, dagCbor);
             }
 
