@@ -92,7 +92,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         catch (OperationCanceledException ex)
         {
             Pds.Logger.LogTrace($"[FIREHOSE] OperationCanceledException caught (graceful shutdown) {ex.Message}");
-            Pds.Logger.LogError($"[FIREHOSE] Stack trace: {ex.StackTrace}");
+            Pds.Logger.LogTrace($"[FIREHOSE] Stack trace: {ex.StackTrace}");
         }
         catch (Exception ex)
         {

@@ -62,7 +62,9 @@ namespace dnproto.cli.commands
             //
             // Walk
             //
+            Logger.LogInfo("");
             VisitNode(mstNodeCache, mst.Root, 0, "root");
+            Logger.LogInfo("");
 
 
         }
