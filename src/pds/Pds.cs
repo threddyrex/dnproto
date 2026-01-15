@@ -242,7 +242,7 @@ public class Pds
         App.MapGet("/xrpc/com.atproto.sync.subscribeRepos", async (HttpContext context) => { var cmd = new ComAtprotoSync_SubscribeRepos(){Pds = this, HttpContext = context}; await cmd.HandleWebSocketAsync(); });
         App.MapPost("/xrpc/com.atproto.server.activateAccount", (HttpContext context) => new ComAtprotoServer_ActivateAccount(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/chat.bsky.convo.getLog", (HttpContext context) => new ChatBskyConvo_GetLog(){Pds = this, HttpContext = context}.GetResponse());
-        App.MapGet("/xrpc/com.atproto.sync.listRepos", (HttpContext context) => new ChatBskyConvo_ListRepos(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/com.atproto.sync.listRepos", (HttpContext context) => new ComAtprotoSync_ListRepos(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/chat.bsky.convo.listConvos", (HttpContext context) => new ChatBskyConvo_ListConvos(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.describeRepo", (HttpContext context) => new ComAtprotoRepo_DescribeRepo(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.listRecords", (HttpContext context) => new ComAtprotoRepo_ListRecords(){Pds = this, HttpContext = context}.GetResponse());

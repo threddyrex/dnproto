@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.xrpc;
 
 
-public class ChatBskyConvo_ListRepos : BaseXrpcCommand
+public class ComAtprotoSync_ListRepos : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
@@ -20,7 +20,7 @@ public class ChatBskyConvo_ListRepos : BaseXrpcCommand
         repos.Add(new JsonObject
         {
             ["did"] = Pds.Config.UserDid,
-            ["repo"] = repoCommit?.Cid?.Base32,
+            ["head"] = repoCommit?.Cid?.Base32,
             ["rev"] = repoCommit?.Rev
         });
 
