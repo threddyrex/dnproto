@@ -9,6 +9,10 @@ namespace dnproto.mst;
 /// <summary>
 /// In-memory representation of a Merkle Search Tree (MST).
 /// 
+/// The main purpose of this class is to codify the properties of
+/// a MST (key depth, key sorting, etc.), and to assemble a
+/// MST with those properties from a flat list of items you provide.
+/// 
 /// You start with a list of MstItems. These are key/value pairs that
 /// you can store offline in a db or elsewhere. 
 /// 
@@ -63,7 +67,9 @@ public class Mst
         int rootKeyDepth = itemsByDepth.Keys.Max();
 
         //
-        // Create root for that depth
+        // Create root for that depth.
+        //
+        // The largest key depth is the *root* of the tree.
         //
         var rootNode = new MstNode() { KeyDepth = rootKeyDepth, Entries = new List<MstEntry>() };
 
