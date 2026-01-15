@@ -49,11 +49,10 @@ public class UserRepo
     /// 
     /// This method updates the following:
     /// 
-    ///     1. MST (MstNode, MstEntry)
-    ///     2. Repo Record (RepoRecord)
-    ///     3. Repo Commit (RepoCommit)
-    ///     4. Repo Header (RepoHeader)
-    ///     5. Firehose (FirehoseEvent)
+    ///     1. Repo Record (RepoRecord)
+    ///     2. Repo Commit (RepoCommit)
+    ///     3. Repo Header (RepoHeader)
+    ///     4. Firehose (FirehoseEvent)
     /// 
     /// </summary>
     /// <param name="writes"></param>

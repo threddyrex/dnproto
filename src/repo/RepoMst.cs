@@ -19,13 +19,29 @@ public class RepoMst
 
 
     /// <summary>
-    /// Load a CAR repo stream and extract the MST from it.
+    /// Load a CAR repo stream and extract the MST items from it.
     /// </summary>
     /// <param name="s"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static Mst LoadMstFromRepo(Stream s, IDnProtoLogger logger)
+    public static List<MstItem> LoadMstItemsFromRepo(string repoFile, IDnProtoLogger logger)
+    {
+        using(var fs = new FileStream(repoFile, FileMode.Open, FileAccess.Read))
+        {
+            return LoadMstItemsFromRepo(fs, logger);
+        }
+    }
+
+
+    /// <summary>
+    /// Load a CAR repo stream and extract the MST items from it.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="logger"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public static List<MstItem> LoadMstItemsFromRepo(Stream s, IDnProtoLogger logger)
     {
         List<MstItem> mstItems = new List<MstItem>();
 
@@ -78,24 +94,13 @@ public class RepoMst
             });
         
 
-        //
-        // Make mst
-        //
-        Mst mst = Mst.AssembleTreeFromItems(mstItems);
 
         //
         // Return
         //
-        return mst;
+        return mstItems;
     }
 
-    public static Mst LoadMstFromRepo(string repoFile, IDnProtoLogger logger)
-    {
-        using(var fs = new FileStream(repoFile, FileMode.Open, FileAccess.Read))
-        {
-            return LoadMstFromRepo(fs, logger);
-        }
-    }
 
     #endregion
 

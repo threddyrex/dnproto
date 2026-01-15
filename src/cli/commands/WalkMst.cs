@@ -51,39 +51,56 @@ namespace dnproto.cli.commands
             //
             // Load mst
             //
-            Mst mst = RepoMst.LoadMstFromRepo(repoFile, Logger);
+            List<MstItem> mstItems = RepoMst.LoadMstItemsFromRepo(repoFile, Logger);
+            Mst mst = Mst.AssembleTreeFromItems(mstItems);
+            List<MstNode> allMstNodes = mst.FindAllNodes();
             Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
-            foreach (MstNode node in mst.FindAllNodes())
+            foreach (MstNode node in allMstNodes)
             {
                 RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, node);
             }
+
+            //
+            // Stats
+            //
+            int mstEntryCount = 0;
+            foreach(var node in allMstNodes)
+            {
+                mstEntryCount += node.Entries.Count;
+            }
+            Logger.LogInfo("");
+            Logger.LogInfo($"mstItems.Count: {mstItems.Count}");
+            Logger.LogInfo($"allMstNodes.Count: {allMstNodes.Count}");
+            Logger.LogInfo($"mstNodeCache.Keys.Count: {mstNodeCache.Keys.Count}");
+            Logger.LogInfo($"mstEntryCount: {mstEntryCount}");
+            Logger.LogInfo("");
 
 
             //
             // Walk
             //
-            Logger.LogInfo("");
+            Logger.LogTrace("");
             VisitNode(mstNodeCache, mst.Root, 0, "root");
-            Logger.LogInfo("");
+            Logger.LogTrace("");
 
 
         }
 
         public void VisitNode(Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache, MstNode node, int indent, string direction)
         {
-            Logger.LogInfo($"{new string(' ', indent)} [{direction}] [{node.KeyDepth}] {mstNodeCache[node].Item1}");
+            Logger.LogTrace($"{new string(' ', indent)} [{direction}] [{node.KeyDepth}] {mstNodeCache[node].Item1}");
 
             foreach(var entry in node.Entries)
             {
-                Logger.LogInfo($"{new string(' ', indent)} {entry.Key}: {entry.Value}");
+                Logger.LogTrace($"{new string(' ', indent)} {entry.Key}: {entry.Value}");
             }
 
-            Logger.LogInfo("");
+            Logger.LogTrace("");
 
             if(node.LeftTree != null)
             {
                 VisitNode(mstNodeCache, node.LeftTree, indent + 2, "left");
-                Logger.LogInfo("");
+                Logger.LogTrace("");
             }
 
 
