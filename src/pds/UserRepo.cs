@@ -374,6 +374,12 @@ public class UserRepo
                             Value = cidValue
                         };
                     }
+                    //
+                    // This block of code is very important, do not remove it.
+                    // Previously, we had a bug where "null" string was being sent as the cid,
+                    // and during deletes it would crash the subscribeRepos connection and 
+                    // retry constantly. For a "delete" operation, the "cid" field should be a simple value "null".
+                    //
                     else if (cidObj.Value is string cidStrNull && cidStrNull == "null")
                     {
                         // turn into simple value
