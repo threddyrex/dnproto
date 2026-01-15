@@ -21,7 +21,8 @@ public class ComAtprotoSync_ListRepos : BaseXrpcCommand
         {
             ["did"] = Pds.Config.UserDid,
             ["head"] = repoCommit?.Cid?.Base32,
-            ["rev"] = repoCommit?.Rev
+            ["rev"] = repoCommit?.Rev,
+            ["active"] = Pds.Config.UserIsActive
         });
 
         return Results.Json(new JsonObject
