@@ -144,12 +144,6 @@ public class Mst
             int entryIndex = 0;
             foreach(var entry in currentNode.Entries)
             {
-                if(KeysEqual(targetKey, entry.Key))
-                {
-                    // found it.
-                    return;
-                }
-
                 if(LessThan(targetKey, entry.Key))
                 {
                     break;
@@ -173,9 +167,9 @@ public class Mst
             //
             else
             {
-                if (currentNode.Entries[entryIndex - 1].RightTree != null)
+                if (currentNode.Entries[entryIndex].RightTree != null)
                 {
-                    InternalFindNodesForKey(targetKey, targetKeyDepth, currentNode.Entries[entryIndex - 1].RightTree!, foundNodes);
+                    InternalFindNodesForKey(targetKey, targetKeyDepth, currentNode.Entries[entryIndex].RightTree!, foundNodes);
                 }
             }
         }

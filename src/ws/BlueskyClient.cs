@@ -424,6 +424,24 @@ public class BlueskyClient
 
     }
 
+    public static void GetRecordSync(string? pds, string? did, string? collection, string? rkey, string? recordFile)
+    {
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(recordFile))
+        {
+            Logger.LogError("GetRecordSync: Invalid arguments. Exiting.");
+            return;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getRecord?did={did}&collection={collection}&rkey={rkey}";
+        Logger.LogTrace($"GetRecordSync: url: {url}");
+
+        BlueskyClient.SendRequestStreaming(url,
+            HttpMethod.Get,
+            outputFilePath: recordFile);
+
+    }
+
+
 
     /// <summary>
     /// List repos.

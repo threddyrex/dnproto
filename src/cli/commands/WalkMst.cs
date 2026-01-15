@@ -52,19 +52,24 @@ namespace dnproto.cli.commands
             // Load mst
             //
             Mst mst = RepoMst.LoadMstFromRepo(repoFile);
+            Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache = new Dictionary<MstNode, (CidV1, DagCborObject)>();
+            foreach (MstNode node in mst.FindAllNodes())
+            {
+                RepoMst.ConvertMstNodeToDagCbor(mstNodeCache, node);
+            }
 
 
             //
             // Walk
             //
-            VisitNode(mst.Root, 0, "root");
+            VisitNode(mstNodeCache, mst.Root, 0, "root");
 
 
         }
 
-        public void VisitNode(MstNode node, int indent, string direction)
+        public void VisitNode(Dictionary<MstNode, (CidV1, DagCborObject)> mstNodeCache, MstNode node, int indent, string direction)
         {
-            Logger.LogInfo($"{new string(' ', indent)} [{direction}] [{node.KeyDepth}] ");
+            Logger.LogInfo($"{new string(' ', indent)} [{direction}] [{node.KeyDepth}] {mstNodeCache[node].Item1}");
 
             foreach(var entry in node.Entries)
             {
@@ -75,7 +80,7 @@ namespace dnproto.cli.commands
 
             if(node.LeftTree != null)
             {
-                VisitNode(node.LeftTree, indent + 2, "left");                
+                VisitNode(mstNodeCache, node.LeftTree, indent + 2, "left");
                 Logger.LogInfo("");
             }
 
@@ -84,7 +89,7 @@ namespace dnproto.cli.commands
             {
                 if(entry.RightTree != null)
                 {
-                    VisitNode(entry.RightTree, indent + 2, "right");
+                    VisitNode(mstNodeCache, entry.RightTree, indent + 2, "right");
                 }
             }
         }
