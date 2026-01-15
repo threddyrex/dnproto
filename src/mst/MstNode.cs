@@ -3,6 +3,9 @@
 
 namespace dnproto.mst;
 
+/// <summary>
+/// Represents a node in MST.
+/// </summary>
 public class MstNode
 {
     public required int KeyDepth;
@@ -12,8 +15,14 @@ public class MstNode
     public required List<MstEntry> Entries;
 
 
+
     #region EQUALITY
 
+    /// <summary>
+    /// Equality members, so that we can use MstNode as a key in a dictionary.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
     public override bool Equals(object? obj)
     {
         if (obj is not MstNode other)

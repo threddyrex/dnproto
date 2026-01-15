@@ -6,12 +6,25 @@ using dnproto.mst;
 namespace dnproto.repo;
 
 
+/// <summary>
+/// Helper functions for working with Merkle Search Trees (MST) in Atproto repos.
+/// The "dnproto.mst.*" namespace has the core MST in-memory structures and functions,
+/// but it doesn't know about the rest of the namespaces in this project (repo, log, etc.)
+/// This class helps transform the MST into things that atproto needs.
+/// </summary>
 public class RepoMst
 {
 
     #region LOADREPO
 
 
+    /// <summary>
+    /// Load a CAR repo stream and extract the MST from it.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="logger"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static Mst LoadMstFromRepo(Stream s, IDnProtoLogger logger)
     {
         List<MstItem> mstItems = new List<MstItem>();
@@ -89,6 +102,14 @@ public class RepoMst
 
     #region DAG CBOR
 
+    /// <summary>
+    /// The main entry point for converting the MST into DAG CBOR objects.
+    /// 
+    /// Because this might be called recursively, we use a cache to avoid re-creating.
+    /// 
+    /// </summary>
+    /// <param name="cache"></param>
+    /// <param name="node"></param>
     public static void ConvertMstNodeToDagCbor(Dictionary<MstNode, (CidV1, DagCborObject)> cache, MstNode node)
     {
         //

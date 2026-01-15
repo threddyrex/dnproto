@@ -2,13 +2,24 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using dnproto.log;
 
 
 namespace dnproto.mst;
 
 /// <summary>
 /// In-memory representation of a Merkle Search Tree (MST).
+/// 
+/// You start with a list of MstItems. These are key/value pairs that
+/// you can store offline in a db or elsewhere. 
+/// 
+/// Once you want to run MST operations, you can call Mst.AssembleTreeFromItems() 
+/// to build the MST in memory, and work on that.
+/// 
+/// There are no "put" or "delete" operations here. Do those operations on your list 
+/// of MstItems, then re-assemble the tree when you need to work with it.
+/// 
+/// Atproto uses MST for the repos (https://atproto.com/specs/repository)
+/// 
 /// </summary>
 public class Mst
 {
@@ -19,7 +30,7 @@ public class Mst
 
     /// <summary>
     /// Assemble a Merkle Search Tree (MST) from a flat list of items.
-    /// Caller can store these in a database.
+    /// Once you get have the MST, you can run find operations on it.
     /// </summary>
     /// <param name="items"></param>
     /// <returns></returns>
@@ -151,6 +162,12 @@ public class Mst
 
     #region FIND
 
+    /// <summary>
+    /// Find all nodes that would be traversed to find the given key.
+    /// This helps us identify which nodes to include in firehose events.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
     public List<MstNode> FindNodesForKey(string key)
     {
         List<MstNode> foundNodes = new List<MstNode>();
@@ -241,8 +258,17 @@ public class Mst
 
     #endregion
 
-    
+
+
+
     #region KEYCOMPARE
+
+    /// <summary>
+    /// Compare two keys. Used when assembling a tree.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
     public static int CompareKeys(string a, string b)
     {
         int minLen = Math.Min(a.Length, b.Length);

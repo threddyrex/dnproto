@@ -22,11 +22,11 @@ CAR repo encoding and decoding:
 - [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
 - [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
 
-MST decoding:
+MST data structure:
 
-- [Mst.cs](/src/repo/Mst.cs) - MST parsing entry point
-- [MstNode.cs](/src/repo/MstNode.cs) - represents one node in the MST
-- [MstEntry.cs](/src/repo/MstEntry.cs) - represents on entry in a MST node
+- [Mst.cs](/src/mst/Mst.cs) - MST
+- [MstNode.cs](/src/mst/MstNode.cs) - represents one node in the MST
+- [MstEntry.cs](/src/mst/MstEntry.cs) - represents on entry in a MST node
 
 PDS implementation (in progress):
 
@@ -34,7 +34,7 @@ PDS implementation (in progress):
 - [Pds.cs](/src/pds/Pds.cs) - PDS entry point
 - [UserRepo.cs](/src/pds/UserRepo.cs) - operations on the user's repo
 - [PdsDb.cs](/src/pds/PdsDb.cs) - the database interface, where the repo is stored
-- [MstDb.cs](/src/pds/MstDb.cs) - a db-backed implementation of MST
+- [RepoMst.cs](/src/repo/RepoMst.cs) - converting MST into dag-cbor for use in repos
 - [/xrpc/](/src/pds/xrpc/) - the XRPC endpoints
 
 Listening to a firehose:
