@@ -167,9 +167,9 @@ public class Mst
             //
             else
             {
-                if (currentNode.Entries[entryIndex].RightTree != null)
+                if (currentNode.Entries[entryIndex - 1].RightTree != null)
                 {
-                    InternalFindNodesForKey(targetKey, targetKeyDepth, currentNode.Entries[entryIndex].RightTree!, foundNodes);
+                    InternalFindNodesForKey(targetKey, targetKeyDepth, currentNode.Entries[entryIndex - 1].RightTree!, foundNodes);
                 }
             }
         }
