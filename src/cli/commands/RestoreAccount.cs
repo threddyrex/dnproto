@@ -5,6 +5,7 @@ using dnproto.repo;
 using dnproto.ws;
 using dnproto.fs;
 using dnproto.pds;
+using dnproto.mst;
 
 namespace dnproto.cli.commands;
 
@@ -215,7 +216,7 @@ public class RestoreAccount : BaseCommand
 
 
         //
-        // Get repo
+        // REPO (RepoHeader, RepoCommit, RepoRecord)
         //
         string repoFile = Path.Combine(backupDir, "repo.car");
         Logger.LogInfo("");
@@ -223,8 +224,71 @@ public class RestoreAccount : BaseCommand
         Logger.LogInfo($"Reading repo file: {repoFile}");
 
 
+        // load MST
+        List<MstItem> mstItems = RepoMst.LoadMstItemsFromRepo(repoFile, Logger);
+        Dictionary<string, MstItem> mstItemsByRecordCid = new Dictionary<string, MstItem>();
+        foreach(var mstItem in mstItems)
+        {
+            mstItemsByRecordCid[mstItem.Value] = mstItem;
+        }
+
+        // delete everything (keep prefs though - we just uploaded those)
+        db.DeleteRepoCommit();
+        db.DeleteRepoHeader();
+        db.DeleteAllRepoRecords();
+        db.DeleteAllFirehoseEvents();
 
 
+        // walk repo
+        Repo.WalkRepo(repoFile,
+            (header) =>
+            {
+                Logger.LogInfo($"Inserting header. repoCommit: {header.RepoCommitCid}");
+                db.InsertUpdateRepoHeader(header);
+                return true;
+            },
+            (record) =>
+            {
+                if(record.IsAtProtoRecord())
+                {
+                    if(mstItemsByRecordCid.ContainsKey(record.Cid.Base32) == false)
+                    {
+                        Logger.LogError($"Couldn't find mstitem for record: {record.Cid.Base32}");
+                        return false;
+                    }
+
+                    string fullKey = mstItemsByRecordCid[record.Cid.Base32].Key;
+                    string collection = fullKey.Split("/")[0];
+                    string rkey = fullKey.Split("/")[1];
+
+                    if(string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
+                    {
+                        Logger.LogError("Collection or rkey is null. Exiting.");
+                        return false;
+                    }
+
+                    Logger.LogInfo($"ADDING. cid:{record.Cid}, atProtoType:{record.AtProtoType}");
+
+                    db.InsertRepoRecord(collection, rkey, record.Cid, record.DataBlock);
+                }
+                else if(record.IsRepoCommit())
+                {
+                    RepoCommit? repoCommit = record.ToRepoCommit();
+                    if(repoCommit is null)
+                    {
+                        Logger.LogError($"repoCommit is null.");
+                        return false;
+                    }
+
+                    db.InsertUpdateRepoCommit(repoCommit);
+                }
+                else
+                {
+                    Logger.LogWarning($"skipping. cid:{record.Cid}, isMstNode:{RepoMst.IsMstNode(record)}");
+                }
+
+                return true;
+            });        
 
 
         Logger.LogInfo("");
