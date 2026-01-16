@@ -5,8 +5,7 @@ namespace dnproto.pds;
 
 public class Config
 {
-    public static string Version = "0.0.003";
-    
+    public static string Version = "dnproto 0.0.004";    
     
     public required string ListenScheme;
 

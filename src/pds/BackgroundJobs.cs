@@ -29,6 +29,8 @@ public class BackgroundJobs
     {
         // run Job_UpdateLogLevel every 15 seconds
         _timerLogLevel = new System.Threading.Timer(_ => Job_UpdateLogLevel(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
+        // run Job_CleanupOldLogs every hour
+        _ = new System.Threading.Timer(_ => Job_CleanupOldLogs(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
     }
 
 
@@ -41,6 +43,31 @@ public class BackgroundJobs
         {
             _logger.LogInfo($"Updating log level from [{currentLevel}] to [{newLevel}]");
             _logger.SetLogLevel(newLevel);
+        }
+    }
+
+    private void Job_CleanupOldLogs()
+    {
+        foreach(string logFile in Directory.GetFiles(Path.Combine(_lfs.GetDataDir(), "logs")))
+        {
+            if(File.GetLastWriteTime(logFile) < DateTime.Now.AddHours(-2)
+                && logFile.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInfo($"[BG] Deleting old log file: {logFile}");
+
+                try
+                {
+                    File.Delete(logFile);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"[BG] Failed to delete log file: {logFile}. Exception: {ex.Message}");
+                }
+            }
+            else
+            {
+                _logger.LogInfo($"[BG] Keeping log file: {logFile}");
+            }
         }
     }
 }
