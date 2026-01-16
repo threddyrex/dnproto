@@ -642,7 +642,8 @@ public class BlueskyClient
         BlueskyClient.SendRequest(url,
             HttpMethod.Get,
             outputFilePath: blobFile,
-            parseJsonResponse: false);
+            parseJsonResponse: false,
+            writeMetadataFile: true);
 
     }
 
@@ -1035,7 +1036,7 @@ public class BlueskyClient
     /// <param name="content"></param>
     /// <param name="outputFilePath"></param>
     /// <returns></returns>
-    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null, string? basicAuth = null)
+    public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null, string? basicAuth = null, bool writeMetadataFile = false)
     {
         Logger.LogInfo($"[SEND REQUEST]: {url}");
 
@@ -1156,6 +1157,27 @@ public class BlueskyClient
                         }
                     }
                 }
+            }
+
+
+            //
+            // User wants metadata file?
+            //
+            if (string.IsNullOrEmpty(outputFilePath) == false
+                && writeMetadataFile 
+                && succeeded)
+            {
+                string metadataFilePath = outputFilePath + ".metadata.json";
+                Logger.LogTrace($"writing metadata to: {metadataFilePath}");
+
+                var metadata = new JsonObject
+                {
+                    ["statusCode"] = (int)response.StatusCode,
+                    ["contentType"] = response.Content.Headers.ContentType?.ToString() ?? "",
+                    ["contentLength"] = response.Content.Headers.ContentLength ?? 0,
+                };
+
+                JsonData.WriteJsonToFile(metadata, metadataFilePath);
             }
 
             return jsonResponse;

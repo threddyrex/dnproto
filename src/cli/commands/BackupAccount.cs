@@ -264,42 +264,9 @@ public class BackupAccount : BaseCommand
                 Logger.LogError($"Failed to list files in blobs directory: {ex.Message}");
             }
 
-            Logger.LogInfo($"Downloaded {blobCountDownloaded} blobs, skipped {blobCountSkipped} blobs. There are {blobFileCount} blob files on disk.");
+            Logger.LogInfo($"Downloaded {blobCountDownloaded} blobs, skipped {blobCountSkipped} blobs. There are {blobFileCount} blob files on disk (2 for each blob).");
 
 
-            //
-            // Delete local blob files that are no longer used in the account.
-            //
-            string[] filesOnDisk = Directory.GetFiles(blobsDirectory);
-            HashSet<string> blobsSet = new HashSet<string>(blobs);
-
-            int deletedCount = 0;
-            foreach (string filePath in filesOnDisk)
-            {
-                string fileName = Path.GetFileName(filePath);
-                if (!blobsSet.Contains(fileName))
-                {
-                    try
-                    {
-                        Logger.LogInfo($"Deleting old blob file: {filePath}");
-                        File.Delete(filePath);
-                        deletedCount++;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError($"Failed to delete file {filePath}: {ex.Message}");
-                    }
-                }
-            }
-
-            if (deletedCount > 0)
-            {
-                Logger.LogInfo($"Deleted {deletedCount} old blob files from disk.");
-            }
-            else
-            {
-                Logger.LogInfo("There are no blob files to delete.");
-            }
 
             Logger.LogInfo("");
 

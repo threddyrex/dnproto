@@ -400,6 +400,16 @@ WHERE Cid = @Cid
         return blobs;
     }
 
+    public void DeleteAllBlobs()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "DELETE FROM Blob";
+            command.ExecuteNonQuery();
+        }
+    }
+
     #endregion
 
 
