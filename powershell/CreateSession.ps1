@@ -3,18 +3,23 @@ param (
     [string]$logLevel = $null,
     [string]$dataDir = $null,
     [string]$actor = $null,
-    [Parameter(Mandatory=$true)]
     [string]$password = "",
     [string]$authFactorToken = ""
 )
 
 . .\_Defaults.ps1
 
-if([string]::isnullorempty($authFactorToken))
+
+$command = "/command createsession /dataDir $dataDir /logLevel $logLevel /logToDataDir $logToDataDir /actor $actor"
+
+if(-not [string]::IsNullOrWhiteSpace($password))
 {
-    & $dnprotoPath /command CreateSession /actor $actor /password $password /logLevel $logLevel /dataDir $dataDir
+    $command += " /password $password"
 }
-else
+
+if(-not [string]::IsNullOrWhiteSpace($authFactorToken))
 {
-    & $dnprotoPath /command CreateSession /actor $actor /password $password /logLevel $logLevel /dataDir $dataDir /authFactorToken $authFactorToken 
+    $command += " /authFactorToken $authFactorToken"
 }
+
+& $dnprotoPath $command.Split(' ')

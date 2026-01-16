@@ -15,12 +15,12 @@ public class CreateSession : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"actor", "password"});
+        return new HashSet<string>(new string[]{"actor"});
     }
 
     public override HashSet<string> GetOptionalArguments()
     {
-        return new HashSet<string>(new string[]{"authFactorToken"});
+        return new HashSet<string>(new string[]{"password", "authFactorToken"});
     }
 
 
@@ -41,16 +41,26 @@ public class CreateSession : BaseCommand
         string? password = CommandLineInterface.GetArgumentValue(arguments, "password");
         string? authFactorToken = CommandLineInterface.GetArgumentValue(arguments, "authFactorToken");
 
-        if (string.IsNullOrEmpty(actor) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(actor))
         {
-            Logger.LogError("Missing required argument: actor or password");
+            Logger.LogError("Missing required argument: actor");
             return;
         }
 
         //
-        // Load lfs
+        // Ask for password if not provided
         //
-        LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
+        if (string.IsNullOrEmpty(password))
+        {
+            Logger.LogInfo($"Actor is {actor}.");
+            Console.Write($"please enter password:");
+            password = Console.ReadLine();
+        }
+
+        //
+        // Load actor
+        //
+        LocalFileSystem? lfs = this.LocalFileSystem;
         ActorInfo? actorInfo = lfs?.ResolveActorInfo(actor);
 
         Logger.LogInfo("Resolving handle to get pds.");
