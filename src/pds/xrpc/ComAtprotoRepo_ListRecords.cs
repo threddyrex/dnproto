@@ -23,10 +23,18 @@ public class ComAtprotoRepo_ListRecords : BaseXrpcCommand
 
         string? cursor = HttpContext.Request.Query.ContainsKey("cursor") ? (string?) HttpContext.Request.Query["cursor"] : null;
         string? limitStr = HttpContext.Request.Query.ContainsKey("limit") ? (string?) HttpContext.Request.Query["limit"] : null;
+        string? reverseStr = HttpContext.Request.Query.ContainsKey("reverse") ? (string?) HttpContext.Request.Query["reverse"] : null;
+
         int limit = 100;
         if(limitStr != null)
         {
             int.TryParse(limitStr, out limit);
+        }
+
+        bool reverse = false;
+        if(reverseStr != null)
+        {
+            bool.TryParse(reverseStr, out reverse);
         }
 
 
@@ -34,7 +42,7 @@ public class ComAtprotoRepo_ListRecords : BaseXrpcCommand
         //
         // Retrieve record
         //
-        List<(string rkey, RepoRecord)> records = Pds.PdsDb.ListRepoRecordsByCollection(collection!, limit, cursor);
+        List<(string rkey, RepoRecord)> records = Pds.PdsDb.ListRepoRecordsByCollection(collection!, limit, cursor, reverse);
 
 
 

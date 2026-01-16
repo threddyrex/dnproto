@@ -980,7 +980,7 @@ DELETE FROM RepoRecord
     }
 
 
-    public List<(string rkey, RepoRecord)> ListRepoRecordsByCollection(string collection, int limit = 100, string? cursor = null)
+    public List<(string rkey, RepoRecord)> ListRepoRecordsByCollection(string collection, int limit = 100, string? cursor = null, bool reverse = false)
     {
         if(string.IsNullOrEmpty(cursor))
         {
@@ -991,6 +991,9 @@ DELETE FROM RepoRecord
         using(var sqlConnection = GetConnectionReadOnly())
         {
             var command = sqlConnection.CreateCommand();
+
+            if(reverse == false)
+            {
             command.CommandText = @"
 SELECT * FROM RepoRecord
 WHERE Collection = @Collection
@@ -998,6 +1001,18 @@ AND Rkey > @Cursor
 ORDER BY Rkey ASC
 LIMIT @Limit
             ";
+            }
+            else
+            {
+            command.CommandText = @"
+SELECT * FROM RepoRecord
+WHERE Collection = @Collection
+AND Rkey > @Cursor
+ORDER BY Rkey DESC
+LIMIT @Limit
+            ";
+            }
+
             command.Parameters.AddWithValue("@Collection", collection);
             command.Parameters.AddWithValue("@Cursor", cursor);
             command.Parameters.AddWithValue("@Limit", limit);
