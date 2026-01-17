@@ -281,8 +281,7 @@ DELETE FROM Config
 CREATE TABLE IF NOT EXISTS Blob (
 Cid TEXT PRIMARY KEY,
 ContentType TEXT NOT NULL,
-ContentLength INTEGER NOT NULL,
-Bytes BLOB NOT NULL
+ContentLength INTEGER NOT NULL
 )
         ";
         
@@ -312,13 +311,12 @@ Bytes BLOB NOT NULL
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Blob (Cid, ContentType, ContentLength, Bytes)
-VALUES (@Cid, @ContentType, @ContentLength, @Bytes)
+INSERT INTO Blob (Cid, ContentType, ContentLength)
+VALUES (@Cid, @ContentType, @ContentLength)
             ";
             command.Parameters.AddWithValue("@Cid", blob.Cid);
             command.Parameters.AddWithValue("@ContentType", blob.ContentType);
             command.Parameters.AddWithValue("@ContentLength", blob.ContentLength);
-            command.Parameters.AddWithValue("@Bytes", blob.Bytes);
 
             command.ExecuteNonQuery();
         }
@@ -331,13 +329,12 @@ VALUES (@Cid, @ContentType, @ContentLength, @Bytes)
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
 UPDATE Blob
-SET ContentType = @ContentType, ContentLength = @ContentLength, Bytes = @Bytes
+SET ContentType = @ContentType, ContentLength = @ContentLength
 WHERE Cid = @Cid
             ";
             command.Parameters.AddWithValue("@Cid", blob.Cid);
             command.Parameters.AddWithValue("@ContentType", blob.ContentType);
             command.Parameters.AddWithValue("@ContentLength", blob.ContentLength);
-            command.Parameters.AddWithValue("@Bytes", blob.Bytes);
 
             command.ExecuteNonQuery();
         }
@@ -359,8 +356,7 @@ WHERE Cid = @Cid
                     {
                         Cid = reader.GetString(reader.GetOrdinal("Cid")),
                         ContentType = reader.GetString(reader.GetOrdinal("ContentType")),
-                        ContentLength = reader.GetInt32(reader.GetOrdinal("ContentLength")),
-                        Bytes = (byte[])reader["Bytes"]
+                        ContentLength = reader.GetInt32(reader.GetOrdinal("ContentLength"))
                     };
                     return blob;
                 }

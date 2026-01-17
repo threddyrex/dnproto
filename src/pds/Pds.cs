@@ -71,6 +71,8 @@ public class Pds
 
     public required PdsDb PdsDb;
 
+    public required IBlobDb blobDb;
+
     public required WebApplication App;
 
     public required Func<byte[], byte[]> CommitSigningFunction;
@@ -110,6 +112,11 @@ public class Pds
         // Initialize PdsDb
         //
         PdsDb pdsDb = PdsDb.ConnectPdsDb(lfs, logger);
+
+        //
+        // Initialize BlobDb. File-based for now.
+        //
+        IBlobDb blobDb = BlobDb.Create(lfs, logger);
 
         //
         // Get PDS config from db
@@ -192,6 +199,7 @@ public class Pds
             Logger = logger,
             LocalFileSystem = lfs,
             PdsDb = pdsDb,
+            blobDb = blobDb,
             App = app,
             CommitSigningFunction = commitSigningFunction,
             UserRepo = repo,

@@ -43,17 +43,18 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
         {
             Cid = cid,
             ContentType = contentType ?? string.Empty,
-            ContentLength = contentLength,
-            Bytes = blobBytes
+            ContentLength = contentLength
         };
 
         if(Pds.PdsDb.BlobExists(cid))
         {
             Pds.PdsDb.UpdateBlob(blob);
+            Pds.blobDb.UpdateBlobBytes(cid, blobBytes);
         }
         else
         {
             Pds.PdsDb.InsertBlob(blob);
+            Pds.blobDb.InsertBlobBytes(cid, blobBytes);
         }
 
         //

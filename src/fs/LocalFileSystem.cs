@@ -55,6 +55,16 @@ public class LocalFileSystem
             }
         }
 
+        foreach (string subDir in new string[] { "blobs"})
+        {
+            string fullSubDir = Path.Combine(dataDir, "pds", subDir);
+            if (Directory.Exists(fullSubDir) == false)
+            {
+                logger.LogTrace($"Creating subDir: {fullSubDir}");
+                Directory.CreateDirectory(fullSubDir);
+            }
+        }
+
         return new LocalFileSystem(dataDir, logger);
     }
 

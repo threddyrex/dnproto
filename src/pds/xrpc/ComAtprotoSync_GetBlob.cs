@@ -23,9 +23,19 @@ public class ComAtprotoSync_GetBlob : BaseXrpcCommand
         }
 
         //
+        // Validate
+        //
+        if(Pds.PdsDb.BlobExists(cid) == false
+            || Pds.blobDb.HasBlobBytes(cid) == false)
+        {
+            return Results.Json(new { error = "NotFound", message = "Blob not found" }, statusCode: 404);
+        }
+
+        //
         // Get blob
         //
         var blob = Pds.PdsDb.GetBlobByCid(cid);
+        var blobBytes = Pds.blobDb.GetBlobBytes(cid);
 
         if(blob == null)
         {
@@ -37,7 +47,7 @@ public class ComAtprotoSync_GetBlob : BaseXrpcCommand
         //
         HttpContext.Response.ContentType = blob.ContentType;
         HttpContext.Response.ContentLength = blob.ContentLength;
-        await HttpContext.Response.Body.WriteAsync(blob.Bytes, 0, blob.ContentLength);
+        await HttpContext.Response.Body.WriteAsync(blobBytes, 0, blob.ContentLength);
 
         return Results.Empty;
     }

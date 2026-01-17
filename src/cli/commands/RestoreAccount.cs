@@ -104,6 +104,7 @@ public class RestoreAccount : BaseCommand
         // Connect to local db
         //
         PdsDb db = PdsDb.ConnectPdsDb(lfs!, Logger);
+        IBlobDb blobDb = BlobDb.Create(lfs!, Logger);
 
 
         //
@@ -208,9 +209,9 @@ public class RestoreAccount : BaseCommand
             {
                 Cid = blobCidStr,
                 ContentType = contentType,
-                ContentLength = contentLength,
-                Bytes = blobData
+                ContentLength = contentLength
             });
+            blobDb.InsertBlobBytes(blobCidStr, blobData);
         }
 
 
