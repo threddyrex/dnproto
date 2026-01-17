@@ -242,9 +242,7 @@ public class Pds
         App.MapPost("/xrpc/com.atproto.repo.applyWrites", (HttpContext context) => new ComAtprotoRepo_ApplyWrites(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.subscribeRepos", async (HttpContext context) => { var cmd = new ComAtprotoSync_SubscribeRepos(){Pds = this, HttpContext = context}; await cmd.HandleWebSocketAsync(); });
         App.MapPost("/xrpc/com.atproto.server.activateAccount", (HttpContext context) => new ComAtprotoServer_ActivateAccount(){Pds = this, HttpContext = context}.GetResponse());
-        //App.MapGet("/xrpc/chat.bsky.convo.getLog", (HttpContext context) => new ChatBskyConvo_GetLog(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.listRepos", (HttpContext context) => new ComAtprotoSync_ListRepos(){Pds = this, HttpContext = context}.GetResponse());
-        //App.MapGet("/xrpc/chat.bsky.convo.listConvos", (HttpContext context) => new ChatBskyConvo_ListConvos(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.describeRepo", (HttpContext context) => new ComAtprotoRepo_DescribeRepo(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.listRecords", (HttpContext context) => new ComAtprotoRepo_ListRecords(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.getRecord", async (HttpContext context) => { var cmd = new ComAtprotoSync_GetRecord(){Pds = this, HttpContext = context}; return await cmd.GetResponseAsync(); });
@@ -293,9 +291,7 @@ public class Pds
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.applyWrites");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.subscribeRepos (WebSocket)");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.server.activateAccount");
-        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/chat.bsky.convo.getLog");
-        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/app.bsky.convo.listRepos");
-        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/chat.bsky.convo.listConvos");
+        Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.listRepos");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.describeRepo");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.repo.listRecords");
         Logger.LogInfo($"   {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/xrpc/com.atproto.sync.getRecord");
