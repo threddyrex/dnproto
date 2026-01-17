@@ -58,7 +58,7 @@ public class BlobDb : IBlobDb
     public void InsertBlobBytes(string cid, byte[] bytes)
     {
         string filePath = GetBlobFilePath(cid);
-        Logger.LogInfo("[BLOB] InsertBlobBytes: {filePath}");
+        Logger.LogInfo($"[BLOB] InsertBlobBytes: {filePath}");
         File.WriteAllBytes(filePath, bytes);
     }
 
@@ -75,7 +75,7 @@ public class BlobDb : IBlobDb
         {
             throw new FileNotFoundException($"Blob not found: {cid}");
         }
-        Logger.LogInfo("[BLOB] GetBlobBytes: {filePath}");
+        Logger.LogInfo($"[BLOB] GetBlobBytes: {filePath}");
         return File.ReadAllBytes(filePath);
     }
 
@@ -91,7 +91,7 @@ public class BlobDb : IBlobDb
     public void UpdateBlobBytes(string cid, byte[] bytes)
     {
         string filePath = GetBlobFilePath(cid);
-        Logger.LogInfo("[BLOB] UpdateBlobBytes: {filePath}");
+        Logger.LogInfo($"[BLOB] UpdateBlobBytes: {filePath}");
         File.WriteAllBytes(filePath, bytes);
     }
 }
