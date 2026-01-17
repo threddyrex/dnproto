@@ -242,9 +242,9 @@ public class Pds
         App.MapPost("/xrpc/com.atproto.repo.applyWrites", (HttpContext context) => new ComAtprotoRepo_ApplyWrites(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.subscribeRepos", async (HttpContext context) => { var cmd = new ComAtprotoSync_SubscribeRepos(){Pds = this, HttpContext = context}; await cmd.HandleWebSocketAsync(); });
         App.MapPost("/xrpc/com.atproto.server.activateAccount", (HttpContext context) => new ComAtprotoServer_ActivateAccount(){Pds = this, HttpContext = context}.GetResponse());
-        App.MapGet("/xrpc/chat.bsky.convo.getLog", (HttpContext context) => new ChatBskyConvo_GetLog(){Pds = this, HttpContext = context}.GetResponse());
+        //App.MapGet("/xrpc/chat.bsky.convo.getLog", (HttpContext context) => new ChatBskyConvo_GetLog(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.listRepos", (HttpContext context) => new ComAtprotoSync_ListRepos(){Pds = this, HttpContext = context}.GetResponse());
-        App.MapGet("/xrpc/chat.bsky.convo.listConvos", (HttpContext context) => new ChatBskyConvo_ListConvos(){Pds = this, HttpContext = context}.GetResponse());
+        //App.MapGet("/xrpc/chat.bsky.convo.listConvos", (HttpContext context) => new ChatBskyConvo_ListConvos(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.describeRepo", (HttpContext context) => new ComAtprotoRepo_DescribeRepo(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.repo.listRecords", (HttpContext context) => new ComAtprotoRepo_ListRecords(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.sync.getRecord", async (HttpContext context) => { var cmd = new ComAtprotoSync_GetRecord(){Pds = this, HttpContext = context}; return await cmd.GetResponseAsync(); });
@@ -257,7 +257,8 @@ public class Pds
             var cmd = new AppBsky_Proxy() { Pds = this, HttpContext = context };
 
             // Only proxy app.bsky routes that aren't already handled
-            if (context.Request.Path.Value?.StartsWith("/xrpc/app.bsky") == true)
+            if (context.Request.Path.Value?.StartsWith("/xrpc/app.bsky") == true
+                || context.Request.Path.Value?.StartsWith("/xrpc/chat.bsky") == true)
             {
                 return await cmd.ProxyToAppView(context);
             }
