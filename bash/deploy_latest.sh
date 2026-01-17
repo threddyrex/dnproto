@@ -21,7 +21,7 @@ git pull
 echo ""
 
 echo "GIT GET REV"
-git rev-parse --short HEAD > ..\data\pds\code-rev.txt
+git rev-parse --short HEAD > .\data\pds\code-rev.txt
 echo ""
 
 echo "DOTNET BUILD"
