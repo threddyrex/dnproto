@@ -199,26 +199,12 @@ public class AppBsky_Proxy : BaseXrpcCommand
             var responseBody = await response.Content.ReadAsStringAsync();
             Pds.Logger.LogTrace($"RESPONSE: {response}");
 
-            // Copy response headers
-            foreach (var header in response.Headers)
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
-            foreach (var header in response.Content.Headers)
-            {
-                context.Response.Headers[header.Key] = header.Value.ToArray();
-            }
+            // Get content type and status code from upstream response
+            var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
+            var statusCode = (int)response.StatusCode;
 
-            context.Response.StatusCode = (int)response.StatusCode;
-
-            if (!string.IsNullOrEmpty(responseBody))
-            {
-                return Results.Content(responseBody, response.Content.Headers.ContentType?.ToString());
-            }
-            else
-            {
-                return Results.StatusCode((int)response.StatusCode);
-            }
+            // Return response with proper content type - let ASP.NET Core handle headers
+            return Results.Content(responseBody, contentType, statusCode: statusCode);
         }
         catch (Exception ex)
         {
