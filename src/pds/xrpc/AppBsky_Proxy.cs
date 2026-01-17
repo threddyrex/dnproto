@@ -198,15 +198,21 @@ public class AppBsky_Proxy : BaseXrpcCommand
             var responseBody = await response.Content.ReadAsStringAsync();
             Pds.Logger.LogTrace($"\n\nREQUEST: {request}\n\nRESPONSE: {response}");
 
-            // Get content type and status code from upstream response
-            var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
             var statusCode = (int)response.StatusCode;
 
             // Add cache control headers that the reference PDS includes
             context.Response.Headers["Cache-Control"] = "private";
             context.Response.Headers["Vary"] = "Authorization";
 
-            // Return response with proper content type - let ASP.NET Core handle headers
+            // If response body is empty, return just the status code (no content-type)
+            // This matches how the reference PDS handles empty responses
+            if (string.IsNullOrEmpty(responseBody))
+            {
+                return Results.StatusCode(statusCode);
+            }
+
+            // For non-empty responses, use the upstream content-type or default to application/json
+            var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
             return Results.Content(responseBody, contentType, statusCode: statusCode);
         }
         catch (Exception ex)
