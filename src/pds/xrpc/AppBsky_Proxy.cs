@@ -202,6 +202,10 @@ public class AppBsky_Proxy : BaseXrpcCommand
             var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
             var statusCode = (int)response.StatusCode;
 
+            // Add cache control headers that the reference PDS includes
+            context.Response.Headers["Cache-Control"] = "private";
+            context.Response.Headers["Vary"] = "Authorization";
+
             // Return response with proper content type - let ASP.NET Core handle headers
             return Results.Content(responseBody, contentType, statusCode: statusCode);
         }
