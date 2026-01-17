@@ -194,10 +194,9 @@ public class AppBsky_Proxy : BaseXrpcCommand
 
         try
         {
-            Pds.Logger.LogTrace($"REQUEST:\n{request}");
             var response = await httpClient.SendAsync(request);
             var responseBody = await response.Content.ReadAsStringAsync();
-            Pds.Logger.LogTrace($"RESPONSE: {response}");
+            Pds.Logger.LogTrace($"\n\nREQUEST: {request}\n\nRESPONSE: {response}");
 
             // Get content type and status code from upstream response
             var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
