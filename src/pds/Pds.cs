@@ -155,7 +155,8 @@ public class Pds
             {
                 policy.AllowAnyOrigin()
                       .AllowAnyMethod()
-                      .AllowAnyHeader();
+                      .AllowAnyHeader()
+                      .SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
             });
         });
 
