@@ -10,6 +10,17 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.xrpc;
 
 
+/// <summary>
+/// Many PDS endpoints are just forwarded along to the AppView. 
+/// This class handles that proxying.
+/// Right now we are proxying the following:
+/// 
+/// - /xrpc/app.bsky.*
+/// - /xrpc/chat.bsky.*
+/// 
+/// See: https://docs.bsky.app/docs/advanced-guides/api-directory
+/// 
+/// </summary>
 public class AppBsky_Proxy : BaseXrpcCommand
 {
     public async Task<IResult> ProxyToAppView(HttpContext context)

@@ -7,6 +7,11 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.xrpc;
 
 
+/// <summary>
+/// Preferences are the exception to the general rule of
+/// "proxy requests to /xrpc/app.bsky.* to the AppView"
+/// Not sure why.
+/// </summary>
 public class AppBskyActor_GetPreferences : BaseXrpcCommand
 {
     public IResult GetResponse()

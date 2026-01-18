@@ -7,7 +7,14 @@ using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
 
-
+/// <summary>
+/// Provide all of the blocks needed to prove the existence of a record.
+/// This includes a RepoHeader, RepoCommit, RepoRecord, and all MstNodes
+/// in the path from the root of the tree all the way to the record.
+/// 
+/// see: https://docs.bsky.app/docs/api/com-atproto-sync-get-record
+/// 
+/// </summary>
 public class ComAtprotoSync_GetRecord : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
