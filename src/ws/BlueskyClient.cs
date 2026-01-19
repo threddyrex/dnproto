@@ -39,110 +39,126 @@ public class BlueskyClient
         //
         if (queryOptions is null) queryOptions = new ActorQueryOptions();
 
+        //
+        // Return value
+        //
         var ret = new ActorInfo();
         ret.Actor = actor;
 
-        Logger.LogTrace($"ResolveActorInfo: actor: {actor}");
-        if (string.IsNullOrEmpty(actor))
-        {
-            Logger.LogTrace("ResolveActorInfo: actor is null or empty. Exiting.");
-            return ret;
-        }
-
         //
-        // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
+        // For logging
         //
-        if(actor.StartsWith("did:"))
-        {
-            ret.Did = actor;
-            Logger.LogTrace("Actor is already a did.");
-        }
-        else
-        {
-            ret.Handle = actor;
-            Logger.LogTrace("Actor is not a did, resolving to did.");
+        StringBuilder logLine = new StringBuilder($"[BSKY] [ACTOR] {actor}   all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc} ");
 
-            if (queryOptions.All || queryOptions.ResolveHandleViaBluesky)
+        try
+        {
+            Logger.LogTrace($"ResolveActorInfo: actor: {actor}");
+            if (string.IsNullOrEmpty(actor))
             {
-                ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(actor);
+                Logger.LogTrace("ResolveActorInfo: actor is null or empty. Exiting.");
+                return ret;
             }
-
-            if (queryOptions.All || queryOptions.ResolveHandleViaDns)
-            {                
-                ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
-            }
-            
-            if (queryOptions.All || queryOptions.ResolveHandleViaHttp)
-            {
-                ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
-            }
-
-            ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
-        }
-
-        if (string.IsNullOrEmpty(ret.Did) || !ret.Did.StartsWith("did:")) return ret;
-
-
-        //
-        // 2. Resolve did to didDoc. (did:plc or did:web)
-        //
-        if (queryOptions.All || queryOptions.ResolveDidDoc)
-        {
-            ret.DidDoc = ResolveDidToDidDoc(ret.Did);
-            if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
-        }
-
-        Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
-
-
-        //
-        // 3. Resolve didDoc to pds.
-        //
-        ret.Pds = BlueskyClient.ResolveDidDocToPds(ret.DidDoc);
-
-        if (string.IsNullOrEmpty(ret.Pds)) return ret;
-        ret.Pds = ret.Pds.Replace("https://", "");
-
-
-        //
-        // 4. Get handle from diddoc
-        //
-        if (ret.DidDoc != null)
-        {
-            JsonNode? didDocJson = JsonNode.Parse(ret.DidDoc);
-
-            if(string.IsNullOrEmpty(ret.Handle))
-            {
-                string? handleFromDidDoc = null;
-                handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
-                ret.Handle = handleFromDidDoc;
-            }
-
 
             //
-            // 5. Get public key from diddoc
+            // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
             //
-            if (string.IsNullOrEmpty(ret.PublicKeyMultibase))
+            if(actor.StartsWith("did:"))
             {
-                foreach (var verificationMethod in didDocJson?["verificationMethod"]?.AsArray() ?? new JsonArray())
+                ret.Did = actor;
+                Logger.LogTrace("Actor is already a did.");
+            }
+            else
+            {
+                ret.Handle = actor;
+                Logger.LogTrace("Actor is not a did, resolving to did.");
+
+                if (queryOptions.All || queryOptions.ResolveHandleViaBluesky)
                 {
-                    if (verificationMethod == null) continue;
-                    var vmId = verificationMethod["id"]?.ToString();
-                    if (vmId != null && vmId.EndsWith("#atproto"))
+                    ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(actor);
+                }
+
+                if (queryOptions.All || queryOptions.ResolveHandleViaDns)
+                {                
+                    ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
+                }
+                
+                if (queryOptions.All || queryOptions.ResolveHandleViaHttp)
+                {
+                    ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
+                }
+
+                ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
+            }
+
+            if (string.IsNullOrEmpty(ret.Did) || !ret.Did.StartsWith("did:")) return ret;
+
+
+            //
+            // 2. Resolve did to didDoc. (did:plc or did:web)
+            //
+            if (queryOptions.All || queryOptions.ResolveDidDoc)
+            {
+                ret.DidDoc = ResolveDidToDidDoc(ret.Did);
+                if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
+            }
+
+            Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
+
+
+            //
+            // 3. Resolve didDoc to pds.
+            //
+            ret.Pds = BlueskyClient.ResolveDidDocToPds(ret.DidDoc);
+
+            if (string.IsNullOrEmpty(ret.Pds)) return ret;
+            ret.Pds = ret.Pds.Replace("https://", "");
+
+
+            //
+            // 4. Get handle from diddoc
+            //
+            if (ret.DidDoc != null)
+            {
+                JsonNode? didDocJson = JsonNode.Parse(ret.DidDoc);
+
+                if(string.IsNullOrEmpty(ret.Handle))
+                {
+                    string? handleFromDidDoc = null;
+                    handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
+                    ret.Handle = handleFromDidDoc;
+                }
+
+
+                //
+                // 5. Get public key from diddoc
+                //
+                if (string.IsNullOrEmpty(ret.PublicKeyMultibase))
+                {
+                    foreach (var verificationMethod in didDocJson?["verificationMethod"]?.AsArray() ?? new JsonArray())
                     {
-                        ret.PublicKeyMultibase = verificationMethod["publicKeyMultibase"]?.ToString();
-                        break;
+                        if (verificationMethod == null) continue;
+                        var vmId = verificationMethod["id"]?.ToString();
+                        if (vmId != null && vmId.EndsWith("#atproto"))
+                        {
+                            ret.PublicKeyMultibase = verificationMethod["publicKeyMultibase"]?.ToString();
+                            break;
+                        }
                     }
                 }
             }
+
+            logLine.Append($", did={ret.Did}");
+            logLine.Append($", pds={ret.Pds}");
+
+            //
+            // return
+            //
+            return ret;
         }
-
-
-        //
-        // return
-        //
-        return ret;
-
+        finally
+        {
+            Logger.LogInfo(logLine.ToString());
+        }
     }
 
 

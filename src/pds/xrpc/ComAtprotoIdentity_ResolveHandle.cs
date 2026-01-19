@@ -24,7 +24,7 @@ public class ComAtprotoIdentity_ResolveHandle : BaseXrpcCommand
         //
         // Resolve actor
         //
-        ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(actor);
+        ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(actor, new ActorQueryOptions() { ResolveDidDoc = false } );
 
 
         //
