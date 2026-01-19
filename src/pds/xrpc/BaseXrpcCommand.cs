@@ -232,11 +232,11 @@ public abstract class BaseXrpcCommand
             string? ip = context.Connection.RemoteIpAddress?.ToString();
             int port = context.Connection.RemotePort;
             string? userAgent = context.Request.Headers.ContainsKey("User-Agent") ? context.Request.Headers["User-Agent"].ToString() : null;
-            Pds.Logger.LogInfo($"[XRPC] ip={ip} port={port} agent={userAgent}");            
+            Pds.Logger.LogInfo($"[XRPC] ip={ip} port={port} agent={userAgent}");
         }
-        catch(Exception)
+        catch(Exception ex)
         {
-            // best effort
+            Pds.Logger.LogInfo($"[XRPC] {ex.Message}");
         }
     }
 }
