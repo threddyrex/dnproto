@@ -114,6 +114,7 @@ public class LocalFileSystem
         lock (_actorLocks[actor])
         {
             StringBuilder logLine = new StringBuilder($"[ACTOR LFS] {actor}");
+            DateTime startTime = DateTime.UtcNow;
 
             try
             {
@@ -178,6 +179,9 @@ public class LocalFileSystem
             }
             finally
             {
+                DateTime endTime = DateTime.UtcNow;
+                TimeSpan duration = endTime - startTime;
+                logLine.Append($" durationMs={duration.TotalMilliseconds:F1}");
                 _logger.LogInfo(logLine.ToString());
             }
         }
