@@ -113,7 +113,7 @@ public class LocalFileSystem
 
         lock (_actorLocks[actor])
         {
-            StringBuilder logLine = new StringBuilder($"[ACTOR] [LFS] {actor} ");
+            StringBuilder logLine = new StringBuilder($"[ACTOR] [{actor}] [LFS] ");
 
             try
             {
@@ -121,7 +121,7 @@ public class LocalFileSystem
                 // If the file exists, use that.
                 //
                 string actorFile = Path.Combine(_dataDir, "actors", GetSafeString(actor) + ".json");
-                logLine.Append($"    fileExists={File.Exists(actorFile)}");
+                logLine.Append($"fileExists={File.Exists(actorFile)}");
                 if (File.Exists(actorFile))
                 {
                     // if the file is expired, don't use it
