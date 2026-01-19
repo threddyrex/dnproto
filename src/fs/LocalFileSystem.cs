@@ -26,6 +26,8 @@ public class LocalFileSystem
 
     private readonly object _lock = new object();
 
+    private Dictionary<string, object> _actorLocks = new Dictionary<string, object>();
+
     private int cacheExpiryMinutes_Sessions = 60*24;
 
     private int cacheExpiryMinutes_Actors = 60;
@@ -81,23 +83,40 @@ public class LocalFileSystem
 
     /// <summary>
     /// Resolve actor info for the given actor (handle or did).
+    /// Tries to use cache (file system). If file is not found or expired, 
+    /// resolves via BlueskyClient.
     /// </summary>
     /// <param name="actor"></param>
     /// <returns></returns>
     public ActorInfo? ResolveActorInfo(string? actor)
     {
+        //
+        // No input? exit
+        //
+        if (string.IsNullOrEmpty(actor))
+        {
+            _logger.LogError("[LFS] actor is null or empty");
+            return null;
+        }
+
+        //
+        // Let's lock per actor. Don't want other callers to be sitting behind a global lock.
+        //
         lock (_lock)
+        {
+            if (!_actorLocks.ContainsKey(actor))
+            {
+                _actorLocks[actor] = new object();
+            }
+        }
+
+
+        lock (_actorLocks[actor])
         {
             StringBuilder logLine = new StringBuilder($"[ACTOR] [LFS] {actor} ");
 
             try
             {
-                if (string.IsNullOrEmpty(actor))
-                {
-                    _logger.LogError("[LFS] actor is null or empty");
-                    return null;
-                }
-
                 //
                 // If the file exists, use that.
                 //
