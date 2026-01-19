@@ -30,6 +30,8 @@ public class Health : BaseXrpcCommand
         {
             Version = Config.Version
         };
+
+        LogConnectionInfo(HttpContext);
         
         return Results.Json(health, contentType: "application/json");
     }

@@ -224,4 +224,19 @@ public abstract class BaseXrpcCommand
         
         return true;
     }
+
+   protected void LogConnectionInfo(HttpContext context)
+    {
+        try
+        {
+            string? ip = context.Connection.RemoteIpAddress?.ToString();
+            int port = context.Connection.RemotePort;
+            string? userAgent = context.Request.Headers.ContainsKey("User-Agent") ? context.Request.Headers["User-Agent"].ToString() : null;
+            Pds.Logger.LogInfo($"[XRPC] ip={ip} port={port} agent={userAgent}");            
+        }
+        catch(Exception)
+        {
+            // best effort
+        }
+    }
 }
