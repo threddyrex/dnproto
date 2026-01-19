@@ -48,7 +48,7 @@ public class BlueskyClient
         //
         // For logging
         //
-        StringBuilder logLine = new StringBuilder($"[ACTOR] [{actor}] [BSKY] all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc}");
+        StringBuilder logLine = new StringBuilder($"[ACTOR BSKY] {actor} all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc}");
 
         try
         {
