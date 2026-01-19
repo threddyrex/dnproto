@@ -95,7 +95,7 @@ public class LocalFileSystem
         //
         if (string.IsNullOrEmpty(actor))
         {
-            _logger.LogError("[ACTOR LFS] actor is null or empty");
+            _logger.LogError("[ACTOR] [LFS] actor is null or empty");
             return null;
         }
 
@@ -113,7 +113,7 @@ public class LocalFileSystem
 
         lock (_actorLocks[actor])
         {
-            StringBuilder logLine = new StringBuilder($"[ACTOR LFS] {actor}");
+            StringBuilder logLine = new StringBuilder($"[ACTOR] [LFS] {actor}");
             DateTime startTime = DateTime.UtcNow;
 
             try
