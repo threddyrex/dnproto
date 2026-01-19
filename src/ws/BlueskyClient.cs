@@ -102,6 +102,8 @@ public class BlueskyClient
             {
                 ret.DidDoc = ResolveDidToDidDoc(ret.Did);
                 if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
+
+                logLine.Append($", didDocLength={ret.DidDoc?.Length}");
             }
 
             Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
@@ -110,17 +112,19 @@ public class BlueskyClient
             //
             // 3. Resolve didDoc to pds.
             //
-            ret.Pds = BlueskyClient.ResolveDidDocToPds(ret.DidDoc);
-
-            if (string.IsNullOrEmpty(ret.Pds)) return ret;
-            ret.Pds = ret.Pds.Replace("https://", "");
-            logLine.Append($", pds={ret.Pds}");
+            if(string.IsNullOrEmpty(ret.DidDoc) == false)
+            {
+                ret.Pds = BlueskyClient.ResolveDidDocToPds(ret.DidDoc);
+                if (string.IsNullOrEmpty(ret.Pds)) return ret;
+                ret.Pds = ret.Pds.Replace("https://", "");
+                logLine.Append($", pds={ret.Pds}");
+            }
 
 
             //
             // 4. Get handle from diddoc
             //
-            if (ret.DidDoc != null)
+            if(string.IsNullOrEmpty(ret.DidDoc) == false)
             {
                 JsonNode? didDocJson = JsonNode.Parse(ret.DidDoc);
 
