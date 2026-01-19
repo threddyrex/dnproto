@@ -8,6 +8,8 @@ public class Health : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        LogConnectionInfo(HttpContext);
+
         //
         // See if the code rev exists
         //
@@ -30,8 +32,6 @@ public class Health : BaseXrpcCommand
         {
             Version = Config.Version
         };
-
-        LogConnectionInfo(HttpContext);
         
         return Results.Json(health, contentType: "application/json");
     }
