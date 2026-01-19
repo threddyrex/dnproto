@@ -73,6 +73,7 @@ namespace dnproto.cli.commands
             Logger.LogInfo($"allMstNodes.Count: {allMstNodes.Count}");
             Logger.LogInfo($"mstNodeCache.Keys.Count: {mstNodeCache.Keys.Count}");
             Logger.LogInfo($"mstEntryCount: {mstEntryCount}");
+            Logger.LogInfo($"root depth: {mst.Root.KeyDepth}");
             Logger.LogInfo("");
 
 
