@@ -113,7 +113,7 @@ public class LocalFileSystem
 
         lock (_actorLocks[actor])
         {
-            StringBuilder logLine = new StringBuilder($"[ACTOR] [LFS] {actor}");
+            StringBuilder logLine = new StringBuilder($"[ACTOR] [LFS] actor={actor}");
             DateTime startTime = DateTime.UtcNow;
 
             try
