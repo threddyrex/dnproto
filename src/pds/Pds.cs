@@ -106,7 +106,7 @@ public class Pds
         //
         // Get local file system
         //
-        LocalFileSystem lfs = LocalFileSystem.Initialize(dataDir, logger, cacheExpiryMinutes_Actors: cacheExpiryMinutes_Actors);
+        LocalFileSystem lfs = LocalFileSystem.Initialize(dataDir, logger);
 
         //
         // Initialize PdsDb

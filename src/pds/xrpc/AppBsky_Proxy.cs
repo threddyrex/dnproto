@@ -54,9 +54,10 @@ public class AppBsky_Proxy : BaseXrpcCommand
 
 
         //
-        // Resolve did doc for atproto proxy DID
+        // Resolve did doc for atproto proxy DID.
+        // Use longer expiry because we don't expect these proxy values to change.
         //
-        ActorInfo? actorInfo = Pds.LocalFileSystem.ResolveActorInfo(atprotoProxy.Did);
+        ActorInfo? actorInfo = Pds.LocalFileSystem.ResolveActorInfo(atprotoProxy.Did, cacheExpiryMinutes: (60*3));
         if(actorInfo == null || actorInfo.DidDoc == null)
         {
             Pds.Logger.LogError($"Unable to resolve actor info for DID: {atprotoProxy.Did}");

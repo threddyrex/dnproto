@@ -15,22 +15,16 @@ public class LocalFileSystem
 
     private IDnProtoLogger _logger;
 
-    private LocalFileSystem(string dataDir, IDnProtoLogger logger, int cacheExpiryMinutes_Actors, int cacheExpiryMinutes_Sessions)
+    private LocalFileSystem(string dataDir, IDnProtoLogger logger)
     {
         _dataDir = dataDir;
         _logger = logger;
-        this.cacheExpiryMinutes_Actors = cacheExpiryMinutes_Actors;
-        this.cacheExpiryMinutes_Sessions = cacheExpiryMinutes_Sessions;
     }
 
 
     private readonly object _lock = new object();
 
     private Dictionary<string, object> _actorLocks = new Dictionary<string, object>();
-
-    private int cacheExpiryMinutes_Sessions = 60*24;
-
-    private int cacheExpiryMinutes_Actors = 60;
 
     public string GetDataDir()
     {
@@ -45,7 +39,7 @@ public class LocalFileSystem
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static LocalFileSystem Initialize(string? dataDir, IDnProtoLogger logger, int cacheExpiryMinutes_Actors = 60, int cacheExpiryMinutes_Sessions = 60*24)
+    public static LocalFileSystem Initialize(string? dataDir, IDnProtoLogger logger)
     {
         if (string.IsNullOrEmpty(dataDir) || Directory.Exists(dataDir) == false)
         {
@@ -72,7 +66,7 @@ public class LocalFileSystem
             }
         }
 
-        var lfs = new LocalFileSystem(dataDir, logger, cacheExpiryMinutes_Actors, cacheExpiryMinutes_Sessions);
+        var lfs = new LocalFileSystem(dataDir, logger);
         return lfs;
     }
 
@@ -88,7 +82,7 @@ public class LocalFileSystem
     /// </summary>
     /// <param name="actor"></param>
     /// <returns></returns>
-    public ActorInfo? ResolveActorInfo(string? actor)
+    public ActorInfo? ResolveActorInfo(string? actor, int cacheExpiryMinutes = 15)
     {
         //
         // No input? exit
@@ -129,11 +123,12 @@ public class LocalFileSystem
                     FileInfo fileInfo = new FileInfo(actorFile);
                     float fileAgeMinutes = (float)(DateTime.UtcNow - fileInfo.LastWriteTimeUtc).TotalMinutes;
                     logLine.Append($" fileAgeMinutes={fileAgeMinutes:F1}");
+                    logLine.Append($" cacheExpiryMinutes={cacheExpiryMinutes:F1}");
 
-                    if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Actors))
+                    if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
                     {
                         logLine.Append($" fileOld=true");
-                        _logger.LogTrace($"Actor info file is older than {cacheExpiryMinutes_Actors} minutes, will re-resolve: {actorFile}");
+                        _logger.LogTrace($"Actor info file is older than {cacheExpiryMinutes} minutes, will re-resolve: {actorFile}");
                     }
                     else
                     {
@@ -181,7 +176,7 @@ public class LocalFileSystem
             {
                 DateTime endTime = DateTime.UtcNow;
                 TimeSpan duration = endTime - startTime;
-                logLine.Append($" durationMs={duration.TotalMilliseconds:F1}");
+                logLine.Append($" [{duration.TotalMilliseconds:F0}ms]");
                 _logger.LogInfo(logLine.ToString());
             }
         }
@@ -286,7 +281,7 @@ public class LocalFileSystem
     /// </summary>
     /// <param name="actorInfo"></param>
     /// <returns></returns>
-    public SessionFile? LoadSession(ActorInfo? actorInfo)
+    public SessionFile? LoadSession(ActorInfo? actorInfo, int cacheExpiryMinutes = 30)
     {
         if (actorInfo == null || string.IsNullOrEmpty(actorInfo.Did))
         {
@@ -304,9 +299,9 @@ public class LocalFileSystem
 
         // if session file is old, don't use it
         FileInfo fileInfo = new FileInfo(sessionFile);
-        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Sessions))
+        if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
         {
-            _logger.LogWarning($"Session file is older than {cacheExpiryMinutes_Sessions} minutes, will not use: {sessionFile}");
+            _logger.LogWarning($"Session file is older than {cacheExpiryMinutes} minutes, will not use: {sessionFile}");
             return null;
         }
 
