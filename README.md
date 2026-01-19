@@ -1,5 +1,5 @@
 
-# dnproto - an ATProto/Bluesky tool written in dotnet
+# dnproto - tools for ATProto and Bluesky
 
 This is code for interacting with ATProto and Bluesky.
 
@@ -7,8 +7,7 @@ It started as a toolset for debugging and working with ATproto. Things like
 resolving handles, downloading repos, parsing repos, etc.
 
 More recently we've started working on a PDS implementation.
-This is in progress.
-
+My main account is hosted on a dnproto PDS: https://bsky.app/profile/threddyrex.org
 
 
 &nbsp;
