@@ -56,7 +56,12 @@ public class BlueskyClient
             Logger.LogTrace("Actor is not a did, resolving to did.");
             ret.Did_Bsky = useBsky ? ResolveHandleToDid_ViaBlueskyApi(actor) : null;
             ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
-            ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
+
+            if(string.IsNullOrEmpty(ret.Did_Dns) && string.IsNullOrEmpty(ret.Did_Bsky))
+            {
+                ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
+            }
+            
             ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
         }
 
