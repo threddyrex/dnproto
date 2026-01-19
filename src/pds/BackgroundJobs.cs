@@ -53,7 +53,7 @@ public class BackgroundJobs
             if(File.GetLastWriteTime(logFile) < DateTime.Now.AddHours(-2)
                 && logFile.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInfo($"[BG] Deleting old log file: {logFile}");
+                _logger.LogInfo($"[BACKGROUND] Deleting old log file: {logFile}");
 
                 try
                 {
@@ -61,12 +61,12 @@ public class BackgroundJobs
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"[BG] Failed to delete log file: {logFile}. Exception: {ex.Message}");
+                    _logger.LogError($"[BACKGROUND] Failed to delete log file: {logFile}. Exception: {ex.Message}");
                 }
             }
             else
             {
-                _logger.LogInfo($"[BG] Keeping log file: {logFile}");
+                _logger.LogInfo($"[BACKGROUND] Keeping log file: {logFile}");
             }
         }
     }

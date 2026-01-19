@@ -48,7 +48,7 @@ public class BlueskyClient
         //
         // For logging
         //
-        StringBuilder logLine = new StringBuilder($"[ACTOR BSKY]: -- {actor} -- all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc}");
+        StringBuilder logLine = new StringBuilder($"[ACTOR BSKY]: actor={actor} all={queryOptions.All} bsky={queryOptions.ResolveHandleViaBluesky} dns={queryOptions.ResolveHandleViaDns} http={queryOptions.ResolveHandleViaHttp} didDoc={queryOptions.ResolveDidDoc}");
         DateTime startTime = DateTime.UtcNow;
 
         try
@@ -90,7 +90,7 @@ public class BlueskyClient
 
                 ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
 
-                logLine.Append($", did={ret.Did}");
+                logLine.Append($" did={ret.Did}");
             }
 
             if (string.IsNullOrEmpty(ret.Did) || !ret.Did.StartsWith("did:")) return ret;
@@ -104,7 +104,7 @@ public class BlueskyClient
                 ret.DidDoc = ResolveDidToDidDoc(ret.Did);
                 if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
 
-                logLine.Append($", didDocLength={ret.DidDoc?.Length}");
+                logLine.Append($" didDocLength={ret.DidDoc?.Length}");
             }
 
             Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
@@ -118,7 +118,7 @@ public class BlueskyClient
                 ret.Pds = BlueskyClient.ResolveDidDocToPds(ret.DidDoc);
                 if (string.IsNullOrEmpty(ret.Pds)) return ret;
                 ret.Pds = ret.Pds.Replace("https://", "");
-                logLine.Append($", pds={ret.Pds}");
+                logLine.Append($" pds={ret.Pds}");
             }
 
 
@@ -165,7 +165,7 @@ public class BlueskyClient
         {
             DateTime endTime = DateTime.UtcNow;
             TimeSpan duration = endTime - startTime;
-            logLine.Append($", durationMs={duration.TotalMilliseconds:F1}");
+            logLine.Append($" durationMs={duration.TotalMilliseconds:F1}");
             Logger.LogInfo(logLine.ToString());
         }
     }
@@ -433,149 +433,161 @@ public class BlueskyClient
     /// <returns></returns>
     public static JsonNode? SendRequest(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, bool parseJsonResponse = true, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? labelers = null, string? basicAuth = null, bool writeMetadataFile = false)
     {
-        Logger.LogInfo($"[SEND REQUEST]: {url}");
+        StringBuilder logLine = new StringBuilder($"[SEND REQUEST] {url}");
+        DateTime startTime = DateTime.UtcNow;
 
-        using (HttpClient client = new HttpClient())
+
+        try
         {
-            //
-            // Set up request
-            //
-            var request = new HttpRequestMessage(getOrPut, url);
-
-            if (content != null)
+            using (HttpClient client = new HttpClient())
             {
-                request.Content = content;
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-            }
+                //
+                // Set up request
+                //
+                var request = new HttpRequestMessage(getOrPut, url);
 
-            if (accessJwt != null)
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
-            }
-
-            if (!string.IsNullOrEmpty(basicAuth))
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
-            }
-
-            if (!string.IsNullOrEmpty(acceptHeader))
-            {
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
-            }
-
-            if (!string.IsNullOrEmpty(userAgent))
-            {
-                request.Headers.UserAgent.TryParseAdd(userAgent);
-            }
-
-            if (!string.IsNullOrEmpty(labelers))
-            {
-                request.Headers.Add("Atproto-Accept-Labelers", labelers);
-            }
-
-            Logger.LogTrace($"REQUEST:\n{request}");
-            
-
-            //
-            // Send
-            //
-            HttpResponseMessage? response = null;
-
-            try
-            {
-                response = client.Send(request);                
-
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Exception sending request: {ex.Message}");
-                return null;
-            }
-
-            if (response == null)
-            {
-                Logger.LogError("In SendRequest, response is null.");
-                return null;
-            }
-
-            Logger.LogTrace($"RESPONSE: {response}");
-
-            bool succeeded = response.StatusCode == HttpStatusCode.OK;
-
-            if (!succeeded) 
-            {
-                Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
-            }
-
-            //
-            // If user wants json, parse that.
-            //
-            JsonNode? jsonResponse = null;
-            if (parseJsonResponse)
-            {
-                using (var reader = new StreamReader(response.Content.ReadAsStream()))
+                if (content != null)
                 {
-                    var responseText = reader.ReadToEnd();
-
-                    if (string.IsNullOrEmpty(responseText) == false)
-                    {
-                        try
-                        {
-                            jsonResponse = JsonNode.Parse(responseText);                            
-                        }
-                        catch
-                        {
-                            //
-                        }
-                    }
+                    request.Content = content;
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
                 }
-            }
 
-            //
-            // If the user has specified an output file, write the response to that file.
-            //
-            if (string.IsNullOrEmpty(outputFilePath) == false && succeeded)
-            {
-                Logger.LogTrace($"writing to: {outputFilePath}");
+                if (accessJwt != null)
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+                }
 
+                if (!string.IsNullOrEmpty(basicAuth))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+                }
+
+                if (!string.IsNullOrEmpty(acceptHeader))
+                {
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
+                }
+
+                if (!string.IsNullOrEmpty(userAgent))
+                {
+                    request.Headers.UserAgent.TryParseAdd(userAgent);
+                }
+
+                if (!string.IsNullOrEmpty(labelers))
+                {
+                    request.Headers.Add("Atproto-Accept-Labelers", labelers);
+                }
+
+                Logger.LogTrace($"REQUEST:\n{request}");
+                
+
+                //
+                // Send
+                //
+                HttpResponseMessage? response = null;
+
+                try
+                {
+                    response = client.Send(request);                
+
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Exception sending request: {ex.Message}");
+                    return null;
+                }
+
+                if (response == null)
+                {
+                    Logger.LogError("In SendRequest, response is null.");
+                    return null;
+                }
+
+                Logger.LogTrace($"RESPONSE: {response}");
+
+                bool succeeded = response.StatusCode == HttpStatusCode.OK;
+
+                if (!succeeded) 
+                {
+                    Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
+                }
+
+                //
+                // If user wants json, parse that.
+                //
+                JsonNode? jsonResponse = null;
                 if (parseJsonResponse)
                 {
-                    JsonData.WriteJsonToFile(jsonResponse, outputFilePath);
-                }
-                else
-                {
-                    using (var responseStream = response.Content.ReadAsStream())
+                    using (var reader = new StreamReader(response.Content.ReadAsStream()))
                     {
-                        using (var fs = new FileStream(outputFilePath, FileMode.Create))
+                        var responseText = reader.ReadToEnd();
+
+                        if (string.IsNullOrEmpty(responseText) == false)
                         {
-                            responseStream.CopyTo(fs);
+                            try
+                            {
+                                jsonResponse = JsonNode.Parse(responseText);                            
+                            }
+                            catch
+                            {
+                                //
+                            }
                         }
                     }
                 }
-            }
 
-
-            //
-            // User wants metadata file?
-            //
-            if (string.IsNullOrEmpty(outputFilePath) == false
-                && writeMetadataFile 
-                && succeeded)
-            {
-                string metadataFilePath = outputFilePath + ".metadata.json";
-                Logger.LogTrace($"writing metadata to: {metadataFilePath}");
-
-                var metadata = new JsonObject
+                //
+                // If the user has specified an output file, write the response to that file.
+                //
+                if (string.IsNullOrEmpty(outputFilePath) == false && succeeded)
                 {
-                    ["statusCode"] = (int)response.StatusCode,
-                    ["contentType"] = response.Content.Headers.ContentType?.ToString() ?? "",
-                    ["contentLength"] = response.Content.Headers.ContentLength ?? 0,
-                };
+                    Logger.LogTrace($"writing to: {outputFilePath}");
 
-                JsonData.WriteJsonToFile(metadata, metadataFilePath);
+                    if (parseJsonResponse)
+                    {
+                        JsonData.WriteJsonToFile(jsonResponse, outputFilePath);
+                    }
+                    else
+                    {
+                        using (var responseStream = response.Content.ReadAsStream())
+                        {
+                            using (var fs = new FileStream(outputFilePath, FileMode.Create))
+                            {
+                                responseStream.CopyTo(fs);
+                            }
+                        }
+                    }
+                }
+
+
+                //
+                // User wants metadata file?
+                //
+                if (string.IsNullOrEmpty(outputFilePath) == false
+                    && writeMetadataFile 
+                    && succeeded)
+                {
+                    string metadataFilePath = outputFilePath + ".metadata.json";
+                    Logger.LogTrace($"writing metadata to: {metadataFilePath}");
+
+                    var metadata = new JsonObject
+                    {
+                        ["statusCode"] = (int)response.StatusCode,
+                        ["contentType"] = response.Content.Headers.ContentType?.ToString() ?? "",
+                        ["contentLength"] = response.Content.Headers.ContentLength ?? 0,
+                    };
+
+                    JsonData.WriteJsonToFile(metadata, metadataFilePath);
+                }
+
+                return jsonResponse;
             }
-
-            return jsonResponse;
+        }
+        finally
+        {
+            DateTime endTime = DateTime.UtcNow;
+            TimeSpan duration = endTime - startTime;
+            logLine.Append($" durationMs={duration.TotalMilliseconds:F1}");
+            Logger.LogInfo(logLine.ToString());            
         }
     }
 
@@ -594,114 +606,127 @@ public class BlueskyClient
     /// <returns>True if the request succeeded and file was written, false otherwise.</returns>
     public static bool SendRequestStreaming(string url, HttpMethod getOrPut, string outputFilePath, string? accessJwt = null, string? acceptHeader = null, string? userAgent = "dnproto", string? basicAuth = null, int bufferSize = 81920)
     {
-        Logger.LogInfo($"SendRequestStreaming: {url}");
+        StringBuilder logLine = new StringBuilder($"[SEND REQUEST STREAMING] {url}");
+        DateTime startTime = DateTime.UtcNow;
 
-        if (string.IsNullOrEmpty(outputFilePath))
+
+        try
         {
-            Logger.LogError("SendRequestStreaming: outputFilePath is required.");
-            return false;
-        }
-
-        using (HttpClient client = new HttpClient())
-        {
-            //
-            // Set up request
-            //
-            var request = new HttpRequestMessage(getOrPut, url);
-
-            if (accessJwt != null)
+            
+            if (string.IsNullOrEmpty(outputFilePath))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
-            }
-
-            if (!string.IsNullOrEmpty(basicAuth))
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
-            }
-
-            if (!string.IsNullOrEmpty(acceptHeader))
-            {
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
-            }
-
-            if (!string.IsNullOrEmpty(userAgent))
-            {
-                request.Headers.UserAgent.TryParseAdd(userAgent);
-            }
-
-            Logger.LogTrace($"REQUEST:\n{request}");
-
-            //
-            // Send request with ResponseHeadersRead to enable streaming
-            //
-            HttpResponseMessage? response = null;
-
-            try
-            {
-                response = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Exception sending request: {ex.Message}");
+                Logger.LogError("SendRequestStreaming: outputFilePath is required.");
                 return false;
             }
 
-            if (response == null)
+            using (HttpClient client = new HttpClient())
             {
-                Logger.LogError("In SendRequestStreaming, response is null.");
-                return false;
-            }
+                //
+                // Set up request
+                //
+                var request = new HttpRequestMessage(getOrPut, url);
 
-            Logger.LogTrace($"RESPONSE: {response}");
-
-            bool succeeded = response.StatusCode == HttpStatusCode.OK;
-
-            if (!succeeded)
-            {
-                Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
-                return false;
-            }
-
-            //
-            // Stream response directly to file
-            //
-            try
-            {
-                Logger.LogTrace($"Streaming to: {outputFilePath}");
-
-                long totalBytesRead = 0;
-                long? contentLength = response.Content.Headers.ContentLength;
-
-                using (var responseStream = response.Content.ReadAsStream())
-                using (var fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.SequentialScan))
+                if (accessJwt != null)
                 {
-                    byte[] buffer = new byte[bufferSize];
-                    int bytesRead;
-
-                    while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        fileStream.Write(buffer, 0, bytesRead);
-                        totalBytesRead += bytesRead;
-
-                        if (contentLength.HasValue)
-                        {
-                            Logger.LogTrace($"Progress: {totalBytesRead} / {contentLength} bytes ({(double)totalBytesRead / contentLength * 100:F1}%)");
-                        }
-                        else
-                        {
-                            Logger.LogTrace($"Downloaded: {totalBytesRead} bytes");
-                        }
-                    }
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
                 }
 
-                Logger.LogInfo($"SendRequestStreaming: Completed. Total bytes written: {totalBytesRead}");
-                return true;
+                if (!string.IsNullOrEmpty(basicAuth))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+                }
+
+                if (!string.IsNullOrEmpty(acceptHeader))
+                {
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
+                }
+
+                if (!string.IsNullOrEmpty(userAgent))
+                {
+                    request.Headers.UserAgent.TryParseAdd(userAgent);
+                }
+
+                Logger.LogTrace($"REQUEST:\n{request}");
+
+                //
+                // Send request with ResponseHeadersRead to enable streaming
+                //
+                HttpResponseMessage? response = null;
+
+                try
+                {
+                    response = client.Send(request, HttpCompletionOption.ResponseHeadersRead);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Exception sending request: {ex.Message}");
+                    return false;
+                }
+
+                if (response == null)
+                {
+                    Logger.LogError("In SendRequestStreaming, response is null.");
+                    return false;
+                }
+
+                Logger.LogTrace($"RESPONSE: {response}");
+
+                bool succeeded = response.StatusCode == HttpStatusCode.OK;
+
+                if (!succeeded)
+                {
+                    Logger.LogError($"Request failed with status code: {response.StatusCode}  url: {url}");
+                    return false;
+                }
+
+                //
+                // Stream response directly to file
+                //
+                try
+                {
+                    Logger.LogTrace($"Streaming to: {outputFilePath}");
+
+                    long totalBytesRead = 0;
+                    long? contentLength = response.Content.Headers.ContentLength;
+
+                    using (var responseStream = response.Content.ReadAsStream())
+                    using (var fileStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.SequentialScan))
+                    {
+                        byte[] buffer = new byte[bufferSize];
+                        int bytesRead;
+
+                        while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            fileStream.Write(buffer, 0, bytesRead);
+                            totalBytesRead += bytesRead;
+
+                            if (contentLength.HasValue)
+                            {
+                                Logger.LogTrace($"Progress: {totalBytesRead} / {contentLength} bytes ({(double)totalBytesRead / contentLength * 100:F1}%)");
+                            }
+                            else
+                            {
+                                Logger.LogTrace($"Downloaded: {totalBytesRead} bytes");
+                            }
+                        }
+                    }
+
+                    Logger.LogInfo($"SendRequestStreaming: Completed. Total bytes written: {totalBytesRead}");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Exception writing to file: {ex.Message}");
+                    return false;
+                }
             }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Exception writing to file: {ex.Message}");
-                return false;
-            }
+        }
+        finally
+        {
+            DateTime endTime = DateTime.UtcNow;
+            TimeSpan duration = endTime - startTime;
+            logLine.Append($" durationMs={duration.TotalMilliseconds:F1}");
+            Logger.LogInfo(logLine.ToString());            
         }
     }
 
@@ -717,77 +742,88 @@ public class BlueskyClient
     /// <returns></returns>
     public static string? SendRequestEx(string url, HttpMethod getOrPut, string? accessJwt = null, string contentType = "application/json", StringContent? content = null, string? outputFilePath = null, string? acceptHeader = null, string? userAgent = "dnproto", string? basicAuth = null)
     {
-        Logger.LogInfo($"[SEND REQUEST EX]: {url}");
+        StringBuilder logLine = new StringBuilder($"[SEND REQUEST EX] {url}");
+        DateTime startTime = DateTime.UtcNow;
 
-        using (HttpClient client = new HttpClient())
+        try
         {
-            //
-            // Set up request
-            //
-            var request = new HttpRequestMessage(getOrPut, url);
-
-            if (content != null)
+            using (HttpClient client = new HttpClient())
             {
-                request.Content = content;
-                request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                //
+                // Set up request
+                //
+                var request = new HttpRequestMessage(getOrPut, url);
+
+                if (content != null)
+                {
+                    request.Content = content;
+                    request.Content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+                }
+
+
+                if (accessJwt != null)
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+                }
+
+                if (!string.IsNullOrEmpty(basicAuth))
+                {
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+                }
+
+                if (!string.IsNullOrEmpty(acceptHeader))
+                {
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
+                }
+
+                if (!string.IsNullOrEmpty(userAgent))
+                {
+                    request.Headers.UserAgent.TryParseAdd(userAgent);
+                }
+
+                Logger.LogTrace($"REQUEST:\n{request}");
+
+                //
+                // Send
+                //
+                var response = client.Send(request);
+
+                if(response == null)
+                {
+                    Logger.LogTrace("response is null.");
+                    return null;
+                }
+
+                Logger.LogTrace($"RESPONSE:\n{response}");
+
+
+                //
+                // Get response text.
+                //
+                string? responseText = null;
+                using (var reader = new StreamReader(response.Content.ReadAsStream()))
+                {
+                    responseText = reader.ReadToEnd();
+                }
+                
+                //
+                // If the user has specified an output file, write the response to that file.
+                //
+                if (string.IsNullOrEmpty(outputFilePath) == false && !string.IsNullOrEmpty(responseText))
+                {
+                    Logger.LogTrace($"writing to: {outputFilePath}");
+                    File.WriteAllText(outputFilePath, responseText);
+                }
+
+                return responseText;
             }
-
-
-            if (accessJwt != null)
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
-            }
-
-            if (!string.IsNullOrEmpty(basicAuth))
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
-            }
-
-            if (!string.IsNullOrEmpty(acceptHeader))
-            {
-                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
-            }
-
-            if (!string.IsNullOrEmpty(userAgent))
-            {
-                request.Headers.UserAgent.TryParseAdd(userAgent);
-            }
-
-            Logger.LogTrace($"REQUEST:\n{request}");
-
-            //
-            // Send
-            //
-            var response = client.Send(request);
-
-            if(response == null)
-            {
-                Logger.LogTrace("response is null.");
-                return null;
-            }
-
-            Logger.LogTrace($"RESPONSE:\n{response}");
-
-
-            //
-            // Get response text.
-            //
-            string? responseText = null;
-            using (var reader = new StreamReader(response.Content.ReadAsStream()))
-            {
-                responseText = reader.ReadToEnd();
-            }
-            
-            //
-            // If the user has specified an output file, write the response to that file.
-            //
-            if (string.IsNullOrEmpty(outputFilePath) == false && !string.IsNullOrEmpty(responseText))
-            {
-                Logger.LogTrace($"writing to: {outputFilePath}");
-                File.WriteAllText(outputFilePath, responseText);
-            }
-
-            return responseText;
+        }
+        finally
+        {
+            DateTime endTime = DateTime.UtcNow;
+            TimeSpan duration = endTime - startTime;
+            logLine.Append($" durationMs={duration.TotalMilliseconds:F1}");
+            Logger.LogInfo(logLine.ToString());            
         }
     }
     #endregion

@@ -51,7 +51,7 @@ public class AspNetCoreLoggerAdapter : Microsoft.Extensions.Logging.ILogger
             catNameForOutput = "";
         }
 
-        var fullMessage = $"[ASP.NET]{catNameForOutput}: {message}";
+        var fullMessage = $"[ASP.NET]{catNameForOutput} {message}";
 
         // Map ASP.NET Core log levels to our custom logger methods
         switch (logLevel)
