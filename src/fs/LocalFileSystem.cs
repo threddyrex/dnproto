@@ -88,7 +88,7 @@ public class LocalFileSystem
     {
         lock (_lock)
         {
-            StringBuilder logLine = new StringBuilder($"[LFS] ResolveActor. actor={actor}");
+            StringBuilder logLine = new StringBuilder($"[LFS] [ACTOR] {actor} ");
 
             try
             {
@@ -102,11 +102,14 @@ public class LocalFileSystem
                 // If the file exists, use that.
                 //
                 string actorFile = Path.Combine(_dataDir, "actors", GetSafeString(actor) + ".json");
-                logLine.Append($", fileExists={File.Exists(actorFile)}");
+                logLine.Append($"    fileExists={File.Exists(actorFile)}");
                 if (File.Exists(actorFile))
                 {
-                    // if the file is older than an hour, don't use it
+                    // if the file is expired, don't use it
                     FileInfo fileInfo = new FileInfo(actorFile);
+                    float fileAgeMinutes = (float)(DateTime.UtcNow - fileInfo.LastWriteTimeUtc).TotalMinutes;
+                    logLine.Append($", fileAgeMinutes={fileAgeMinutes:F1}");
+
                     if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Actors))
                     {
                         logLine.Append($", fileOld=true");
