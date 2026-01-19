@@ -226,26 +226,11 @@ public class Pds
         BackgroundJobs.Start();
         App.Run();
     }
-    
-    private void Log(HttpContext context)
-    {
-        try
-        {
-            string? ip = context.Connection.RemoteIpAddress?.ToString();
-            int port = context.Connection.RemotePort;
-            string? userAgent = context.Request.Headers.ContainsKey("User-Agent") ? context.Request.Headers["User-Agent"].ToString() : null;
-            Logger.LogInfo($"[XRPC] ip={ip} port={port} agent={userAgent}");            
-        }
-        catch(Exception)
-        {
-            // best effort
-        }
-    }
 
     private void MapEndpoints()
     {
-        App.MapGet("/hello", (HttpContext context) => { Log(context); new Hello(){Pds = this, HttpContext = context}.GetResponse();});
-        App.MapGet("/xrpc/_health", (HttpContext context) => { Log(context); new Health(){Pds = this, HttpContext = context}.GetResponse();});
+        App.MapGet("/hello", (HttpContext context) => new Hello(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/xrpc/_health", (HttpContext context) => new Health(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.server.describeServer", (HttpContext context) => new ComAtprotoServer_DescribeServer(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.identity.resolveHandle", (HttpContext context) => new ComAtprotoIdentity_ResolveHandle(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/xrpc/com.atproto.server.createSession", (HttpContext context) => new ComAtprotoServer_CreateSession(){Pds = this, HttpContext = context}.GetResponse());
