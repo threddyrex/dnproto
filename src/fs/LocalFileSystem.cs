@@ -123,7 +123,7 @@ public class LocalFileSystem
                     FileInfo fileInfo = new FileInfo(actorFile);
                     float fileAgeMinutes = (float)(DateTime.UtcNow - fileInfo.LastWriteTimeUtc).TotalMinutes;
                     logLine.Append($" fileAgeMinutes={fileAgeMinutes:F1}");
-                    logLine.Append($" cacheExpiryMinutes={cacheExpiryMinutes:F1}");
+                    logLine.Append($" cacheExpiryMinutes={cacheExpiryMinutes:F0}");
 
                     if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes))
                     {
