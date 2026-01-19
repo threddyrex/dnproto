@@ -88,7 +88,7 @@ public class LocalFileSystem
     {
         lock (_lock)
         {
-            StringBuilder logLine = new StringBuilder($"[LFS] [ACTOR] {actor} ");
+            StringBuilder logLine = new StringBuilder($"[ACTOR] [LFS] {actor} ");
 
             try
             {

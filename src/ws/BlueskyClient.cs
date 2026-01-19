@@ -48,7 +48,7 @@ public class BlueskyClient
         //
         // For logging
         //
-        StringBuilder logLine = new StringBuilder($"[BSKY] [ACTOR] {actor}   all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc} ");
+        StringBuilder logLine = new StringBuilder($"[ACTOR] [BSKY] {actor}   all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc} ");
 
         try
         {
@@ -88,6 +88,8 @@ public class BlueskyClient
                 }
 
                 ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
+
+                logLine.Append($", did={ret.Did}");
             }
 
             if (string.IsNullOrEmpty(ret.Did) || !ret.Did.StartsWith("did:")) return ret;
@@ -112,6 +114,7 @@ public class BlueskyClient
 
             if (string.IsNullOrEmpty(ret.Pds)) return ret;
             ret.Pds = ret.Pds.Replace("https://", "");
+            logLine.Append($", pds={ret.Pds}");
 
 
             //
@@ -147,8 +150,6 @@ public class BlueskyClient
                 }
             }
 
-            logLine.Append($", did={ret.Did}");
-            logLine.Append($", pds={ret.Pds}");
 
             //
             // return
