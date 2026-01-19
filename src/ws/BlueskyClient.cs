@@ -165,7 +165,7 @@ public class BlueskyClient
         {
             DateTime endTime = DateTime.UtcNow;
             TimeSpan duration = endTime - startTime;
-            logLine.Append($" [{duration.TotalMilliseconds:F0}ms]");
+            logLine.Append($" [{duration.TotalMilliseconds:F2}ms]");
             Logger.LogInfo(logLine.ToString());
         }
     }
@@ -586,7 +586,7 @@ public class BlueskyClient
         {
             DateTime endTime = DateTime.UtcNow;
             TimeSpan duration = endTime - startTime;
-            logLine.Append($" [{duration.TotalMilliseconds:F0}ms]");
+            logLine.Append($" [{duration.TotalMilliseconds:F2}ms]");
             Logger.LogInfo(logLine.ToString());            
         }
     }
@@ -725,7 +725,7 @@ public class BlueskyClient
         {
             DateTime endTime = DateTime.UtcNow;
             TimeSpan duration = endTime - startTime;
-            logLine.Append($" [{duration.TotalMilliseconds:F0}ms]");
+            logLine.Append($" [{duration.TotalMilliseconds:F2}ms]");
             Logger.LogInfo(logLine.ToString());            
         }
     }
@@ -822,7 +822,7 @@ public class BlueskyClient
         {
             DateTime endTime = DateTime.UtcNow;
             TimeSpan duration = endTime - startTime;
-            logLine.Append($" [{duration.TotalMilliseconds:F0}ms]");
+            logLine.Append($" [{duration.TotalMilliseconds:F2}ms]");
             Logger.LogInfo(logLine.ToString());            
         }
     }

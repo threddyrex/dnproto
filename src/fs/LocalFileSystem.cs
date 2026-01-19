@@ -176,7 +176,7 @@ public class LocalFileSystem
             {
                 DateTime endTime = DateTime.UtcNow;
                 TimeSpan duration = endTime - startTime;
-                logLine.Append($" [{duration.TotalMilliseconds:F0}ms]");
+                logLine.Append($" [{duration.TotalMilliseconds:F2}ms]");
                 _logger.LogInfo(logLine.ToString());
             }
         }
