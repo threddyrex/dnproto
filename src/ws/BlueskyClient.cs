@@ -49,6 +49,7 @@ public class BlueskyClient
         // For logging
         //
         StringBuilder logLine = new StringBuilder($"[ACTOR BSKY]: -- {actor} -- all={queryOptions.All}, bsky={queryOptions.ResolveHandleViaBluesky}, dns={queryOptions.ResolveHandleViaDns}, http={queryOptions.ResolveHandleViaHttp}, didDoc={queryOptions.ResolveDidDoc}");
+        DateTime startTime = DateTime.UtcNow;
 
         try
         {
@@ -162,6 +163,9 @@ public class BlueskyClient
         }
         finally
         {
+            DateTime endTime = DateTime.UtcNow;
+            TimeSpan duration = endTime - startTime;
+            logLine.Append($", durationMs={duration.TotalMilliseconds:F1}");
             Logger.LogInfo(logLine.ToString());
         }
     }
