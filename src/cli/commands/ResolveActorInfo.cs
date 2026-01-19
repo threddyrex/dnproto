@@ -6,11 +6,16 @@ using dnproto.ws;
 
 namespace dnproto.cli.commands;
 
-public class GetActorInfo : BaseCommand
+public class ResolveActorInfo : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
         return new HashSet<string>(new string[]{"actor"});
+    }
+
+    public override HashSet<string> GetOptionalArguments()
+    {
+        return new HashSet<string>(new string[] {"all"});
     }
 
 
@@ -22,11 +27,12 @@ public class GetActorInfo : BaseCommand
     public override void DoCommand(Dictionary<string, string> arguments)
     {
         string actor = arguments["actor"];
+        bool all = CommandLineInterface.GetArgumentValueWithDefault(arguments, "all", true);
 
         //
         // Send request.
         //
-        var resolveHandleInfo = BlueskyClient.ResolveActorInfo(actor);
+        var resolveHandleInfo = BlueskyClient.ResolveActorInfo(actor, new ActorQueryOptions() { All = all });
         string? jsonData = resolveHandleInfo?.ToJsonString();
         Logger.LogInfo($"actor: {resolveHandleInfo?.Actor}");
         Logger.LogInfo($"did: {resolveHandleInfo?.Did}");

@@ -27,6 +27,11 @@ public class GetPlcHistory : BaseCommand
         // get args
         //
         string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
+        if(actor is null)
+        {
+            Logger.LogError("actor is null.");
+            return;
+        }
 
         //
         // resolve handle

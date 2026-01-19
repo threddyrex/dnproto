@@ -17,6 +17,8 @@ public class BlueskyClient
 {
     public static IDnProtoLogger Logger = new Logger();
 
+    #region ACTOR
+
     /// <summary>
     /// Finds a bunch of info for a handle. (did, didDoc, pds)
     ///
@@ -30,8 +32,13 @@ public class BlueskyClient
     /// </summary>
     /// <param name="handle"></param>
     /// <returns></returns>
-    public static ActorInfo ResolveActorInfo(string? actor, bool useBsky = true, bool resolveDidDoc = true)
+    public static ActorInfo ResolveActorInfo(string actor, ActorQueryOptions? queryOptions = null)
     {
+        //
+        // If you don't specify options, you'll get the default options.
+        //
+        if (queryOptions is null) queryOptions = new ActorQueryOptions();
+
         var ret = new ActorInfo();
         ret.Actor = actor;
 
@@ -54,14 +61,22 @@ public class BlueskyClient
         {
             ret.Handle = actor;
             Logger.LogTrace("Actor is not a did, resolving to did.");
-            ret.Did_Bsky = useBsky ? ResolveHandleToDid_ViaBlueskyApi(actor) : null;
-            ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
 
-            if(string.IsNullOrEmpty(ret.Did_Dns) && string.IsNullOrEmpty(ret.Did_Bsky))
+            if (queryOptions.All || queryOptions.ResolveHandleViaBluesky)
+            {
+                ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(actor);
+            }
+
+            if (queryOptions.All || queryOptions.ResolveHandleViaDns)
+            {                
+                ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
+            }
+            
+            if (queryOptions.All || queryOptions.ResolveHandleViaHttp)
             {
                 ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
             }
-            
+
             ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
         }
 
@@ -71,8 +86,11 @@ public class BlueskyClient
         //
         // 2. Resolve did to didDoc. (did:plc or did:web)
         //
-        ret.DidDoc = resolveDidDoc ? ResolveDidToDidDoc(ret.Did) : null;
-        if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
+        if (queryOptions.All || queryOptions.ResolveDidDoc)
+        {
+            ret.DidDoc = ResolveDidToDidDoc(ret.Did);
+            if (string.IsNullOrEmpty(ret.DidDoc)) return ret;
+        }
 
         Logger.LogTrace("didDoc length: " + ret.DidDoc?.Length);
 
@@ -370,664 +388,11 @@ public class BlueskyClient
         
         return null;
     }
+    #endregion
 
 
-    /// <summary>
-    /// Gets the profile of an actor.
-    /// https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
-    /// </summary>
-    /// <param name="actor">The actor to get the profile for.</param>
-    public static JsonNode? GetProfile(string? actor, string? accessJwt = null, string? hostname = null, string? labelers = null)
-    {
-        if (string.IsNullOrEmpty(hostname))
-        {
-            // we were calling "public.api.bsky.app", but the labels weren't returning
-            // from that endpoint. Switching to "api.bsky.app" seems to work.
-            hostname = "api.bsky.app";
-        }
-        
-        Logger.LogTrace($"GetProfile: actor: {actor}");
-        if (string.IsNullOrEmpty(actor))
-        {
-            Logger.LogError("GetProfile: Actor is null or empty. Exiting.");
-            return null;
-        }
 
-        string url = $"https://{hostname}/xrpc/app.bsky.actor.getProfile?actor={actor}";
-        Logger.LogTrace($"GetProfile: url: {url}");
-
-        JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt, labelers: labelers);
-
-        return profile;
-    }
-
-
-
-    /// <summary>
-    /// Get repo for did.
-    /// https://docs.bsky.app/docs/api/com-atproto-sync-get-repo
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="did"></param>
-    /// <param name="repoFile"></param>
-    public static void GetRepo(string? pds, string? did, string? repoFile)
-    {
-        Logger.LogTrace($"GetRepo: pds: {pds}, did: {did}, repoFile: {repoFile}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repoFile))
-        {
-            Logger.LogError("GetRepo: Invalid arguments. Exiting.");
-            return;
-        }
-
-        string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
-        Logger.LogTrace($"GetRepo: url: {url}");
-
-        BlueskyClient.SendRequestStreaming(url,
-            HttpMethod.Get,
-            outputFilePath: repoFile);
-
-    }
-
-    public static void GetRecordSync(string? pds, string? did, string? collection, string? rkey, string? recordFile)
-    {
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(recordFile))
-        {
-            Logger.LogError("GetRecordSync: Invalid arguments. Exiting.");
-            return;
-        }
-
-        string url = $"https://{pds}/xrpc/com.atproto.sync.getRecord?did={did}&collection={collection}&rkey={rkey}";
-        Logger.LogTrace($"GetRecordSync: url: {url}");
-
-        BlueskyClient.SendRequestStreaming(url,
-            HttpMethod.Get,
-            outputFilePath: recordFile);
-
-    }
-
-
-
-    /// <summary>
-    /// List repos.
-    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-repos
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="limit"></param>
-    /// <param name="sleepMilliseconds"></param>
-    /// <returns></returns>
-    public static List<JsonNode> ListRepos(string? pds, int limit = 100, int sleepMilliseconds = 1000)
-    {
-        List<JsonNode> repos = new List<JsonNode>();
-        Logger.LogTrace($"ListRepos: pds: {pds}");
-
-        if (string.IsNullOrEmpty(pds))
-        {
-            Logger.LogError("ListRepos: Invalid arguments. Exiting.");
-            return repos;
-        }
-
-        bool keepGoing = true;
-        string? cursor = null;
-
-        // We call the api in batches of 100 (or whatever limit is set).
-        while (keepGoing)
-        {
-            string? url = null;
-
-            if (cursor != null)
-            {
-                url = $"https://{pds}/xrpc/com.atproto.sync.listRepos?limit={limit}&cursor={cursor}";
-            }
-            else
-            {
-                url = $"https://{pds}/xrpc/com.atproto.sync.listRepos?limit={limit}";
-            }
-
-            Logger.LogTrace($"ListRepos: url: {url}");
-
-            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
-
-            var reposArray = response?["repos"]?.AsArray();
-
-            keepGoing = reposArray != null && reposArray.Count == limit;
-
-            cursor = response?["cursor"]?.ToString();
-
-            if (reposArray != null)
-            {
-                Logger.LogTrace($"ListRepos: Count: {reposArray.Count}");
-                Logger.LogTrace($"ListRepos: Cursor: {cursor}");
-
-                foreach (var repo in reposArray)
-                {
-                    if (repo == null) continue;
-                    repos.Add(repo);
-                }
-            }
-
-            if (keepGoing)
-            {
-                Thread.Sleep(sleepMilliseconds);
-            }
-        }
-
-        return repos;
-    }
-
-    public static JsonNode? PdsHealth(string? pds)
-    {
-        Logger.LogTrace($"PdsHealth: pds: {pds}");
-
-        if (string.IsNullOrEmpty(pds))
-        {
-            Logger.LogError("PdsHealth: Invalid arguments. Exiting.");
-            return null;
-        }
-
-        string url = $"https://{pds}/xrpc/_health";
-        Logger.LogTrace($"PdsHealth: url: {url}");
-
-        return BlueskyClient.SendRequest(url,
-            HttpMethod.Get);
-
-    }
-
-    public static JsonNode? PdsDescribeServer(string? pds)
-    {
-        Logger.LogTrace($"PdsDescribeServer: pds: {pds}");
-
-        if (string.IsNullOrEmpty(pds))
-        {
-            Logger.LogError("PdsDescribeServer: Invalid arguments. Exiting.");
-            return null;
-        }
-
-        string url = $"https://{pds}/xrpc/com.atproto.server.describeServer";
-        Logger.LogTrace($"PdsDescribeServer: url: {url}");
-
-        return BlueskyClient.SendRequest(url,
-            HttpMethod.Get);
-
-    }
-
-    /// <summary>
-    /// List blobs for did.
-    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-blobs
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="did"></param>
-    /// <returns></returns>
-    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100, int sleepMilliseconds = 1000, string? accessJwt = null)
-    {
-        List<string> blobs = new List<string>();
-        Logger.LogTrace($"ListBlobs: pds: {pds}, did: {did}");
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
-        {
-            Logger.LogError("ListBlobs: Invalid arguments. Exiting.");
-            return blobs;
-        }
-
-        bool keepGoing = true;
-        string? cursor = null;
-
-        // We call the api in batches of 100 (or whatever limit is set).
-        while (keepGoing)
-        {
-            string? url = null;
-
-            if (cursor != null)
-            {
-                url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}&cursor={cursor}";
-            }
-            else
-            {
-                url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}";
-            }
-
-            Logger.LogTrace($"ListBlobs: url: {url}");
-
-            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt);
-
-            Logger.LogTrace($"ListBlobs: response: {response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}");
-
-            var cids = response?["cids"]?.AsArray();
-
-            keepGoing = cids != null && cids.Count == limit;
-
-            cursor = response?["cursor"]?.ToString();
-
-            if (cids != null)
-            {
-                Logger.LogTrace($"ListBlobs: Count: {cids.Count}");
-                Logger.LogTrace($"ListBlobs: Cursor: {cursor}");
-
-                foreach (var cid in cids)
-                {
-                    if (cid == null) continue;
-                    blobs.Add(cid.ToString());
-                }
-            }
-
-            if (keepGoing)
-            {
-                Thread.Sleep(sleepMilliseconds);
-            }
-        }
-
-        if (blobsFile != null)
-        {
-            Logger.LogTrace($"ListBlobs: Writing blobs to file: {blobsFile}");
-            File.WriteAllLines(blobsFile, blobs);
-        }
-
-        return blobs;
-    }
-
-    /// <summary>
-    /// Get blob for did, by cid.
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="did"></param>
-    /// <param name="cid"></param>
-    /// <param name="blobFile"></param>
-    public static void GetBlob(string? pds, string? did, string? cid, string? blobFile)
-    {
-        Logger.LogTrace($"GetBlob: pds: {pds}, did: {did}, cid: {cid}, blobFile: {blobFile}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(cid) || string.IsNullOrEmpty(blobFile))
-        {
-            Logger.LogError("GetBlob: Invalid arguments. Exiting.");
-            return;
-        }
-
-        string url = $"https://{pds}/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}";
-        Logger.LogTrace($"GetBlob: url: {url}");
-
-        BlueskyClient.SendRequest(url,
-            HttpMethod.Get,
-            outputFilePath: blobFile,
-            parseJsonResponse: false,
-            writeMetadataFile: true);
-
-    }
-
-
-    /// <summary>
-    /// CreateSession. Find the pds via ResolveHandleInfo, then call CreateSession with pds.
-    /// </summary>
-    /// <param name="handle"></param>
-    /// <param name="password"></param>
-    /// <param name="authFactorToken"></param>
-    /// <returns></returns>
-    public static JsonNode? CreateSession(string? handle, string? password, string? authFactorToken)
-    {
-        // first resolvehandleinfo, to get pds
-        var handleInfo = BlueskyClient.ResolveActorInfo(handle);
-        if (string.IsNullOrEmpty(handleInfo.Pds))
-        {
-            Logger.LogError("Could not resolve handle to pds.");
-            return null;
-        }
-
-        return CreateSession(handleInfo.Pds, handle, password, authFactorToken);
-    }
-
-
-    /// <summary>
-    /// Create a session for the user. This is "logging in". It returns a session but the important property is accessJwt.
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="handle"></param>
-    /// <param name="password"></param>
-    /// <param name="authFactorToken"></param>
-    /// <returns></returns>
-    public static JsonNode? CreateSession(string? pds, string? handle, string? password, string? authFactorToken)
-    {
-        //
-        // Construct url
-        //
-        string url = $"https://{pds}/xrpc/com.atproto.server.createSession";
-        Logger.LogTrace($"url: {url}");
-
-
-        //
-        // Send request
-        //
-        JsonNode? session = BlueskyClient.SendRequest(url,
-            HttpMethod.Post,
-            content: string.IsNullOrEmpty(authFactorToken) ?
-                new StringContent(JsonSerializer.Serialize(new
-                {
-                    identifier = handle,
-                    password = password
-                })) :
-                new StringContent(JsonSerializer.Serialize(new
-                {
-                    identifier = handle,
-                    password = password,
-                    authFactorToken = authFactorToken
-                }))
-        );
-
-        if (session == null)
-        {
-            Logger.LogError("Session returned null.");
-            return null;
-        }
-
-        // add pds
-        session["pds"] = pds;
-
-        //
-        // Process response
-        //
-        return session;
-    }
-    
-    /// <summary>
-    /// Deletes a record.
-    /// </summary>
-    /// <param name="handleInfo"></param>
-    /// <param name="accessJwt"></param>
-    /// <param name="postUri"></param>
-    public static void DeleteRecord(string? pds, string? did, string? accessJwt, string? rkey, string? collection = "app.bsky.feed.post")
-    {
-        //
-        // Check args
-        //
-        Logger.LogTrace($"DeleteRecord: pds: {pds}, did: {did}, collection: {collection}, rkey: {rkey}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
-        {
-            Logger.LogError("DeleteRecord: Invalid arguments. Exiting.");
-            return;
-        }
-
-        //
-        // Call pds to delete
-        //
-        string url = $"https://{pds}/xrpc/com.atproto.repo.deleteRecord";
-        Logger.LogTrace($"DeleteRecord: url: {url}");
-
-        var response = BlueskyClient.SendRequest(url,
-            HttpMethod.Post,
-            accessJwt: accessJwt,
-            content: new StringContent(JsonSerializer.Serialize(new
-            {
-                repo = did,
-                collection = collection,
-                rkey = rkey
-            }))
-        );
-
-        if (response == null)
-        {
-            Logger.LogError("DeletePost: response returned null.");
-            return;
-        }
-
-        BlueskyClient.LogTraceJsonResponse(response);
-    }
-
-
-    /// <summary>
-    /// Create an invite code.
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="adminPassword"></param>
-    /// <param name="useCount"></param>
-    /// <returns></returns>
-    public static JsonNode? CreateInviteCode(string? pds, string? adminPassword, int useCount)
-    {
-        string? basicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"admin:{adminPassword}"));
-        string url = $"https://{pds}/xrpc/com.atproto.server.createInviteCode";
-
-        var response = BlueskyClient.SendRequest(url,
-            HttpMethod.Post,
-            basicAuth: basicAuth,
-            content: new StringContent(JsonSerializer.Serialize(new
-            {
-                useCount = useCount
-            }))
-        );
-
-        return response;        
-    }
-
-    /// <summary>
-    /// Create multiple invite codes.
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="adminPassword"></param>
-    /// <param name="codeCount"></param>
-    /// <param name="useCount"></param>
-    /// <returns></returns>
-    public static JsonNode? CreateInviteCodes(string? pds, string? adminPassword, int codeCount, int useCount)
-    {
-        string? basicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"admin:{adminPassword}"));
-        string url = $"https://{pds}/xrpc/com.atproto.server.createInviteCodes";
-
-        var response = BlueskyClient.SendRequest(url,
-            HttpMethod.Post,
-            basicAuth: basicAuth,
-            content: new StringContent(JsonSerializer.Serialize(new
-            {
-                codeCount = codeCount,
-                useCount = useCount
-            }))
-        );
-
-        return response;        
-    }
-
-
-    /// <summary>
-    /// Upload a blob to the PDS.
-    /// https://docs.bsky.app/docs/api/com-atproto-repo-upload-blob
-    /// </summary>
-    /// <param name="pds">The PDS hostname</param>
-    /// <param name="accessJwt">The access JWT token for authentication</param>
-    /// <param name="fileBytes">The file content as a byte array</param>
-    /// <param name="mimeType">The MIME type of the file</param>
-    /// <returns>JSON response containing blob reference with CID, mimeType, and size</returns>
-    public static JsonNode? UploadBlob(string? pds, string? accessJwt, byte[] fileBytes, string? mimeType)
-    {
-        Logger.LogTrace($"UploadBlob: pds: {pds}, mimeType: {mimeType}, size: {fileBytes.Length}");
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(mimeType))
-        {
-            Logger.LogError("UploadBlob: Invalid arguments (pds or accessJwt is null). Exiting.");
-            return null;
-        }
-
-        if (fileBytes == null || fileBytes.Length == 0)
-        {
-            Logger.LogError("UploadBlob: File content is empty. Exiting.");
-            return null;
-        }
-
-        string url = $"https://{pds}/xrpc/com.atproto.repo.uploadBlob";
-        Logger.LogTrace($"UploadBlob: url: {url}");
-
-        // Send raw bytes using the specialized blob request method
-        return SendBlobRequest(url, accessJwt, fileBytes, mimeType);
-    }
-
-    /// <summary>
-    /// Send a blob upload request with raw binary data.
-    /// </summary>
-    private static JsonNode? SendBlobRequest(string url, string accessJwt, byte[] fileBytes, string mimeType)
-    {
-        Logger.LogInfo($"SendBlobRequest: {url}");
-
-        using (HttpClient client = new HttpClient())
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-            
-            // Set the content as ByteArrayContent
-            request.Content = new ByteArrayContent(fileBytes);
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
-            request.Content.Headers.ContentLength = fileBytes.Length;
-
-            // Add authorization header
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
-            request.Headers.UserAgent.TryParseAdd("dnproto");
-
-            Logger.LogTrace($"REQUEST:\n{request}");
-            Logger.LogTrace($"Content-Type: {mimeType}");
-            Logger.LogTrace($"Content-Length: {fileBytes.Length}");
-
-            HttpResponseMessage? response = null;
-
-            try
-            {
-                response = client.Send(request);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Exception sending blob request: {ex.Message}");
-                return null;
-            }
-
-            if (response == null)
-            {
-                Logger.LogError("In SendBlobRequest, response is null.");
-                return null;
-            }
-
-            Logger.LogTrace($"RESPONSE: {response}");
-
-            bool succeeded = response.StatusCode == HttpStatusCode.OK;
-
-            if (!succeeded)
-            {
-                Logger.LogError($"Blob upload failed with status code: {response.StatusCode}");
-                return null;
-            }
-
-            // Parse JSON response
-            JsonNode? jsonResponse = null;
-            using (var reader = new StreamReader(response.Content.ReadAsStream()))
-            {
-                var responseText = reader.ReadToEnd();
-
-                if (!string.IsNullOrEmpty(responseText))
-                {
-                    try
-                    {
-                        jsonResponse = JsonNode.Parse(responseText);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError($"Failed to parse JSON response: {ex.Message}");
-                    }
-                }
-            }
-
-            return jsonResponse;
-        }
-    }
-
-
-    public static JsonNode? CreateAccount(string? pds, string? handle, string? did, string? inviteCode, string? password)
-    {
-        string url = $"https://{pds}/xrpc/com.atproto.server.createAccount";
-
-        var response = BlueskyClient.SendRequest(url,
-            HttpMethod.Post,
-            content: new StringContent(JsonSerializer.Serialize(new
-            {
-                handle = handle,
-                did = did,
-                inviteCode = inviteCode,
-                password = password
-            }))
-        );
-
-        return response;        
-    }
-
-
-    /// <summary>
-    /// Return set of bookmarks for the user.
-    /// </summary>
-    /// <param name="pds"></param>
-    /// <param name="accessJwt"></param>
-    /// <returns></returns>
-    public static List<(string createdAt, AtUri uri)> GetBookmarks(string? pds, string? accessJwt)
-    {
-        List<(string createdAt, AtUri uri)> ret = new List<(string createdAt, AtUri uri)>();
-
-        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt))
-        {
-            Logger.LogError("GetBookmarks: Invalid arguments. Exiting.");
-            return ret;
-        }
-
-        bool keepGoing = true;
-        string? cursor = null;
-        while (keepGoing)
-        {
-            keepGoing = false;
-            string? url = null;
-
-            if (cursor != null)
-            {
-                url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks?cursor={cursor}";
-            }
-            else
-            {
-                url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
-            }
-
-            Logger.LogTrace($"GetBookmarks: url: {url}");
-
-            var response = BlueskyClient.SendRequest(url,
-                HttpMethod.Get,
-                accessJwt: accessJwt
-            );
-
-            if (response == null)
-            {
-                Logger.LogError("GetBookmarks: response returned null.");
-                return ret;
-            }
-
-            BlueskyClient.LogTraceJsonResponse(response);
-
-            var bookmarks = response["bookmarks"]?.AsArray();
-            if (bookmarks != null)
-            {
-                foreach (var bookmark in bookmarks)
-                {
-                    keepGoing = true;
-                    var uri = bookmark?["item"]?["uri"]?.ToString();
-                    var createdAt = bookmark?["item"]?["record"]?["createdAt"]?.ToString();
-
-                    if (!string.IsNullOrEmpty(uri))
-                    {
-                        var atUri = AtUri.FromAtUri(uri);
-                        if (atUri != null && !string.IsNullOrEmpty(createdAt))
-                        {
-                            ret.Add(((string)createdAt, atUri));
-                        }
-                    }
-                }
-            }
-
-            cursor = response?["cursor"]?.ToString();
-
-            if (keepGoing)
-            {
-                Thread.Sleep(1000);
-            }
-        }
-
-
-        return ret;
-    }
-
+    #region SENDREQ
 
     /// <summary>
     /// Many calls to the Bluesky APIs follow the same pattern. This function implements that pattern.
@@ -1400,6 +765,570 @@ public class BlueskyClient
             return responseText;
         }
     }
+    #endregion
+
+
+
+    #region PROFILE
+
+    /// <summary>
+    /// Gets the profile of an actor.
+    /// https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
+    /// </summary>
+    /// <param name="actor">The actor to get the profile for.</param>
+    public static JsonNode? GetProfile(string? actor, string? accessJwt = null, string? hostname = null, string? labelers = null)
+    {
+        if (string.IsNullOrEmpty(hostname))
+        {
+            // we were calling "public.api.bsky.app", but the labels weren't returning
+            // from that endpoint. Switching to "api.bsky.app" seems to work.
+            hostname = "api.bsky.app";
+        }
+        
+        Logger.LogTrace($"GetProfile: actor: {actor}");
+        if (string.IsNullOrEmpty(actor))
+        {
+            Logger.LogError("GetProfile: Actor is null or empty. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{hostname}/xrpc/app.bsky.actor.getProfile?actor={actor}";
+        Logger.LogTrace($"GetProfile: url: {url}");
+
+        JsonNode? profile = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt, labelers: labelers);
+
+        return profile;
+    }
+
+    #endregion
+
+    #region REPO
+
+    /// <summary>
+    /// Get repo for did.
+    /// https://docs.bsky.app/docs/api/com-atproto-sync-get-repo
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <param name="repoFile"></param>
+    public static void GetRepo(string? pds, string? did, string? repoFile)
+    {
+        Logger.LogTrace($"GetRepo: pds: {pds}, did: {did}, repoFile: {repoFile}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(repoFile))
+        {
+            Logger.LogError("GetRepo: Invalid arguments. Exiting.");
+            return;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getRepo?did={did}";
+        Logger.LogTrace($"GetRepo: url: {url}");
+
+        BlueskyClient.SendRequestStreaming(url,
+            HttpMethod.Get,
+            outputFilePath: repoFile);
+
+    }
+    #endregion
+
+
+    #region RECORD
+    public static void GetRecordSync(string? pds, string? did, string? collection, string? rkey, string? recordFile)
+    {
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(recordFile))
+        {
+            Logger.LogError("GetRecordSync: Invalid arguments. Exiting.");
+            return;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getRecord?did={did}&collection={collection}&rkey={rkey}";
+        Logger.LogTrace($"GetRecordSync: url: {url}");
+
+        BlueskyClient.SendRequestStreaming(url,
+            HttpMethod.Get,
+            outputFilePath: recordFile);
+
+    }
+
+
+    
+    /// <summary>
+    /// Deletes a record.
+    /// </summary>
+    /// <param name="handleInfo"></param>
+    /// <param name="accessJwt"></param>
+    /// <param name="postUri"></param>
+    public static void DeleteRecord(string? pds, string? did, string? accessJwt, string? rkey, string? collection = "app.bsky.feed.post")
+    {
+        //
+        // Check args
+        //
+        Logger.LogTrace($"DeleteRecord: pds: {pds}, did: {did}, collection: {collection}, rkey: {rkey}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(collection) || string.IsNullOrEmpty(rkey))
+        {
+            Logger.LogError("DeleteRecord: Invalid arguments. Exiting.");
+            return;
+        }
+
+        //
+        // Call pds to delete
+        //
+        string url = $"https://{pds}/xrpc/com.atproto.repo.deleteRecord";
+        Logger.LogTrace($"DeleteRecord: url: {url}");
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            accessJwt: accessJwt,
+            content: new StringContent(JsonSerializer.Serialize(new
+            {
+                repo = did,
+                collection = collection,
+                rkey = rkey
+            }))
+        );
+
+        if (response == null)
+        {
+            Logger.LogError("DeletePost: response returned null.");
+            return;
+        }
+
+        BlueskyClient.LogTraceJsonResponse(response);
+    }
+
+
+    #endregion
+
+    #region REPO
+
+    /// <summary>
+    /// List repos.
+    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-repos
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="limit"></param>
+    /// <param name="sleepMilliseconds"></param>
+    /// <returns></returns>
+    public static List<JsonNode> ListRepos(string? pds, int limit = 100, int sleepMilliseconds = 1000)
+    {
+        List<JsonNode> repos = new List<JsonNode>();
+        Logger.LogTrace($"ListRepos: pds: {pds}");
+
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("ListRepos: Invalid arguments. Exiting.");
+            return repos;
+        }
+
+        bool keepGoing = true;
+        string? cursor = null;
+
+        // We call the api in batches of 100 (or whatever limit is set).
+        while (keepGoing)
+        {
+            string? url = null;
+
+            if (cursor != null)
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listRepos?limit={limit}&cursor={cursor}";
+            }
+            else
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listRepos?limit={limit}";
+            }
+
+            Logger.LogTrace($"ListRepos: url: {url}");
+
+            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get);
+
+            var reposArray = response?["repos"]?.AsArray();
+
+            keepGoing = reposArray != null && reposArray.Count == limit;
+
+            cursor = response?["cursor"]?.ToString();
+
+            if (reposArray != null)
+            {
+                Logger.LogTrace($"ListRepos: Count: {reposArray.Count}");
+                Logger.LogTrace($"ListRepos: Cursor: {cursor}");
+
+                foreach (var repo in reposArray)
+                {
+                    if (repo == null) continue;
+                    repos.Add(repo);
+                }
+            }
+
+            if (keepGoing)
+            {
+                Thread.Sleep(sleepMilliseconds);
+            }
+        }
+
+        return repos;
+    }
+    #endregion
+
+    #region PDS
+
+    public static JsonNode? PdsHealth(string? pds)
+    {
+        Logger.LogTrace($"PdsHealth: pds: {pds}");
+
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("PdsHealth: Invalid arguments. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/_health";
+        Logger.LogTrace($"PdsHealth: url: {url}");
+
+        return BlueskyClient.SendRequest(url,
+            HttpMethod.Get);
+
+    }
+
+    public static JsonNode? PdsDescribeServer(string? pds)
+    {
+        Logger.LogTrace($"PdsDescribeServer: pds: {pds}");
+
+        if (string.IsNullOrEmpty(pds))
+        {
+            Logger.LogError("PdsDescribeServer: Invalid arguments. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.server.describeServer";
+        Logger.LogTrace($"PdsDescribeServer: url: {url}");
+
+        return BlueskyClient.SendRequest(url,
+            HttpMethod.Get);
+
+    }
+    
+    #endregion
+
+
+    #region BLOB
+
+    /// <summary>
+    /// List blobs for did.
+    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-blobs
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <returns></returns>
+    public static List<string> ListBlobs(string? pds, string? did, string? blobsFile = null, int limit = 100, int sleepMilliseconds = 1000, string? accessJwt = null)
+    {
+        List<string> blobs = new List<string>();
+        Logger.LogTrace($"ListBlobs: pds: {pds}, did: {did}");
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did))
+        {
+            Logger.LogError("ListBlobs: Invalid arguments. Exiting.");
+            return blobs;
+        }
+
+        bool keepGoing = true;
+        string? cursor = null;
+
+        // We call the api in batches of 100 (or whatever limit is set).
+        while (keepGoing)
+        {
+            string? url = null;
+
+            if (cursor != null)
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}&cursor={cursor}";
+            }
+            else
+            {
+                url = $"https://{pds}/xrpc/com.atproto.sync.listBlobs?did={did}&limit={limit}";
+            }
+
+            Logger.LogTrace($"ListBlobs: url: {url}");
+
+            JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get, accessJwt: accessJwt);
+
+            Logger.LogTrace($"ListBlobs: response: {response?.ToJsonString(new JsonSerializerOptions { WriteIndented = true })}");
+
+            var cids = response?["cids"]?.AsArray();
+
+            keepGoing = cids != null && cids.Count == limit;
+
+            cursor = response?["cursor"]?.ToString();
+
+            if (cids != null)
+            {
+                Logger.LogTrace($"ListBlobs: Count: {cids.Count}");
+                Logger.LogTrace($"ListBlobs: Cursor: {cursor}");
+
+                foreach (var cid in cids)
+                {
+                    if (cid == null) continue;
+                    blobs.Add(cid.ToString());
+                }
+            }
+
+            if (keepGoing)
+            {
+                Thread.Sleep(sleepMilliseconds);
+            }
+        }
+
+        if (blobsFile != null)
+        {
+            Logger.LogTrace($"ListBlobs: Writing blobs to file: {blobsFile}");
+            File.WriteAllLines(blobsFile, blobs);
+        }
+
+        return blobs;
+    }
+
+    /// <summary>
+    /// Get blob for did, by cid.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="did"></param>
+    /// <param name="cid"></param>
+    /// <param name="blobFile"></param>
+    public static void GetBlob(string? pds, string? did, string? cid, string? blobFile)
+    {
+        Logger.LogTrace($"GetBlob: pds: {pds}, did: {did}, cid: {cid}, blobFile: {blobFile}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(did) || string.IsNullOrEmpty(cid) || string.IsNullOrEmpty(blobFile))
+        {
+            Logger.LogError("GetBlob: Invalid arguments. Exiting.");
+            return;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.sync.getBlob?did={did}&cid={cid}";
+        Logger.LogTrace($"GetBlob: url: {url}");
+
+        BlueskyClient.SendRequest(url,
+            HttpMethod.Get,
+            outputFilePath: blobFile,
+            parseJsonResponse: false,
+            writeMetadataFile: true);
+
+    }
+
+
+
+    /// <summary>
+    /// Upload a blob to the PDS.
+    /// https://docs.bsky.app/docs/api/com-atproto-repo-upload-blob
+    /// </summary>
+    /// <param name="pds">The PDS hostname</param>
+    /// <param name="accessJwt">The access JWT token for authentication</param>
+    /// <param name="fileBytes">The file content as a byte array</param>
+    /// <param name="mimeType">The MIME type of the file</param>
+    /// <returns>JSON response containing blob reference with CID, mimeType, and size</returns>
+    public static JsonNode? UploadBlob(string? pds, string? accessJwt, byte[] fileBytes, string? mimeType)
+    {
+        Logger.LogTrace($"UploadBlob: pds: {pds}, mimeType: {mimeType}, size: {fileBytes.Length}");
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(mimeType))
+        {
+            Logger.LogError("UploadBlob: Invalid arguments (pds or accessJwt is null). Exiting.");
+            return null;
+        }
+
+        if (fileBytes == null || fileBytes.Length == 0)
+        {
+            Logger.LogError("UploadBlob: File content is empty. Exiting.");
+            return null;
+        }
+
+        string url = $"https://{pds}/xrpc/com.atproto.repo.uploadBlob";
+        Logger.LogTrace($"UploadBlob: url: {url}");
+
+        // Send raw bytes using the specialized blob request method
+        return SendBlobRequest(url, accessJwt, fileBytes, mimeType);
+    }
+
+    /// <summary>
+    /// Send a blob upload request with raw binary data.
+    /// </summary>
+    private static JsonNode? SendBlobRequest(string url, string accessJwt, byte[] fileBytes, string mimeType)
+    {
+        Logger.LogInfo($"SendBlobRequest: {url}");
+
+        using (HttpClient client = new HttpClient())
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            
+            // Set the content as ByteArrayContent
+            request.Content = new ByteArrayContent(fileBytes);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(mimeType);
+            request.Content.Headers.ContentLength = fileBytes.Length;
+
+            // Add authorization header
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessJwt);
+            request.Headers.UserAgent.TryParseAdd("dnproto");
+
+            Logger.LogTrace($"REQUEST:\n{request}");
+            Logger.LogTrace($"Content-Type: {mimeType}");
+            Logger.LogTrace($"Content-Length: {fileBytes.Length}");
+
+            HttpResponseMessage? response = null;
+
+            try
+            {
+                response = client.Send(request);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Exception sending blob request: {ex.Message}");
+                return null;
+            }
+
+            if (response == null)
+            {
+                Logger.LogError("In SendBlobRequest, response is null.");
+                return null;
+            }
+
+            Logger.LogTrace($"RESPONSE: {response}");
+
+            bool succeeded = response.StatusCode == HttpStatusCode.OK;
+
+            if (!succeeded)
+            {
+                Logger.LogError($"Blob upload failed with status code: {response.StatusCode}");
+                return null;
+            }
+
+            // Parse JSON response
+            JsonNode? jsonResponse = null;
+            using (var reader = new StreamReader(response.Content.ReadAsStream()))
+            {
+                var responseText = reader.ReadToEnd();
+
+                if (!string.IsNullOrEmpty(responseText))
+                {
+                    try
+                    {
+                        jsonResponse = JsonNode.Parse(responseText);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError($"Failed to parse JSON response: {ex.Message}");
+                    }
+                }
+            }
+
+            return jsonResponse;
+        }
+    }
+
+    #endregion
+
+
+    #region ACCOUNT
+
+    public static JsonNode? CreateAccount(string? pds, string? handle, string? did, string? inviteCode, string? password)
+    {
+        string url = $"https://{pds}/xrpc/com.atproto.server.createAccount";
+
+        var response = BlueskyClient.SendRequest(url,
+            HttpMethod.Post,
+            content: new StringContent(JsonSerializer.Serialize(new
+            {
+                handle = handle,
+                did = did,
+                inviteCode = inviteCode,
+                password = password
+            }))
+        );
+
+        return response;        
+    }
+    #endregion
+
+    #region BOOKMARKS
+
+    /// <summary>
+    /// Return set of bookmarks for the user.
+    /// </summary>
+    /// <param name="pds"></param>
+    /// <param name="accessJwt"></param>
+    /// <returns></returns>
+    public static List<(string createdAt, AtUri uri)> GetBookmarks(string? pds, string? accessJwt)
+    {
+        List<(string createdAt, AtUri uri)> ret = new List<(string createdAt, AtUri uri)>();
+
+        if (string.IsNullOrEmpty(pds) || string.IsNullOrEmpty(accessJwt))
+        {
+            Logger.LogError("GetBookmarks: Invalid arguments. Exiting.");
+            return ret;
+        }
+
+        bool keepGoing = true;
+        string? cursor = null;
+        while (keepGoing)
+        {
+            keepGoing = false;
+            string? url = null;
+
+            if (cursor != null)
+            {
+                url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks?cursor={cursor}";
+            }
+            else
+            {
+                url = $"https://{pds}/xrpc/app.bsky.bookmark.getBookmarks";
+            }
+
+            Logger.LogTrace($"GetBookmarks: url: {url}");
+
+            var response = BlueskyClient.SendRequest(url,
+                HttpMethod.Get,
+                accessJwt: accessJwt
+            );
+
+            if (response == null)
+            {
+                Logger.LogError("GetBookmarks: response returned null.");
+                return ret;
+            }
+
+            BlueskyClient.LogTraceJsonResponse(response);
+
+            var bookmarks = response["bookmarks"]?.AsArray();
+            if (bookmarks != null)
+            {
+                foreach (var bookmark in bookmarks)
+                {
+                    keepGoing = true;
+                    var uri = bookmark?["item"]?["uri"]?.ToString();
+                    var createdAt = bookmark?["item"]?["record"]?["createdAt"]?.ToString();
+
+                    if (!string.IsNullOrEmpty(uri))
+                    {
+                        var atUri = AtUri.FromAtUri(uri);
+                        if (atUri != null && !string.IsNullOrEmpty(createdAt))
+                        {
+                            ret.Add(((string)createdAt, atUri));
+                        }
+                    }
+                }
+            }
+
+            cursor = response?["cursor"]?.ToString();
+
+            if (keepGoing)
+            {
+                Thread.Sleep(1000);
+            }
+        }
+
+
+        return ret;
+    }
+    #endregion
+
 
     /// <summary>
     /// Currently most of the commands just print the response to the console.

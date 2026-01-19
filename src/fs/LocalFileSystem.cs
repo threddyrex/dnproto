@@ -1,3 +1,4 @@
+using System.Text;
 using dnproto.auth;
 using dnproto.log;
 using dnproto.repo;
@@ -14,10 +15,12 @@ public class LocalFileSystem
 
     private IDnProtoLogger _logger;
 
-    private LocalFileSystem(string dataDir, IDnProtoLogger logger)
+    private LocalFileSystem(string dataDir, IDnProtoLogger logger, int cacheExpiryMinutes_Actors, int cacheExpiryMinutes_Sessions)
     {
         _dataDir = dataDir;
         _logger = logger;
+        this.cacheExpiryMinutes_Actors = cacheExpiryMinutes_Actors;
+        this.cacheExpiryMinutes_Sessions = cacheExpiryMinutes_Sessions;
     }
 
 
@@ -32,13 +35,15 @@ public class LocalFileSystem
         return _dataDir;
     }
 
+    #region INIT
+
     /// <summary>
     /// Ensure that the root dir exists, and creates subdirs if needed.
     /// </summary>
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static LocalFileSystem Initialize(string? dataDir, IDnProtoLogger logger)
+    public static LocalFileSystem Initialize(string? dataDir, IDnProtoLogger logger, int cacheExpiryMinutes_Actors = 60, int cacheExpiryMinutes_Sessions = 60*24)
     {
         if (string.IsNullOrEmpty(dataDir) || Directory.Exists(dataDir) == false)
         {
@@ -65,9 +70,14 @@ public class LocalFileSystem
             }
         }
 
-        return new LocalFileSystem(dataDir, logger);
+        var lfs = new LocalFileSystem(dataDir, logger, cacheExpiryMinutes_Actors, cacheExpiryMinutes_Sessions);
+        return lfs;
     }
 
+    #endregion
+
+
+    #region ACTOR
 
     /// <summary>
     /// Resolve actor info for the given actor (handle or did).
@@ -78,64 +88,80 @@ public class LocalFileSystem
     {
         lock (_lock)
         {
-            if (string.IsNullOrEmpty(actor))
-            {
-                _logger.LogError("lfs.ResolveActorInfo: actor is null or empty.");
-                return null;
-            }
+            StringBuilder logLine = new StringBuilder($"[LFS] ResolveActor. actor={actor}");
 
-            string actorFile = Path.Combine(_dataDir, "actors", GetSafeString(actor) + ".json");
-            //
-            // If the file exists, use that.
-            //
-            if (File.Exists(actorFile))
+            try
             {
-                // if the file is older than an hour, don't use it
-                FileInfo fileInfo = new FileInfo(actorFile);
-                if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Actors))
+                if (string.IsNullOrEmpty(actor))
                 {
-                    _logger.LogTrace($"Actor info file is older than {cacheExpiryMinutes_Actors} minutes, will re-resolve: {actorFile}");
+                    _logger.LogError("[LFS] actor is null or empty");
+                    return null;
                 }
-                else
-                {
-                    _logger.LogTrace($"Actor info file exists and is recent, loading: {actorFile}");
-                    string actorJson = File.ReadAllText(actorFile);
-                    _logger.LogTrace($"file text: {actorJson}");
-                    var info = ActorInfo.FromJsonString(actorJson);
 
-                    if(info == null || info?.Did == null || string.IsNullOrEmpty(info?.Did))
+                //
+                // If the file exists, use that.
+                //
+                string actorFile = Path.Combine(_dataDir, "actors", GetSafeString(actor) + ".json");
+                logLine.Append($", fileExists={File.Exists(actorFile)}");
+                if (File.Exists(actorFile))
+                {
+                    // if the file is older than an hour, don't use it
+                    FileInfo fileInfo = new FileInfo(actorFile);
+                    if (fileInfo.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(0 - cacheExpiryMinutes_Actors))
                     {
-                        _logger.LogWarning("Actor info loaded from file is missing DID, will re-resolve.");
-                        // fall through to re-resolve
+                        logLine.Append($", fileOld=true");
+                        _logger.LogTrace($"Actor info file is older than {cacheExpiryMinutes_Actors} minutes, will re-resolve: {actorFile}");
                     }
                     else
                     {
-                        return info;                        
+                        logLine.Append($", fileOld=false");
+                        _logger.LogTrace($"Actor info file exists and is recent, loading: {actorFile}");
+                        string actorJson = File.ReadAllText(actorFile);
+                        _logger.LogTrace($"file text: {actorJson}");
+                        var info = ActorInfo.FromJsonString(actorJson);
+
+                        if(info == null || info?.Did == null || string.IsNullOrEmpty(info?.Did))
+                        {
+                            logLine.Append($", missingDid=true");
+                            _logger.LogWarning("[LFS] Actor info loaded from file is missing DID, will re-resolve.");
+                        }
+                        else
+                        {
+                            return info;                        
+                        }
                     }
                 }
+
+                //
+                // Otherwise, resolve and save to file.
+                //
+                logLine.Append($", resolve=true");
+                _logger.LogTrace($"Resolving actor info and writing to file: {actorFile}");
+                var actorInfo = BlueskyClient.ResolveActorInfo(actor);
+
+                if (actorInfo == null)
+                {
+                    _logger.LogError("[LFS] Failed to resolve actor info.");
+                    return null;
+                }
+
+                logLine.Append($", filePath={actorFile}");
+                _logger.LogTrace($"Saving actor info to file: {actorFile}");
+                File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
+
+                //
+                // return the actor info.
+                //
+                return actorInfo;
             }
-
-            //
-            // Otherwise, resolve and save to file.
-            //
-            _logger.LogTrace($"Resolving actor info and writing to file: {actorFile}");
-            var actorInfo = BlueskyClient.ResolveActorInfo(actor);
-
-            if (actorInfo == null)
+            finally
             {
-                _logger.LogError("Failed to resolve actor info.");
-                return null;
+                _logger.LogInfo(logLine.ToString());
             }
-
-            _logger.LogTrace($"Saving actor info to file: {actorFile}");
-            File.WriteAllText(actorFile, actorInfo.ToJsonString() ?? "");
-
-            //
-            // return the actor info.
-            //
-            return actorInfo;
         }
     }
+
+    #endregion
 
 
     /// <summary>

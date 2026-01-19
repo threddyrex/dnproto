@@ -30,7 +30,7 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         //
         // Resolve actor info
         //
-        ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(identifier, useBsky: false);
+        ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(identifier);
         bool actorExists = actorInfo != null;
 
 

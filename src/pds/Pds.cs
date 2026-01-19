@@ -101,12 +101,12 @@ public class Pds
     /// <param name="dataDir"></param>
     /// <param name="logger"></param>
     /// <returns></returns>
-    public static Pds InitializePdsForRun(string dataDir, dnproto.log.IDnProtoLogger logger)
+    public static Pds InitializePdsForRun(string dataDir, dnproto.log.IDnProtoLogger logger, int cacheExpiryMinutes_Actors = 3)
     {
         //
         // Get local file system
         //
-        LocalFileSystem lfs = LocalFileSystem.Initialize(dataDir, logger);
+        LocalFileSystem lfs = LocalFileSystem.Initialize(dataDir, logger, cacheExpiryMinutes_Actors: cacheExpiryMinutes_Actors);
 
         //
         // Initialize PdsDb
