@@ -9,18 +9,16 @@ namespace dnproto.mst;
 /// <summary>
 /// In-memory representation of a Merkle Search Tree (MST).
 /// 
-/// The main purpose of this class is to codify the properties of
-/// a MST (key depth, key sorting, etc.), and to assemble a
-/// MST with those properties from a flat list of items you provide.
+/// In the PDS, most times I'm not working with MST. I keep
+/// the records in the db as a flat list of repo records. But in the
+/// few cases I need a MST, I'll assemble the MST in memory.
 /// 
-/// You start with a list of MstItems. These are key/value pairs that
-/// you can store offline in a db or elsewhere. 
+/// This class codifies the properties of a MST (key depth, key
+/// sorting, etc.) and lets me assemble it.
 /// 
-/// Once you want to run MST operations, you can call Mst.AssembleTreeFromItems() 
-/// to build the MST in memory, and work on that.
-/// 
-/// There are no "put" or "delete" operations here. Do those operations on your list 
-/// of MstItems, then re-assemble the tree when you need to work with it.
+/// There are no "put" or "delete" operations here. This MST is just
+/// for querying. If you need to make changes, do those changes on
+/// the repo records, and then re-assemble the MST again.
 /// 
 /// Atproto uses MST for the repos (https://atproto.com/specs/repository)
 /// 
