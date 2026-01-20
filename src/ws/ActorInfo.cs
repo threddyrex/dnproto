@@ -1,10 +1,11 @@
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
-using dnproto.repo;
 
 namespace dnproto.ws;
 
+/// <summary>
+/// Result from ResolveActorInfo.
+/// </summary>
 public class ActorInfo
 {
     public string? Actor { get; set; }
