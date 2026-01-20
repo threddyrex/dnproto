@@ -73,7 +73,7 @@ Most of the files in this directory represent one "command" of the tool. Here ar
 
 ```powershell
 # resolve actor info and retrieve did, did doc
-.\GetActorInfo.ps1 -actor <handle or did>
+.\ResolveActorInfo.ps1 -actor <handle or did>
 
 # get plc dir history for actor
 .\GetPlcHistory.ps1 -actor <handle or did>
@@ -122,7 +122,7 @@ By default, it uses the "data" directory in the repo. You can change this in the
 
 When someone is having issues with their account, I like to run the following commands:
 
-- GetActorInfo - just check their DID, DID doc, etc
+- ResolveActorInfo - just check their DID, DID doc, etc
 - GetPdsInfo - lists things on their PDS
 - GetPlcHistory - checks their PLC history - make sure that the account isn't active in multiple places
 - StartFirehoseConsumer - make sure you can connect to their PDS (I've seen this fail)
@@ -140,30 +140,6 @@ https://mod.bsky.app/xrpc/com.atproto.label.queryLabels?uriPatterns=USERS_DID
 
 # Linux Support
 
-Is Linux supported? Yes! I tested a few of the commands on an Ubuntu VM. dotnet is supported (generally) on Linux.
-As of now, the test suite fully passes on an Ubuntu VM.
-Also running PDS on Linux.
+Is Linux supported? Yes! I run my dnproto PDS on Linux.
 
-
-&nbsp;
-
-# Helpful Links for PDS Implementation
-
-- PDS implementation
-  - [docs.bsky.app - AT Protocol XRPC API](https://docs.bsky.app/docs/api/at-protocol-xrpc-api)
-  - [event stream - atproto](https://atproto.com/specs/event-stream)
-  - [repository - atproto](https://atproto.com/specs/repository)
-  - [API hosts and Auth](https://docs.bsky.app/docs/advanced-guides/api-directory)
-  - [ipld carv1](https://ipld.io/specs/transport/car/carv1/)
-  - [ipld dag-cbor](https://ipld.io/specs/codecs/dag-cbor/spec/)
-  - [DavidBuchanan314/millipds](https://github.com/DavidBuchanan314/millipds)
-  - [DavidBuchanan314/atmst](https://github.com/DavidBuchanan314/atmst)
-  - [haleyok/cocoon](https://github.com/haileyok/cocoon)
-  - [HTTP API (XRPC) - Service Proxy](https://atproto.com/specs/xrpc#service-proxying)
-  - [What does a PDS implementation entail?](https://github.com/bluesky-social/atproto/discussions/2350)
-  - [Adversarial ATProto PDS Migration](https://www.da.vidbuchanan.co.uk/blog/adversarial-pds-migration.html)
-  - [bluesky-social/jetstream](https://github.com/bluesky-social/jetstream)
-  - [bluesky-social/pds](https://github.com/bluesky-social/pds)
-  - [bluesky-social/pds/ACCOUNT_MIGRATION](https://github.com/bluesky-social/pds/blob/main/ACCOUNT_MIGRATION.md)
-  - [multiformats](https://github.com/multiformats/multicodec/blob/master/table.csv)
 
