@@ -3,14 +3,53 @@ using dnproto.fs;
 using dnproto.log;
 using dnproto.mst;
 using dnproto.repo;
-using Microsoft.Extensions.Primitives;
 using System.Text.Json.Nodes;
 
 namespace dnproto.pds;
 
 
+/*
+    Structure of repo and MST.
+    The three Repo* classes are here in the "dnproto.repo" namespace. 
+    The two MST classes are in the "dnproto.mst" namespace. 
+    The "dnproto.mst" namespace is somewhat generic, so RepoMst.cs exists to bridge that gap.
+
+    A repo will have:
+
+        RepoHeader.cs (only one)
+            CidV1 RepoCommitCid (points to RepoCommit.cs)
+            Int Version
+
+        RepoCommit.cs (only one)
+            int Version (always 3)
+            CidV1 Cid;
+            CidV1 RootMstNodeCid (points to root MST node cid);
+            string Rev (increases monotonically, typically timestamp)
+            CidV1? PrevMstNodeCid (usually null)
+            string Signature
+
+        MstNode (0 or more)
+            CidV1 Cid
+            "l" - CidV1? LeftMstNodeCid (optional to a sub-tree node)
+
+        MstEntry (0 or more)
+            CidV1 MstNodeCid
+            int EntryIndex (0-based index within parent MstNode)
+            "k" - string KeySuffix
+            "p" - int PrefixLength
+            "t" - CidV1? TreeMstNodeCid
+            "v" - CidV1 RecordCid (cid of atproto record)
+
+        RepoRecord (0 or more)
+            CidV1 Cid
+            DagCborObject Data (the actual atproto record)
+*/
 
 
+
+/// <summary>
+/// Managing the user's repository.
+/// </summary>
 public class UserRepo
 {
     private LocalFileSystem _lfs;

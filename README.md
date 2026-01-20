@@ -1,13 +1,17 @@
 
-# dnproto - tools for ATProto and Bluesky
+# dnproto - software for ATProto and Bluesky
 
-This is code for interacting with ATProto and Bluesky.
+This is software for interacting with ATProto and Bluesky.
 
 It started as a toolset for debugging and working with ATproto. Things like
 resolving handles, downloading repos, parsing repos, etc.
 
 More recently we've started working on a PDS implementation.
-My main account is hosted on a dnproto PDS: https://bsky.app/profile/threddyrex.org
+
+My main account is hosted on a dnproto PDS:
+
+- https://bsky.app/profile/threddyrex.org
+
 
 
 &nbsp;
@@ -27,14 +31,14 @@ MST data structure:
 - [MstNode.cs](/src/mst/MstNode.cs) - represents one node in the MST
 - [MstEntry.cs](/src/mst/MstEntry.cs) - represents on entry in a MST node
 
-PDS implementation (in progress):
+PDS implementation:
 
+- [/xrpc/](/src/pds/xrpc/) - the XRPC endpoints
 - [Installer.cs](/src/pds/Installer.cs) - installing the PDS
 - [Pds.cs](/src/pds/Pds.cs) - PDS entry point
-- [UserRepo.cs](/src/pds/UserRepo.cs) - operations on the user's repo
 - [PdsDb.cs](/src/pds/PdsDb.cs) - the database interface, where the repo is stored
 - [RepoMst.cs](/src/repo/RepoMst.cs) - converting MST into dag-cbor for use in repos
-- [/xrpc/](/src/pds/xrpc/) - the XRPC endpoints
+- [UserRepo.cs](/src/pds/UserRepo.cs) - operations on the user's repo
 
 Listening to a firehose:
 

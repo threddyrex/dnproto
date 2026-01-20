@@ -6,6 +6,10 @@ using Microsoft.Data.Sqlite;
 
 namespace dnproto.pds;
 
+/// <summary>
+/// Entry point for the PDS db.
+/// The PDS db is a local file in sqlite format.
+/// </summary>
 public class PdsDb
 {
     private LocalFileSystem _lfs;

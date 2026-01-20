@@ -19,48 +19,13 @@ namespace dnproto.pds;
 /// 
 /// Objects used by this class:
 ///     Config - the config retrieved from the db
-///     LocalFileSystem (dataDir, logger) - writing/reading local files
+///     LocalFileSystem (dataDir, logger) - local file system access (and cache)
 ///     PdsDb (lfs, logger) - access to the sqlite db
 ///     UserRepo (lfs, logger, db, signer, userDid) - operations for repo
-///     MstDb (lfs, logger, db) - operations for MST
+///     FirehoseEventGenerator (lfs, logger, db) - generates firehose events
+///     BackgroundJobs (lfs, logger, db) - manages background jobs
 /// 
 /// </summary>
-
-
-
-/*
-    Structure of repo and MST:
-
-    RepoHeader (only one)
-        CidV1 RepoCommitCid (points to RepoCommit)
-        Int Version
-
-    RepoCommit (only one)
-        int Version (always 3)
-        CidV1 Cid;
-        CidV1 RootMstNodeCid;
-        string Rev (increases monotonically, typically timestamp)
-        CidV1? PrevMstNodeCid (usually null)
-        string Signature
-
-    MstNode (0 or more)
-        CidV1 Cid
-        "l" - CidV1? LeftMstNodeCid (optional to a sub-tree node)
-
-    MstEntry (0 or more)
-        CidV1 MstNodeCid
-        int EntryIndex (0-based index within parent MstNode)
-        "k" - string KeySuffix
-        "p" - int PrefixLength
-        "t" - CidV1? TreeMstNodeCid
-        "v" - CidV1 RecordCid (cid of atproto record)
-
-    RepoRecord (0 or more)
-        CidV1 Cid
-        DagCborObject Data (the actual atproto record)
-*/
-
-
 public class Pds
 {
     public required Config Config;
