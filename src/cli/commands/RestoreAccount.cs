@@ -88,16 +88,14 @@ public class RestoreAccount : BaseCommand
         // Make sure did and pds exist
         //
         string? did = actorInfo?.Did;
-        string? pds = actorInfo?.Pds;
 
-        if(string.IsNullOrEmpty(did) || string.IsNullOrEmpty(pds))
+        if(string.IsNullOrEmpty(did))
         {
             Logger.LogError("Failed to resolve actor to did and pds.");
             return;
         }
 
         Logger.LogInfo($"Resolved handle to did: {did}");
-        Logger.LogInfo($"Resolved handle to pds: {pds}");
 
 
         //
@@ -233,7 +231,7 @@ public class RestoreAccount : BaseCommand
             mstItemsByRecordCid[mstItem.Value] = mstItem;
         }
 
-        // delete everything (keep prefs though - we just uploaded those)
+        // delete everything related to repo
         db.DeleteRepoCommit();
         db.DeleteRepoHeader();
         db.DeleteAllRepoRecords();
