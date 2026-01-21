@@ -13,9 +13,9 @@ public class ComAtprotoRepo_DeleteRecord : BaseXrpcCommand
         //
         // Require auth
         //
-        if(UserIsFullyAuthorized() == false)
+        if(UserIsAuthenticated() == false)
         {
-            var (response, statusCode) = GetAuthFailureResponse();
+            var (response, statusCode) = GetAuthenticationFailureResponse();
             return Results.Json(response, statusCode: statusCode);
         }
 

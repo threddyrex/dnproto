@@ -15,52 +15,13 @@ public abstract class BaseXrpcCommand
     public required HttpContext HttpContext;
 
 
-    /// <summary>
-    /// Returns true if the caller is the PDS admin user.
-    /// </summary>
-    /// <returns></returns>
-    protected bool CheckAdminAuth()
-    {
-        if(!HttpContext.Request.Headers.ContainsKey("Authorization"))
-        {
-            return false;
-        }
-
-        string? authHeader = HttpContext.Request.Headers["Authorization"];
-
-        if(string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Basic "))
-        {
-            return false;
-        }
-
-        string encodedCredentials = authHeader.Substring("Basic ".Length).Trim();
-        string decodedCredentials = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedCredentials));
-
-        string[] parts = decodedCredentials.Split(':', 2);
-        if(parts.Length != 2)
-        {
-            return false;
-        }
-
-        string username = parts[0];
-        string password = parts[1];
-
-        bool verifyPassword = PasswordHasher.VerifyPassword(Pds.Config.AdminHashedPassword, password);
-
-        if(username != "admin" || !verifyPassword)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
+    #region AUTH
 
     /// <summary>
     /// Returns true if the client is authenticated as the PDS user.
     /// </summary>
     /// <returns></returns>
-    public bool UserIsFullyAuthorized()
+    public bool UserIsAuthenticated()
     {
         return JwtSecret.AccessJwtIsValid(GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
     }
@@ -69,7 +30,7 @@ public abstract class BaseXrpcCommand
     /// Returns true if the client is authenticated as the PDS user, but the token has expired.
     /// </summary>
     /// <returns></returns>
-    public bool UserIsAuthorizedButExpired()
+    public bool UserIsAuthenticatedButExpired()
     {
         return JwtSecret.AccessJwtIsValid(GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
     }
@@ -80,9 +41,9 @@ public abstract class BaseXrpcCommand
     /// Otherwise, returns a 401 status code with an "Unauthorized" error.
     /// </summary>
     /// <returns></returns>
-    public (JsonObject response, int statusCode) GetAuthFailureResponse()
+    public (JsonObject response, int statusCode) GetAuthenticationFailureResponse()
     {
-        if (UserIsAuthorizedButExpired())
+        if (UserIsAuthenticatedButExpired())
         {
             return (
                 new JsonObject
@@ -124,6 +85,54 @@ public abstract class BaseXrpcCommand
     }
 
 
+    /// <summary>
+    /// Returns true if the caller is the PDS admin user.
+    /// </summary>
+    /// <returns></returns>
+    private bool CheckAdminAuth()
+    {
+        if(!HttpContext.Request.Headers.ContainsKey("Authorization"))
+        {
+            return false;
+        }
+
+        string? authHeader = HttpContext.Request.Headers["Authorization"];
+
+        if(string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Basic "))
+        {
+            return false;
+        }
+
+        string encodedCredentials = authHeader.Substring("Basic ".Length).Trim();
+        string decodedCredentials = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedCredentials));
+
+        string[] parts = decodedCredentials.Split(':', 2);
+        if(parts.Length != 2)
+        {
+            return false;
+        }
+
+        string username = parts[0];
+        string password = parts[1];
+
+        bool verifyPassword = PasswordHasher.VerifyPassword(Pds.Config.AdminHashedPassword, password);
+
+        if(username != "admin" || !verifyPassword)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+
+    #endregion
+
+
+    #region REQUEST
+
     protected JsonNode? GetRequestBodyAsJson()
     {
         using(StreamReader reader = new StreamReader(HttpContext.Request.Body))
@@ -145,7 +154,6 @@ public abstract class BaseXrpcCommand
             }
         }
     }
-
 
     /// <summary>
     /// Helper for getting int in request body.
@@ -224,8 +232,13 @@ public abstract class BaseXrpcCommand
         
         return true;
     }
+    #endregion
 
-   protected void LogConnectionInfo(HttpContext context)
+
+
+    #region LOG
+
+    protected void LogConnectionInfo(HttpContext context)
     {
         try
         {
@@ -239,4 +252,7 @@ public abstract class BaseXrpcCommand
             Pds.Logger.LogInfo($"[XRPC] {ex.Message}");
         }
     }
+
+    #endregion
+
 }
