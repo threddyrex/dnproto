@@ -70,7 +70,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
             lock (subscriberCountLock)
             {
                 subscriberCount++;
-                Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos. cursorParam:{cursorParam} cursor:{cursor} userAgent:{userAgent} forwardedFor:{forwardedFor} subscriberCount:{subscriberCount}");
+                Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos. cursorParam:{cursorParam} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
             }
 
 
@@ -81,7 +81,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber} cursor:{cursor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
+                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
