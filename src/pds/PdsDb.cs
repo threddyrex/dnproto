@@ -1258,6 +1258,37 @@ DELETE FROM FirehoseEvent
         }
     }
 
+    public void DeleteOldFirehoseEvents(int numHoursLookBack = 72)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            string afterDate = FirehoseEvent.GetCreatedDateMinusHours(numHoursLookBack);
+            command.CommandText = @"
+DELETE FROM FirehoseEvent
+WHERE CreatedDate < @AfterDate
+            ";
+            command.Parameters.AddWithValue("@AfterDate", afterDate);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public int GetCountOfOldFirehoseEvents(int numHoursLookBack = 72)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            string afterDate = FirehoseEvent.GetCreatedDateMinusHours(numHoursLookBack);
+            command.CommandText = @"
+SELECT COUNT(*)
+FROM FirehoseEvent
+WHERE CreatedDate < @AfterDate
+            ";
+            command.Parameters.AddWithValue("@AfterDate", afterDate);
+            return Convert.ToInt32(command.ExecuteScalar());
+        }
+    }
+
 
     public void HideFirehoseEvent(long sequenceNumber)
     {

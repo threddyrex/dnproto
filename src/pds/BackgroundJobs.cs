@@ -31,6 +31,8 @@ public class BackgroundJobs
         _timerLogLevel = new System.Threading.Timer(_ => Job_UpdateLogLevel(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
         // run Job_CleanupOldLogs every hour
         _ = new System.Threading.Timer(_ => Job_CleanupOldLogs(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        // run Job_DeleteOldFirehoseEvents every hour
+        _ = new System.Threading.Timer(_ => Job_DeleteOldFirehoseEvents(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
     }
 
 
@@ -69,5 +71,17 @@ public class BackgroundJobs
                 _logger.LogInfo($"[BACKGROUND] Keeping log file: {logFile}");
             }
         }
+    }
+
+    private void Job_DeleteOldFirehoseEvents()
+    {
+        int oldEventCount = _db.GetCountOfOldFirehoseEvents();
+        if (oldEventCount > 0)
+        {
+            _db.DeleteOldFirehoseEvents();
+        }
+        int oldEventCountAfter = _db.GetCountOfOldFirehoseEvents();
+
+        _logger.LogInfo($"[BACKGROUND] DeleteOldFirehoseEvents beforeCount={oldEventCount} afterCount={oldEventCountAfter}");
     }
 }

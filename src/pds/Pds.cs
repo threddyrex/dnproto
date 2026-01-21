@@ -187,7 +187,9 @@ public class Pds
     
     public void Run()
     {
-        Logger.LogInfo("Running PDS...");
+        Logger.LogInfo("");
+        Logger.LogInfo("!! Running PDS !!");
+        Logger.LogInfo("");
         BackgroundJobs.Start();
         App.Run();
     }
@@ -241,11 +243,6 @@ public class Pds
 
             return Results.Json(new { error = "MethodNotImplemented", message = $"Endpoint not implemented: {context.Request.Path}" }, statusCode: 501);
         });
-
-
-        Logger.LogInfo("");
-        Logger.LogInfo("Mapped XRPC endpoints:");
-        Logger.LogInfo("");
     }
 
     #endregion

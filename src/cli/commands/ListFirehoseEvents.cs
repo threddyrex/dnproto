@@ -38,9 +38,9 @@ public class ListFirehoseEvents : BaseCommand
         //
         var firehoseEvents = db.GetFirehoseEventsForSubscribeRepos(-200000, 1000000);
 
-        foreach (var firehoseEvent in firehoseEvents)
+        foreach (var firehoseEvent in firehoseEvents.OrderBy(e => e.CreatedDate))
         {
-            Logger.LogInfo($"Firehose seq: {firehoseEvent.SequenceNumber}");
+            Logger.LogInfo($"Firehose seq={firehoseEvent.SequenceNumber} createdDate={firehoseEvent.CreatedDate}");
         }
     }
 }
