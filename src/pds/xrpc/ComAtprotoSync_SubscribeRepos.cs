@@ -83,7 +83,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                     if (cancellationToken.IsCancellationRequested) break;
 
                     TimeSpan connectionLifetime = DateTime.UtcNow - startTime;
-                    Pds.Logger.LogInfo($"[FIREHOSE] [SEND] subCount:{subscriberCount} seq={ev.SequenceNumber} cursor={cursor} ip={forwardedFor} userAgent={userAgent} lifetime={connectionLifetime.TotalMinutes:F1}min");
+                    Pds.Logger.LogInfo($"[FIREHOSE] [SEND] subCount:{subscriberCount} seq={ev.SequenceNumber} cursor={cursor} lifetime={connectionLifetime.TotalMinutes:F1}min ip={forwardedFor} userAgent={userAgent}");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
