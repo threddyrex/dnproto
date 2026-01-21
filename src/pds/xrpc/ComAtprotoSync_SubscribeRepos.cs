@@ -64,13 +64,14 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         try
         {
+            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
+
             lock (subscriberCountLock)
             {
                 subscriberCount++;
+                Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos. cursorParam:{cursorParam} cursor:{cursor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
             }
 
-            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
-            Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos, cursorParam:{cursorParam}, cursor:{cursor}, userAgent:{userAgent}, subscriberCount:{subscriberCount}");
 
             while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
@@ -79,7 +80,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber}, subscriberCount:{subscriberCount}");
+                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber} cursor:{cursor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
