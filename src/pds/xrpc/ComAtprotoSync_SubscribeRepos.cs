@@ -65,11 +65,12 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         try
         {
             string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
+            string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
 
             lock (subscriberCountLock)
             {
                 subscriberCount++;
-                Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos. cursorParam:{cursorParam} cursor:{cursor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
+                Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos. cursorParam:{cursorParam} cursor:{cursor} userAgent:{userAgent} forwardedFor:{forwardedFor} subscriberCount:{subscriberCount}");
             }
 
 
