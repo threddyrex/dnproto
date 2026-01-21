@@ -66,11 +66,12 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         {
             string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
             string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            DateTime startTime = DateTime.UtcNow;
 
             lock (subscriberCountLock)
             {
                 subscriberCount++;
-                Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos. cursorParam:{cursorParam} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
+                Pds.Logger.LogInfo($"[FIREHOSE] subscribeRepos start. cursorParam:{cursorParam} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
             }
 
 
@@ -81,7 +82,8 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
+                    TimeSpan connectionLifetime = DateTime.UtcNow - startTime;
+                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} lifetime={connectionLifetime.TotalMinutes:F1}min subscriberCount:{subscriberCount}");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
