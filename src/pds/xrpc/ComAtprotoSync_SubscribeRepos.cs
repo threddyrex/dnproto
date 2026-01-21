@@ -71,7 +71,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
             lock (subscriberCountLock)
             {
                 subscriberCount++;
-                Pds.Logger.LogInfo($"[FIREHOSE] subscribeRepos start. cursorParam:{cursorParam} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} subscriberCount:{subscriberCount}");
+                Pds.Logger.LogInfo($"[FIREHOSE] [START] subCount={subscriberCount} cursorParam={cursorParam} cursor={cursor} ip={forwardedFor} userAgent={userAgent}");
             }
 
 
@@ -83,7 +83,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                     if (cancellationToken.IsCancellationRequested) break;
 
                     TimeSpan connectionLifetime = DateTime.UtcNow - startTime;
-                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber} cursor:{cursor} ip:{forwardedFor} userAgent:{userAgent} lifetime={connectionLifetime.TotalMinutes:F1}min subscriberCount:{subscriberCount}");
+                    Pds.Logger.LogInfo($"[FIREHOSE] [SEND] subCount:{subscriberCount} seq={ev.SequenceNumber} cursor={cursor} ip={forwardedFor} userAgent={userAgent} lifetime={connectionLifetime.TotalMinutes:F1}min");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
