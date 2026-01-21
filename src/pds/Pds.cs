@@ -222,6 +222,7 @@ public class Pds
         App.MapPost("/xrpc/com.atproto.server.deactivateAccount", (HttpContext context) => new ComAtprotoServer_DeactivateAccount(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/.well-known/oauth-protected-resource", (HttpContext context) => new OAuth_ProtectedResource(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/.well-known/oauth-authorization-server", (HttpContext context) => new OAuth_AuthorizationServer(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/oauth/jwks", (HttpContext context) => new OAuth_Jwks(){Pds = this, HttpContext = context}.GetResponse());
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>
