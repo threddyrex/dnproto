@@ -22,6 +22,9 @@ namespace dnproto.pds.xrpc;
 public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
 {
 
+    private static int subscriberCount = 0;
+    private static readonly object subscriberCountLock = new object();
+
 
     /// <summary>
     /// Handles the WebSocket connection for subscribeRepos.
@@ -53,8 +56,6 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         using WebSocket webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        Pds.Logger.LogTrace($"[FIREHOSE] WebSocket client connected for subscribeRepos, cursorParam: {cursorParam}, cursor: {cursor}");
-
         // Use the request's cancellation token to handle graceful shutdown
         CancellationToken cancellationToken = HttpContext.RequestAborted;
 
@@ -63,6 +64,14 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         try
         {
+            lock (subscriberCountLock)
+            {
+                subscriberCount++;
+            }
+
+            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
+            Pds.Logger.LogInfo($"[FIREHOSE] WebSocket client connected for subscribeRepos, cursorParam:{cursorParam}, cursor:{cursor}, userAgent:{userAgent}, subscriberCount:{subscriberCount}");
+
             while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
                 List<FirehoseEvent> events = Pds.PdsDb.GetFirehoseEventsForSubscribeRepos(cursor);
@@ -70,7 +79,7 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                 {
                     if (cancellationToken.IsCancellationRequested) break;
 
-                    Pds.Logger.LogTrace($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber}");
+                    Pds.Logger.LogInfo($"[FIREHOSE] Sending firehose event. seq:{ev.SequenceNumber}, subscriberCount:{subscriberCount}");
 
                     byte[] header = ev.Header_DagCborObject.ToBytes();
                     byte[] body = ev.Body_DagCborObject.ToBytes();
@@ -98,6 +107,13 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         {
             Pds.Logger.LogError($"[FIREHOSE] Unexpected exception: {ex.Message}");
             Pds.Logger.LogError($"[FIREHOSE] Stack trace: {ex.StackTrace}");
+        }
+        finally
+        {
+            lock (subscriberCountLock)
+            {
+                subscriberCount--;
+            }
         }
 
         // Close the WebSocket gracefully if still open
