@@ -1,12 +1,11 @@
 
+
 # dnproto - software for ATProto and Bluesky
 
-This is software for interacting with ATProto and Bluesky.
-
-It started as a toolset for debugging and working with ATproto. Things like
+This project started as a toolset for debugging and working with ATProto. Things like
 resolving handles, downloading repos, parsing repos, etc.
 
-More recently we've started working on a PDS implementation.
+More recently it's become a PDS implementation.
 
 My main account is hosted on a dnproto PDS:
 
