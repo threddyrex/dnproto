@@ -253,6 +253,17 @@ public abstract class BaseXrpcCommand
         }
     }
 
+    protected void LogRequest(HttpContext context)
+    {
+        foreach(var header in context.Request.Headers)
+        {
+            Pds.Logger.LogInfo($"[XRPC] Header: {header.Key} = {header.Value}");
+        }
+
+        string jsonBody = context.Request.Body != null ? new StreamReader(context.Request.Body).ReadToEndAsync().Result : string.Empty;
+        Pds.Logger.LogInfo($"[XRPC] Body:\n {jsonBody}");
+    }
+
     #endregion
 
 }
