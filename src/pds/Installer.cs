@@ -133,7 +133,8 @@ public class Installer
             UserEmail = userEmail!,
             UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
             UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
-            UserIsActive = true
+            UserIsActive = true,
+            OauthIsEnabled = false
         };
 
 

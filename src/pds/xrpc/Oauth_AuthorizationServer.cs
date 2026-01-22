@@ -8,6 +8,11 @@ public class Oauth_AuthorizationServer : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        if(!Pds.Config.OauthIsEnabled)
+        {
+            return Results.Json(new{}, statusCode: 403);
+        }
+
         return Results.Json(new 
         {
             issuer = $"https://{Pds.Config.PdsHostname}",

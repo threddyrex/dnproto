@@ -11,6 +11,11 @@ public class Oauth_ProtectedResource : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        if(!Pds.Config.OauthIsEnabled)
+        {
+            return Results.Json(new{}, statusCode: 403);
+        }
+
         return Results.Json(new 
         {
             resource = $"https://{Pds.Config.PdsHostname}",

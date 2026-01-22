@@ -13,6 +13,12 @@ public class Oauth_Par : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
+        if(!Pds.Config.OauthIsEnabled)
+        {
+            return Results.Json(new{}, statusCode: 403);
+        }
+
+        
         //
         // Get dpop header and body
         //

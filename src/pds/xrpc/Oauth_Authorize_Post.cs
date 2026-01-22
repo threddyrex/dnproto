@@ -13,6 +13,11 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
+        if(!Pds.Config.OauthIsEnabled)
+        {
+            return Results.Json(new{}, statusCode: 403);
+        }
+
         //
         // Get form data
         //
@@ -36,7 +41,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
 
 
         //
-        // Load 
+        // Load the oauth request
         //
         if(!Pds.PdsDb.OauthRequestExists(requestUri!))
         {
@@ -60,6 +65,10 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         {
             Pds.Logger.LogWarning($"[OAUTH] Authentication failed. username={userName} actorExists={actorExists} passwordMatches={passwordMatches}");
             return Results.Content(Oauth_Authorize_Get.GetHtmlForAuthForm(requestUri!, clientId!, oauthRequest, true), "text/html");
+        }
+        else
+        {
+            Pds.Logger.LogInfo($"[OAUTH] Authentication succeeded. username={userName} actorExists={actorExists} passwordMatches={passwordMatches}");            
         }
 
 

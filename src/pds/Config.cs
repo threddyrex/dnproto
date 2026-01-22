@@ -36,4 +36,6 @@ public class Config
     public required string UserPrivateKeyMultibase;
 
     public required bool UserIsActive;
+
+    public required bool OauthIsEnabled;
 }

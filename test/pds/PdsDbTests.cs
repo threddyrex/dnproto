@@ -110,7 +110,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserEmail = "user@example.com",
             UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
             UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample",
-            UserIsActive = true
+            UserIsActive = true,
+            OauthIsEnabled = true
         };
 
         // Act
@@ -131,6 +132,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.UserHandle, retrievedConfig.UserHandle);
         Assert.Equal(configToInsert.UserDid, retrievedConfig.UserDid);
         Assert.Equal(configToInsert.UserHashedPassword, retrievedConfig.UserHashedPassword);
+        Assert.Equal(configToInsert.OauthIsEnabled, retrievedConfig.OauthIsEnabled);
         Assert.Equal(configToInsert.UserEmail, retrievedConfig.UserEmail);
         Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
         Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
@@ -146,6 +148,16 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.False(pdsDb.IsUserActive());
         pdsDb.SetUserActive(true);
         Assert.True(pdsDb.IsUserActive());
+    }
+
+    [Fact]
+    public void Config_SetOauthEnabled()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.SetOauthEnabled(false);
+        Assert.False(pdsDb.GetConfig().OauthIsEnabled);
+        pdsDb.SetOauthEnabled(true);
+        Assert.True(pdsDb.GetConfig().OauthIsEnabled);
     }
 
     #endregion

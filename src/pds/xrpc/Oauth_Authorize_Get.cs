@@ -13,6 +13,11 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
+        if(!Pds.Config.OauthIsEnabled)
+        {
+            return Results.Json(new{}, statusCode: 403);
+        }
+
         //
         // Get client_id and request_uri from query parameters
         //
