@@ -107,6 +107,7 @@ public class UserRepo
         //
         FixBlobRefs(writes);
 
+        DateTime startTime = DateTime.UtcNow;
 
         Pds.GLOBAL_PDS_LOCK.Wait();
         try
@@ -458,6 +459,10 @@ public class UserRepo
         finally
         {
             Pds.GLOBAL_PDS_LOCK.Release();
+
+            DateTime endTime = DateTime.UtcNow;
+            TimeSpan duration = endTime - startTime;
+            _logger.LogInfo($"[REPO] ApplyWrites finished [{duration.TotalMilliseconds:F2}ms]");
         }
     }
 
