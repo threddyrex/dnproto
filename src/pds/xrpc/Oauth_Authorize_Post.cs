@@ -58,7 +58,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
 
         if(authSucceeded == false)
         {
-            Pds.Logger.LogWarning($"[OAUTH] Authentication failed. username={userName}");
+            Pds.Logger.LogWarning($"[OAUTH] Authentication failed. username={userName} actorExists={actorExists} passwordMatches={passwordMatches}");
             return Results.Content(Oauth_Authorize_Get.GetHtmlForAuthForm(requestUri!, clientId!, oauthRequest, true), "text/html");
         }
 
