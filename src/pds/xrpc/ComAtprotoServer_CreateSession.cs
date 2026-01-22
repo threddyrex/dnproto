@@ -48,8 +48,13 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         string? refreshJwt = null;
         if(actorExists && passwordMatches)
         {
+            Pds.Logger.LogInfo($"[AUTH] Successful login for identifier={identifier}");
             accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
             refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+        }
+        else
+        {
+            Pds.Logger.LogWarning($"[AUTH] Failed login attempt for identifier={identifier}");
         }
 
 

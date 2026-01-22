@@ -37,6 +37,12 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
 
         OauthRequest oauthRequest = Pds.PdsDb.GetOauthRequest(requestUri);
 
+        //
+        // Get values from the oauth request and HTML-encode to prevent XSS
+        //
+        string safeRequestUri = System.Net.WebUtility.HtmlEncode(requestUri);
+        string safeClientId = System.Net.WebUtility.HtmlEncode(clientId);
+        string safeScope = System.Net.WebUtility.HtmlEncode(oauthRequest.GetRequestBodyArgumentValue("scope"));
 
         //
         // Render HTML to capture username and password.
@@ -44,18 +50,20 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         string html = $@"
         <html>
         <head>
-        <title>Please log in!</title>
+        <title>Authorize {safeClientId}</title>
         </head>
         <body>
-        <h1>Please log in!</h1>
-        <form method='post' action='/oauth/authorize'>
-            <input type='hidden' name='request_uri' value='{requestUri}' />
-            <input type='hidden' name='client_id' value='{clientId}' />
-            <label for='username'>Username:</label> <br />
-            <input type='text' id='username' name='username' /> <br />
-            <label for='password'>Password:</label> <br />
-            <input type='password' id='password' name='password' /> <br />
-            <button type='submit'>Authorize</button>
+        <h1>Authorize {safeClientId}</h1>
+        <p><strong>{safeClientId}</strong> is requesting access to your account.</p>
+        <p>Requested permissions: <code>{safeScope}</code></p>
+        <form method=""post"" action=""/oauth/authorize"">
+            <input type=""hidden"" name=""request_uri"" value=""{safeRequestUri}"" />
+            <input type=""hidden"" name=""client_id"" value=""{safeClientId}"" />
+            <label for=""username"">Username:</label> <br />
+            <input type=""text"" id=""username"" name=""username"" /> <br />
+            <label for=""password"">Password:</label> <br />
+            <input type=""password"" id=""password"" name=""password"" /> <br />
+            <button type=""submit"">Authorize</button>
         </form>
         </body>
         </html>
