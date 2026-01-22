@@ -51,21 +51,34 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         <html>
         <head>
         <title>Authorize {safeClientId}</title>
-        <style>body {{ background-color: #1a237e; color: white; }}</style>
+        <style>
+            body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; }}
+            .container {{ max-width: 400px; margin: 0 auto; }}
+            h1 {{ color: #8899a6; margin-bottom: 24px; }}
+            p {{ margin-bottom: 16px; line-height: 1.5; }}
+            code {{ background-color: #2f3336; padding: 2px 6px; border-radius: 4px; }}
+            label {{ display: block; margin-bottom: 6px; color: #8899a6; }}
+            input[type=""text""], input[type=""password""] {{ width: 100%; padding: 12px; margin-bottom: 16px; background-color: #2f3336; border: 1px solid #3d4144; border-radius: 6px; color: #e7e9ea; font-size: 16px; box-sizing: border-box; }}
+            input:focus {{ outline: none; border-color: #1d9bf0; }}
+            button {{ background-color: #1d9bf0; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }}
+            button:hover {{ background-color: #1a8cd8; }}
+        </style>
         </head>
         <body>
+        <div class=""container"">
         <h1>Authorize {safeClientId}</h1>
         <p><strong>{safeClientId}</strong> is requesting access to your account.</p>
         <p>Requested permissions: <code>{safeScope}</code></p>
         <form method=""post"" action=""/oauth/authorize"">
             <input type=""hidden"" name=""request_uri"" value=""{safeRequestUri}"" />
             <input type=""hidden"" name=""client_id"" value=""{safeClientId}"" />
-            <label for=""username"">Username:</label> <br />
-            <input type=""text"" id=""username"" name=""username"" /> <br />
-            <label for=""password"">Password:</label> <br />
-            <input type=""password"" id=""password"" name=""password"" /> <br />
+            <label for=""username"">Username</label>
+            <input type=""text"" id=""username"" name=""username"" />
+            <label for=""password"">Password</label>
+            <input type=""password"" id=""password"" name=""password"" />
             <button type=""submit"">Authorize</button>
         </form>
+        </div>
         </body>
         </html>
         ";
