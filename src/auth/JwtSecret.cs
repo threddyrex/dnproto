@@ -321,6 +321,11 @@ public class JwtSecret
         public string? Error { get; set; }
         
         /// <summary>
+        /// Debug info for troubleshooting signature verification failures.
+        /// </summary>
+        public string? DebugInfo { get; set; }
+        
+        /// <summary>
         /// The JWK thumbprint (SHA-256 hash of canonical JWK, base64url encoded).
         /// Used to bind tokens to this specific key.
         /// </summary>
@@ -471,7 +476,9 @@ public class JwtSecret
             }
 
             // Verify signature using embedded JWK
-            if (!VerifyDpopSignature(dpop, alg!, jwkElement))
+            var (sigValid, debugInfo) = VerifyDpopSignatureWithDebug(dpop, alg!, jwkElement);
+            result.DebugInfo = debugInfo;
+            if (!sigValid)
             {
                 result.Error = "DPoP signature verification failed";
                 return result;
@@ -620,6 +627,75 @@ public class JwtSecret
     }
 
     /// <summary>
+    /// Verifies DPoP JWT signature with debug info.
+    /// </summary>
+    private static (bool success, string debugInfo) VerifyDpopSignatureWithDebug(string jwt, string alg, System.Text.Json.JsonElement jwk)
+    {
+        var sb = new StringBuilder();
+        try
+        {
+            var parts = jwt.Split('.');
+            var signedData = Encoding.UTF8.GetBytes($"{parts[0]}.{parts[1]}");
+            var signature = Base64UrlEncoder.DecodeBytes(parts[2]);
+
+            sb.AppendLine($"alg={alg}");
+            sb.AppendLine($"signedData.Length={signedData.Length}");
+            sb.AppendLine($"signature.Length={signature.Length}");
+
+            if (!jwk.TryGetProperty("kty", out var ktyElement))
+            {
+                sb.AppendLine("ERROR: missing kty");
+                return (false, sb.ToString());
+            }
+
+            var kty = ktyElement.GetString();
+            sb.AppendLine($"kty={kty}");
+
+            if (kty == "EC")
+            {
+                // Extract curve info
+                string? crv = null;
+                if (jwk.TryGetProperty("crv", out var crvElement))
+                {
+                    crv = crvElement.GetString();
+                }
+                sb.AppendLine($"crv={crv}");
+
+                if (jwk.TryGetProperty("x", out var xEl))
+                {
+                    var xVal = xEl.GetString();
+                    var xBytes = Base64UrlEncoder.DecodeBytes(xVal!);
+                    sb.AppendLine($"x.Length={xBytes.Length}");
+                }
+                if (jwk.TryGetProperty("y", out var yEl))
+                {
+                    var yVal = yEl.GetString();
+                    var yBytes = Base64UrlEncoder.DecodeBytes(yVal!);
+                    sb.AppendLine($"y.Length={yBytes.Length}");
+                }
+
+                var result = VerifyEcDpopSignature(signedData, signature, alg, jwk);
+                sb.AppendLine($"EC verify result={result}");
+                return (result, sb.ToString());
+            }
+            else if (kty == "RSA")
+            {
+                var result = VerifyRsaDpopSignature(signedData, signature, alg, jwk);
+                sb.AppendLine($"RSA verify result={result}");
+                return (result, sb.ToString());
+            }
+
+            sb.AppendLine($"ERROR: unsupported kty={kty}");
+            return (false, sb.ToString());
+        }
+        catch (Exception ex)
+        {
+            sb.AppendLine($"EXCEPTION: {ex.Message}");
+            return (false, sb.ToString());
+        }
+    }
+
+    /// <summary>
     /// Verifies EC signature (ES256, ES384, ES512).
     /// </summary>
     private static bool VerifyEcDpopSignature(byte[] signedData, byte[] signature, string alg, System.Text.Json.JsonElement jwk)
@@ -636,22 +712,34 @@ public class JwtSecret
             return false;
         }
 
+        // Get curve from JWK (more reliable than inferring from alg)
+        string? crv = null;
+        if (jwk.TryGetProperty("crv", out var crvElement))
+        {
+            crv = crvElement.GetString();
+        }
+
         ECCurve curve;
         HashAlgorithmName hashAlgorithm;
         int expectedKeySize;
 
-        switch (alg)
+        // Use crv from JWK if available, otherwise fall back to alg
+        var curveIdentifier = crv ?? alg;
+        switch (curveIdentifier)
         {
+            case "P-256":
             case "ES256":
                 curve = ECCurve.NamedCurves.nistP256;
                 hashAlgorithm = HashAlgorithmName.SHA256;
                 expectedKeySize = 32;
                 break;
+            case "P-384":
             case "ES384":
                 curve = ECCurve.NamedCurves.nistP384;
                 hashAlgorithm = HashAlgorithmName.SHA384;
                 expectedKeySize = 48;
                 break;
+            case "P-521":
             case "ES512":
                 curve = ECCurve.NamedCurves.nistP521;
                 hashAlgorithm = HashAlgorithmName.SHA512;

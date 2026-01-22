@@ -52,6 +52,7 @@ public class Oauth_Par : BaseXrpcCommand
         if (!dpopResult.IsValid)
         {
             Pds.Logger.LogWarning($"[OAUTH] dpop validation failed. error={dpopResult.Error}");
+            Pds.Logger.LogWarning($"[OAUTH] debug: {dpopResult.DebugInfo}");
             return Results.Json(new{}, statusCode: 401);
         }
 
