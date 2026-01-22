@@ -628,4 +628,56 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     #endregion
 
 
+    #region OAUTHREQ
+
+    [Fact]
+    public void OauthRequest_InsertAndGet()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllOauthRequests();
+
+        string requestUri = Guid.NewGuid().ToString();
+        var oauthRequest = new OauthRequest
+        {
+            RequestUri = requestUri,
+            ExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
+            Dpop = "dpop",
+            Body = "body"
+        };
+
+        pdsDb.InsertOauthRequest(oauthRequest);
+
+        var retrievedRequest = pdsDb.GetOauthRequest(oauthRequest.RequestUri);
+        Assert.NotNull(retrievedRequest);
+        Assert.Equal(oauthRequest.RequestUri, retrievedRequest.RequestUri);
+        Assert.Equal(oauthRequest.ExpiresDate, retrievedRequest.ExpiresDate);
+        Assert.Equal(oauthRequest.Dpop, retrievedRequest.Dpop);
+        Assert.Equal(oauthRequest.Body, retrievedRequest.Body);
+    }
+
+
+    [Fact]
+    public void OauthRequest_InsertGetExpired()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllOauthRequests();
+
+        string requestUri = Guid.NewGuid().ToString();
+        var oauthRequest = new OauthRequest
+        {
+            RequestUri = requestUri,
+            ExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(-1)),
+            Dpop = "dpop",
+            Body = "body"
+        };
+
+        pdsDb.InsertOauthRequest(oauthRequest);
+
+        Assert.Throws<Exception>(() => pdsDb.GetOauthRequest(oauthRequest.RequestUri));
+    }
+
+
+    #endregion
+
+
 }

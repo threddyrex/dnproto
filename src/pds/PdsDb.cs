@@ -106,6 +106,8 @@ public class PdsDb
 
     #endregion
 
+
+
     #region CONFIG
 
     public static void CreateTable_Config(SqliteConnection connection, IDnProtoLogger logger)
@@ -1411,4 +1413,97 @@ DELETE FROM LogLevel
     }
 
     #endregion
+
+    #region DATETIME
+
+    public static string FormatDateTimeForDb(DateTimeOffset dateTime)
+    {
+        return dateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+    }
+
+
+    #endregion
+
+
+    #region OAUTHREQ
+
+    public static void CreateTable_OauthRequest(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: OauthRequest");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS OauthRequest (
+RequestUri TEXT PRIMARY KEY,
+ExpiresDate TEXT NOT NULL,
+Dpop TEXT NOT NULL,
+Body TEXT NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();
+    }
+
+
+    public void InsertOauthRequest(OauthRequest request)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO OauthRequest (RequestUri, ExpiresDate, Dpop, Body)
+VALUES (@RequestUri, @ExpiresDate, @Dpop, @Body)
+            ";
+            command.Parameters.AddWithValue("@RequestUri", request.RequestUri);
+            command.Parameters.AddWithValue("@ExpiresDate", request.ExpiresDate);
+            command.Parameters.AddWithValue("@Dpop", request.Dpop);
+            command.Parameters.AddWithValue("@Body", request.Body);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public OauthRequest GetOauthRequest(string requestUri)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT RequestUri, ExpiresDate, Dpop, Body
+FROM OauthRequest
+WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
+            ";
+            command.Parameters.AddWithValue("@RequestUri", requestUri);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new OauthRequest
+                    {
+                        RequestUri = reader.GetString(reader.GetOrdinal("RequestUri")),
+                        ExpiresDate = reader.GetString(reader.GetOrdinal("ExpiresDate")),
+                        Dpop = reader.GetString(reader.GetOrdinal("Dpop")),
+                        Body = reader.GetString(reader.GetOrdinal("Body"))
+                    };
+                }
+            }
+        }
+
+        throw new Exception($"OauthRequest with RequestUri '{requestUri}' not found.");
+    }
+
+    public void DeleteAllOauthRequests()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthRequest
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    #endregion
+
 }
