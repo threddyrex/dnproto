@@ -37,6 +37,15 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
 
         OauthRequest oauthRequest = Pds.PdsDb.GetOauthRequest(requestUri);
 
+
+        return Results.Content(GetHtmlForAuthForm(requestUri, clientId, oauthRequest), "text/html");
+
+    }
+
+
+
+    public static string GetHtmlForAuthForm(string requestUri, string clientId, OauthRequest oauthRequest, bool failed = false)
+    {
         //
         // Get values from the oauth request and HTML-encode to prevent XSS
         //
@@ -67,6 +76,7 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         <body>
         <div class=""container"">
         <h1>Authorize {safeClientId}</h1>
+        {(failed ? "<p style=\"color: red;\">Authentication failed. Please try again.</p>" : "")}
         <p><strong>{safeClientId}</strong> is requesting access to your account.</p>
         <p>Requested permissions: <code>{safeScope}</code></p>
         <form method=""post"" action=""/oauth/authorize"">
@@ -83,7 +93,6 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         </html>
         ";
 
-        return Results.Content(html, "text/html");
-
+        return html;
     }
 }
