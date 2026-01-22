@@ -53,7 +53,7 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         <title>Authorize {safeClientId}</title>
         <style>
             body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; }}
-            .container {{ max-width: 500px; margin: 0; }}
+            .container {{ max-width: 500px; margin: 0 0 0 40px; }}
             h1 {{ color: #8899a6; margin-bottom: 24px; }}
             p {{ margin-bottom: 16px; line-height: 1.5; }}
             code {{ background-color: #2f3336; padding: 2px 6px; border-radius: 4px; }}
