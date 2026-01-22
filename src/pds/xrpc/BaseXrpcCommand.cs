@@ -233,6 +233,19 @@ public abstract class BaseXrpcCommand
         return true;
     }
 
+    protected bool CheckFormDataParam(string formData, string paramName, out string? value)
+    {
+        value = null;
+        if(string.IsNullOrEmpty(formData))
+        {
+            return false;
+        }
+
+        var parsed = System.Web.HttpUtility.ParseQueryString(formData);
+        value = parsed[paramName];
+        return !string.IsNullOrEmpty(value);
+    }
+
     protected string? GetQueryParameter(string paramName)
     {
         if(HttpContext.Request.Query.TryGetValue(paramName, out var value) && value.Count == 1)

@@ -14,19 +14,26 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
     public async Task<IResult> GetResponse()
     {
         //
-        // Get client_id and request_uri from query parameters
+        // Get form data
         //
-        JsonNode? requestBody = GetRequestBodyAsJson();
+        string? body = HttpContext.Request.Body != null ? await new StreamReader(HttpContext.Request.Body).ReadToEndAsync() : null;
+        if (string.IsNullOrEmpty(body))
+        {
+            Pds.Logger.LogWarning($"[OAUTH] Missing form data.");
+            return Results.Json(new{}, statusCode: 401);
+        }
+
         string? clientId = null, requestUri = null, userName = null, password = null;
 
-        if(CheckRequestBodyParam(requestBody, "client_id", out clientId) == false
-            || CheckRequestBodyParam(requestBody, "request_uri", out requestUri) == false
-            || CheckRequestBodyParam(requestBody, "username", out userName) == false
-            || CheckRequestBodyParam(requestBody, "password", out password) == false)
+        if(CheckFormDataParam(body, "client_id", out clientId) == false
+            || CheckFormDataParam(body, "request_uri", out requestUri) == false
+            || CheckFormDataParam(body, "username", out userName) == false
+            || CheckFormDataParam(body, "password", out password) == false)
         {
             Pds.Logger.LogWarning($"[OAUTH] Missing parameters. client_id={clientId} request_uri={requestUri} username={userName}");
             return Results.Json(new{}, statusCode: 401);            
         }
+
 
         //
         // Load 
