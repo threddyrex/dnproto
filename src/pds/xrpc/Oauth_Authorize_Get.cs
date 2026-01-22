@@ -51,6 +51,7 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         <html>
         <head>
         <title>Authorize {safeClientId}</title>
+        <style>body {{ background-color: #1a237e; color: white; }}</style>
         </head>
         <body>
         <h1>Authorize {safeClientId}</h1>
