@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.xrpc;
 
 
-public class Oauth_Authorize : BaseXrpcCommand
+public class Oauth_Authorize_Get : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
@@ -44,16 +44,17 @@ public class Oauth_Authorize : BaseXrpcCommand
         string html = $@"
         <html>
         <head>
-        <title>Authorize</title>
+        <title>Please log in!</title>
         </head>
         <body>
+        <h1>Please log in!</h1>
         <form method='post' action='/oauth/authorize'>
             <input type='hidden' name='request_uri' value='{requestUri}' />
             <input type='hidden' name='client_id' value='{clientId}' />
-            <label for='username'>Username:</label>
-            <input type='text' id='username' name='username' />
-            <label for='password'>Password:</label>
-            <input type='password' id='password' name='password' />
+            <label for='username'>Username:</label> <br />
+            <input type='text' id='username' name='username' /> <br />
+            <label for='password'>Password:</label> <br />
+            <input type='password' id='password' name='password' /> <br />
             <button type='submit'>Authorize</button>
         </form>
         </body>
