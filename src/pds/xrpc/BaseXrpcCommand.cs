@@ -232,6 +232,16 @@ public abstract class BaseXrpcCommand
         
         return true;
     }
+
+    protected string? GetQueryParameter(string paramName)
+    {
+        if(HttpContext.Request.Query.TryGetValue(paramName, out var value) && value.Count == 1)
+        {
+            return value.First();
+        }
+        return null;
+    }
+
     #endregion
 
 

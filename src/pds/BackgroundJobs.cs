@@ -33,6 +33,8 @@ public class BackgroundJobs
         _ = new System.Threading.Timer(_ => Job_CleanupOldLogs(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // run Job_DeleteOldFirehoseEvents every hour
         _ = new System.Threading.Timer(_ => Job_DeleteOldFirehoseEvents(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        // run Job_DeleteOldOauthRequests every hour
+        _ = new System.Threading.Timer(_ => Job_DeleteOldOauthRequests(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
     }
 
 
@@ -83,5 +85,11 @@ public class BackgroundJobs
         int oldEventCountAfter = _db.GetCountOfOldFirehoseEvents();
 
         _logger.LogInfo($"[BACKGROUND] DeleteOldFirehoseEvents beforeCount={oldEventCount} afterCount={oldEventCountAfter}");
+    }
+
+    private void Job_DeleteOldOauthRequests()
+    {
+        _db.DeleteOldOauthRequests();
+        _logger.LogInfo($"[BACKGROUND] DeleteOldOauthRequests");
     }
 }

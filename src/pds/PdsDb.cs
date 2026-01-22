@@ -1461,6 +1461,22 @@ VALUES (@RequestUri, @ExpiresDate, @Dpop, @Body)
         }
     }
 
+    public bool OauthRequestExists(string requestUri)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM OauthRequest
+WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
+            ";
+            command.Parameters.AddWithValue("@RequestUri", requestUri);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            return Convert.ToInt32(command.ExecuteScalar()) > 0;
+        }
+    }
+    
 
     public OauthRequest GetOauthRequest(string requestUri)
     {
@@ -1500,6 +1516,20 @@ WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
             command.CommandText = @"
 DELETE FROM OauthRequest
             ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteOldOauthRequests()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthRequest
+WHERE ExpiresDate < @RightNow
+            ";
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
             command.ExecuteNonQuery();
         }
     }
