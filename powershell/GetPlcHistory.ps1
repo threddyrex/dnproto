@@ -10,4 +10,4 @@ param (
 
 
 # call dnproto.exe to get handle info
-& $dnprotoPath /command GetPlcHistory /actor $actor /logLevel $logLevel
+& $dnprotoPath /command GetPlcHistory /actor $actor /logLevel $logLevel /datadir $dataDir
