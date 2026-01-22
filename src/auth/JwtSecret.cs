@@ -745,6 +745,13 @@ public class JwtSecret
                 hashAlgorithm = HashAlgorithmName.SHA512;
                 expectedKeySize = 66;
                 break;
+            case "secp256k1":
+            case "ES256K":
+                // secp256k1 (Bitcoin/Ethereum curve) - OID 1.3.132.0.10
+                curve = ECCurve.CreateFromOid(new System.Security.Cryptography.Oid("1.3.132.0.10"));
+                hashAlgorithm = HashAlgorithmName.SHA256;
+                expectedKeySize = 32;
+                break;
             default:
                 return false;
         }
