@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.xrpc;
 
 
-public class OAuth_ProtectedResource : BaseXrpcCommand
+public class Oauth_ProtectedResource : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
