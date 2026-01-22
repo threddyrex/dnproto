@@ -149,7 +149,16 @@ public class StartFirehoseConsumer : BaseCommand
         }
         catch (Exception ex)
         {
-            Logger.LogError($"{ex.Message}");
+            Exception? current = ex;
+            while (current != null)
+            {
+                Logger.LogInfo("");
+                Logger.LogError($"{current.Message}");
+                Logger.LogInfo("");
+                Logger.LogError($"{current.StackTrace}");
+                Logger.LogInfo("");
+                current = current.InnerException;
+            }
         }
     }
 }
