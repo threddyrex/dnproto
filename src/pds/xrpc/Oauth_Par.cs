@@ -11,13 +11,14 @@ namespace dnproto.pds.xrpc;
 
 public class Oauth_Par : BaseXrpcCommand
 {
-    public IResult GetResponse()
+    public async Task<IResult> GetResponse()
     {
         //
         // Get dpop header and body
         //
         string? dpopHeader = HttpContext.Request.Headers["DPoP"];
-        string? body = HttpContext.Request.Body != null ? new StreamReader(HttpContext.Request.Body).ReadToEnd() : null;
+        string? body = HttpContext.Request.Body != null ? await new StreamReader(HttpContext.Request.Body).ReadToEndAsync() : null;
+
 
         if(string.IsNullOrEmpty(dpopHeader) || string.IsNullOrEmpty(body))
         {
