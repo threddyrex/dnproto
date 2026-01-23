@@ -13,7 +13,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
-        if(!Pds.Config.OauthIsEnabled)
+        if(!IsOauthEnabled())
         {
             return Results.Json(new{}, statusCode: 403);
         }
@@ -72,8 +72,25 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         }
 
 
+        //
+        // Generate authorization code and update the oauth request
+        //
+        string authorizationCode = Guid.NewGuid().ToString();
+        oauthRequest.AuthorizationCode = authorizationCode;
+        Pds.PdsDb.UpdateOauthRequest(oauthRequest);
 
-        return Results.Json(new{}, statusCode: 401);            
 
+
+        //
+        // Build redirect URL and redirect
+        //
+        string redirectUri = GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
+        string state = GetRequestBodyArgumentValue(oauthRequest.Body, "state");
+        string issuer = $"https://{Pds.Config.PdsHostname}";
+
+        string redirectUrl = $"{redirectUri}?code={Uri.EscapeDataString(authorizationCode)}&state={Uri.EscapeDataString(state)}&iss={Uri.EscapeDataString(issuer)}";
+
+        Pds.Logger.LogInfo($"[OAUTH] Redirecting to client. redirect_url={redirectUrl}");
+        return Results.Redirect(redirectUrl);
     }
 }

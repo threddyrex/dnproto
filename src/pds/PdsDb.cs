@@ -295,6 +295,23 @@ DELETE FROM Config
         }
     }
 
+    public bool IsOauthEnabled()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT OauthIsEnabled FROM Config LIMIT 1";
+            
+            var result = command.ExecuteScalar();
+            if(result is null)
+            {
+                throw new Exception("No config found in database.");
+            }
+
+            return Convert.ToInt32(result) != 0;
+        }
+    }
+
     #endregion
 
     #region BLOB
@@ -1456,7 +1473,8 @@ CREATE TABLE IF NOT EXISTS OauthRequest (
 RequestUri TEXT PRIMARY KEY,
 ExpiresDate TEXT NOT NULL,
 Dpop TEXT NOT NULL,
-Body TEXT NOT NULL
+Body TEXT NOT NULL,
+AuthorizationCode TEXT
 );
         ";
         
@@ -1470,13 +1488,14 @@ Body TEXT NOT NULL
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO OauthRequest (RequestUri, ExpiresDate, Dpop, Body)
-VALUES (@RequestUri, @ExpiresDate, @Dpop, @Body)
+INSERT INTO OauthRequest (RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode)
+VALUES (@RequestUri, @ExpiresDate, @Dpop, @Body, @AuthorizationCode)
             ";
             command.Parameters.AddWithValue("@RequestUri", request.RequestUri);
             command.Parameters.AddWithValue("@ExpiresDate", request.ExpiresDate);
             command.Parameters.AddWithValue("@Dpop", request.Dpop);
             command.Parameters.AddWithValue("@Body", request.Body);
+            command.Parameters.AddWithValue("@AuthorizationCode", request.AuthorizationCode ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
         }
     }
@@ -1504,7 +1523,7 @@ WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT RequestUri, ExpiresDate, Dpop, Body
+SELECT RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode
 FROM OauthRequest
 WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
             ";
@@ -1519,7 +1538,8 @@ WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
                         RequestUri = reader.GetString(reader.GetOrdinal("RequestUri")),
                         ExpiresDate = reader.GetString(reader.GetOrdinal("ExpiresDate")),
                         Dpop = reader.GetString(reader.GetOrdinal("Dpop")),
-                        Body = reader.GetString(reader.GetOrdinal("Body"))
+                        Body = reader.GetString(reader.GetOrdinal("Body")),
+                        AuthorizationCode = reader.IsDBNull(reader.GetOrdinal("AuthorizationCode")) ? null : reader.GetString(reader.GetOrdinal("AuthorizationCode"))
                     };
                 }
             }
@@ -1552,6 +1572,59 @@ WHERE ExpiresDate < @RightNow
             command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
             command.ExecuteNonQuery();
         }
+    }
+
+    public void UpdateOauthRequest(OauthRequest request)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE OauthRequest
+SET ExpiresDate = @ExpiresDate,
+    Dpop = @Dpop,
+    Body = @Body,
+    AuthorizationCode = @AuthorizationCode
+WHERE RequestUri = @RequestUri
+            ";
+            command.Parameters.AddWithValue("@RequestUri", request.RequestUri);
+            command.Parameters.AddWithValue("@ExpiresDate", request.ExpiresDate);
+            command.Parameters.AddWithValue("@Dpop", request.Dpop);
+            command.Parameters.AddWithValue("@Body", request.Body);
+            command.Parameters.AddWithValue("@AuthorizationCode", request.AuthorizationCode ?? (object)DBNull.Value);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public OauthRequest GetOauthRequestByAuthorizationCode(string authorizationCode)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode
+FROM OauthRequest
+WHERE AuthorizationCode = @AuthorizationCode AND ExpiresDate > @RightNow
+            ";
+            command.Parameters.AddWithValue("@AuthorizationCode", authorizationCode);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new OauthRequest
+                    {
+                        RequestUri = reader.GetString(reader.GetOrdinal("RequestUri")),
+                        ExpiresDate = reader.GetString(reader.GetOrdinal("ExpiresDate")),
+                        Dpop = reader.GetString(reader.GetOrdinal("Dpop")),
+                        Body = reader.GetString(reader.GetOrdinal("Body")),
+                        AuthorizationCode = reader.IsDBNull(reader.GetOrdinal("AuthorizationCode")) ? null : reader.GetString(reader.GetOrdinal("AuthorizationCode"))
+                    };
+                }
+            }
+        }
+
+        throw new Exception($"OauthRequest with AuthorizationCode '{authorizationCode}' not found.");
     }
 
     #endregion

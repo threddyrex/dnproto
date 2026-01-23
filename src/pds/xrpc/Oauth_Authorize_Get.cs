@@ -13,7 +13,7 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
-        if(!Pds.Config.OauthIsEnabled)
+        if(!IsOauthEnabled())
         {
             return Results.Json(new{}, statusCode: 403);
         }
@@ -56,7 +56,7 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
         //
         string safeRequestUri = System.Net.WebUtility.HtmlEncode(requestUri);
         string safeClientId = System.Net.WebUtility.HtmlEncode(clientId);
-        string safeScope = System.Net.WebUtility.HtmlEncode(oauthRequest.GetRequestBodyArgumentValue("scope"));
+        string safeScope = System.Net.WebUtility.HtmlEncode(GetRequestBodyArgumentValue(oauthRequest.Body,"scope"));
 
         //
         // Render HTML to capture username and password.

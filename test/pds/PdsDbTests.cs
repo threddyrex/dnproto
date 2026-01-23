@@ -689,6 +689,64 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     }
 
 
+    [Fact]
+    public void OauthRequest_InsertAndGetByAuthorizationCode()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllOauthRequests();
+
+        string requestUri = Guid.NewGuid().ToString();
+        var oauthRequest = new OauthRequest
+        {
+            RequestUri = requestUri,
+            ExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
+            Dpop = "dpop",
+            Body = "body",
+            AuthorizationCode = "authcode"
+        };
+
+        pdsDb.InsertOauthRequest(oauthRequest);
+
+        var retrievedRequest = pdsDb.GetOauthRequestByAuthorizationCode(oauthRequest.AuthorizationCode);
+        Assert.NotNull(retrievedRequest);
+        Assert.Equal(oauthRequest.RequestUri, retrievedRequest.RequestUri);
+        Assert.Equal(oauthRequest.ExpiresDate, retrievedRequest.ExpiresDate);
+        Assert.Equal(oauthRequest.Dpop, retrievedRequest.Dpop);
+        Assert.Equal(oauthRequest.Body, retrievedRequest.Body);
+        Assert.Equal(oauthRequest.AuthorizationCode, retrievedRequest.AuthorizationCode);
+    }
+
+
+    [Fact]
+    public void OauthRequest_Update()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllOauthRequests();
+
+        string requestUri = Guid.NewGuid().ToString();
+        var oauthRequest = new OauthRequest
+        {
+            RequestUri = requestUri,
+            ExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
+            Dpop = "dpop",
+            Body = "body",
+            AuthorizationCode = null
+        };
+
+        pdsDb.InsertOauthRequest(oauthRequest);
+        oauthRequest.AuthorizationCode = "authcode";
+        pdsDb.UpdateOauthRequest(oauthRequest);
+
+        var retrievedRequest = pdsDb.GetOauthRequest(oauthRequest.RequestUri);
+        Assert.NotNull(retrievedRequest);
+        Assert.Equal(oauthRequest.RequestUri, retrievedRequest.RequestUri);
+        Assert.Equal(oauthRequest.ExpiresDate, retrievedRequest.ExpiresDate);
+        Assert.Equal(oauthRequest.Dpop, retrievedRequest.Dpop);
+        Assert.Equal(oauthRequest.Body, retrievedRequest.Body);
+        Assert.Equal(oauthRequest.AuthorizationCode, retrievedRequest.AuthorizationCode);
+    }
+
+
     #endregion
 
 

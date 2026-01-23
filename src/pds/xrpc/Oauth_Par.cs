@@ -13,7 +13,7 @@ public class Oauth_Par : BaseXrpcCommand
 {
     public async Task<IResult> GetResponse()
     {
-        if(!Pds.Config.OauthIsEnabled)
+        if(!IsOauthEnabled())
         {
             return Results.Json(new{}, statusCode: 403);
         }
