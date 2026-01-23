@@ -1817,6 +1817,22 @@ WHERE SessionId = @SessionId
     }
 
 
+    public void DeleteOauthSessionByRefreshToken(string refreshToken)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthSession
+WHERE RefreshToken = @RefreshToken
+            ";
+            command.Parameters.AddWithValue("@RefreshToken", refreshToken);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+
 
     public void DeleteOldOauthSessions()
     {

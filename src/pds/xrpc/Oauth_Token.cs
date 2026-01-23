@@ -25,8 +25,8 @@ public class Oauth_Token : BaseXrpcCommand
         //
         // Retrieve body params
         //
-        var body = await HttpContext.Request.ReadFromJsonAsync<JsonObject>();
-        if(body is null)
+        string? body = HttpContext.Request.Body != null ? await new StreamReader(HttpContext.Request.Body).ReadToEndAsync() : null;
+        if(body is null || string.IsNullOrEmpty(body))
         {
             return Results.Json(new{}, statusCode: 400);
         }
@@ -35,13 +35,13 @@ public class Oauth_Token : BaseXrpcCommand
         //
         // grant_type: authorization_code
         //
-        string? grantType = body["grant_type"]?.GetValue<string>();
+        string? grantType = XrpcHelpers.GetRequestBodyArgumentValue(body, "grant_type");
         if(string.Equals(grantType, "authorization_code", StringComparison.OrdinalIgnoreCase))
         {
-            string? code = body["code"]?.GetValue<string>();
-            string? codeVerifier = body["code_verifier"]?.GetValue<string>();
-            string? redirectUri = body["redirect_uri"]?.GetValue<string>();
-            string? clientId = body["client_id"]?.GetValue<string>();
+            string? code = XrpcHelpers.GetRequestBodyArgumentValue(body, "code");
+            string? codeVerifier = XrpcHelpers.GetRequestBodyArgumentValue(body, "code_verifier");
+            string? redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(body, "redirect_uri");
+            string? clientId = XrpcHelpers.GetRequestBodyArgumentValue(body, "client_id");
 
             if(string.IsNullOrEmpty(code) 
                 || string.IsNullOrEmpty(codeVerifier) 
@@ -181,7 +181,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             // Get refresh_token from request body
             //
-            string? refreshToken = body["refresh_token"]?.GetValue<string>();
+            string? refreshToken = XrpcHelpers.GetRequestBodyArgumentValue(body, "refresh_token");
             if(string.IsNullOrEmpty(refreshToken))
             {
                 Pds.Logger.LogWarning($"[OAUTH] refresh_token. Invalid OAuth token request: missing refresh_token");
