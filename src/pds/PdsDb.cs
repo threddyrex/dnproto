@@ -1831,6 +1831,66 @@ WHERE RefreshToken = @RefreshToken
         }
     }
 
+    /// <summary>
+    /// Checks if a valid (non-expired) OAuth session exists for the given DPoP JWK thumbprint.
+    /// </summary>
+    public bool HasValidOauthSessionByDpopThumbprint(string dpopJwkThumbprint)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM OauthSession
+WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @RightNow
+            ";
+            command.Parameters.AddWithValue("@DpopJwkThumbprint", dpopJwkThumbprint);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            var result = command.ExecuteScalar();
+            if(result is long count)
+            {
+                return count > 0;
+            }
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets an OAuth session by DPoP JWK thumbprint if it exists and is not expired.
+    /// Returns null if not found or expired.
+    /// </summary>
+    public OauthSession? GetOauthSessionByDpopThumbprint(string dpopJwkThumbprint)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+FROM OauthSession
+WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @RightNow
+            ";
+            command.Parameters.AddWithValue("@DpopJwkThumbprint", dpopJwkThumbprint);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new OauthSession
+                    {
+                        SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+                        ClientId = reader.GetString(reader.GetOrdinal("ClientId")),
+                        Scope = reader.GetString(reader.GetOrdinal("Scope")),
+                        DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
+                        RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
+                        RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
 
 
 

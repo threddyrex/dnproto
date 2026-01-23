@@ -290,6 +290,14 @@ public abstract class BaseXrpcCommand
             return result;
         }
 
+        // Verify a valid session exists for this DPoP key
+        // The session must exist and not be expired (revoked sessions are deleted)
+        if (!Pds.PdsDb.HasValidOauthSessionByDpopThumbprint(tokenValidation.JwkThumbprint!))
+        {
+            result.Error = "No valid OAuth session found for this token";
+            return result;
+        }
+
         result.Subject = tokenValidation.Subject;
         result.Scope = tokenValidation.Scope;
         result.ClientId = tokenValidation.ClientId;
