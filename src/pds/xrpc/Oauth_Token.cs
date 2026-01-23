@@ -291,17 +291,6 @@ public class Oauth_Token : BaseXrpcCommand
             Pds.Logger.LogWarning($"[OAUTH] Invalid OAuth token request: unsupported grant type. grant_type={grantType}");
             return Results.Json(new{}, statusCode: 400);
         }
-
-
-
-
-
-
-        return Results.Json(new
-        {
-            keys = new JsonArray(){},
-        },
-        statusCode: 200);
     }
 
     /// <summary>
