@@ -221,15 +221,6 @@ public class Oauth_Token : BaseXrpcCommand
 
 
             //
-            // Verify session not expired
-            //
-            if(string.Compare(oauthSession.RefreshTokenExpiresDate, PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)) < 0)
-            {
-                Pds.Logger.LogWarning($"[OAUTH] refresh_token. OAuth session expired: sessionId={oauthSession.SessionId}");
-                return Results.Json(new{}, statusCode: 401);
-            }
-
-            //
             // Verify thumbprint matches
             //
             if(!string.Equals(oauthSession.DpopJwkThumbprint, dpopResult.JwkThumbprint, StringComparison.OrdinalIgnoreCase))

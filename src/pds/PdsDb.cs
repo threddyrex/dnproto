@@ -1743,9 +1743,10 @@ WHERE SessionId = @SessionId
             command.CommandText = @"
 SELECT COUNT(1)
 FROM OauthSession
-WHERE RefreshToken = @RefreshToken
+WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
             ";
             command.Parameters.AddWithValue("@RefreshToken", refreshToken);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
             var result = command.ExecuteScalar();
             if(result is long count)
             {
@@ -1764,9 +1765,10 @@ WHERE RefreshToken = @RefreshToken
             command.CommandText = @"
 SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
 FROM OauthSession
-WHERE RefreshToken = @RefreshToken
+WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
             ";
             command.Parameters.AddWithValue("@RefreshToken", refreshToken);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
             using(var reader = command.ExecuteReader())
             {
                 if(reader.Read())
