@@ -129,4 +129,18 @@ public class Logger : IDnProtoLogger
             }
         }
     }
+
+    public void LogException(Exception? ex)
+    {
+        Exception? current = ex;
+        while (current != null)
+        {
+            LogInfo("");
+            LogError($"{current.Message}");
+            LogInfo("");
+            LogError($"{current.StackTrace}");
+            LogInfo("");
+            current = current.InnerException;
+        }
+    }
 }

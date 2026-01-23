@@ -12,4 +12,5 @@ public interface IDnProtoLogger
     public void LogInfo(string? message);
     public void LogWarning(string? message);
     public void LogError(string? message);
+    public void LogException(Exception? ex);
 }

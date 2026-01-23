@@ -40,56 +40,85 @@ public class BackgroundJobs
 
     private void Job_UpdateLogLevel()
     {
-        string currentLevel = _logger.GetLogLevel();
-        string newLevel = _db.GetLogLevel();
-
-        if (string.Equals(currentLevel, newLevel, StringComparison.OrdinalIgnoreCase) == false)
+        try
         {
-            _logger.LogInfo($"Updating log level from [{currentLevel}] to [{newLevel}]");
-            _logger.SetLogLevel(newLevel);
+            string currentLevel = _logger.GetLogLevel();
+            string newLevel = _db.GetLogLevel();
+
+            if (string.Equals(currentLevel, newLevel, StringComparison.OrdinalIgnoreCase) == false)
+            {
+                _logger.LogInfo($"[BACKGROUND] UpdateLogLevel currentLevel=[{currentLevel}] newLevel=[{newLevel}]");
+                _logger.SetLogLevel(newLevel);
+            }            
+        }
+        catch(Exception ex)
+        {
+            _logger.LogException(ex);
         }
     }
 
     private void Job_CleanupOldLogs()
     {
-        foreach(string logFile in Directory.GetFiles(Path.Combine(_lfs.GetDataDir(), "logs")))
+        try
         {
-            if(File.GetLastWriteTime(logFile) < DateTime.Now.AddHours(-2)
-                && logFile.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+            foreach(string logFile in Directory.GetFiles(Path.Combine(_lfs.GetDataDir(), "logs")))
             {
-                _logger.LogInfo($"[BACKGROUND] Deleting old log file: {logFile}");
+                if(File.GetLastWriteTime(logFile) < DateTime.Now.AddHours(-2)
+                    && logFile.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogInfo($"[BACKGROUND] Deleting old log file: {logFile}");
 
-                try
-                {
-                    File.Delete(logFile);
+                    try
+                    {
+                        File.Delete(logFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"[BACKGROUND] Failed to delete log file: {logFile}. Exception: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogError($"[BACKGROUND] Failed to delete log file: {logFile}. Exception: {ex.Message}");
+                    _logger.LogInfo($"[BACKGROUND] Keeping log file: {logFile}");
                 }
-            }
-            else
-            {
-                _logger.LogInfo($"[BACKGROUND] Keeping log file: {logFile}");
-            }
+            }            
+        }
+        catch(Exception ex)
+        {
+            _logger.LogException(ex);
         }
     }
 
     private void Job_DeleteOldFirehoseEvents()
     {
-        int oldEventCount = _db.GetCountOfOldFirehoseEvents();
-        if (oldEventCount > 0)
+        try
         {
-            _db.DeleteOldFirehoseEvents();
-        }
-        int oldEventCountAfter = _db.GetCountOfOldFirehoseEvents();
+            int oldEventCount = _db.GetCountOfOldFirehoseEvents();
+            if (oldEventCount > 0)
+            {
+                _db.DeleteOldFirehoseEvents();
+            }
+            int oldEventCountAfter = _db.GetCountOfOldFirehoseEvents();
 
-        _logger.LogInfo($"[BACKGROUND] DeleteOldFirehoseEvents beforeCount={oldEventCount} afterCount={oldEventCountAfter}");
+            _logger.LogInfo($"[BACKGROUND] DeleteOldFirehoseEvents beforeCount={oldEventCount} afterCount={oldEventCountAfter}");            
+        }
+        catch(Exception ex)
+        {
+            _logger.LogException(ex);
+        }
+
     }
 
     private void Job_DeleteOldOauthRequests()
     {
-        _db.DeleteOldOauthRequests();
-        _logger.LogInfo($"[BACKGROUND] DeleteOldOauthRequests");
+        try
+        {
+            _logger.LogInfo($"[BACKGROUND] DeleteOldOauthRequests");            
+            _db.DeleteOldOauthRequests();
+        }
+        catch(Exception ex)
+        {
+            _logger.LogException(ex);
+        }
     }
 }
