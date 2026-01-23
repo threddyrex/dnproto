@@ -1516,6 +1516,22 @@ WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
         }
     }
 
+    public bool OauthRequestExistsByAuthorizationCode(string authorizationCode)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM OauthRequest
+WHERE AuthorizationCode = @AuthorizationCode AND ExpiresDate > @RightNow
+            ";
+            command.Parameters.AddWithValue("@AuthorizationCode", authorizationCode);
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            return Convert.ToInt32(command.ExecuteScalar()) > 0;
+        }
+    }
+
 
     public OauthRequest GetOauthRequest(string requestUri)
     {
@@ -1570,6 +1586,20 @@ DELETE FROM OauthRequest
 WHERE ExpiresDate < @RightNow
             ";
             command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteOauthRequestByAuthorizationCode(string authorizationCode)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthRequest
+WHERE AuthorizationCode = @AuthorizationCode
+            ";
+            command.Parameters.AddWithValue("@AuthorizationCode", authorizationCode);
             command.ExecuteNonQuery();
         }
     }
@@ -1629,4 +1659,188 @@ WHERE AuthorizationCode = @AuthorizationCode AND ExpiresDate > @RightNow
 
     #endregion
 
+
+    #region OAUTHSESS
+
+    public static void CreateTable_OauthSession(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: OauthSession");
+        using(var command = connection.CreateCommand())
+        {
+            command.CommandText = @"
+CREATE TABLE IF NOT EXISTS OauthSession
+(
+    SessionId TEXT PRIMARY KEY,
+    ClientId TEXT NOT NULL,
+    Scope TEXT NOT NULL,
+    DpopJwkThumbprint TEXT NOT NULL,
+    RefreshToken TEXT NOT NULL,
+    RefreshTokenExpiresDate TEXT NOT NULL,
+    CreatedDate TEXT NOT NULL
+);
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void InsertOauthSession(OauthSession session)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO OauthSession (SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate)
+VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @RefreshTokenExpiresDate, @CreatedDate)
+            ";
+            command.Parameters.AddWithValue("@SessionId", session.SessionId);
+            command.Parameters.AddWithValue("@ClientId", session.ClientId);
+            command.Parameters.AddWithValue("@Scope", session.Scope);
+            command.Parameters.AddWithValue("@DpopJwkThumbprint", session.DpopJwkThumbprint);
+            command.Parameters.AddWithValue("@RefreshToken", session.RefreshToken);
+            command.Parameters.AddWithValue("@RefreshTokenExpiresDate", session.RefreshTokenExpiresDate);
+            command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public OauthSession GetOauthSessionBySessionId(string sessionId)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+FROM OauthSession
+WHERE SessionId = @SessionId
+            ";
+            command.Parameters.AddWithValue("@SessionId", sessionId);
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new OauthSession
+                    {
+                        SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+                        ClientId = reader.GetString(reader.GetOrdinal("ClientId")),
+                        Scope = reader.GetString(reader.GetOrdinal("Scope")),
+                        DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
+                        RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
+                        RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                    };
+                }
+            }
+        }
+
+        throw new Exception($"OauthSession with SessionId '{sessionId}' not found.");
+    }
+
+    public bool HasOauthSessionByRefreshToken(string refreshToken)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM OauthSession
+WHERE RefreshToken = @RefreshToken
+            ";
+            command.Parameters.AddWithValue("@RefreshToken", refreshToken);
+            var result = command.ExecuteScalar();
+            if(result is long count)
+            {
+                return count > 0;
+            }
+            return false;
+        }
+    }
+
+
+    public OauthSession GetOauthSessionByRefreshToken(string refreshToken)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+FROM OauthSession
+WHERE RefreshToken = @RefreshToken
+            ";
+            command.Parameters.AddWithValue("@RefreshToken", refreshToken);
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new OauthSession
+                    {
+                        SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+                        ClientId = reader.GetString(reader.GetOrdinal("ClientId")),
+                        Scope = reader.GetString(reader.GetOrdinal("Scope")),
+                        DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
+                        RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
+                        RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                    };
+                }
+            }
+        }
+
+        throw new Exception($"OauthSession with RefreshToken '{refreshToken}' not found.");
+    }
+
+    public void UpdateOauthSession(OauthSession oauthSession)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE OauthSession
+SET ClientId = @ClientId,
+    Scope = @Scope,
+    DpopJwkThumbprint = @DpopJwkThumbprint,
+    RefreshToken = @RefreshToken,
+    RefreshTokenExpiresDate = @RefreshTokenExpiresDate,
+    CreatedDate = @CreatedDate
+WHERE SessionId = @SessionId
+            ";
+            command.Parameters.AddWithValue("@SessionId", oauthSession.SessionId);
+            command.Parameters.AddWithValue("@ClientId", oauthSession.ClientId);
+            command.Parameters.AddWithValue("@Scope", oauthSession.Scope);
+            command.Parameters.AddWithValue("@DpopJwkThumbprint", oauthSession.DpopJwkThumbprint);
+            command.Parameters.AddWithValue("@RefreshToken", oauthSession.RefreshToken);
+            command.Parameters.AddWithValue("@RefreshTokenExpiresDate", oauthSession.RefreshTokenExpiresDate);
+            command.Parameters.AddWithValue("@CreatedDate", oauthSession.CreatedDate);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+
+    public void DeleteOldOauthSessions()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthSession
+WHERE RefreshTokenExpiresDate < @RightNow
+            ";
+            command.Parameters.AddWithValue("@RightNow", FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteAllOauthSessions()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthSession
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    #endregion
 }

@@ -228,6 +228,9 @@ public class Pds
         App.MapPost("/oauth/par", async (HttpContext context) => { var cmd = new Oauth_Par(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapGet("/oauth/authorize", async (HttpContext context) => { var cmd = new Oauth_Authorize_Get(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapPost("/oauth/authorize", async (HttpContext context) => { var cmd = new Oauth_Authorize_Post(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
+        App.MapPost("/oauth/token", async (HttpContext context) => { var cmd = new Oauth_Token(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
+        
+        
 
         // Catch-all for other app.bsky routes - proxy to Bluesky AppView
         App.MapFallback("/xrpc/{**rest}", async (HttpContext context) =>

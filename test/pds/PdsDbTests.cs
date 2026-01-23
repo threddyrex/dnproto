@@ -750,4 +750,62 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     #endregion
 
 
+    #region OAUTHSESS
+
+    [Fact]
+    public void OauthSession_InsertGet()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllOauthSessions();
+
+        string sessionId = Guid.NewGuid().ToString();
+        var oauthSession = new OauthSession
+        {
+            SessionId = sessionId,
+            ClientId = "clientId",
+            Scope = "scope",
+            DpopJwkThumbprint = "dpopJwkThumbprint",
+            RefreshToken = "refreshToken",
+            RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+        };
+
+        pdsDb.InsertOauthSession(oauthSession);
+
+        var retrievedSession = pdsDb.GetOauthSessionBySessionId(oauthSession.SessionId);
+        Assert.NotNull(retrievedSession);
+        Assert.Equal(oauthSession.SessionId, retrievedSession.SessionId);
+        Assert.Equal(oauthSession.ClientId, retrievedSession.ClientId);
+        Assert.Equal(oauthSession.Scope, retrievedSession.Scope);
+        Assert.Equal(oauthSession.DpopJwkThumbprint, retrievedSession.DpopJwkThumbprint);
+        Assert.Equal(oauthSession.RefreshToken, retrievedSession.RefreshToken);
+        Assert.Equal(oauthSession.RefreshTokenExpiresDate, retrievedSession.RefreshTokenExpiresDate);
+        Assert.Equal(oauthSession.CreatedDate, retrievedSession.CreatedDate);
+    }
+
+    [Fact]
+    public void OauthSession_DeleteOld()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllOauthSessions();
+
+        string sessionId = Guid.NewGuid().ToString();
+        var oauthSession = new OauthSession
+        {
+            SessionId = sessionId,
+            ClientId = "clientId",
+            Scope = "scope",
+            DpopJwkThumbprint = "dpopJwkThumbprint",
+            RefreshToken = "refreshToken",
+            RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(-5)),
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+        };
+
+        pdsDb.InsertOauthSession(oauthSession);
+        pdsDb.DeleteOldOauthSessions();
+
+        Assert.Throws<Exception>(() => pdsDb.GetOauthSessionBySessionId(oauthSession.SessionId));
+    }
+
+    #endregion
 }

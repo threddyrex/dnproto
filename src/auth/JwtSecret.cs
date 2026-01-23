@@ -64,6 +64,71 @@ public class JwtSecret
     }
 
     /// <summary>
+    /// Generate a DPoP-bound OAuth access token for OAuth 2.0 flows.
+    /// Includes the cnf.jkt claim to bind the token to the client's DPoP key.
+    /// </summary>
+    /// <param name="userDid">The DID of the authenticated user (sub claim)</param>
+    /// <param name="issuer">The PDS hostname as issuer (e.g., "https://pds.example.com")</param>
+    /// <param name="scope">The granted OAuth scopes</param>
+    /// <param name="dpopJwkThumbprint">The JWK thumbprint for DPoP binding (cnf.jkt)</param>
+    /// <param name="jwtSecret">The symmetric key for signing</param>
+    /// <param name="expiresInSeconds">Token lifetime in seconds (default 3600 = 1 hour)</param>
+    /// <returns>The signed access token JWT, or null if inputs are invalid</returns>
+    public static string? GenerateOAuthAccessToken(
+        string userDid, 
+        string issuer, 
+        string scope, 
+        string dpopJwkThumbprint, 
+        string jwtSecret,
+        string clientId,
+        int expiresInSeconds = 3600)
+    {
+        if(string.IsNullOrEmpty(userDid) || string.IsNullOrEmpty(dpopJwkThumbprint))
+        {
+            return null;
+        }
+
+        var key = Encoding.UTF8.GetBytes(jwtSecret);
+        
+        var now = DateTimeOffset.UtcNow;
+        var expiry = now.AddSeconds(expiresInSeconds);
+        var jti = Guid.NewGuid().ToString();
+        
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Iss, issuer),
+            new Claim(JwtRegisteredClaimNames.Sub, userDid),
+            new Claim(JwtRegisteredClaimNames.Aud, issuer),  // Resource server is the PDS itself
+            new Claim(JwtRegisteredClaimNames.Iat, now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+            new Claim(JwtRegisteredClaimNames.Exp, expiry.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+            new Claim(JwtRegisteredClaimNames.Jti, jti),
+            new Claim("scope", scope),
+            new Claim("client_id", clientId)
+        };
+        
+        var signingCredentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256);
+        
+        // Add the cnf claim with jkt for DPoP binding
+        var cnf = new Dictionary<string, object>
+        {
+            { "jkt", dpopJwkThumbprint }
+        };
+        
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            SigningCredentials = signingCredentials,
+            AdditionalHeaderClaims = new Dictionary<string, object> { { "typ", "at+jwt" } },
+            Claims = new Dictionary<string, object> { { "cnf", cnf } }
+        };
+        
+        var tokenHandler = new JsonWebTokenHandler();
+        return tokenHandler.CreateToken(tokenDescriptor);
+    }
+
+    /// <summary>
     /// Generate a refresh JWT token.
     /// Refresh tokens are long-lived (90 days) and used to obtain new access tokens.
     /// </summary>

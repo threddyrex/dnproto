@@ -75,7 +75,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         //
         // Generate authorization code and update the oauth request
         //
-        string authorizationCode = Guid.NewGuid().ToString();
+        string authorizationCode = "authcode-" + Guid.NewGuid().ToString();
         oauthRequest.AuthorizationCode = authorizationCode;
         Pds.PdsDb.UpdateOauthRequest(oauthRequest);
 
@@ -84,8 +84,8 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         //
         // Build redirect URL and redirect
         //
-        string redirectUri = GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
-        string state = GetRequestBodyArgumentValue(oauthRequest.Body, "state");
+        string redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
+        string state = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "state");
         string issuer = $"https://{Pds.Config.PdsHostname}";
 
         string redirectUrl = $"{redirectUri}?code={Uri.EscapeDataString(authorizationCode)}&state={Uri.EscapeDataString(state)}&iss={Uri.EscapeDataString(issuer)}";

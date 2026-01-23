@@ -85,6 +85,7 @@ public class Installer
             PdsDb.CreateTable_FirehoseEvent(connection, logger);
             PdsDb.CreateTable_LogLevel(connection, logger);
             PdsDb.CreateTable_OauthRequest(connection, logger);
+            PdsDb.CreateTable_OauthSession(connection, logger);
         }
 
     }
