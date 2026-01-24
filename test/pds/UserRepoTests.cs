@@ -685,7 +685,6 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
 
         Assert.Equal("#commit", dagCborHeader.SelectString(["t"]));
         Assert.Equal(1, dagCborHeader.SelectInt(["op"]));
-        Assert.Equal(25, dagCborBody.SelectLong(["seq"]));
         Assert.Equal((mostRecentlyUsedSequenceNumber+1), dagCborBody.SelectLong(["seq"]));
         Assert.Equal(_fixture.PdsDb.GetRepoCommit()!.Cid!.Base32, dagCborBody.SelectString(["commit"]));
         Assert.Equal(userDid, dagCborBody.SelectString(["repo"]));
