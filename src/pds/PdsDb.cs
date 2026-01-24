@@ -134,7 +134,9 @@ CREATE TABLE IF NOT EXISTS Config (
     UserPublicKeyMultibase TEXT NOT NULL,
     UserPrivateKeyMultibase TEXT NOT NULL,
     UserIsActive INTEGER NOT NULL,
-    OauthIsEnabled INTEGER NOT NULL DEFAULT 0
+    OauthIsEnabled INTEGER NOT NULL DEFAULT 0,
+    PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network',
+    RequestCrawlIsEnabled INTEGER NOT NULL DEFAULT 0
 )
         ";
             
@@ -153,8 +155,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled)
-VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled)
+INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled)
+VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled)
             ";
             command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
@@ -172,6 +174,8 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             command.Parameters.AddWithValue("@UserPrivateKeyMultibase", config.UserPrivateKeyMultibase);
             command.Parameters.AddWithValue("@UserIsActive", config.UserIsActive ? 1 : 0);
             command.Parameters.AddWithValue("@OauthIsEnabled", config.OauthIsEnabled ? 1 : 0);
+            command.Parameters.AddWithValue("@PdsCrawlers", string.Join(",", config.PdsCrawlers));
+            command.Parameters.AddWithValue("@RequestCrawlIsEnabled", config.RequestCrawlIsEnabled ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
@@ -206,7 +210,9 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                         UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase")),
                         UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase")),
                         UserIsActive = reader.GetInt32(reader.GetOrdinal("UserIsActive")) != 0,
-                        OauthIsEnabled = reader.GetInt32(reader.GetOrdinal("OauthIsEnabled")) != 0
+                        OauthIsEnabled = reader.GetInt32(reader.GetOrdinal("OauthIsEnabled")) != 0,
+                        PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries),
+                        RequestCrawlIsEnabled = reader.GetInt32(reader.GetOrdinal("RequestCrawlIsEnabled")) != 0
                     };
 
                     return config;
@@ -244,10 +250,6 @@ DELETE FROM Config
     }
 
 
-    #endregion
-
-
-    #region USERACTIVE
 
     public bool IsUserActive()
     {
@@ -278,10 +280,6 @@ DELETE FROM Config
         }
     }
 
-    #endregion
-
-    #region OAUTHENABLED
-
 
 
     public void SetOauthEnabled(bool isEnabled)
@@ -309,6 +307,41 @@ DELETE FROM Config
             }
 
             return Convert.ToInt32(result) != 0;
+        }
+    }
+
+    public bool IsRequestCrawlEnabled()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT RequestCrawlIsEnabled FROM Config LIMIT 1";
+            
+            var result = command.ExecuteScalar();
+            if(result is null)
+            {
+                throw new Exception("No config found in database.");
+            }
+
+            return Convert.ToInt32(result) != 0;
+        }
+    }
+
+    public string[] GetPdsCrawlers()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT PdsCrawlers FROM Config LIMIT 1";
+            
+            var result = command.ExecuteScalar();
+            if(result is null)
+            {
+                throw new Exception("No config found in database.");
+            }
+
+            string crawlersStr = Convert.ToString(result) ?? "";
+            return crawlersStr.Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
     }
 

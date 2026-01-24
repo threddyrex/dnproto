@@ -135,7 +135,9 @@ public class Installer
             UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
             UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
             UserIsActive = true,
-            OauthIsEnabled = false
+            OauthIsEnabled = false,
+            PdsCrawlers = new string[] { "bsky.network" },
+            RequestCrawlIsEnabled = false
         };
 
 

@@ -1,8 +1,10 @@
 
 
 using System.Globalization;
+using System.Text.Json.Nodes;
 using dnproto.fs;
 using dnproto.log;
+using dnproto.ws;
 
 namespace dnproto.pds;
 
@@ -35,6 +37,8 @@ public class BackgroundJobs
         _ = new System.Threading.Timer(_ => Job_DeleteOldFirehoseEvents(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // run Job_DeleteOldOauthRequests every hour
         _ = new System.Threading.Timer(_ => Job_DeleteOldOauthRequests(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        // request crawl every five minutes, but start 30 seconds after process startup
+        _ = new System.Threading.Timer(_ => Job_RequestCrawlIfEnabled(), null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5));
     }
 
 
@@ -115,6 +119,33 @@ public class BackgroundJobs
         {
             _logger.LogInfo($"[BACKGROUND] DeleteOldOauthRequests");            
             _db.DeleteOldOauthRequests();
+        }
+        catch(Exception ex)
+        {
+            _logger.LogException(ex);
+        }
+    }
+
+    private void Job_RequestCrawlIfEnabled()
+    {
+        try
+        {
+            bool requestCrawlEnabled = _db.IsRequestCrawlEnabled();
+
+            if(requestCrawlEnabled)
+            {
+                string pdsHostname = _db.GetConfig().PdsHostname;
+
+                foreach(string crawler in _db.GetPdsCrawlers())
+                {
+                    _logger.LogInfo($"[BACKGROUND] RequestCrawlIfEnabled. pdsHostname={pdsHostname} crawler={crawler}");
+                    //curl --fail --silent --show-error --request POST --header "Content-Type: application/json" --data "{\"hostname\": \"$PDS_HOST_NAME\"}" https://bsky.network/xrpc/com.atproto.sync.requestCrawl
+                    string url = $"https://{crawler}/xrpc/com.atproto.sync.requestCrawl";
+                    string jsonData = $"{{\"hostname\": \"{pdsHostname}\"}}";
+                    JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Post, jsonData);
+                    _logger.LogInfo($"[BACKGROUND] RequestCrawlIfEnabled. response={response?.ToJsonString()}");
+                }
+            }
         }
         catch(Exception ex)
         {

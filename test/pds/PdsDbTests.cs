@@ -111,7 +111,9 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
             UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample",
             UserIsActive = true,
-            OauthIsEnabled = true
+            OauthIsEnabled = true,
+            PdsCrawlers = new string[] { "bsky.network", "example.crawler" },
+            RequestCrawlIsEnabled = true
         };
 
         // Act
@@ -137,6 +139,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
         Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
         Assert.Equal(configToInsert.UserIsActive, retrievedConfig.UserIsActive);
+        Assert.Equal(configToInsert.PdsCrawlers, retrievedConfig.PdsCrawlers);
+        Assert.Equal(configToInsert.RequestCrawlIsEnabled, retrievedConfig.RequestCrawlIsEnabled);
         Assert.Equal(1, configCount);
     }
 
