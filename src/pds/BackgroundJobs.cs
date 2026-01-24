@@ -1,7 +1,9 @@
 
 
 using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Net.Http;
 using dnproto.fs;
 using dnproto.log;
 using dnproto.ws;
@@ -141,8 +143,13 @@ public class BackgroundJobs
                     _logger.LogInfo($"[BACKGROUND] RequestCrawlIfEnabled. pdsHostname={pdsHostname} crawler={crawler}");
                     //curl --fail --silent --show-error --request POST --header "Content-Type: application/json" --data "{\"hostname\": \"$PDS_HOST_NAME\"}" https://bsky.network/xrpc/com.atproto.sync.requestCrawl
                     string url = $"https://{crawler}/xrpc/com.atproto.sync.requestCrawl";
-                    string jsonData = $"{{\"hostname\": \"{pdsHostname}\"}}";
-                    JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Post, jsonData);
+
+                    JsonObject jsonObject = new JsonObject
+                    {
+                        ["hostname"] = pdsHostname
+                    };
+
+                    JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Post, content: new StringContent(JsonSerializer.Serialize(jsonObject)));
                     _logger.LogInfo($"[BACKGROUND] RequestCrawlIfEnabled. response={response?.ToJsonString()}");
                 }
             }
