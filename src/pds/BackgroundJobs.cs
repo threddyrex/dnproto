@@ -21,6 +21,10 @@ public class BackgroundJobs
     private PdsDb _db;
 
     private System.Threading.Timer? _timerLogLevel;
+    private System.Threading.Timer? _timerCleanupOldLogs;
+    private System.Threading.Timer? _timerDeleteOldFirehoseEvents;
+    private System.Threading.Timer? _timerDeleteOldOauthRequests;
+    private System.Threading.Timer? _timerRequestCrawl;
 
     public BackgroundJobs(LocalFileSystem lfs, Logger logger, PdsDb db)
     {
@@ -34,13 +38,13 @@ public class BackgroundJobs
         // run Job_UpdateLogLevel every 15 seconds
         _timerLogLevel = new System.Threading.Timer(_ => Job_UpdateLogLevel(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
         // run Job_CleanupOldLogs every hour
-        _ = new System.Threading.Timer(_ => Job_CleanupOldLogs(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        _timerCleanupOldLogs = new System.Threading.Timer(_ => Job_CleanupOldLogs(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // run Job_DeleteOldFirehoseEvents every hour
-        _ = new System.Threading.Timer(_ => Job_DeleteOldFirehoseEvents(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        _timerDeleteOldFirehoseEvents = new System.Threading.Timer(_ => Job_DeleteOldFirehoseEvents(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // run Job_DeleteOldOauthRequests every hour
-        _ = new System.Threading.Timer(_ => Job_DeleteOldOauthRequests(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
+        _timerDeleteOldOauthRequests = new System.Threading.Timer(_ => Job_DeleteOldOauthRequests(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // request crawl every five minutes, but start 30 seconds after process startup
-        _ = new System.Threading.Timer(_ => Job_RequestCrawlIfEnabled(), null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5));
+        _timerRequestCrawl = new System.Threading.Timer(_ => Job_RequestCrawlIfEnabled(), null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5));
     }
 
 
