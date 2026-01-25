@@ -43,8 +43,8 @@ public class BackgroundJobs
         _timerDeleteOldFirehoseEvents = new System.Threading.Timer(_ => Job_DeleteOldFirehoseEvents(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // run Job_DeleteOldOauthRequests every hour
         _timerDeleteOldOauthRequests = new System.Threading.Timer(_ => Job_DeleteOldOauthRequests(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
-        // request crawl every five minutes, but start 30 seconds after process startup
-        _timerRequestCrawl = new System.Threading.Timer(_ => Job_RequestCrawlIfEnabled(), null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5));
+        // request crawl every minute, but start 30 seconds after process startup
+        _timerRequestCrawl = new System.Threading.Timer(_ => Job_RequestCrawlIfEnabled(), null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1));
     }
 
 
