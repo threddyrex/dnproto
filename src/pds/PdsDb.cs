@@ -65,7 +65,8 @@ public class PdsDb
         string dbPath = lfs.GetPath_PdsDb();
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadWrite
+            Mode = SqliteOpenMode.ReadWrite,
+            Pooling = false
         }.ToString();
 
         var conn = new SqliteConnection(connectionString);
@@ -79,7 +80,8 @@ public class PdsDb
         string dbPath = lfs.GetPath_PdsDb();
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadWriteCreate
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            Pooling = false
         }.ToString();
 
         var conn = new SqliteConnection(connectionString);
@@ -94,7 +96,8 @@ public class PdsDb
         string dbPath = _lfs.GetPath_PdsDb();
         string connectionString = new SqliteConnectionStringBuilder {
             DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadOnly
+            Mode = SqliteOpenMode.ReadOnly,
+            Pooling = false
         }.ToString();
 
         var conn = new SqliteConnection(connectionString);
