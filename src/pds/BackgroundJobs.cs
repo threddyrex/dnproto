@@ -144,17 +144,15 @@ public class BackgroundJobs
 
                 foreach(string crawler in _db.GetPdsCrawlers())
                 {
-                    _logger.LogInfo($"[BACKGROUND] RequestCrawlIfEnabled. pdsHostname={pdsHostname} crawler={crawler}");
-                    //curl --fail --silent --show-error --request POST --header "Content-Type: application/json" --data "{\"hostname\": \"$PDS_HOST_NAME\"}" https://bsky.network/xrpc/com.atproto.sync.requestCrawl
                     string url = $"https://{crawler}/xrpc/com.atproto.sync.requestCrawl";
-
                     JsonObject jsonObject = new JsonObject
                     {
                         ["hostname"] = pdsHostname
                     };
 
                     JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Post, content: new StringContent(JsonSerializer.Serialize(jsonObject)));
-                    _logger.LogInfo($"[BACKGROUND] RequestCrawlIfEnabled. response={response?.ToJsonString()}");
+
+                    _logger.LogInfo($"[BACKGROUND] RequestCrawl. pdsHostname={pdsHostname} crawler={crawler} response={response?.ToJsonString()}");
                 }
             }
         }
