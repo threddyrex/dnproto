@@ -557,15 +557,16 @@ public static class Signer
         // Get the curve order based on the curve type
         // P-256 order: FFFFFFFF 00000000 FFFFFFFF FFFFFFFF BCE6FAAD A7179E84 F3B9CAC2 FC632551
         // secp256k1 order: FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141
+        // Note: Prepend "0" to ensure BigInteger.Parse treats these as positive numbers
         string orderHex;
         if (curve.Oid?.FriendlyName == "secp256k1" || curve.Oid?.Value == "1.3.132.0.10")
         {
-            orderHex = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
+            orderHex = "0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
         }
         else
         {
             // Default to P-256
-            orderHex = "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551";
+            orderHex = "0FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551";
         }
         var order = BigInteger.Parse(orderHex, System.Globalization.NumberStyles.HexNumber);
 
