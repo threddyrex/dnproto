@@ -35,6 +35,7 @@ public abstract class BaseXrpcCommand
     public bool ServiceAuthIsAuthenticated(string? lxm = null)
     {
         var result = ValidateServiceAuthToken(lxm);
+        Pds.Logger.LogInfo($"[AUTH] ServiceAuthIsAuthenticated: expectedLxm={lxm} result.IsValid={result.IsValid} result.Audience={result.Audience} result.Lxm={result.Lxm} result.Error={result.Error}");
         return result.IsValid;
     }
 
