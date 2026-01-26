@@ -1067,7 +1067,7 @@ DELETE FROM RepoRecord
         {
             var command = sqlConnection.CreateCommand();
 
-            if(reverse == false)
+            if(reverse == true)
             {
             command.CommandText = @"
 SELECT * FROM RepoRecord
