@@ -14,7 +14,8 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
         //
         // Require auth
         //
-        if(UserIsAuthenticated() == false)
+        if(UserIsAuthenticated() == false 
+            && ServiceAuthIsAuthenticated(lxm: "com.atproto.repo.uploadBlob") == false)
         {
             var (response, statusCode) = GetAuthenticationFailureResponse();
             return Results.Json(response, statusCode: statusCode);

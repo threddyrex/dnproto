@@ -27,6 +27,18 @@ public abstract class BaseXrpcCommand
     }
 
     /// <summary>
+    /// Returns true if the request has a valid service auth token.
+    /// Service auth tokens are JWTs signed by a remote service's atproto signing key,
+    /// where aud matches this PDS's user DID.
+    /// </summary>
+    /// <param name="lxm">Optional: the expected lxm claim (NSID of the endpoint being called)</param>
+    public bool ServiceAuthIsAuthenticated(string? lxm = null)
+    {
+        var result = ValidateServiceAuthToken(lxm);
+        return result.IsValid;
+    }
+
+    /// <summary>
     /// Returns true if the client is authenticated as the PDS user, but the token has expired.
     /// </summary>
     /// <returns></returns>
@@ -442,6 +454,159 @@ public abstract class BaseXrpcCommand
                 },
                 401);
         }
+    }
+
+    #endregion
+
+    #region SERVICE AUTH VALIDATION
+
+    /// <summary>
+    /// Result of service auth token validation.
+    /// </summary>
+    public class ServiceAuthValidationResult
+    {
+        public bool IsValid => string.IsNullOrEmpty(Error);
+        public string? Error { get; set; }
+        public string? Issuer { get; set; }
+        public string? Audience { get; set; }
+        public string? Lxm { get; set; }
+    }
+
+    /// <summary>
+    /// Validates a service auth token from the Authorization header.
+    /// Service auth tokens are JWTs signed by a remote service's atproto signing key.
+    /// The token's iss claim is the remote service's DID, and aud should be this PDS's DID.
+    /// </summary>
+    /// <param name="expectedLxm">Optional: the expected lxm claim (NSID of the endpoint being called)</param>
+    /// <returns>Validation result with claims or error</returns>
+    protected ServiceAuthValidationResult ValidateServiceAuthToken(string? expectedLxm = null)
+    {
+        var result = new ServiceAuthValidationResult();
+
+        // Get the access token from Authorization header
+        string? token = GetAccessJwt();
+        if (string.IsNullOrEmpty(token))
+        {
+            result.Error = "Missing Authorization header";
+            return result;
+        }
+
+        try
+        {
+            // Extract claims without validation first to get the issuer
+            var claims = Signer.GetClaims(token);
+            
+            if (!claims.TryGetValue("iss", out var issuer) || string.IsNullOrEmpty(issuer))
+            {
+                result.Error = "Token missing iss claim";
+                return result;
+            }
+
+            if (!claims.TryGetValue("aud", out var audience) || string.IsNullOrEmpty(audience))
+            {
+                result.Error = "Token missing aud claim";
+                return result;
+            }
+
+            result.Issuer = issuer;
+            result.Audience = audience;
+            claims.TryGetValue("lxm", out var lxm);
+            result.Lxm = lxm;
+
+            // Verify audience matches this PDS's DID
+            if (audience != Pds.Config.UserDid)
+            {
+                result.Error = $"Token audience '{audience}' does not match PDS user DID '{Pds.Config.UserDid}'";
+                return result;
+            }
+
+            // If lxm is expected, verify it matches
+            if (!string.IsNullOrEmpty(expectedLxm) && !string.IsNullOrEmpty(lxm) && lxm != expectedLxm)
+            {
+                result.Error = $"Token lxm '{lxm}' does not match expected '{expectedLxm}'";
+                return result;
+            }
+
+            // Resolve the issuer's DID document to get their public key
+            string? didDoc = dnproto.ws.BlueskyClient.ResolveDidToDidDoc(issuer);
+            if (string.IsNullOrEmpty(didDoc))
+            {
+                result.Error = $"Failed to resolve DID document for issuer '{issuer}'";
+                return result;
+            }
+
+            // Extract the #atproto verification method public key
+            string? publicKeyMultibase = ExtractAtprotoPublicKey(didDoc);
+            if (string.IsNullOrEmpty(publicKeyMultibase))
+            {
+                result.Error = $"Failed to extract atproto public key from DID document for '{issuer}'";
+                return result;
+            }
+
+            // Validate the token signature
+            var principal = Signer.ValidateToken(token, publicKeyMultibase, issuer, audience, Pds.Logger);
+            if (principal == null)
+            {
+                result.Error = "Token signature validation failed";
+                return result;
+            }
+
+            // Token is valid
+            return result;
+        }
+        catch (Exception ex)
+        {
+            result.Error = $"Service auth validation error: {ex.Message}";
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// Extracts the atproto public key from a DID document.
+    /// Looks for a verificationMethod with id ending in "#atproto".
+    /// </summary>
+    private static string? ExtractAtprotoPublicKey(string didDoc)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(didDoc);
+            
+            if (!doc.RootElement.TryGetProperty("verificationMethod", out var methods))
+            {
+                return null;
+            }
+
+            foreach (var method in methods.EnumerateArray())
+            {
+                if (method.TryGetProperty("id", out var idElement))
+                {
+                    var id = idElement.GetString();
+                    if (id != null && id.EndsWith("#atproto"))
+                    {
+                        if (method.TryGetProperty("publicKeyMultibase", out var keyElement))
+                        {
+                            return keyElement.GetString();
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the request has a valid service auth token.
+    /// </summary>
+    /// <param name="expectedLxm">Optional: the expected lxm claim (NSID of the endpoint being called)</param>
+    protected bool IsValidServiceAuthToken(string? expectedLxm = null)
+    {
+        var result = ValidateServiceAuthToken(expectedLxm);
+        return result.IsValid;
     }
 
     #endregion
