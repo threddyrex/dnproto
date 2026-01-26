@@ -514,10 +514,10 @@ public abstract class BaseXrpcCommand
             claims.TryGetValue("lxm", out var lxm);
             result.Lxm = lxm;
 
-            // Verify audience matches this PDS's DID
-            if (audience != Pds.Config.UserDid)
+            // Verify audience matches this PDS's DID (not the user's DID)
+            if (audience != Pds.Config.PdsDid)
             {
-                result.Error = $"Token audience '{audience}' does not match PDS user DID '{Pds.Config.UserDid}'";
+                result.Error = $"Token audience '{audience}' does not match PDS DID '{Pds.Config.PdsDid}'";
                 return result;
             }
 
