@@ -521,7 +521,9 @@ public static class Signer
             // Sign the hash - IMPORTANT: Use DSASignatureFormat.IeeeP1363Format for cross-platform compatibility
             // This ensures we get raw r || s (64 bytes) instead of DER encoding
             var signature = ecdsa.SignHash(hash, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
-            return signature;
+            
+            // Normalize to low-S form (required by the relay)
+            return NormalizeLowS(signature, curve);
         };
     }
 
@@ -540,21 +542,31 @@ public static class Signer
     /// Normalizes an ECDSA signature to use low-S value (BIP-62 compliance).
     /// This prevents signature malleability issues.
     /// </summary>
-    /// <param name="signature">The IEEE P1363 format signature (r || s, 64 bytes for P-256)</param>
+    /// <param name="signature">The IEEE P1363 format signature (r || s, 64 bytes for P-256/secp256k1)</param>
     /// <param name="curve">The elliptic curve used</param>
     /// <returns>Normalized signature with low-S value</returns>
     private static byte[] NormalizeLowS(byte[] signature, ECCurve curve)
     {
         if (signature.Length != 64)
-            return signature; // Only handle P-256 64-byte signatures
+            return signature; // Only handle 64-byte signatures (P-256 and secp256k1)
 
-        // Extract r and s components (32 bytes each for P-256)
+        // Extract r and s components (32 bytes each)
         var r = signature.Take(32).ToArray();
         var s = signature.Skip(32).Take(32).ToArray();
 
-        // Get the curve order for P-256
+        // Get the curve order based on the curve type
         // P-256 order: FFFFFFFF 00000000 FFFFFFFF FFFFFFFF BCE6FAAD A7179E84 F3B9CAC2 FC632551
-        var orderHex = "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551";
+        // secp256k1 order: FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141
+        string orderHex;
+        if (curve.Oid?.FriendlyName == "secp256k1" || curve.Oid?.Value == "1.3.132.0.10")
+        {
+            orderHex = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
+        }
+        else
+        {
+            // Default to P-256
+            orderHex = "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551";
+        }
         var order = BigInteger.Parse(orderHex, System.Globalization.NumberStyles.HexNumber);
 
         // Convert s to BigInteger (big-endian)
