@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.repo;
+using dnproto.ws;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
@@ -529,7 +530,8 @@ public abstract class BaseXrpcCommand
             }
 
             // Resolve the issuer's DID document to get their public key
-            string? didDoc = dnproto.ws.BlueskyClient.ResolveDidToDidDoc(issuer);
+            ActorInfo? actorInfo = Pds.LocalFileSystem.ResolveActorInfo(issuer);
+            string? didDoc = actorInfo?.DidDoc;
             if (string.IsNullOrEmpty(didDoc))
             {
                 result.Error = $"Failed to resolve DID document for issuer '{issuer}'";
