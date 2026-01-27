@@ -213,8 +213,10 @@ public abstract class BaseXrpcCommand
     protected bool IsOauthTokenRequest()
     {
         // Must have DPoP header for OAuth
-        if (!HttpContext.Request.Headers.ContainsKey("DPoP"))
+        bool hasDpop = HttpContext.Request.Headers.ContainsKey("DPoP");
+        if (!hasDpop)
         {
+            Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: No DPoP header found");
             return false;
         }
 
@@ -222,11 +224,14 @@ public abstract class BaseXrpcCommand
         string? accessToken = GetAccessJwt();
         if (string.IsNullOrEmpty(accessToken))
         {
+            Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: No Bearer token found");
             return false;
         }
 
         // Check if the token has at+jwt type (OAuth access token)
-        return IsOauthAccessToken(accessToken);
+        bool isOauthToken = IsOauthAccessToken(accessToken);
+        Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: hasDpop={hasDpop} hasBearer=true isOauthToken={isOauthToken}");
+        return isOauthToken;
     }
 
     /// <summary>
