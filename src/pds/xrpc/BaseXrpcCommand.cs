@@ -525,11 +525,14 @@ public abstract class BaseXrpcCommand
                 result.Scope = jwt.Claims.FirstOrDefault(c => c.Type == "scope")?.Value;
                 result.ClientId = jwt.Claims.FirstOrDefault(c => c.Type == "client_id")?.Value;
 
-                // Extract expiration from exp claim
-                var expClaim = jwt.Claims.FirstOrDefault(c => c.Type == "exp")?.Value;
-                if (!string.IsNullOrEmpty(expClaim) && long.TryParse(expClaim, out var expUnix))
+                // Extract expiration - try multiple approaches
+                if (jwt.TryGetPayloadValue<long>("exp", out var expUnix))
                 {
                     result.ExpiresAt = DateTimeOffset.FromUnixTimeSeconds(expUnix).UtcDateTime;
+                }
+                else if (jwt.ValidTo != DateTime.MinValue)
+                {
+                    result.ExpiresAt = jwt.ValidTo;
                 }
 
                 // Extract cnf.jkt (JWK thumbprint binding)
