@@ -21,6 +21,7 @@ public abstract class BaseXrpcCommand
 
     /// <summary>
     /// Returns true if the client is authenticated as the PDS user.
+    /// Tries oauth and legacy auth.
     /// </summary>
     /// <returns></returns>
     public bool UserIsAuthenticated()
@@ -51,7 +52,7 @@ public abstract class BaseXrpcCommand
                 //
                 var result = OauthUserIsAuthenticated();
                 bool auth = result.IsValid;
-                logLine.Append($"authenticated={auth} expiresInMinutes={result.ExpiresInMinutes:F1} ");
+                logLine.Append($"authenticated={auth} ");
 
                 //
                 // authenticated without expiry
