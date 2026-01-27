@@ -41,7 +41,7 @@ public class ComAtprotoRepo_DeleteRecord : BaseXrpcCommand
         //
         // Call UserRepo to delete record
         //
-        UserRepo.ApplyWritesResult result = Pds.UserRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
+        Pds.UserRepo.ApplyWrites(new List<UserRepo.ApplyWritesOperation>
         {
             new UserRepo.ApplyWritesOperation
             {
@@ -49,7 +49,7 @@ public class ComAtprotoRepo_DeleteRecord : BaseXrpcCommand
                 Collection = collection,
                 Rkey = rkey
             }
-        }).First();
+        });
     
         //
         // Get the new stuff

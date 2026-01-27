@@ -194,7 +194,11 @@ public class UserRepo
                     //
                     case ApplyWritesType.Delete:
 
-                        if(! _db.RecordExists(write.Collection, write.Rkey)) break;
+                        if(! _db.RecordExists(write.Collection, write.Rkey))
+                        {
+                            _logger.LogWarning($"[REPO] Delete operation skipped: record does not exist for collection: {write.Collection} with rkey: {write.Rkey}");
+                            break;
+                        }
 
                         //
                         // REPO RECORD
