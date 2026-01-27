@@ -24,8 +24,95 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     public bool UserIsAuthenticated()
     {
-        return JwtSecret.AccessJwtIsValid(GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+        if(IsOauthTokenRequest())
+        {
+            if(IsOauthEnabled() == false) return false;
+
+            return OauthUserIsAuthenticated();
+        }
+        else
+        {
+            return JwtSecret.AccessJwtIsValid(Pds.Logger, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+        }
     }
+
+
+    /// <summary>
+    /// Returns a JSON response and status code for an authentication failure.
+    /// If the user's token has expired, returns a 400 status code with an "ExpiredToken" error.
+    /// Otherwise, returns a 401 status code with an "Unauthorized" error.
+    /// </summary>
+    /// <returns></returns>
+    public (JsonObject response, int statusCode) GetAuthenticationFailureResponse()
+    {
+        if(IsOauthTokenRequest())
+        {
+            if(IsOauthEnabled() == false)
+            {
+                return (
+                    new JsonObject
+                    {
+                        ["error"] = "Unauthorized",
+                        ["message"] = "OAuth is not enabled."
+                    }, 
+                    401);
+            }
+
+            if(OauthUserIsAuthenticatedButExpired())
+            {
+                return (
+                    new JsonObject
+                    {
+                        ["error"] = "ExpiredToken",
+                        ["message"] = "Please refresh the token."
+                    }, 
+                    400);
+            }
+            else
+            {
+                return (
+                    new JsonObject
+                    {
+                        ["error"] = "Unauthorized",
+                        ["message"] = "User is not authorized."
+                    }, 
+                    401);
+            }
+        }
+        else
+        {
+            if (UserIsAuthenticatedButExpired())
+            {
+                return (
+                    new JsonObject
+                    {
+                        ["error"] = "ExpiredToken",
+                        ["message"] = "Please refresh the token."
+                    }, 
+                    400);
+            }
+            else
+            {
+                return (
+                    new JsonObject
+                    {
+                        ["error"] = "Unauthorized",
+                        ["message"] = "User is not authorized."
+                    }, 
+                    401);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns true if the client is authenticated as the PDS user, but the token has expired.
+    /// </summary>
+    /// <returns></returns>
+    public bool UserIsAuthenticatedButExpired()
+    {
+        return JwtSecret.AccessJwtIsValid(Pds.Logger, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+    }
+
 
     /// <summary>
     /// Returns true if the request has a valid service auth token.
@@ -40,44 +127,6 @@ public abstract class BaseXrpcCommand
         return result.IsValid;
     }
 
-    /// <summary>
-    /// Returns true if the client is authenticated as the PDS user, but the token has expired.
-    /// </summary>
-    /// <returns></returns>
-    public bool UserIsAuthenticatedButExpired()
-    {
-        return JwtSecret.AccessJwtIsValid(GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
-    }
-
-    /// <summary>
-    /// Returns a JSON response and status code for an authentication failure.
-    /// If the user's token has expired, returns a 400 status code with an "ExpiredToken" error.
-    /// Otherwise, returns a 401 status code with an "Unauthorized" error.
-    /// </summary>
-    /// <returns></returns>
-    public (JsonObject response, int statusCode) GetAuthenticationFailureResponse()
-    {
-        if (UserIsAuthenticatedButExpired())
-        {
-            return (
-                new JsonObject
-                {
-                    ["error"] = "ExpiredToken",
-                    ["message"] = "Please refresh the token."
-                }, 
-                400);
-        }
-        else
-        {
-            return (
-                new JsonObject
-                {
-                    ["error"] = "Unauthorized",
-                    ["message"] = "User is not authorized."
-                }, 
-                401);
-        }
-    }
 
 
 
@@ -245,78 +294,86 @@ public abstract class BaseXrpcCommand
     {
         var result = new OauthValidationResult();
 
-        // Get the access token
-        string? accessToken = GetAccessJwt();
-        if (string.IsNullOrEmpty(accessToken))
+        try
         {
-            result.Error = "Missing access token";
-            return result;
-        }
 
-        // Get the DPoP header
-        string? dpopHeader = GetDpopHeader();
-        if (string.IsNullOrEmpty(dpopHeader))
-        {
-            result.Error = "Missing DPoP header";
-            return result;
-        }
-
-        // Validate the DPoP proof
-        var dpopResult = JwtSecret.ValidateDpop(dpopHeader, httpMethod, requestUri);
-        if (!dpopResult.IsValid || string.IsNullOrEmpty(dpopResult.JwkThumbprint))
-        {
-            result.Error = $"DPoP validation failed: {dpopResult.Error}";
-            return result;
-        }
-
-        // Validate the access token and extract claims
-        var tokenValidation = ValidateOauthAccessTokenInternal(accessToken, validateExpiry: true);
-        if (!tokenValidation.IsValid)
-        {
-            // Check if it's just expired
-            var expiredCheck = ValidateOauthAccessTokenInternal(accessToken, validateExpiry: false);
-            if (expiredCheck.IsValid)
+            // Get the access token
+            string? accessToken = GetAccessJwt();
+            if (string.IsNullOrEmpty(accessToken))
             {
-                result.IsExpired = true;
-                result.Error = "Token expired";
-                result.Subject = expiredCheck.Subject;
-                result.Scope = expiredCheck.Scope;
-                result.ClientId = expiredCheck.ClientId;
-                result.JwkThumbprint = expiredCheck.JwkThumbprint;
+                result.Error = "Missing access token";
                 return result;
             }
 
-            result.Error = tokenValidation.Error;
+            // Get the DPoP header
+            string? dpopHeader = GetDpopHeader();
+            if (string.IsNullOrEmpty(dpopHeader))
+            {
+                result.Error = "Missing DPoP header";
+                return result;
+            }
+
+            // Validate the DPoP proof
+            var dpopResult = JwtSecret.ValidateDpop(dpopHeader, httpMethod, requestUri);
+            if (!dpopResult.IsValid || string.IsNullOrEmpty(dpopResult.JwkThumbprint))
+            {
+                result.Error = $"DPoP validation failed: {dpopResult.Error}";
+                return result;
+            }
+
+            // Validate the access token and extract claims
+            var tokenValidation = ValidateOauthAccessTokenInternal(accessToken, validateExpiry: true);
+            if (!tokenValidation.IsValid)
+            {
+                // Check if it's just expired
+                var expiredCheck = ValidateOauthAccessTokenInternal(accessToken, validateExpiry: false);
+                if (expiredCheck.IsValid)
+                {
+                    result.IsExpired = true;
+                    result.Error = "Token expired";
+                    result.Subject = expiredCheck.Subject;
+                    result.Scope = expiredCheck.Scope;
+                    result.ClientId = expiredCheck.ClientId;
+                    result.JwkThumbprint = expiredCheck.JwkThumbprint;
+                    return result;
+                }
+
+                result.Error = tokenValidation.Error;
+                return result;
+            }
+
+            // Verify DPoP binding - the token's cnf.jkt must match the DPoP proof's JWK thumbprint
+            if (tokenValidation.JwkThumbprint != dpopResult.JwkThumbprint)
+            {
+                result.Error = "DPoP proof key does not match token binding";
+                return result;
+            }
+
+            // Verify the subject matches the PDS user
+            if (tokenValidation.Subject != Pds.Config.UserDid)
+            {
+                result.Error = "Token subject does not match PDS user";
+                return result;
+            }
+
+            // Verify a valid session exists for this DPoP key
+            // The session must exist and not be expired (revoked sessions are deleted)
+            if (!Pds.PdsDb.HasValidOauthSessionByDpopThumbprint(tokenValidation.JwkThumbprint!))
+            {
+                result.Error = "No valid OAuth session found for this token";
+                return result;
+            }
+
+            result.Subject = tokenValidation.Subject;
+            result.Scope = tokenValidation.Scope;
+            result.ClientId = tokenValidation.ClientId;
+            result.JwkThumbprint = tokenValidation.JwkThumbprint;
             return result;
         }
-
-        // Verify DPoP binding - the token's cnf.jkt must match the DPoP proof's JWK thumbprint
-        if (tokenValidation.JwkThumbprint != dpopResult.JwkThumbprint)
+        finally
         {
-            result.Error = "DPoP proof key does not match token binding";
-            return result;
+            Pds.Logger.LogInfo($"[AUTH] ValidateOauthAccessToken result.IsValid={result.IsValid} result.Error={result.Error} result.IsExpired={result.IsExpired} result.Subject={result.Subject} result.Scope={result.Scope} result.ClientId={result.ClientId}");
         }
-
-        // Verify the subject matches the PDS user
-        if (tokenValidation.Subject != Pds.Config.UserDid)
-        {
-            result.Error = "Token subject does not match PDS user";
-            return result;
-        }
-
-        // Verify a valid session exists for this DPoP key
-        // The session must exist and not be expired (revoked sessions are deleted)
-        if (!Pds.PdsDb.HasValidOauthSessionByDpopThumbprint(tokenValidation.JwkThumbprint!))
-        {
-            result.Error = "No valid OAuth session found for this token";
-            return result;
-        }
-
-        result.Subject = tokenValidation.Subject;
-        result.Scope = tokenValidation.Scope;
-        result.ClientId = tokenValidation.ClientId;
-        result.JwkThumbprint = tokenValidation.JwkThumbprint;
-        return result;
     }
 
     /// <summary>

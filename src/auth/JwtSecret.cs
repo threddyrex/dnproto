@@ -4,6 +4,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel;
+using dnproto.pds;
+using dnproto.log;
 
 namespace dnproto.auth;
 
@@ -247,7 +249,7 @@ public class JwtSecret
     /// <param name="userDid">The DID of the user to validate against</param>
     /// <param name="validateExpiry">Whether to validate the token's expiration</param>
     /// <returns>ClaimsPrincipal if valid, null if invalid</returns>
-    public static bool AccessJwtIsValid(string? accessJwt, string jwtSecret, string userDid, bool validateExpiry = true)
+    public static bool AccessJwtIsValid(IDnProtoLogger logger, string? accessJwt, string jwtSecret, string userDid, bool validateExpiry = true)
     {
         if (string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(jwtSecret) || string.IsNullOrEmpty(userDid))
         {
@@ -256,6 +258,7 @@ public class JwtSecret
 
         var tokenHandler = new JsonWebTokenHandler();
         var key = Encoding.UTF8.GetBytes(jwtSecret);
+        string? message = null;
 
         try
         {
@@ -276,6 +279,7 @@ public class JwtSecret
             
             if (!result.IsValid)
             {
+                message = $"result is not valid";
                 return false;
             }
 
@@ -285,6 +289,7 @@ public class JwtSecret
             if (result.SecurityToken is JsonWebToken jwt && 
                 !jwt.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
             {
+                message = $"JWT algorithm is not HMAC SHA256";
                 return false;
             }
 
@@ -295,6 +300,7 @@ public class JwtSecret
             var scopeClaim = claimsPrincipal.FindFirst("scope")?.Value;
             if (scopeClaim != "com.atproto.access")
             {
+                message = $"JWT scope is not com.atproto.access";
                 return false;
             }
 
@@ -306,6 +312,7 @@ public class JwtSecret
 
             if(!didMatches)
             {
+                message = $"JWT DID does not match expected user DID";
                 return false;
             }
 
@@ -313,17 +320,24 @@ public class JwtSecret
             //
             // Return true
             //
+            message = $"JWT is valid";
             return true;
         }
-        catch (SecurityTokenException)
+        catch (SecurityTokenException ex)
         {
             // Token validation failed (expired, invalid signature, etc.)
+            message = $"SecurityTokenException: {ex.Message}";
             return false;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Any other exception during validation
+            message = $"Exception: {ex.Message}";
             return false;
+        }
+        finally
+        {
+            logger.LogInfo($"[AUTH] AccessJwtIsValid: {message}");
         }
     }
 
