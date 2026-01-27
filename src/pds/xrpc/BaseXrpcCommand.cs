@@ -207,8 +207,29 @@ public abstract class BaseXrpcCommand
     #region OAUTH TOKEN VALIDATION
 
     /// <summary>
+    /// Gets the OAuth access token from the Authorization header using the DPoP scheme.
+    /// OAuth with DPoP uses "Authorization: DPoP {token}" instead of "Authorization: Bearer {token}".
+    /// </summary>
+    protected string? GetOauthAccessToken()
+    {
+        if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+        {
+            return null;
+        }
+
+        string? authHeader = HttpContext.Request.Headers["Authorization"];
+
+        if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("DPoP "))
+        {
+            return null;
+        }
+
+        return authHeader.Substring("DPoP ".Length).Trim();
+    }
+
+    /// <summary>
     /// Returns true if the request is using a DPoP-bound OAuth access token.
-    /// This checks for the presence of a DPoP header and a Bearer token with at+jwt type.
+    /// This checks for the presence of a DPoP header and a DPoP-scheme token with at+jwt type.
     /// </summary>
     protected bool IsOauthTokenRequest()
     {
@@ -220,17 +241,17 @@ public abstract class BaseXrpcCommand
             return false;
         }
 
-        // Must have a Bearer token
-        string? accessToken = GetAccessJwt();
+        // Must have a DPoP-scheme access token
+        string? accessToken = GetOauthAccessToken();
         if (string.IsNullOrEmpty(accessToken))
         {
-            Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: No Bearer token found");
+            Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: No DPoP access token found");
             return false;
         }
 
         // Check if the token has at+jwt type (OAuth access token)
         bool isOauthToken = IsOauthAccessToken(accessToken);
-        Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: hasDpop={hasDpop} hasBearer=true isOauthToken={isOauthToken}");
+        Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: hasDpop={hasDpop} hasToken=true isOauthToken={isOauthToken}");
         return isOauthToken;
     }
 
