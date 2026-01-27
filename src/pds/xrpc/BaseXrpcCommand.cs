@@ -329,8 +329,8 @@ public abstract class BaseXrpcCommand
         try
         {
 
-            // Get the access token
-            string? accessToken = GetAccessJwt();
+            // Get the access token (using DPoP scheme for OAuth)
+            string? accessToken = GetOauthAccessToken();
             if (string.IsNullOrEmpty(accessToken))
             {
                 result.Error = "Missing access token";
