@@ -28,16 +28,18 @@ public abstract class BaseXrpcCommand
         string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
 
         StringBuilder logLine = new StringBuilder("[AUTH] ");
-        logLine.Append($"ip={forwardedFor} ");
 
         try
         {
+            //
+            // OAUTH
+            //
             if(IsOauthTokenRequest())
             {
                 //
                 // type
                 //
-                logLine.Append("type=oauth ");
+                logLine.Append($"type=oauth ip={forwardedFor} ");
                 if(IsOauthEnabled() == false)
                 {
                     logLine.Append("oauthenabled=false ");
@@ -47,8 +49,9 @@ public abstract class BaseXrpcCommand
                 //
                 // authenticated
                 //
-                bool auth = OauthUserIsAuthenticated();
-                logLine.Append($"authenticated={auth} ");
+                var result = OauthUserIsAuthenticated();
+                bool auth = result.IsValid;
+                logLine.Append($"authenticated={auth} expiresInMinutes={result.ExpiresInMinutes}");
 
                 //
                 // authenticated without expiry
@@ -62,12 +65,15 @@ public abstract class BaseXrpcCommand
 
                 return auth;
             }
+            //
+            // LEGACY
+            //
             else
             {
                 //
                 // type
                 //
-                logLine.Append($"type=jwt ");
+                logLine.Append($"type=jwt ip={forwardedFor}");
 
                 //
                 // authenticated
@@ -104,6 +110,10 @@ public abstract class BaseXrpcCommand
     public (JsonObject response, int statusCode) GetAuthenticationFailureResponse()
     {
         StringBuilder logLine = new StringBuilder("[AUTH] ");
+
+        //
+        // OAUTH
+        //
         if(IsOauthTokenRequest())
         {
             if(IsOauthEnabled() == false)
@@ -119,13 +129,14 @@ public abstract class BaseXrpcCommand
 
             if(OauthUserIsAuthenticatedButExpired())
             {
+                HttpContext.Response.Headers["WWW-Authenticate"] = "DPoP error=\"invalid_token\", error_description=\"The access token expired\"";
                 return (
                     new JsonObject
                     {
                         ["error"] = "ExpiredToken",
                         ["message"] = "Please refresh the token."
                     }, 
-                    400);
+                    401);
             }
             else
             {
@@ -138,6 +149,9 @@ public abstract class BaseXrpcCommand
                     401);
             }
         }
+        //
+        // LEGACY
+        //
         else
         {
             if (UserIsAuthenticatedButExpired(logLine))
@@ -364,6 +378,14 @@ public abstract class BaseXrpcCommand
         public string? Scope { get; set; }
         public string? ClientId { get; set; }
         public string? JwkThumbprint { get; set; }
+        /// <summary>
+        /// The UTC time when the token expires.
+        /// </summary>
+        public DateTime? ExpiresAt { get; set; }
+        /// <summary>
+        /// The number of minutes until the token expires (negative if already expired).
+        /// </summary>
+        public int? ExpiresInMinutes => ExpiresAt.HasValue ? (int)(ExpiresAt.Value - DateTime.UtcNow).TotalMinutes : null;
     }
 
     /// <summary>
@@ -502,6 +524,7 @@ public abstract class BaseXrpcCommand
                 result.Subject = jwt.Subject;
                 result.Scope = jwt.Claims.FirstOrDefault(c => c.Type == "scope")?.Value;
                 result.ClientId = jwt.Claims.FirstOrDefault(c => c.Type == "client_id")?.Value;
+                result.ExpiresAt = jwt.ValidTo;
 
                 // Extract cnf.jkt (JWK thumbprint binding)
                 var cnfClaim = jwt.Claims.FirstOrDefault(c => c.Type == "cnf")?.Value;
@@ -545,12 +568,12 @@ public abstract class BaseXrpcCommand
     /// <summary>
     /// Returns true if the request has a valid OAuth access token (not expired).
     /// </summary>
-    protected bool OauthUserIsAuthenticated()
+    protected OauthValidationResult OauthUserIsAuthenticated()
     {
         string httpMethod = HttpContext.Request.Method;
         string requestUri = $"https://{Pds.Config.PdsHostname}{HttpContext.Request.Path}";
         var result = ValidateOauthAccessToken(httpMethod, requestUri);
-        return result.IsValid;
+        return result;
     }
 
     /// <summary>
@@ -576,13 +599,14 @@ public abstract class BaseXrpcCommand
 
         if (result.IsExpired)
         {
+            HttpContext.Response.Headers["WWW-Authenticate"] = "DPoP error=\"invalid_token\", error_description=\"The access token expired\"";
             return (
                 new JsonObject
                 {
                     ["error"] = "ExpiredToken",
                     ["message"] = "The access token has expired. Please refresh the token."
                 },
-                400);
+                401);
         }
         else
         {
