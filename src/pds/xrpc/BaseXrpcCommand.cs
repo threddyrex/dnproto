@@ -34,28 +34,57 @@ public abstract class BaseXrpcCommand
         {
             if(IsOauthTokenRequest())
             {
+                //
+                // type
+                //
                 logLine.Append("type=oauth ");
                 if(IsOauthEnabled() == false)
                 {
-                    logLine.Append("enabled=false ");
+                    logLine.Append("oauthenabled=false ");
                     return false;
                 }
 
+                //
+                // authenticated
+                //
                 bool auth = OauthUserIsAuthenticated();
                 logLine.Append($"authenticated={auth} ");
 
-                bool authButExpired = OauthUserIsAuthenticatedButExpired();
-                logLine.Append($"authenticatedButExpired={authButExpired} ");
+                //
+                // authenticated without expiry
+                //
+                bool authButExpired = false;
+                if(!auth)
+                {
+                    authButExpired = OauthUserIsAuthenticatedButExpired();
+                }
+                logLine.Append($"expired={authButExpired} ");
 
                 return auth;
             }
             else
             {
+                //
+                // type
+                //
                 logLine.Append($"type=jwt ");
+
+                //
+                // authenticated
+                //
                 bool auth = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
                 logLine.Append($"authenticated={auth} ");
-                bool authButExpired = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
-                logLine.Append($"authenticatedButExpired={authButExpired} ");
+
+                //
+                // authenticated without expiry
+                //
+                bool authButExpired = false;
+                if(!auth)
+                {
+                    authButExpired = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+                }
+                logLine.Append($"expired={authButExpired} ");
+
                 return auth;
             }
         }
@@ -425,7 +454,6 @@ public abstract class BaseXrpcCommand
         }
         finally
         {
-            Pds.Logger.LogInfo($"[AUTH] ValidateOauthAccessToken result.IsValid={result.IsValid} result.Error={result.Error} result.IsExpired={result.IsExpired} result.Subject={result.Subject} result.Scope={result.Scope} result.ClientId={result.ClientId}");
         }
     }
 
