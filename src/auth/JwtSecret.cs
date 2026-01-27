@@ -319,7 +319,6 @@ public class JwtSecret
             //
             // Return true
             //
-            logLine.Append($"jwtIsValid=true ");
             return true;
         }
         catch (SecurityTokenException ex)

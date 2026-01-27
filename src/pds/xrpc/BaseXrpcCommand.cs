@@ -53,7 +53,7 @@ public abstract class BaseXrpcCommand
             {
                 logLine.Append($"type=jwt ");
                 bool auth = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
-                logLine.Append($"type=jwt authenticated={auth} ");
+                logLine.Append($"authenticated={auth} ");
                 bool authButExpired = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
                 logLine.Append($"authenticatedButExpired={authButExpired} ");
                 return auth;
