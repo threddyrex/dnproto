@@ -28,11 +28,17 @@ public abstract class BaseXrpcCommand
         {
             if(IsOauthEnabled() == false) return false;
 
-            return OauthUserIsAuthenticated();
+            bool auth = OauthUserIsAuthenticated();
+
+            Pds.Logger.LogInfo($"[AUTH] OauthUserIsAuthenticated: {auth}");
+
+            return auth;
         }
         else
         {
-            return JwtSecret.AccessJwtIsValid(Pds.Logger, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+            bool auth = JwtSecret.AccessJwtIsValid(Pds.Logger, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+            Pds.Logger.LogInfo($"[AUTH] AccessJwtIsValid: {auth}");
+            return auth;
         }
     }
 
