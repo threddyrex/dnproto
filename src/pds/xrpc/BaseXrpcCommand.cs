@@ -1,5 +1,6 @@
 
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.auth;
@@ -24,21 +25,43 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     public bool UserIsAuthenticated()
     {
-        if(IsOauthTokenRequest())
+        string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+
+        StringBuilder logLine = new StringBuilder("[AUTH] ");
+        logLine.Append($"ip={forwardedFor} ");
+
+        try
         {
-            if(IsOauthEnabled() == false) return false;
+            if(IsOauthTokenRequest())
+            {
+                logLine.Append("type=oauth ");
+                if(IsOauthEnabled() == false)
+                {
+                    logLine.Append("enabled=false ");
+                    return false;
+                }
 
-            bool auth = OauthUserIsAuthenticated();
+                bool auth = OauthUserIsAuthenticated();
+                logLine.Append($"authenticated={auth} ");
 
-            Pds.Logger.LogInfo($"[AUTH] OauthUserIsAuthenticated: {auth}");
+                bool authButExpired = OauthUserIsAuthenticatedButExpired();
+                logLine.Append($"authenticatedButExpired={authButExpired} ");
 
-            return auth;
+                return auth;
+            }
+            else
+            {
+                logLine.Append($"type=jwt ");
+                bool auth = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+                logLine.Append($"type=jwt authenticated={auth} ");
+                bool authButExpired = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+                logLine.Append($"authenticatedButExpired={authButExpired} ");
+                return auth;
+            }
         }
-        else
+        finally
         {
-            bool auth = JwtSecret.AccessJwtIsValid(Pds.Logger, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
-            Pds.Logger.LogInfo($"[AUTH] AccessJwtIsValid: {auth}");
-            return auth;
+            Pds.Logger.LogInfo(logLine.ToString());
         }
     }
 
@@ -51,6 +74,7 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     public (JsonObject response, int statusCode) GetAuthenticationFailureResponse()
     {
+        StringBuilder logLine = new StringBuilder("[AUTH] ");
         if(IsOauthTokenRequest())
         {
             if(IsOauthEnabled() == false)
@@ -87,7 +111,7 @@ public abstract class BaseXrpcCommand
         }
         else
         {
-            if (UserIsAuthenticatedButExpired())
+            if (UserIsAuthenticatedButExpired(logLine))
             {
                 return (
                     new JsonObject
@@ -114,9 +138,9 @@ public abstract class BaseXrpcCommand
     /// Returns true if the client is authenticated as the PDS user, but the token has expired.
     /// </summary>
     /// <returns></returns>
-    public bool UserIsAuthenticatedButExpired()
+    public bool UserIsAuthenticatedButExpired(StringBuilder logLine)
     {
-        return JwtSecret.AccessJwtIsValid(Pds.Logger, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+        return JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
     }
 
 
@@ -237,7 +261,6 @@ public abstract class BaseXrpcCommand
         bool hasDpop = HttpContext.Request.Headers.ContainsKey("DPoP");
         if (!hasDpop)
         {
-            Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: No DPoP header found");
             return false;
         }
 
@@ -245,13 +268,11 @@ public abstract class BaseXrpcCommand
         string? accessToken = GetOauthAccessToken();
         if (string.IsNullOrEmpty(accessToken))
         {
-            Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: No DPoP access token found");
             return false;
         }
 
         // Check if the token has at+jwt type (OAuth access token)
         bool isOauthToken = IsOauthAccessToken(accessToken);
-        Pds.Logger.LogInfo($"[AUTH] IsOauthTokenRequest: hasDpop={hasDpop} hasToken=true isOauthToken={isOauthToken}");
         return isOauthToken;
     }
 
