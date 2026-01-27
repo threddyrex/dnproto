@@ -130,6 +130,7 @@ public class Oauth_Token : BaseXrpcCommand
                 CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
             };
 
+            Pds.Logger.LogInfo($"[OAUTH] authorization_code. Scope from PAR: '{oauthSession.Scope}'");
             Pds.PdsDb.InsertOauthSession(oauthSession);
             Pds.Logger.LogInfo($"[OAUTH] authorization_code. Created new OAuth session: sessionId={oauthSession.SessionId}");
 
