@@ -17,7 +17,9 @@ public static class XrpcHelpers
             var parts = kvp.Split('=');
             if(parts.Length == 2 && parts[0] == key)
             {
-                return Uri.UnescapeDataString(parts[1]);
+                // In application/x-www-form-urlencoded, + represents a space
+                // Uri.UnescapeDataString only decodes %XX sequences, not +
+                return Uri.UnescapeDataString(parts[1].Replace('+', ' '));
             }
         }
 
