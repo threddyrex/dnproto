@@ -51,7 +51,7 @@ public abstract class BaseXrpcCommand
                 //
                 var result = OauthUserIsAuthenticated();
                 bool auth = result.IsValid;
-                logLine.Append($"authenticated={auth} expiresInMinutes={result.ExpiresInMinutes}");
+                logLine.Append($"authenticated={auth} expiresInMinutes={result.ExpiresInMinutes:F1} ");
 
                 //
                 // authenticated without expiry
@@ -73,7 +73,7 @@ public abstract class BaseXrpcCommand
                 //
                 // type
                 //
-                logLine.Append($"type=jwt ip={forwardedFor}");
+                logLine.Append($"type=jwt ip={forwardedFor} ");
 
                 //
                 // authenticated
@@ -524,7 +524,13 @@ public abstract class BaseXrpcCommand
                 result.Subject = jwt.Subject;
                 result.Scope = jwt.Claims.FirstOrDefault(c => c.Type == "scope")?.Value;
                 result.ClientId = jwt.Claims.FirstOrDefault(c => c.Type == "client_id")?.Value;
-                result.ExpiresAt = jwt.ValidTo;
+
+                // Extract expiration from exp claim
+                var expClaim = jwt.Claims.FirstOrDefault(c => c.Type == "exp")?.Value;
+                if (!string.IsNullOrEmpty(expClaim) && long.TryParse(expClaim, out var expUnix))
+                {
+                    result.ExpiresAt = DateTimeOffset.FromUnixTimeSeconds(expUnix).UtcDateTime;
+                }
 
                 // Extract cnf.jkt (JWK thumbprint binding)
                 var cnfClaim = jwt.Claims.FirstOrDefault(c => c.Type == "cnf")?.Value;
