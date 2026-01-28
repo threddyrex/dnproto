@@ -40,7 +40,7 @@ public abstract class BaseXrpcCommand
                 //
                 // type
                 //
-                logLine.Append($"type=oauth ip={forwardedFor} ");
+                logLine.Append($"[OAUTH] ip={forwardedFor} ");
                 if(IsOauthEnabled() == false)
                 {
                     logLine.Append("oauthenabled=false ");
@@ -74,7 +74,7 @@ public abstract class BaseXrpcCommand
                 //
                 // type
                 //
-                logLine.Append($"type=jwt ip={forwardedFor} ");
+                logLine.Append($"[LEGACY] ip={forwardedFor} ");
 
                 //
                 // authenticated
