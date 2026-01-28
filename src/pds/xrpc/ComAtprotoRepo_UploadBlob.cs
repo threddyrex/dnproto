@@ -15,7 +15,7 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
         // Require auth
         //
         if(UserIsAuthenticated(
-            allowedAuthTypes: [AuthType.Legacy, AuthType.OAuth, AuthType.Service], 
+            allowedAuthTypes: [AuthType.Legacy, AuthType.Oauth, AuthType.Service], 
             lxm: "com.atproto.repo.uploadBlob") == false)
         {
             var (response, statusCode) = GetAuthenticationFailureResponse();

@@ -45,7 +45,7 @@ public abstract class BaseXrpcCommand
     public enum AuthType
     {
         Legacy = 0,
-        OAuth = 1,
+        Oauth = 1,
         Service = 2
     }
 
@@ -57,7 +57,11 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     public bool UserIsAuthenticated(AuthType[]? allowedAuthTypes = null, string? lxm = null)
     {
-        allowedAuthTypes ??= [AuthType.Legacy, AuthType.OAuth];
+        //
+        // By default, let's allow Legacy and Oauth.
+        //
+        allowedAuthTypes ??= [AuthType.Legacy, AuthType.Oauth];
+
         string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         StringBuilder logLine = new StringBuilder("[AUTH] ");
 
@@ -81,7 +85,7 @@ public abstract class BaseXrpcCommand
                 //
                 // Check that caller allows it
                 //
-                if(!allowedAuthTypes.Contains(AuthType.OAuth))
+                if(!allowedAuthTypes.Contains(AuthType.Oauth))
                 {
                     logLine.Append("callerallows=false ");
                     return false;
