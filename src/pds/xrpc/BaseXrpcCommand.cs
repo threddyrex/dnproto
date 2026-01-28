@@ -10,6 +10,28 @@ using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.xrpc;
 
+/// <summary>
+/// Base class for all XRPC commands.
+/// But if we're being honest, it's mainly just auth code.
+/// 
+/// Right now we support a few different types of auth:
+/// 
+///     Legacy
+///         The original type of auth. 
+///         Uses handle and password.
+///         Has access to most things.
+/// 
+///     OAuth
+///         Logging in to other apps using an OAuth token.
+///         Restricted by scopes.
+///         Can be disabled globally with db flag.
+/// 
+///     Service
+///         Uses a service auth token (JWT signed by a remote 
+///         service's atproto signing key). 
+///         Added because I noticed I couldn't post a gif (uploadBlob).
+/// 
+/// </summary>
 public abstract class BaseXrpcCommand
 {
     public required Pds Pds;
@@ -21,7 +43,7 @@ public abstract class BaseXrpcCommand
 
     /// <summary>
     /// Returns true if the client is authenticated as the PDS user.
-    /// Tries oauth and legacy auth.
+    /// Checks both Legacy and OAuth authentication.
     /// </summary>
     /// <returns></returns>
     public bool UserIsAuthenticated()
