@@ -25,6 +25,7 @@ namespace dnproto.pds.xrpc;
 ///         Logging in to other apps using an OAuth token.
 ///         Restricted by scopes.
 ///         Can be disabled globally with db flag.
+///         Sessions can be deleted from db.
 /// 
 ///     Service
 ///         Uses a service auth token (JWT signed by a remote 
