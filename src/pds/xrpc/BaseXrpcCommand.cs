@@ -200,6 +200,11 @@ public abstract class BaseXrpcCommand
         }
     }
 
+    #endregion
+
+
+    #region LEGACY
+
     /// <summary>
     /// Returns true if the client is authenticated as the PDS user, but the token has expired.
     /// </summary>
@@ -208,8 +213,6 @@ public abstract class BaseXrpcCommand
     {
         return JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
     }
-
-
 
 
 
