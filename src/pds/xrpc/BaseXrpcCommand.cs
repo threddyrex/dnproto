@@ -212,17 +212,22 @@ public abstract class BaseXrpcCommand
 
 
 
-    protected bool IsOauthEnabled()
-    {
-        // refresh val from db
-        Pds.Config.OauthIsEnabled = Pds.PdsDb.IsOauthEnabled();
-        return Pds.Config.OauthIsEnabled;
-    }
-
     #endregion
 
 
     #region OAUTH
+
+    /// <summary>
+    /// Global flag that allows us to enable/disable oauth.
+    /// </summary>
+    /// <returns></returns>
+    protected bool IsOauthEnabled()
+    {
+        // refresh value from db
+        Pds.Config.OauthIsEnabled = Pds.PdsDb.IsOauthEnabled();
+        return Pds.Config.OauthIsEnabled;
+    }
+
 
     /// <summary>
     /// Gets the OAuth access token from the Authorization header using the DPoP scheme.
