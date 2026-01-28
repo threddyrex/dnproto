@@ -188,19 +188,6 @@ public abstract class BaseXrpcCommand
     }
 
 
-    /// <summary>
-    /// Returns true if the request has a valid service auth token.
-    /// Service auth tokens are JWTs signed by a remote service's atproto signing key,
-    /// where aud matches this PDS's user DID.
-    /// </summary>
-    /// <param name="lxm">Optional: the expected lxm claim (NSID of the endpoint being called)</param>
-    public bool ServiceAuthIsAuthenticated(string? lxm = null)
-    {
-        var result = ValidateServiceAuthToken(lxm);
-        Pds.Logger.LogInfo($"[AUTH] ServiceAuthIsAuthenticated: expectedLxm={lxm} result.IsValid={result.IsValid} result.Audience={result.Audience} result.Lxm={result.Lxm} result.Error={result.Error}");
-        return result.IsValid;
-    }
-
 
 
 
@@ -596,6 +583,22 @@ public abstract class BaseXrpcCommand
     #endregion
 
     #region SVCAUTH
+
+    /// <summary>
+    /// Returns true if the request has a valid service auth token.
+    /// Service auth tokens are JWTs signed by a remote service's atproto signing key,
+    /// where aud matches this PDS's user DID.
+    /// </summary>
+    /// <param name="lxm">Optional: the expected lxm claim (NSID of the endpoint being called)</param>
+    public bool ServiceAuthIsAuthenticated(string? lxm = null)
+    {
+        var result = ValidateServiceAuthToken(lxm);
+        Pds.Logger.LogInfo($"[AUTH] ServiceAuthIsAuthenticated: expectedLxm={lxm} result.IsValid={result.IsValid} result.Audience={result.Audience} result.Lxm={result.Lxm} result.Error={result.Error}");
+        return result.IsValid;
+    }
+
+
+
 
     /// <summary>
     /// Result of service auth token validation.
