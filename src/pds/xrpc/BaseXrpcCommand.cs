@@ -136,8 +136,12 @@ public abstract class BaseXrpcCommand
                 //
                 var result = ServiceAuthIsAuthenticated(lxm: lxm);
                 bool auth = result.IsValid;
-                logLine.Append($"authenticated={auth} aud={result.Audience} lxm={result.Lxm} error={result.Error}");
+                logLine.Append($"authenticated={auth} aud={result.Audience} lxm={result.Lxm} ");
 
+                if(string.IsNullOrEmpty(result.Error) == false)
+                {
+                    logLine.Append($"error={result.Error} ");
+                }
 
                 //
                 // return
