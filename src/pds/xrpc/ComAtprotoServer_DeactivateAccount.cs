@@ -14,7 +14,7 @@ public class ComAtprotoServer_DeactivateAccount : BaseXrpcCommand
         //
         // Require auth
         //
-        if(UserIsAuthenticated() == false)
+        if(UserIsAuthenticated(allowedAuthTypes: [AuthType.Legacy]) == false)
         {
             var (response, statusCode) = GetAuthenticationFailureResponse();
             return Results.Json(response, statusCode: statusCode);

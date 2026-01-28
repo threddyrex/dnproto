@@ -42,15 +42,23 @@ public abstract class BaseXrpcCommand
 
     #region AUTH
 
+    public enum AuthType
+    {
+        Legacy = 0,
+        OAuth = 1,
+        Service = 2
+    }
+
+
     /// <summary>
     /// Returns true if the client is authenticated as the PDS user.
-    /// Checks both Legacy and OAuth authentication.
+    /// The caller can specify which types of auth are allowed.
     /// </summary>
     /// <returns></returns>
-    public bool UserIsAuthenticated()
+    public bool UserIsAuthenticated(AuthType[]? allowedAuthTypes = null, string? lxm = null)
     {
+        allowedAuthTypes ??= [AuthType.Legacy, AuthType.OAuth];
         string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-
         StringBuilder logLine = new StringBuilder("[AUTH] ");
 
         try
@@ -71,11 +79,22 @@ public abstract class BaseXrpcCommand
                 }
 
                 //
+                // Check that caller allows it
+                //
+                if(!allowedAuthTypes.Contains(AuthType.OAuth))
+                {
+                    logLine.Append("callerallows=false ");
+                    return false;
+                }
+
+
+                //
                 // authenticated
                 //
                 var result = OauthUserIsAuthenticated();
                 bool auth = result.IsValid;
                 logLine.Append($"authenticated={auth} ");
+
 
                 //
                 // authenticated without expiry
@@ -87,10 +106,47 @@ public abstract class BaseXrpcCommand
                 }
                 logLine.Append($"expired={authButExpired} ");
 
+
+                //
+                // return
+                //
                 return auth;
             }
             //
-            // LEGACY
+            // SERVICE AUTH
+            //
+            else if(IsServiceAuthRequest())
+            {
+                //
+                // type
+                //
+                logLine.Append($"[SVC] ip={forwardedFor} ");
+
+                //
+                // Check that caller allows it
+                //
+                if(!allowedAuthTypes.Contains(AuthType.Service))
+                {
+                    logLine.Append("callerallows=false ");
+                    return false;
+                }
+
+                //
+                // authenticated
+                //
+                var result = ServiceAuthIsAuthenticated(lxm: lxm);
+                bool auth = result.IsValid;
+                logLine.Append($"authenticated={auth} aud={result.Audience} lxm={result.Lxm} error={result.Error}");
+
+
+                //
+                // return
+                //
+                return auth;
+
+            }
+            //
+            // LEGACY AUTH
             //
             else
             {
@@ -98,6 +154,17 @@ public abstract class BaseXrpcCommand
                 // type
                 //
                 logLine.Append($"[LEGACY] ip={forwardedFor} ");
+
+
+                //
+                // Check that caller allows it
+                //
+                if(!allowedAuthTypes.Contains(AuthType.Legacy))
+                {
+                    logLine.Append("callerallows=false ");
+                    return false;
+                }
+
 
                 //
                 // authenticated
@@ -615,17 +682,83 @@ public abstract class BaseXrpcCommand
 
     #region SVCAUTH
 
+
+    /// <summary>
+    /// Returns true if the request appears to be a Service Auth request.
+    /// Service Auth tokens are distinguished from Legacy Auth tokens by:
+    /// - Using ES256 algorithm (asymmetric ECDSA) instead of HS256 (symmetric HMAC)
+    /// - Having an 'lxm' claim (lexicon method identifier)
+    /// - Having an 'iss' claim that is a DID (the remote service's DID)
+    /// 
+    /// This does NOT validate the token, only checks if it has the structure of a Service Auth token.
+    /// </summary>
+    public bool IsServiceAuthRequest()
+    {
+        string? authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+        if(string.IsNullOrEmpty(authHeader))
+        {            
+            return false;
+        }
+
+        if(!authHeader.StartsWith("Bearer "))
+        {
+            return false;
+        }
+
+        string token = authHeader.Substring("Bearer ".Length).Trim();
+        if(string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        try
+        {
+            var tokenHandler = new Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler();
+            var jwtToken = tokenHandler.ReadJsonWebToken(token);
+
+            // Check if algorithm is ES256 (Service Auth uses asymmetric ECDSA)
+            // Legacy Auth uses HS256 (symmetric HMAC)
+            string? alg = jwtToken.Alg;
+            if(alg != "ES256")
+            {
+                return false;
+            }
+
+            // Check for 'lxm' claim which is specific to Service Auth tokens
+            var lxmClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "lxm");
+            if(lxmClaim == null)
+            {
+                return false;
+            }
+
+            // Check that 'iss' claim exists and looks like a DID
+            var issClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "iss");
+            if(issClaim == null || !issClaim.Value.StartsWith("did:"))
+            {
+                return false;
+            }
+
+            return true;
+        }
+        catch
+        {
+            // If we can't parse the token, it's not a valid Service Auth request
+            return false;
+        }
+    }
+
+
     /// <summary>
     /// Returns true if the request has a valid service auth token.
     /// Service auth tokens are JWTs signed by a remote service's atproto signing key,
     /// where aud matches this PDS's user DID.
     /// </summary>
     /// <param name="lxm">Optional: the expected lxm claim (NSID of the endpoint being called)</param>
-    public bool ServiceAuthIsAuthenticated(string? lxm = null)
+    public ServiceAuthValidationResult ServiceAuthIsAuthenticated(string? lxm = null)
     {
         var result = ValidateServiceAuthToken(lxm);
-        Pds.Logger.LogInfo($"[AUTH] ServiceAuthIsAuthenticated: expectedLxm={lxm} result.IsValid={result.IsValid} result.Audience={result.Audience} result.Lxm={result.Lxm} result.Error={result.Error}");
-        return result.IsValid;
+        return result;
     }
 
 
