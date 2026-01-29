@@ -33,7 +33,7 @@ public class ComAtprotoServer_CheckAccountStatus : BaseXrpcCommand
         {
             activated = Pds.Config.UserIsActive,
             validDid = true,
-            repoCommit = repoCommit.Cid,
+            repoCommit = repoCommit.Cid?.Base32,
             repoRev = repoCommit.Rev
         },
         statusCode: 200);
