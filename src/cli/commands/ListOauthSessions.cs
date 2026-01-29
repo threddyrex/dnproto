@@ -39,7 +39,13 @@ public class ListOauthSessions : BaseCommand
         var oauthSessions = db.GetAllOauthSessions();
         foreach (var session in oauthSessions)
         {
-            Logger.LogInfo($"[{session.CreatedDate}] ClientId={session.ClientId} Scope={session.Scope} RefreshTokenExpiresDate={session.RefreshTokenExpiresDate} SessionId={session.SessionId}");
+            Logger.LogInfo("");
+            Logger.LogInfo($"createdDate={session.CreatedDate}");
+            Logger.LogInfo($"clientId={session.ClientId}");
+            Logger.LogInfo($"scope={session.Scope}");
+            Logger.LogInfo($"refreshTokenExpiresDate={session.RefreshTokenExpiresDate}");
+            Logger.LogInfo($"sessionId={session.SessionId}");
+            Logger.LogInfo("");
         }
     }
 }

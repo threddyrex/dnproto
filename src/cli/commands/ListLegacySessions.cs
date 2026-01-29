@@ -39,7 +39,11 @@ public class ListLegacySessions : BaseCommand
         var legacySessions = db.GetAllLegacySessions();
         foreach (var session in legacySessions)
         {
-            Logger.LogInfo($"[{session.CreatedDate}] accessJwt={session.AccessJwt} refreshJwt={session.RefreshJwt}");
+            Logger.LogInfo($"");
+            Logger.LogInfo($"createdDate={session.CreatedDate}");
+            Logger.LogInfo($"accessJwt={session.AccessJwt}");
+            Logger.LogInfo($"refreshJwt={session.RefreshJwt}");
+            Logger.LogInfo($"");
         }
     }
 }
