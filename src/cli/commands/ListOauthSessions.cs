@@ -46,6 +46,7 @@ public class ListOauthSessions : BaseCommand
             Logger.LogInfo($"refreshTokenExpiresDate={session.RefreshTokenExpiresDate}");
             Logger.LogInfo($"sessionId={session.SessionId}");
             Logger.LogInfo("");
+            Logger.LogInfo("");
         }
     }
 }
