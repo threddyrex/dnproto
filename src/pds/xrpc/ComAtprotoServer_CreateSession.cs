@@ -51,6 +51,14 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
             Pds.Logger.LogInfo($"[AUTH] Successful login for identifier={identifier}");
             accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
             refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+
+            //
+            // Insert into db
+            //
+            if(string.IsNullOrEmpty(accessJwt) == false && string.IsNullOrEmpty(refreshJwt) == false)
+            {
+                Pds.PdsDb.CreateLegacySession(accessJwt, refreshJwt);
+            }
         }
         else
         {

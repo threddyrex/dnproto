@@ -1986,4 +1986,100 @@ DELETE FROM OauthSession
     }
 
     #endregion
+
+
+    
+    #region LEGACY
+
+    public static void CreateTable_LegacySession(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: LegacySession");
+        using(var command = connection.CreateCommand())
+        {
+            command.CommandText = @"
+CREATE TABLE IF NOT EXISTS LegacySession
+(
+    CreatedDate TEXT NOT NULL,
+    AccessJwt TEXT PRIMARY KEY,
+    RefreshJwt TEXT NOT NULL
+);
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void CreateLegacySession(string accessJwt, string refreshJwt)
+    {
+        DateTimeOffset createdDate = DateTimeOffset.UtcNow;
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO LegacySession (CreatedDate, AccessJwt, RefreshJwt)
+VALUES (@CreatedDate, @AccessJwt, @RefreshJwt)
+            ";
+            command.Parameters.AddWithValue("@CreatedDate", FormatDateTimeForDb(createdDate));
+            command.Parameters.AddWithValue("@AccessJwt", accessJwt);
+            command.Parameters.AddWithValue("@RefreshJwt", refreshJwt);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public bool LegacySessionExistsForAccessJwt(string accessJwt)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM LegacySession
+WHERE AccessJwt = @AccessJwt
+            ";
+            command.Parameters.AddWithValue("@AccessJwt", accessJwt);
+            var result = command.ExecuteScalar();
+            if(result is long count)
+            {
+                return count > 0;
+            }
+            return false;
+        }
+    }
+
+    public bool LegacySessionExistsForRefreshJwt(string refreshJwt)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM LegacySession
+WHERE RefreshJwt = @RefreshJwt
+            ";
+            command.Parameters.AddWithValue("@RefreshJwt", refreshJwt);
+            var result = command.ExecuteScalar();
+            if(result is long count)
+            {
+                return count > 0;
+            }
+            return false;
+        }
+    }
+
+    public void DeleteAllLegacySessions()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM LegacySession
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+
+    #endregion
+
 }

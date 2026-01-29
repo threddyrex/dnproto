@@ -190,7 +190,18 @@ public abstract class BaseXrpcCommand
                 }
                 logLine.Append($"expired={authButExpired} ");
 
-                return auth;
+
+                //
+                // check db
+                //
+                bool existsInDb = Pds.PdsDb.LegacySessionExistsForAccessJwt(GetAccessJwt()!);
+                logLine.Append($"existsInDb={existsInDb} ");
+
+
+                //
+                // return
+                //
+                return auth && existsInDb;
             }
         }
         finally
