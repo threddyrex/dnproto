@@ -2078,6 +2078,33 @@ DELETE FROM LegacySession
         }
     }
 
+    public List<LegacySession> GetAllLegacySessions()
+    {
+        var sessions = new List<LegacySession>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT CreatedDate, AccessJwt, RefreshJwt
+FROM LegacySession
+            ";
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    sessions.Add(new LegacySession
+                    {
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        AccessJwt = reader.GetString(reader.GetOrdinal("AccessJwt")),
+                        RefreshJwt = reader.GetString(reader.GetOrdinal("RefreshJwt"))
+                    });
+                }
+            }
+        }
+        
+        return sessions;
+    }
+
 
 
     #endregion
