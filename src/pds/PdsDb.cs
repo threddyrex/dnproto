@@ -1928,6 +1928,35 @@ WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @Righ
     }
 
 
+    public List<OauthSession> GetAllOauthSessions()
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+FROM OauthSession
+            ";
+            var sessions = new List<OauthSession>();
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    sessions.Add(new OauthSession
+                    {
+                        SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+                        ClientId = reader.GetString(reader.GetOrdinal("ClientId")),
+                        Scope = reader.GetString(reader.GetOrdinal("Scope")),
+                        DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
+                        RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
+                        RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                    });
+                }
+            }
+            return sessions;
+        }
+    }
 
 
     public void DeleteOldOauthSessions()
