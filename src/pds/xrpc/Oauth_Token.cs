@@ -48,7 +48,7 @@ public class Oauth_Token : BaseXrpcCommand
                 || string.IsNullOrEmpty(redirectUri) 
                 || string.IsNullOrEmpty(clientId))
             {
-                Pds.Logger.LogWarning("[OAUTH] authorization_code. Invalid OAuth token request: missing required parameters");
+                Pds.Logger.LogWarning("[AUTH] [OAUTH] authorization_code. Invalid OAuth token request: missing required parameters");
                 return Results.Json(new{}, statusCode: 400);
             }
 
@@ -59,7 +59,7 @@ public class Oauth_Token : BaseXrpcCommand
             string? dpopHeader = HttpContext.Request.Headers["DPoP"];
             if(string.IsNullOrEmpty(dpopHeader))
             {
-                Pds.Logger.LogWarning($"[OAUTH] authorization_code. dpop is null.");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] authorization_code. dpop is null.");
                 return Results.Json(new{}, statusCode: 401);
             }
             var dpopResult = JwtSecret.ValidateDpop(
@@ -69,7 +69,7 @@ public class Oauth_Token : BaseXrpcCommand
 
             if(!dpopResult.IsValid || string.IsNullOrEmpty(dpopResult.JwkThumbprint))
             {
-                Pds.Logger.LogWarning($"[OAUTH] authorization_code. dpop or thumbprint is invalid.");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] authorization_code. dpop or thumbprint is invalid.");
                 return Results.Json(new{}, statusCode: 401);
             }
 
@@ -79,7 +79,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             if(! Pds.PdsDb.OauthRequestExistsByAuthorizationCode(code))
             {
-                Pds.Logger.LogWarning($"[OAUTH] authorization_code. Invalid OAuth token request: authorization code not found or expired. code={code}");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] authorization_code. Invalid OAuth token request: authorization code not found or expired. code={code}");
                 return Results.Json(new{}, statusCode: 400);
             }
 
@@ -93,7 +93,7 @@ public class Oauth_Token : BaseXrpcCommand
             string computedChallenge = ComputeS256CodeChallenge(codeVerifier);
             if(!string.Equals(codeChallenge, computedChallenge, StringComparison.Ordinal))
             {
-                Pds.Logger.LogWarning($"[OAUTH] authorization_code. Invalid OAuth token request: code_verifier does not match code_challenge. code={code}");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] authorization_code. Invalid OAuth token request: code_verifier does not match code_challenge. code={code}");
                 return Results.Json(new{}, statusCode: 400);
             }
 
@@ -102,7 +102,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             if(!string.Equals(XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri"), redirectUri, StringComparison.Ordinal))
             {
-                Pds.Logger.LogWarning($"[OAUTH] authorization_code. Invalid OAuth token request: redirect_uri does not match. code={code}");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] authorization_code. Invalid OAuth token request: redirect_uri does not match. code={code}");
                 return Results.Json(new{}, statusCode: 400);
             }
 
@@ -111,7 +111,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             if(!string.Equals(XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "client_id"), clientId, StringComparison.Ordinal))
             {
-                Pds.Logger.LogWarning($"[OAUTH] authorization_code. Invalid OAuth token request: client_id does not match. code={code}");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] authorization_code. Invalid OAuth token request: client_id does not match. code={code}");
                 return Results.Json(new{}, statusCode: 400);
             }
 
@@ -130,9 +130,9 @@ public class Oauth_Token : BaseXrpcCommand
                 CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
             };
 
-            Pds.Logger.LogInfo($"[OAUTH] authorization_code. Scope from PAR: '{oauthSession.Scope}'");
+            Pds.Logger.LogInfo($"[AUTH] [OAUTH] authorization_code. Scope from PAR: '{oauthSession.Scope}'");
             Pds.PdsDb.InsertOauthSession(oauthSession);
-            Pds.Logger.LogInfo($"[OAUTH] authorization_code. Created new OAuth session: sessionId={oauthSession.SessionId}");
+            Pds.Logger.LogInfo($"[AUTH] [OAUTH] authorization_code. Created new OAuth session: sessionId={oauthSession.SessionId}");
 
 
             //
@@ -158,11 +158,11 @@ public class Oauth_Token : BaseXrpcCommand
 
             if(string.IsNullOrEmpty(accessToken))
             {
-                Pds.Logger.LogError("[OAUTH] Failed to generate access token");
+                Pds.Logger.LogError("[AUTH] [OAUTH] Failed to generate access token");
                 return Results.Json(new{}, statusCode: 500);
             }
 
-            Pds.Logger.LogInfo($"[OAUTH] authorization_code. Token issued. sessionId={oauthSession.SessionId} scope={oauthSession.Scope}");
+            Pds.Logger.LogInfo($"[AUTH] [OAUTH] authorization_code. Token issued. sessionId={oauthSession.SessionId} scope={oauthSession.Scope}");
 
             return Results.Json(new
             {
@@ -195,7 +195,7 @@ public class Oauth_Token : BaseXrpcCommand
             string? dpopHeader = HttpContext.Request.Headers["DPoP"];
             if(string.IsNullOrEmpty(dpopHeader))
             {
-                Pds.Logger.LogWarning($"[OAUTH] refresh_token. dpop is null.");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] refresh_token. dpop is null.");
                 return Results.Json(new{}, statusCode: 401);
             }
             var dpopResult = JwtSecret.ValidateDpop(
@@ -205,7 +205,7 @@ public class Oauth_Token : BaseXrpcCommand
 
             if(!dpopResult.IsValid || string.IsNullOrEmpty(dpopResult.JwkThumbprint))
             {
-                Pds.Logger.LogWarning($"[OAUTH] refresh_token. dpop or thumbprint is invalid.");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] refresh_token. dpop or thumbprint is invalid.");
                 return Results.Json(new{}, statusCode: 401);
             }
             
@@ -215,7 +215,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             if(! Pds.PdsDb.HasOauthSessionByRefreshToken(refreshToken))
             {
-                Pds.Logger.LogWarning($"[OAUTH] refresh_token. OAuth session not found for refresh token: {refreshToken}");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] refresh_token. OAuth session not found for refresh token: {refreshToken}");
                 return Results.Json(new{}, statusCode: 401);
             }
             var oauthSession = Pds.PdsDb.GetOauthSessionByRefreshToken(refreshToken);
@@ -226,7 +226,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             if(!string.Equals(oauthSession.DpopJwkThumbprint, dpopResult.JwkThumbprint, StringComparison.OrdinalIgnoreCase))
             {
-                Pds.Logger.LogWarning($"[OAUTH] refresh_token. OAuth session thumbprint does not match: sessionId={oauthSession.SessionId}");
+                Pds.Logger.LogWarning($"[AUTH] [OAUTH] refresh_token. OAuth session thumbprint does not match: sessionId={oauthSession.SessionId}");
                 return Results.Json(new{}, statusCode: 401);
             }
 
@@ -260,7 +260,7 @@ public class Oauth_Token : BaseXrpcCommand
                 return Results.Json(new{}, statusCode: 500);
             }
 
-            Pds.Logger.LogInfo($"[OAUTH] refresh_token. Issued new token and updated session. sessionId={oauthSession.SessionId} scope={oauthSession.Scope}");
+            Pds.Logger.LogInfo($"[AUTH] [OAUTH] refresh_token. Issued new token and updated session. sessionId={oauthSession.SessionId} scope={oauthSession.Scope}");
 
 
             //
@@ -283,7 +283,7 @@ public class Oauth_Token : BaseXrpcCommand
         //
         else
         {
-            Pds.Logger.LogWarning($"[OAUTH] Invalid OAuth token request: unsupported grant type. grant_type={grantType}");
+            Pds.Logger.LogWarning($"[AUTH] [OAUTH] Invalid OAuth token request: unsupported grant type. grant_type={grantType}");
             return Results.Json(new{}, statusCode: 400);
         }
     }

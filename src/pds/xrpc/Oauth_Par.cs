@@ -57,8 +57,8 @@ public class Oauth_Par : BaseXrpcCommand
 
         if (!dpopResult.IsValid)
         {
-            Pds.Logger.LogWarning($"[OAUTH] dpop validation failed. error={dpopResult.Error}");
-            Pds.Logger.LogWarning($"[OAUTH] debug: {dpopResult.DebugInfo}");
+            Pds.Logger.LogWarning($"[AUTH] [OAUTH] dpop validation failed. error={dpopResult.Error}");
+            Pds.Logger.LogWarning($"[AUTH] [OAUTH] debug: {dpopResult.DebugInfo}");
             return Results.Json(new{}, statusCode: 401);
         }
 
@@ -74,7 +74,7 @@ public class Oauth_Par : BaseXrpcCommand
         //
         // Return success
         //
-        Pds.Logger.LogInfo($"[OAUTH] par success. request_uri={oauthRequest.RequestUri} expires_in={expiresSeconds}");
+        Pds.Logger.LogInfo($"[AUTH] [OAUTH] par success. request_uri={oauthRequest.RequestUri} expires_in={expiresSeconds}");
         return Results.Json(new JsonObject()
         {
             ["request_uri"] = oauthRequest.RequestUri,
