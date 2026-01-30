@@ -1717,6 +1717,16 @@ CREATE TABLE IF NOT EXISTS OauthSession
             ";
             command.ExecuteNonQuery();
         }
+
+        // Index for authentication lookups by DPoP thumbprint
+        using(var command = connection.CreateCommand())
+        {
+            command.CommandText = @"
+CREATE INDEX IF NOT EXISTS IX_OauthSession_DpopJwkThumbprint 
+ON OauthSession(DpopJwkThumbprint);
+            ";
+            command.ExecuteNonQuery();
+        }
     }
 
     public void InsertOauthSession(OauthSession session)
