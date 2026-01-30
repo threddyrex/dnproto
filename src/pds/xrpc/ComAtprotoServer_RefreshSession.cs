@@ -77,6 +77,23 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         string? accessJwt = JwtSecret.GenerateAccessJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
         string? newRefreshJwt = JwtSecret.GenerateRefreshJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
 
+        if(string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(newRefreshJwt))
+        {
+            return Results.Json(new 
+            {
+                error = "ServerError",
+                message = "Failed to generate new tokens"
+            },
+            statusCode: 401);
+        }
+
+
+        //
+        // Insert new tokens into db
+        //
+        Pds.PdsDb.CreateLegacySession(accessJwt, newRefreshJwt);
+
+
         //
         // Return session info
         //
