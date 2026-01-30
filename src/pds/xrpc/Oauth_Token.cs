@@ -162,7 +162,7 @@ public class Oauth_Token : BaseXrpcCommand
                 return Results.Json(new{}, statusCode: 500);
             }
 
-            Pds.Logger.LogInfo($"[OAUTH] authorization_code. Token issued. sessionId={oauthSession.SessionId} sub={Pds.Config.UserDid}");
+            Pds.Logger.LogInfo($"[OAUTH] authorization_code. Token issued. sessionId={oauthSession.SessionId} scope={oauthSession.Scope}");
 
             return Results.Json(new
             {
@@ -230,6 +230,7 @@ public class Oauth_Token : BaseXrpcCommand
                 return Results.Json(new{}, statusCode: 401);
             }
 
+
             //
             // Generate new refresh token
             //
@@ -258,6 +259,8 @@ public class Oauth_Token : BaseXrpcCommand
                 Pds.Logger.LogError("[OAUTH] Failed to generate access token");
                 return Results.Json(new{}, statusCode: 500);
             }
+
+            Pds.Logger.LogInfo($"[OAUTH] refresh_token. Issued new token and updated session. sessionId={oauthSession.SessionId} scope={oauthSession.Scope}");
 
 
             //
