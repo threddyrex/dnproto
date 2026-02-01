@@ -49,7 +49,8 @@ public class ComAtprotoRepo_DeleteRecord : BaseXrpcCommand
                 Collection = collection,
                 Rkey = rkey
             }
-        });
+        }
+        , GetCallerIpAddress(), GetCallerUserAgent());
     
         //
         // Get the new stuff

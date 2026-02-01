@@ -96,7 +96,7 @@ public class UserRepo
     /// </summary>
     /// <param name="writes"></param>
     /// <returns></returns>
-    public List<ApplyWritesResult> ApplyWrites(List<ApplyWritesOperation> writes)
+    public List<ApplyWritesResult> ApplyWrites(List<ApplyWritesOperation> writes, string? ip, string? userAgent)
     {
         //
         // The caller probably parsed this from json request.
@@ -127,11 +127,10 @@ public class UserRepo
             //
             foreach(var write in writes)
             {
-                _logger.LogInfo($"[REPO] Applying write operation: {write.Type} on collection: {write.Collection} with rkey: {write.Rkey}");
-
                 string uri = $"at://{_userDid}/{write.Collection}/{write.Rkey}";
                 string fullKey = $"{write.Collection}/{write.Rkey}";
 
+                _logger.LogInfo($"[REPO] ip={ip} userAgent=\"{userAgent}\" type={write.Type} collection={write.Collection} rkey={write.Rkey}");
 
                 switch(write.Type)
                 {
@@ -463,10 +462,6 @@ public class UserRepo
         finally
         {
             Pds.GLOBAL_PDS_LOCK.Release();
-
-            DateTime endTime = DateTime.UtcNow;
-            TimeSpan duration = endTime - startTime;
-            _logger.LogInfo($"[REPO] ApplyWrites finished [{duration.TotalMilliseconds:F2}ms]");
         }
     }
 
@@ -529,6 +524,7 @@ public class UserRepo
             }
         }
     }
+
 
     public class ApplyWritesOperation
     {

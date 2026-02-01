@@ -73,7 +73,7 @@ public class ComAtprotoRepo_CreateRecord : BaseXrpcCommand
                 Rkey = rkey,
                 Record = record
             }
-        }).First();
+        }, GetCallerIpAddress(), GetCallerUserAgent()).First();
 
 
         //

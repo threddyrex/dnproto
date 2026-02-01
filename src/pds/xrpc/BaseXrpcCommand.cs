@@ -1115,6 +1115,32 @@ public abstract class BaseXrpcCommand
 
     #region LOG
 
+    protected string? GetCallerIpAddress()
+    {
+        try
+        {
+            string? forwardedFor = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            return forwardedFor;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    protected string? GetCallerUserAgent()
+    {
+        try
+        {
+            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
+            return userAgent;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     protected void LogConnectionInfo(HttpContext context)
     {
         try

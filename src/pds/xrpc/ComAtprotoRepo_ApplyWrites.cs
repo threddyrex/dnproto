@@ -124,7 +124,7 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
         //
         // Apply writes using UserRepo.ApplyWrites
         //
-        List<UserRepo.ApplyWritesResult> results = Pds.UserRepo.ApplyWrites(writes);
+        List<UserRepo.ApplyWritesResult> results = Pds.UserRepo.ApplyWrites(writes, GetCallerIpAddress(), GetCallerUserAgent());
 
         if(results.Count == 0)
         {

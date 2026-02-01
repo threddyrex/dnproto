@@ -124,7 +124,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = RecordKey.GenerateTid(),
                 Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
             }
-        }).First();
+        }, null, null).First();
 
 
         //
@@ -166,7 +166,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = RecordKey.GenerateTid(),
                 Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
             }
-        }).First();
+        }, null, null).First();
 
         //
         // Get record
@@ -216,7 +216,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = RecordKey.GenerateTid(),
                 Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
             }
-        }).First();
+        }, null, null).First();
 
         //
         // Delete record
@@ -231,7 +231,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Collection = "app.bsky.feed.post",
                 Rkey = atUriToDelete!.Rkey!
             }
-        }).First();
+        }, null, null).First();
 
 
         //
@@ -275,7 +275,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = RecordKey.GenerateTid(),
                 Record = DagCborObject.FromJsonString(post1Node.ToJsonString())
             }
-        }).First();
+        }, null, null).First();
         AtUri? atUri = AtUri.FromAtUri(result.Uri);
 
         //
@@ -303,7 +303,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = atUri!.Rkey!,
                 Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
             }
-        }).First();
+        }, null, null).First();
 
         //
         // Get record
@@ -359,7 +359,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = RecordKey.GenerateTid(),
                 Record = DagCborObject.FromJsonString(post2Node.ToJsonString())
             }
-        });
+        }, null, null);
 
         AtUri? atUri1 = AtUri.FromAtUri(results[0].Uri);
         AtUri? atUri2 = AtUri.FromAtUri(results[1].Uri);
@@ -429,7 +429,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Collection = "app.bsky.feed.post",
                 Rkey = post2nodeRkey
             }
-        });
+        }, null, null);
 
 
         //
@@ -500,7 +500,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = post2nodeRkey,
                 Record = DagCborObject.FromJsonString(post2NodeUpdated.ToJsonString())
             }
-        });
+        }, null, null);
 
 
         //
@@ -576,7 +576,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = post2nodeRkey,
                 Record = DagCborObject.FromJsonString(post2NodeUpdated.ToJsonString())
             }
-        });
+        }, null, null);
 
 
         //
@@ -660,7 +660,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
                 Rkey = post2nodeRkey,
                 Record = DagCborObject.FromJsonString(post2NodeUpdated.ToJsonString())
             }
-        });
+        }, null, null);
 
 
         //

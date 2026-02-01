@@ -330,7 +330,7 @@ public class Installer
                 Rkey = "self",
                 Record = profileRecord
             }
-        });
+        }, null, null);
     }
 
     #endregion

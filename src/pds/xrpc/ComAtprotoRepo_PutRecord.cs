@@ -55,7 +55,7 @@ public class ComAtprotoRepo_PutRecord : BaseXrpcCommand
                 Rkey = rkey,
                 Record = record
             }
-        }).First();
+        }, GetCallerIpAddress(), GetCallerUserAgent()).First();
 
         //
         // Get the new stuff
