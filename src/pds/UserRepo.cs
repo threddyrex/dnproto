@@ -130,7 +130,7 @@ public class UserRepo
                 string uri = $"at://{_userDid}/{write.Collection}/{write.Rkey}";
                 string fullKey = $"{write.Collection}/{write.Rkey}";
 
-                _logger.LogInfo($"[REPO] ip={ip} userAgent=\"{userAgent}\" type={write.Type} collection={write.Collection} rkey={write.Rkey}");
+                _logger.LogInfo($"[REPO] ip={ip} type={write.Type} collection={write.Collection} rkey={write.Rkey} userAgent=\"{userAgent}\"");
 
                 switch(write.Type)
                 {
