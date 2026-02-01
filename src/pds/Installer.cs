@@ -138,7 +138,8 @@ public class Installer
             UserIsActive = true,
             OauthIsEnabled = false,
             PdsCrawlers = new string[] { "bsky.network" },
-            RequestCrawlIsEnabled = false
+            RequestCrawlIsEnabled = false,
+            LogRetentionDays = 10
         };
 
 

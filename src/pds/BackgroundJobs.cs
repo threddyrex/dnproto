@@ -71,9 +71,10 @@ public class BackgroundJobs
     {
         try
         {
+            int logRetentionDays = _db.GetConfig().LogRetentionDays;
             foreach(string logFile in Directory.GetFiles(Path.Combine(_lfs.GetDataDir(), "logs")))
             {
-                if(File.GetLastWriteTime(logFile) < DateTime.Now.AddDays(-3)
+                if(File.GetLastWriteTime(logFile) < DateTime.Now.AddDays(0 - logRetentionDays)
                     && logFile.EndsWith(".bak", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogInfo($"[BACKGROUND] Deleting old log file: {logFile}");

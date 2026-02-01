@@ -102,7 +102,8 @@ CREATE TABLE IF NOT EXISTS Config (
     UserIsActive INTEGER NOT NULL,
     OauthIsEnabled INTEGER NOT NULL DEFAULT 0,
     PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network',
-    RequestCrawlIsEnabled INTEGER NOT NULL DEFAULT 0
+    RequestCrawlIsEnabled INTEGER NOT NULL DEFAULT 0,
+    LogRetentionDays INTEGER NOT NULL DEFAULT 10
 )
         ";
             
@@ -121,8 +122,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled)
-VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled)
+INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays)
+VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays)
             ";
             command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
@@ -142,6 +143,7 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             command.Parameters.AddWithValue("@OauthIsEnabled", config.OauthIsEnabled ? 1 : 0);
             command.Parameters.AddWithValue("@PdsCrawlers", string.Join(",", config.PdsCrawlers));
             command.Parameters.AddWithValue("@RequestCrawlIsEnabled", config.RequestCrawlIsEnabled ? 1 : 0);
+            command.Parameters.AddWithValue("@LogRetentionDays", config.LogRetentionDays);
             command.ExecuteNonQuery();
         }
 
@@ -178,7 +180,8 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                         UserIsActive = reader.GetInt32(reader.GetOrdinal("UserIsActive")) != 0,
                         OauthIsEnabled = reader.GetInt32(reader.GetOrdinal("OauthIsEnabled")) != 0,
                         PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries),
-                        RequestCrawlIsEnabled = reader.GetInt32(reader.GetOrdinal("RequestCrawlIsEnabled")) != 0
+                        RequestCrawlIsEnabled = reader.GetInt32(reader.GetOrdinal("RequestCrawlIsEnabled")) != 0,
+                        LogRetentionDays = reader.GetInt32(reader.GetOrdinal("LogRetentionDays"))
                     };
 
                     return config;

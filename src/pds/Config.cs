@@ -42,4 +42,6 @@ public class Config
     public required string[] PdsCrawlers;
 
     public required bool RequestCrawlIsEnabled;
+
+    public required int LogRetentionDays;
 }

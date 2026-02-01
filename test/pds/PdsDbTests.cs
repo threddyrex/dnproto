@@ -113,7 +113,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserIsActive = true,
             OauthIsEnabled = true,
             PdsCrawlers = new string[] { "bsky.network", "example.crawler" },
-            RequestCrawlIsEnabled = true
+            RequestCrawlIsEnabled = true,
+            LogRetentionDays = 7
         };
 
         // Act
@@ -141,6 +142,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.UserIsActive, retrievedConfig.UserIsActive);
         Assert.Equal(configToInsert.PdsCrawlers, retrievedConfig.PdsCrawlers);
         Assert.Equal(configToInsert.RequestCrawlIsEnabled, retrievedConfig.RequestCrawlIsEnabled);
+        Assert.Equal(configToInsert.LogRetentionDays, retrievedConfig.LogRetentionDays);
         Assert.Equal(1, configCount);
     }
 
