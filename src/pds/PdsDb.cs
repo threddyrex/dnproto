@@ -31,7 +31,7 @@ public class PdsDb
         // Check that the pds/db folder exists.
         //
         string dbDir = Path.Combine(lfs.GetDataDir(), "pds");
-        string dbFilePath = Path.Combine(lfs.GetDataDir(), "pds", "pds.db");
+        string dbFilePath = lfs.GetPath_PdsDb();
 
         if (!Directory.Exists(dbDir))
         {
@@ -57,55 +57,18 @@ public class PdsDb
 
     public SqliteConnection GetConnection()
     {
-        return GetConnection(_lfs);
+        return SqliteDb.GetConnection(_lfs.GetPath_PdsDb());
     }
 
-    public static SqliteConnection GetConnection(LocalFileSystem lfs)
+    public SqliteConnection GetConnectionCreate()
     {
-        string dbPath = lfs.GetPath_PdsDb();
-        string connectionString = new SqliteConnectionStringBuilder {
-            DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadWrite,
-            Pooling = false
-        }.ToString();
-
-        var conn = new SqliteConnection(connectionString);
-        conn.Open();
-
-        return conn;
+        return SqliteDb.GetConnectionCreate(_lfs.GetPath_PdsDb());
     }
-
-    public static SqliteConnection GetConnectionCreate(LocalFileSystem lfs)
-    {
-        string dbPath = lfs.GetPath_PdsDb();
-        string connectionString = new SqliteConnectionStringBuilder {
-            DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadWriteCreate,
-            Pooling = false
-        }.ToString();
-
-        var conn = new SqliteConnection(connectionString);
-        conn.Open();
-
-        return conn;
-    }
-
 
     public SqliteConnection GetConnectionReadOnly()
     {
-        string dbPath = _lfs.GetPath_PdsDb();
-        string connectionString = new SqliteConnectionStringBuilder {
-            DataSource = dbPath,
-            Mode = SqliteOpenMode.ReadOnly,
-            Pooling = false
-        }.ToString();
-
-        var conn = new SqliteConnection(connectionString);
-        conn.Open();
-
-        return conn;
+        return SqliteDb.GetConnectionReadOnly(_lfs.GetPath_PdsDb());
     }
-
 
     #endregion
 

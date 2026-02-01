@@ -72,7 +72,7 @@ public class Installer
         // run create table commands
         //
         logger.LogInfo("Creating PDS database tables (if not exist).");
-        using (var connection = PdsDb.GetConnectionCreate(lfs))
+        using (var connection = SqliteDb.GetConnectionCreate(lfs.GetPath_PdsDb()))
         {
             connection.Open();
             PdsDb.CreateTable_Config(connection, logger);
