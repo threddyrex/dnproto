@@ -68,6 +68,12 @@ public class BackupAccount : BaseCommand
             return;
         }
 
+        if (actorInfo == null)
+        {
+            Logger.LogError($"Failed to resolve actor info for actor: {actor}");
+            return;
+        }
+
 
 
         //
@@ -76,22 +82,26 @@ public class BackupAccount : BaseCommand
         SessionFile? session = lfs?.LoadSession(actorInfo);
         if (session == null)
         {
-            Logger.LogError($"Failed to load session for actor: {actor}. Please log in to your account.");
-            return;
+            Logger.LogWarning($"Failed to load session for actor: {actor}. Will not be able to backup prefs.");
         }
+
+        bool hasSession = session != null && !string.IsNullOrEmpty(session.accessJwt);
 
         //
         // Get prefs, to check session.
         //
-        Logger.LogInfo("Verifying session by calling getPreferences...");
-        JsonNode? prefsTest = BlueskyClient.SendRequest($"https://{session.pds}/xrpc/app.bsky.actor.getPreferences",
-            HttpMethod.Get,
-            accessJwt: session.accessJwt);
-            
-        if (prefsTest == null)
+        if(hasSession)
         {
-            Logger.LogError("Failed to verify session with getPreferences call. Is the session still valid?");
-            return;
+            Logger.LogInfo("Verifying session by calling getPreferences...");
+            JsonNode? prefsTest = BlueskyClient.SendRequest($"https://{session!.pds}/xrpc/app.bsky.actor.getPreferences",
+                HttpMethod.Get,
+                accessJwt: session.accessJwt);
+                
+            if (prefsTest == null)
+            {
+                Logger.LogError("Failed to verify session with getPreferences call. Is the session still valid?");
+                return;
+            }            
         }
 
 
@@ -150,12 +160,12 @@ public class BackupAccount : BaseCommand
         //
         // Get prefs
         //
-        if(getPrefs)
+        if(getPrefs && hasSession)
         {
             //
             // Call WS
             //
-            JsonNode? response = BlueskyClient.SendRequest($"https://{session.pds}/xrpc/app.bsky.actor.getPreferences",
+            JsonNode? response = BlueskyClient.SendRequest($"https://{session!.pds}/xrpc/app.bsky.actor.getPreferences",
                 HttpMethod.Get, 
                 accessJwt: session.accessJwt);
 
@@ -201,7 +211,7 @@ public class BackupAccount : BaseCommand
             //
             Logger.LogInfo("");
             Logger.LogInfo($"----- BLOBS -----");
-            List<string> blobs = BlueskyClient.ListBlobs(session.pds, session.did);
+            List<string> blobs = BlueskyClient.ListBlobs(actorInfo!.Pds, actorInfo.Did);
             string blobFile = Path.Combine(backupDir, "blobs.txt");
             Logger.LogInfo($"Found {blobs.Count} blobs.");
             Logger.LogInfo($"Creating blob list file: {blobFile}");
@@ -238,7 +248,7 @@ public class BackupAccount : BaseCommand
                 if (File.Exists(blobPath) == false)
                 {
                     Logger.LogInfo($"Downloading blob: {blobPath}");
-                    BlueskyClient.GetBlob(session.pds, session.did, blob, blobPath);
+                    BlueskyClient.GetBlob(actorInfo.Pds, actorInfo.Did, blob, blobPath);
                     Thread.Sleep(blobSleepSeconds * 1000);
                     blobCountDownloaded++;
                 }
