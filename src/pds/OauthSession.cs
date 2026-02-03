@@ -17,4 +17,6 @@ public class OauthSession
     public required string RefreshTokenExpiresDate { get; set; }
 
     public required string CreatedDate { get; set; }
+
+    public required string IpAddress { get; set; }
 }

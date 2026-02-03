@@ -95,6 +95,8 @@ public class Admin_Login : BaseAdmin
 
                 Pds.PdsDb.InsertAdminSession(adminSession);
 
+                Pds.Logger.LogInfo($"[AUTH] [ADMIN] authSucceeded={authSucceeded} ip={adminSession.IpAddress}");
+
                 //
                 // set cookie with session id
                 //

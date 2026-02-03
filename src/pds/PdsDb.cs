@@ -1682,7 +1682,8 @@ CREATE TABLE IF NOT EXISTS OauthSession
     DpopJwkThumbprint TEXT NOT NULL,
     RefreshToken TEXT NOT NULL,
     RefreshTokenExpiresDate TEXT NOT NULL,
-    CreatedDate TEXT NOT NULL
+    CreatedDate TEXT NOT NULL,
+    IpAddress TEXT NOT NULL
 );
             ";
             command.ExecuteNonQuery();
@@ -1705,8 +1706,8 @@ ON OauthSession(DpopJwkThumbprint);
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO OauthSession (SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate)
-VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @RefreshTokenExpiresDate, @CreatedDate)
+INSERT INTO OauthSession (SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress)
+VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @RefreshTokenExpiresDate, @CreatedDate, @IpAddress)
             ";
             command.Parameters.AddWithValue("@SessionId", session.SessionId);
             command.Parameters.AddWithValue("@ClientId", session.ClientId);
@@ -1715,6 +1716,7 @@ VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @Refre
             command.Parameters.AddWithValue("@RefreshToken", session.RefreshToken);
             command.Parameters.AddWithValue("@RefreshTokenExpiresDate", session.RefreshTokenExpiresDate);
             command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
+            command.Parameters.AddWithValue("@IpAddress", session.IpAddress);
             command.ExecuteNonQuery();
         }
     }
@@ -1725,7 +1727,7 @@ VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @Refre
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress
 FROM OauthSession
 WHERE SessionId = @SessionId
             ";
@@ -1742,7 +1744,8 @@ WHERE SessionId = @SessionId
                         DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
-                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
                     };
                 }
             }
@@ -1779,7 +1782,7 @@ WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress
 FROM OauthSession
 WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
             ";
@@ -1797,7 +1800,8 @@ WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
                         DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
-                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
                     };
                 }
             }
@@ -1818,7 +1822,8 @@ SET ClientId = @ClientId,
     DpopJwkThumbprint = @DpopJwkThumbprint,
     RefreshToken = @RefreshToken,
     RefreshTokenExpiresDate = @RefreshTokenExpiresDate,
-    CreatedDate = @CreatedDate
+    CreatedDate = @CreatedDate,
+    IpAddress = @IpAddress
 WHERE SessionId = @SessionId
             ";
             command.Parameters.AddWithValue("@SessionId", oauthSession.SessionId);
@@ -1828,6 +1833,7 @@ WHERE SessionId = @SessionId
             command.Parameters.AddWithValue("@RefreshToken", oauthSession.RefreshToken);
             command.Parameters.AddWithValue("@RefreshTokenExpiresDate", oauthSession.RefreshTokenExpiresDate);
             command.Parameters.AddWithValue("@CreatedDate", oauthSession.CreatedDate);
+            command.Parameters.AddWithValue("@IpAddress", oauthSession.IpAddress);
             command.ExecuteNonQuery();
         }
     }
@@ -1899,7 +1905,8 @@ WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @Righ
                         DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
-                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
                     };
                 }
             }
@@ -1914,7 +1921,7 @@ WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @Righ
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress
 FROM OauthSession
             ";
             var sessions = new List<OauthSession>();
@@ -1930,7 +1937,8 @@ FROM OauthSession
                         DpopJwkThumbprint = reader.GetString(reader.GetOrdinal("DpopJwkThumbprint")),
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
-                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
                     });
                 }
             }

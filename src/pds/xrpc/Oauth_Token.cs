@@ -119,6 +119,7 @@ public class Oauth_Token : BaseXrpcCommand
             //
             // Create new OauthSession
             //
+            string? ipAddress = GetCallerIpAddress();
             var oauthSession = new OauthSession()
             {
                 SessionId = "sessionid-" + Guid.NewGuid().ToString(),
@@ -127,7 +128,8 @@ public class Oauth_Token : BaseXrpcCommand
                 DpopJwkThumbprint = dpopResult.JwkThumbprint,
                 RefreshToken = "refresh-" + Guid.NewGuid().ToString(),
                 RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddDays(90)),
-                CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+                CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+                IpAddress = ipAddress ?? "unknown"
             };
 
             Pds.Logger.LogInfo($"[AUTH] [OAUTH] authorization_code. Scope from PAR: '{oauthSession.Scope}'");

@@ -774,7 +774,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             DpopJwkThumbprint = "dpopJwkThumbprint",
             RefreshToken = "refreshToken",
             RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
-            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            IpAddress = "ipaddr"
         };
 
         pdsDb.InsertOauthSession(oauthSession);
@@ -788,6 +789,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(oauthSession.RefreshToken, retrievedSession.RefreshToken);
         Assert.Equal(oauthSession.RefreshTokenExpiresDate, retrievedSession.RefreshTokenExpiresDate);
         Assert.Equal(oauthSession.CreatedDate, retrievedSession.CreatedDate);
+        Assert.Equal(oauthSession.IpAddress, retrievedSession.IpAddress);
     }
 
     [Fact]
@@ -805,7 +807,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             DpopJwkThumbprint = "dpopJwkThumbprint",
             RefreshToken = "refreshToken",
             RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(-5)),
-            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            IpAddress = "ipaddr"
         };
 
         pdsDb.InsertOauthSession(oauthSession);
