@@ -1,13 +1,13 @@
 param (
     [string]$dnprotoPath = $null,
-    [string]$logLevel = $null,
+    [string]$logLevel = "trace",
     [bool]$logToDataDir = $false,
     [string]$dataDir = $null,
-    [string]$actor = $null,
-    [string]$key
+    [Parameter(Position = 0)]
+    [string]$url
 )
 
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command GetRecordSync /actor $actor /key $key /logLevel $logLevel /dataDir $dataDir /logToDataDir $logToDataDir
+& $dnprotoPath /command GetRecordSync /url $url /logLevel $logLevel /dataDir $dataDir /logToDataDir $logToDataDir

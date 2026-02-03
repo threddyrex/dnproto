@@ -15,7 +15,7 @@ public class GetRecordSync : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"actor", "key"});
+        return new HashSet<string>(new string[]{"url"});
     }
 
 
@@ -31,10 +31,22 @@ public class GetRecordSync : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
-        string? fullKey = CommandLineInterface.GetArgumentValue(arguments, "key");
+        string? url = CommandLineInterface.GetArgumentValue(arguments, "url");
 
 
+        //
+        // Parse url
+        //
+        AtUri? atUri = AtUri.FromBskyPost(url);
+        string? actor = atUri?.Authority;
+
+        if(atUri == null || string.IsNullOrEmpty(atUri.Collection) || string.IsNullOrEmpty(atUri.Rkey) || string.IsNullOrEmpty(actor))
+        {
+            Logger.LogError($"Failed to parse bsky post url: {url}");
+            return;
+        }
+
+ 
 
         //
         // Load lfs
@@ -56,9 +68,7 @@ public class GetRecordSync : BaseCommand
         //
         // Call pds
         //
-        string collection = fullKey!.Split('/')[0];
-        string rkey = fullKey.Substring(collection.Length + 1);
-        BlueskyClient.GetRecordSync(actorInfo.Pds, actorInfo.Did, collection, rkey, tempFile);
+        BlueskyClient.GetRecordSync(actorInfo.Pds, actorInfo.Did, atUri.Collection, atUri.Rkey, tempFile);
 
 
         //
@@ -99,6 +109,9 @@ public class GetRecordSync : BaseCommand
                     Logger.LogTrace($"{repoRecordType}:");
                     Logger.LogTrace($"  cid: {repoRecord.Cid.GetBase32()}");
                     Logger.LogTrace($"  blockJson:\n {repoRecord.JsonString}");
+
+                    // show dag cbor
+                    Logger.LogTrace($"\nDAG CBOR OBJECT:\n{DagCborObject.GetRecursiveDebugString(repoRecord.DataBlock, 0)}");
 
 
                     return true;
