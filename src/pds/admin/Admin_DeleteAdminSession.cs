@@ -8,7 +8,7 @@ namespace dnproto.pds.admin;
 
 /// <summary>
 /// </summary>
-public class Admin_DeleteLegacySession : BaseAdmin
+public class Admin_DeleteAdminSession : BaseAdmin
 {
     public IResult GetResponse()
     {
@@ -31,12 +31,12 @@ public class Admin_DeleteLegacySession : BaseAdmin
 
 
         //
-        // We got this far, so delete the legacy session
+        // We got this far, so delete the admin session
         //
-        string? refreshJwt = HttpContext.Request.Form["refreshJwt"];
-        if(string.IsNullOrEmpty(refreshJwt) == false)
+        string? sessionId = HttpContext.Request.Form["sessionId"];
+        if(string.IsNullOrEmpty(sessionId) == false)
         {
-            Pds.PdsDb.DeleteLegacySessionForRefreshJwt(refreshJwt);
+            Pds.PdsDb.DeleteAdminSession(sessionId);
         }
 
 

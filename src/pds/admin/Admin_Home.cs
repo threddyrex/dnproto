@@ -93,7 +93,15 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in adminSessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)}</div>");
+                sb.Append($@"<div class=""session-item"">
+                    <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} 
+                    <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} 
+                    <span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)}
+                    <form method=""post"" action=""/admin/deleteadminsession"" style=""display:inline; margin-left: 12px;"">
+                        <input type=""hidden"" name=""sessionId"" value=""{System.Net.WebUtility.HtmlEncode(s.SessionId)}"" />
+                        <button type=""submit"" class=""delete-btn"">Delete</button>
+                    </form>
+                </div>");
             }
             return sb.ToString();
         }
