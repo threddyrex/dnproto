@@ -239,6 +239,7 @@ public class Pds
         App.MapPost("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/logout", (HttpContext context) => new Admin_Logout(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deleteoauthsession", (HttpContext context) => new Admin_DeleteOauthSession(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/deletelegacysession", (HttpContext context) => new Admin_DeleteLLegacySession(){Pds = this, HttpContext = context}.GetResponse());
         
         
 

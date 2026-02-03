@@ -49,7 +49,15 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in legacySessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">User-Agent:</span> {System.Net.WebUtility.HtmlEncode(s.UserAgent)}</div>");
+                sb.Append($@"<div class=""session-item"">
+                    <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} 
+                    <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} 
+                    <span class=""session-label"">User-Agent:</span> {System.Net.WebUtility.HtmlEncode(s.UserAgent)}
+                    <form method=""post"" action=""/admin/deletelegacysession"" style=""display:inline; margin-left: 12px;"">
+                        <input type=""hidden"" name=""refreshJwt"" value=""{System.Net.WebUtility.HtmlEncode(s.RefreshJwt)}"" />
+                        <button type=""submit"" class=""delete-btn"">Delete</button>
+                    </form>
+                </div>");
             }
             return sb.ToString();
         }
