@@ -840,6 +840,24 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.False(pdsDb.LegacySessionExistsForRefreshJwt("nonexistent"));
     }
 
+    [Fact]
+    public void LegacySession_DeleteForRefreshJwt()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllLegacySessions();
+
+        string accessJwt = Guid.NewGuid().ToString();
+        string refreshJwt = Guid.NewGuid().ToString();
+        pdsDb.CreateLegacySession(accessJwt, refreshJwt);
+
+        Assert.True(pdsDb.LegacySessionExistsForAccessJwt(accessJwt));
+        Assert.True(pdsDb.LegacySessionExistsForRefreshJwt(refreshJwt));
+
+        pdsDb.DeleteLegacySessionForRefreshJwt(refreshJwt);
+
+        Assert.False(pdsDb.LegacySessionExistsForAccessJwt(accessJwt));
+        Assert.False(pdsDb.LegacySessionExistsForRefreshJwt(refreshJwt));
+    }
 
     #endregion
 

@@ -2054,6 +2054,22 @@ WHERE RefreshJwt = @RefreshJwt
         }
     }
 
+
+    public void DeleteLegacySessionForRefreshJwt(string refreshJwt)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM LegacySession
+WHERE RefreshJwt = @RefreshJwt
+            ";
+            command.Parameters.AddWithValue("@RefreshJwt", refreshJwt);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
     public void DeleteAllLegacySessions()
     {
         using(var sqlConnection = GetConnection())
@@ -2065,6 +2081,7 @@ DELETE FROM LegacySession
             command.ExecuteNonQuery();
         }
     }
+
 
     public List<LegacySession> GetAllLegacySessions()
     {

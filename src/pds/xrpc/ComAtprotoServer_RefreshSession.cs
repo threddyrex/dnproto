@@ -95,6 +95,12 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
 
 
         //
+        // Delete old refresh token from db
+        //
+        Pds.PdsDb.DeleteLegacySessionForRefreshJwt(originalRefreshJwt!);
+
+
+        //
         // Return session info
         //
         return Results.Json(new 
