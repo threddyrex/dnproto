@@ -241,6 +241,10 @@ public class Pds
         App.MapPost("/admin/deleteoauthsession", (HttpContext context) => new Admin_DeleteOauthSession(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deletelegacysession", (HttpContext context) => new Admin_DeleteLegacySession(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deleteadminsession", (HttpContext context) => new Admin_DeleteAdminSession(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/passkeyregistrationoptions", (HttpContext context) => new Admin_PasskeyRegistrationOptions(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/registerpasskey", async (HttpContext context) => { var cmd = new Admin_RegisterPasskey(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
+        App.MapPost("/admin/deletepasskey", (HttpContext context) => new Admin_DeletePasskey(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/deletepasskeychallenge", (HttpContext context) => new Admin_DeletePasskeyChallenge(){Pds = this, HttpContext = context}.GetResponse());
         
         
 

@@ -966,4 +966,31 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     
 
     #endregion
+
+
+
+    #region PKEYCHALL
+
+    [Fact]
+    public void PasskeyChallenge_InsertAndRetrieve()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllPasskeyChallenges();
+
+        var passkeyChallenge = new PasskeyChallenge
+        {
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            Challenge = "challenge_example"
+        };
+
+        pdsDb.InsertPasskeyChallenge(passkeyChallenge);
+
+        var retrievedPasskeyChallenge = pdsDb.GetPasskeyChallenge(passkeyChallenge.Challenge);
+        Assert.NotNull(retrievedPasskeyChallenge);
+        Assert.Equal(passkeyChallenge.Challenge, retrievedPasskeyChallenge!.Challenge);
+        Assert.Equal(passkeyChallenge.CreatedDate, retrievedPasskeyChallenge.CreatedDate);
+    }
+    
+
+    #endregion
 }

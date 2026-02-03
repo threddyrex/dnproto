@@ -2386,8 +2386,135 @@ WHERE CredentialId = @CredentialId
         throw new Exception($"Passkey with CredentialId '{credentialId}' not found.");
     }
 
+    public void DeletePasskeyByName(string name)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM Passkey WHERE Name = @Name
+            ";
+            command.Parameters.AddWithValue("@Name", name);
+            command.ExecuteNonQuery();
+        }
+    }
+
 
     #endregion
 
+    #region PKEYCHALL
 
+
+    public static void CreateTable_PasskeyChallenge(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: PasskeyChallenge");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS PasskeyChallenge (
+Challenge TEXT PRIMARY KEY,
+CreatedDate TEXT NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();
+    }
+
+
+    public void InsertPasskeyChallenge(PasskeyChallenge challenge)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO PasskeyChallenge (Challenge, CreatedDate)
+VALUES (@Challenge, @CreatedDate)
+            ";
+            command.Parameters.AddWithValue("@Challenge", challenge.Challenge);
+            command.Parameters.AddWithValue("@CreatedDate", challenge.CreatedDate);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public PasskeyChallenge? GetPasskeyChallenge(string challenge)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Challenge, CreatedDate
+FROM PasskeyChallenge
+WHERE Challenge = @Challenge
+            ";
+            command.Parameters.AddWithValue("@Challenge", challenge);
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new PasskeyChallenge
+                    {
+                        Challenge = reader.GetString(reader.GetOrdinal("Challenge")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                    };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void DeletePasskeyChallenge(string challenge)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM PasskeyChallenge WHERE Challenge = @Challenge
+            ";
+            command.Parameters.AddWithValue("@Challenge", challenge);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteAllPasskeyChallenges()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM PasskeyChallenge
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public List<PasskeyChallenge> GetAllPasskeyChallenges()
+    {
+        var challenges = new List<PasskeyChallenge>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Challenge, CreatedDate
+FROM PasskeyChallenge
+            ";
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    challenges.Add(new PasskeyChallenge
+                    {
+                        Challenge = reader.GetString(reader.GetOrdinal("Challenge")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate"))
+                    });
+                }
+            }
+        }
+        return challenges;
+    }
+
+
+
+    #endregion
 }
