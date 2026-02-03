@@ -1989,26 +1989,30 @@ CREATE TABLE IF NOT EXISTS LegacySession
 (
     CreatedDate TEXT NOT NULL,
     AccessJwt TEXT PRIMARY KEY,
-    RefreshJwt TEXT NOT NULL
+    RefreshJwt TEXT NOT NULL,
+    IpAddress TEXT NOT NULL,
+    UserAgent TEXT NOT NULL
 );
             ";
             command.ExecuteNonQuery();
         }
     }
 
-    public void CreateLegacySession(string accessJwt, string refreshJwt)
+    public void CreateLegacySession(LegacySession session)
     {
         DateTimeOffset createdDate = DateTimeOffset.UtcNow;
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO LegacySession (CreatedDate, AccessJwt, RefreshJwt)
-VALUES (@CreatedDate, @AccessJwt, @RefreshJwt)
+INSERT INTO LegacySession (CreatedDate, AccessJwt, RefreshJwt, IpAddress, UserAgent)
+VALUES (@CreatedDate, @AccessJwt, @RefreshJwt, @IpAddress, @UserAgent)
             ";
-            command.Parameters.AddWithValue("@CreatedDate", FormatDateTimeForDb(createdDate));
-            command.Parameters.AddWithValue("@AccessJwt", accessJwt);
-            command.Parameters.AddWithValue("@RefreshJwt", refreshJwt);
+            command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
+            command.Parameters.AddWithValue("@AccessJwt", session.AccessJwt);
+            command.Parameters.AddWithValue("@RefreshJwt", session.RefreshJwt);
+            command.Parameters.AddWithValue("@IpAddress", session.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", session.UserAgent);
             command.ExecuteNonQuery();
         }
     }
@@ -2090,7 +2094,7 @@ DELETE FROM LegacySession
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT CreatedDate, AccessJwt, RefreshJwt
+SELECT CreatedDate, AccessJwt, RefreshJwt, IpAddress, UserAgent
 FROM LegacySession
             ";
             using(var reader = command.ExecuteReader())
@@ -2101,7 +2105,9 @@ FROM LegacySession
                     {
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
                         AccessJwt = reader.GetString(reader.GetOrdinal("AccessJwt")),
-                        RefreshJwt = reader.GetString(reader.GetOrdinal("RefreshJwt"))
+                        RefreshJwt = reader.GetString(reader.GetOrdinal("RefreshJwt")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent"))
                     });
                 }
             }

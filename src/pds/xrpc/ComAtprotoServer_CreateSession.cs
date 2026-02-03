@@ -57,7 +57,16 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
             //
             if(string.IsNullOrEmpty(accessJwt) == false && string.IsNullOrEmpty(refreshJwt) == false)
             {
-                Pds.PdsDb.CreateLegacySession(accessJwt, refreshJwt);
+                var session = new LegacySession
+                {
+                    CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+                    AccessJwt = accessJwt,
+                    RefreshJwt = refreshJwt,
+                    IpAddress = GetCallerIpAddress() ?? "unknown",
+                    UserAgent = GetCallerUserAgent() ?? "unknown"
+                };
+
+                Pds.PdsDb.CreateLegacySession(session);
             }
         }
         else

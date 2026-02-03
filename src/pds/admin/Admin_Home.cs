@@ -49,7 +49,7 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in legacySessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">User-Agent:</span> {System.Net.WebUtility.HtmlEncode(s.UserAgent)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
             }
             return sb.ToString();
         }

@@ -91,7 +91,16 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         //
         // Insert new tokens into db
         //
-        Pds.PdsDb.CreateLegacySession(accessJwt, newRefreshJwt);
+        var session = new LegacySession
+        {
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            AccessJwt = accessJwt,
+            RefreshJwt = newRefreshJwt,
+            IpAddress = GetCallerIpAddress() ?? "unknown",
+            UserAgent = GetCallerUserAgent() ?? "unknown"
+        };
+
+        Pds.PdsDb.CreateLegacySession(session);
 
 
         //

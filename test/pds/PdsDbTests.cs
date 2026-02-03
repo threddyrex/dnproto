@@ -829,13 +829,20 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         pdsDb.DeleteAllLegacySessions();
 
-        string accessJwt = Guid.NewGuid().ToString();
-        string refreshJwt = Guid.NewGuid().ToString();
 
-        pdsDb.CreateLegacySession(accessJwt, refreshJwt);
+        var session = new LegacySession()
+        {
+            AccessJwt = "accessjwt",
+            RefreshJwt = "refreshjwt",
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            IpAddress = "ipaddr",
+            UserAgent = "useragent"
+        };
 
-        Assert.True(pdsDb.LegacySessionExistsForAccessJwt(accessJwt));
-        Assert.True(pdsDb.LegacySessionExistsForRefreshJwt(refreshJwt));
+        pdsDb.CreateLegacySession(session);
+
+        Assert.True(pdsDb.LegacySessionExistsForAccessJwt(session.AccessJwt));
+        Assert.True(pdsDb.LegacySessionExistsForRefreshJwt(session.RefreshJwt));
         Assert.False(pdsDb.LegacySessionExistsForAccessJwt("nonexistent"));
         Assert.False(pdsDb.LegacySessionExistsForRefreshJwt("nonexistent"));
     }
@@ -846,17 +853,23 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         pdsDb.DeleteAllLegacySessions();
 
-        string accessJwt = Guid.NewGuid().ToString();
-        string refreshJwt = Guid.NewGuid().ToString();
-        pdsDb.CreateLegacySession(accessJwt, refreshJwt);
+        var session = new LegacySession()
+        {
+            AccessJwt = "accessjwt",
+            RefreshJwt = "refreshjwt",
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            IpAddress = "ipaddr",
+            UserAgent = "useragent"
+        };
+        pdsDb.CreateLegacySession(session);
 
-        Assert.True(pdsDb.LegacySessionExistsForAccessJwt(accessJwt));
-        Assert.True(pdsDb.LegacySessionExistsForRefreshJwt(refreshJwt));
+        Assert.True(pdsDb.LegacySessionExistsForAccessJwt(session.AccessJwt));
+        Assert.True(pdsDb.LegacySessionExistsForRefreshJwt(session.RefreshJwt));
 
-        pdsDb.DeleteLegacySessionForRefreshJwt(refreshJwt);
+        pdsDb.DeleteLegacySessionForRefreshJwt(session.RefreshJwt);
 
-        Assert.False(pdsDb.LegacySessionExistsForAccessJwt(accessJwt));
-        Assert.False(pdsDb.LegacySessionExistsForRefreshJwt(refreshJwt));
+        Assert.False(pdsDb.LegacySessionExistsForAccessJwt(session.AccessJwt));
+        Assert.False(pdsDb.LegacySessionExistsForRefreshJwt(session.RefreshJwt));
     }
 
     #endregion
