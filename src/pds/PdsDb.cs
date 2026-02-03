@@ -2278,4 +2278,116 @@ DELETE FROM AdminSession
 
 
     #endregion
+
+
+
+
+    #region PASSKEY
+
+
+    public static void CreateTable_Passkey(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: Passkey");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Passkey (
+Name TEXT PRIMARY KEY,
+CreatedDate TEXT NOT NULL,
+CredentialId TEXT NOT NULL,
+PublicKey TEXT NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();
+    }
+
+    public void InsertPasskey(Passkey passkey)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO Passkey (Name, CreatedDate, CredentialId, PublicKey)
+VALUES (@Name, @CreatedDate, @CredentialId, @PublicKey)
+            ";
+            command.Parameters.AddWithValue("@Name", passkey.Name);
+            command.Parameters.AddWithValue("@CreatedDate", passkey.CreatedDate);
+            command.Parameters.AddWithValue("@CredentialId", passkey.CredentialId);
+            command.Parameters.AddWithValue("@PublicKey", passkey.PublicKey);
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public List<Passkey> GetAllPasskeys()
+    {
+        var passkeys = new List<Passkey>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Name, CreatedDate, CredentialId, PublicKey
+FROM Passkey
+            ";
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    passkeys.Add(new Passkey
+                    {
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        CredentialId = reader.GetString(reader.GetOrdinal("CredentialId")),
+                        PublicKey = reader.GetString(reader.GetOrdinal("PublicKey"))
+                    });
+                }
+            }
+        }
+        return passkeys;
+    }
+
+    public void DeleteAllPasskeys()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM Passkey
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public Passkey GetPasskeyByCredentialId(string credentialId)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Name, CreatedDate, CredentialId, PublicKey
+FROM Passkey
+WHERE CredentialId = @CredentialId
+            ";
+            command.Parameters.AddWithValue("@CredentialId", credentialId);
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new Passkey
+                    {
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        CredentialId = reader.GetString(reader.GetOrdinal("CredentialId")),
+                        PublicKey = reader.GetString(reader.GetOrdinal("PublicKey"))
+                    };
+                }
+            }
+        }
+
+        throw new Exception($"Passkey with CredentialId '{credentialId}' not found.");
+    }
+
+
+    #endregion
+
+
 }

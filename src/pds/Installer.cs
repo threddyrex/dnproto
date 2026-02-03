@@ -88,6 +88,8 @@ public class Installer
             PdsDb.CreateTable_OauthSession(connection, logger);
             PdsDb.CreateTable_LegacySession(connection, logger);
             PdsDb.CreateTable_AdminSession(connection, logger);
+            PdsDb.CreateTable_Passkey(connection, logger);
+            connection.Close();
         }
 
     }

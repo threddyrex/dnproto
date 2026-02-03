@@ -936,4 +936,34 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
 
 
     #endregion
+
+
+    #region PASSKEY
+
+    [Fact]
+    public void Passkey_InsertAndRetrieve()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllPasskeys();
+
+        var passkey = new Passkey
+        {
+            Name = Guid.NewGuid().ToString(),
+            CredentialId = "zCredentialIdExample",
+            PublicKey = "zPublicKeyExample",
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+        };
+
+        pdsDb.InsertPasskey(passkey);
+
+        var retrievedPasskey = pdsDb.GetPasskeyByCredentialId(passkey.CredentialId);
+        Assert.NotNull(retrievedPasskey);
+        Assert.Equal(passkey.Name, retrievedPasskey!.Name);
+        Assert.Equal(passkey.CredentialId, retrievedPasskey.CredentialId);
+        Assert.Equal(passkey.PublicKey, retrievedPasskey.PublicKey);
+        Assert.Equal(passkey.CreatedDate, retrievedPasskey.CreatedDate);
+    }
+    
+
+    #endregion
 }
