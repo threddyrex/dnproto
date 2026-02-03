@@ -103,9 +103,9 @@ public class Admin_Home : BaseAdmin
             .container {{ max-width: 800px; margin: 0 0 0 40px; }}
             h1 {{ color: #8899a6; margin-bottom: 24px; }}
             h2 {{ color: #8899a6; margin-top: 32px; margin-bottom: 16px; font-size: 18px; }}
-            .info-card {{ background-color: #2f3336; border-radius: 8px; padding: 20px; margin-bottom: 16px; }}
-            .label {{ color: #8899a6; font-size: 14px; margin-bottom: 4px; }}
-            .value {{ color: #1d9bf0; font-size: 16px; word-break: break-all; }}
+            .info-card {{ background-color: #2f3336; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }}
+            .label {{ color: #8899a6; font-size: 14px; }}
+            .value {{ color: #1d9bf0; font-size: 14px; word-break: break-all; }}
             .session-list {{ background-color: #2f3336; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
             .session-item {{ padding: 8px 0; border-bottom: 1px solid #444; font-size: 14px; }}
             .session-item:last-child {{ border-bottom: none; }}
@@ -128,28 +128,22 @@ public class Admin_Home : BaseAdmin
             </form>
         </div>
         <div class=""info-card"">
-            <div class=""label"">admin session id:</div>
-            <div class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.SessionId ?? "N/A")}</div>
+            <span class=""label"">admin session id:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.SessionId ?? "N/A")}</span>
         </div>
         <div class=""info-card"">
-            <div class=""label"">admin session created at:</div>
-            <div class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.CreatedDate ?? "N/A")}</div>
+            <span class=""label"">admin session created:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.CreatedDate ?? "N/A")}</span>
         </div>
         <div class=""info-card"">
-            <div class=""label"">pds did</div>
-            <div class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.PdsDid)}</div>
+            <span class=""label"">pds did:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.PdsDid)}</span>
         </div>
         <div class=""info-card"">
-            <div class=""label"">user did</div>
-            <div class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserDid)}</div>
+            <span class=""label"">user did:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserDid)}</span>
         </div>
         <div class=""info-card"">
-            <div class=""label"">user handle</div>
-            <div class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserHandle)}</div>
+            <span class=""label"">user handle:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserHandle)}</span>
         </div>
         <div class=""info-card"">
-            <div class=""label"">user email</div>
-            <div class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserEmail)}</div>
+            <span class=""label"">user email:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserEmail)}</span>
         </div>
 
         <h2>Legacy Sessions <span class=""session-count"">({legacySessions.Count})</span></h2>
