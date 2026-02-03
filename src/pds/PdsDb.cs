@@ -2226,6 +2226,19 @@ WHERE CreatedDate <= @CutoffDate
         }
     }
 
+    public void DeleteAdminSession(string sessionId)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM AdminSession
+WHERE SessionId = @SessionId
+            ";
+            command.Parameters.AddWithValue("@SessionId", sessionId);
+            command.ExecuteNonQuery();
+        }
+    }
 
     public void DeleteAllAdminSessions()
     {

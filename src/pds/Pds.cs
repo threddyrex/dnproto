@@ -237,6 +237,7 @@ public class Pds
         App.MapGet("/admin/", (HttpContext context) => new Admin_Home(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/logout", (HttpContext context) => new Admin_Logout(){Pds = this, HttpContext = context}.GetResponse());
         
         
 

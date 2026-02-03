@@ -102,11 +102,20 @@ public class Admin_Home : BaseAdmin
             .session-item:last-child {{ border-bottom: none; }}
             .session-label {{ color: #8899a6; margin-right: 4px; }}
             .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}
+            .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .logout-btn:hover {{ background-color: #d32f2f; }}
+            .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }}
+            .header h1 {{ margin-bottom: 0; }}
         </style>
         </head>
         <body>
         <div class=""container"">
-        <h1>Admin Dashboard</h1>
+        <div class=""header"">
+            <h1>Admin Dashboard</h1>
+            <form method=""post"" action=""/admin/logout"">
+                <button type=""submit"" class=""logout-btn"">Logout</button>
+            </form>
+        </div>
         <div class=""info-card"">
             <div class=""label"">admin session id:</div>
             <div class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.SessionId ?? "N/A")}</div>
