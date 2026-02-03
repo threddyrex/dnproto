@@ -62,8 +62,9 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in oauthSessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
             }
+
             return sb.ToString();
         }
 
