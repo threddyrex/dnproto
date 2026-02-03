@@ -44,4 +44,6 @@ public class Config
     public required bool RequestCrawlIsEnabled;
 
     public required int LogRetentionDays;
+
+    public required bool AdminInterfaceIsEnabled;
 }

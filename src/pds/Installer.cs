@@ -87,6 +87,7 @@ public class Installer
             PdsDb.CreateTable_OauthRequest(connection, logger);
             PdsDb.CreateTable_OauthSession(connection, logger);
             PdsDb.CreateTable_LegacySession(connection, logger);
+            PdsDb.CreateTable_AdminSession(connection, logger);
         }
 
     }
@@ -139,7 +140,8 @@ public class Installer
             OauthIsEnabled = false,
             PdsCrawlers = new string[] { "bsky.network" },
             RequestCrawlIsEnabled = false,
-            LogRetentionDays = 10
+            LogRetentionDays = 10,
+            AdminInterfaceIsEnabled = false
         };
 
 

@@ -114,7 +114,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             OauthIsEnabled = true,
             PdsCrawlers = new string[] { "bsky.network", "example.crawler" },
             RequestCrawlIsEnabled = true,
-            LogRetentionDays = 7
+            LogRetentionDays = 7,
+            AdminInterfaceIsEnabled = true
         };
 
         // Act
@@ -834,6 +835,66 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.True(pdsDb.LegacySessionExistsForRefreshJwt(refreshJwt));
         Assert.False(pdsDb.LegacySessionExistsForAccessJwt("nonexistent"));
         Assert.False(pdsDb.LegacySessionExistsForRefreshJwt("nonexistent"));
+    }
+
+
+    #endregion
+
+
+    #region ADMINSESS
+
+    [Fact]
+    public void AdminSession_CreateAndDelete()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllAdminSessions();
+
+        string sessionId = Guid.NewGuid().ToString();
+
+        var adminSession = new AdminSession
+        {
+            SessionId = sessionId,
+            IpAddress = "ipaddr",
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+        };
+
+        pdsDb.InsertAdminSession(adminSession);
+
+        AdminSession? retrievedSession = pdsDb.GetValidAdminSession(sessionId, "ipaddr");
+
+        Assert.True(retrievedSession != null);
+
+        Assert.Equal(adminSession.SessionId, retrievedSession!.SessionId);
+        Assert.Equal(adminSession.IpAddress, retrievedSession.IpAddress);
+        Assert.Equal(adminSession.CreatedDate, retrievedSession.CreatedDate);
+
+        pdsDb.DeleteAllAdminSessions();
+
+
+        Assert.Null(pdsDb.GetValidAdminSession(sessionId, "ipaddr"));
+    }
+
+
+    [Fact]
+    public void AdminSession_CreateAndGetInvalid()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllAdminSessions();
+
+        string sessionId = Guid.NewGuid().ToString();
+
+        var adminSession = new AdminSession
+        {
+            SessionId = sessionId,
+            IpAddress = "ipaddr",
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddHours(-2))
+        };
+
+        pdsDb.InsertAdminSession(adminSession);
+
+        AdminSession? retrievedSession = pdsDb.GetValidAdminSession(sessionId, "ipaddr");
+
+        Assert.Null(retrievedSession);
     }
 
 

@@ -9,6 +9,7 @@ using dnproto.pds.xrpc;
 using dnproto.repo;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json.Nodes;
+using dnproto.pds.admin;
 
 namespace dnproto.pds;
 
@@ -190,6 +191,8 @@ public class Pds
         Logger.LogInfo("");
         Logger.LogInfo("!! Running PDS !!");
         Logger.LogInfo("");
+        Logger.LogInfo($"admin: {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/admin/");
+        Logger.LogInfo("");
         BackgroundJobs.Start();
         App.Run();
     }
@@ -231,6 +234,9 @@ public class Pds
         App.MapPost("/oauth/authorize", async (HttpContext context) => { var cmd = new Oauth_Authorize_Post(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapPost("/oauth/token", async (HttpContext context) => { var cmd = new Oauth_Token(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapGet("/xrpc/com.atproto.server.checkAccountStatus", (HttpContext context) => new ComAtprotoServer_CheckAccountStatus(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/admin/", (HttpContext context) => new Admin_Home(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         
         
 

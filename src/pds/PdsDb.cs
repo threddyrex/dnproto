@@ -103,7 +103,8 @@ CREATE TABLE IF NOT EXISTS Config (
     OauthIsEnabled INTEGER NOT NULL DEFAULT 0,
     PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network',
     RequestCrawlIsEnabled INTEGER NOT NULL DEFAULT 0,
-    LogRetentionDays INTEGER NOT NULL DEFAULT 10
+    LogRetentionDays INTEGER NOT NULL DEFAULT 10,
+    AdminInterfaceIsEnabled INTEGER NOT NULL DEFAULT 0
 )
         ";
             
@@ -122,8 +123,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays)
-VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays)
+INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays, AdminInterfaceIsEnabled)
+VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays, @AdminInterfaceIsEnabled)
             ";
             command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
@@ -144,6 +145,7 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             command.Parameters.AddWithValue("@PdsCrawlers", string.Join(",", config.PdsCrawlers));
             command.Parameters.AddWithValue("@RequestCrawlIsEnabled", config.RequestCrawlIsEnabled ? 1 : 0);
             command.Parameters.AddWithValue("@LogRetentionDays", config.LogRetentionDays);
+            command.Parameters.AddWithValue("@AdminInterfaceIsEnabled", config.AdminInterfaceIsEnabled ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
@@ -181,7 +183,8 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                         OauthIsEnabled = reader.GetInt32(reader.GetOrdinal("OauthIsEnabled")) != 0,
                         PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries),
                         RequestCrawlIsEnabled = reader.GetInt32(reader.GetOrdinal("RequestCrawlIsEnabled")) != 0,
-                        LogRetentionDays = reader.GetInt32(reader.GetOrdinal("LogRetentionDays"))
+                        LogRetentionDays = reader.GetInt32(reader.GetOrdinal("LogRetentionDays")),
+                        AdminInterfaceIsEnabled = reader.GetInt32(reader.GetOrdinal("AdminInterfaceIsEnabled")) != 0
                     };
 
                     return config;
@@ -313,6 +316,7 @@ DELETE FROM Config
             return crawlersStr.Split(',', StringSplitOptions.RemoveEmptyEntries);
         }
     }
+
 
     #endregion
 
@@ -2085,4 +2089,104 @@ FROM LegacySession
 
     #endregion
 
+
+    #region ADMINSESS
+
+
+    public static void CreateTable_AdminSession(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: AdminSession");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS AdminSession (
+SessionId TEXT PRIMARY KEY,
+CreatedDate TEXT NOT NULL,
+IpAddress TEXT NOT NULL
+);
+        ";
+        
+        command.ExecuteNonQuery();
+    }
+
+
+    public void InsertAdminSession(AdminSession session)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO AdminSession (SessionId, CreatedDate, IpAddress)
+VALUES (@SessionId, @CreatedDate, @IpAddress)
+            ";
+            command.Parameters.AddWithValue("@SessionId", session.SessionId);
+            command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
+            command.Parameters.AddWithValue("@IpAddress", session.IpAddress);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public AdminSession? GetValidAdminSession(string sessionId, string ipAddress, int timeoutMinutes = 60)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SessionId, CreatedDate, IpAddress
+FROM AdminSession
+WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @CutoffDate
+            ";
+            command.Parameters.AddWithValue("@SessionId", sessionId);
+            command.Parameters.AddWithValue("@IpAddress", ipAddress);
+            command.Parameters.AddWithValue("@CutoffDate", FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(-timeoutMinutes)));
+            using(var reader = command.ExecuteReader())
+            {
+                if(reader.Read())
+                {
+                    return new AdminSession
+                    {
+                        SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                    };
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+    }
+
+
+
+    public void DeleteStaleAdminSessions(int timeoutMinutes = 60)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM AdminSession
+WHERE CreatedDate <= @CutoffDate
+            ";
+            command.Parameters.AddWithValue("@CutoffDate", FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(-timeoutMinutes)));
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public void DeleteAllAdminSessions()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM AdminSession
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    #endregion
 }
