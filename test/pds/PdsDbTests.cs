@@ -889,7 +889,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         {
             SessionId = sessionId,
             IpAddress = "ipaddr",
-            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+            UserAgent = "useragent"
         };
 
         pdsDb.InsertAdminSession(adminSession);
@@ -901,6 +902,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(adminSession.SessionId, retrievedSession!.SessionId);
         Assert.Equal(adminSession.IpAddress, retrievedSession.IpAddress);
         Assert.Equal(adminSession.CreatedDate, retrievedSession.CreatedDate);
+        Assert.Equal(adminSession.UserAgent, retrievedSession.UserAgent);
 
         pdsDb.DeleteAllAdminSessions();
 
@@ -921,7 +923,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         {
             SessionId = sessionId,
             IpAddress = "ipaddr",
-            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddHours(-2))
+            CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddHours(-2)),
+            UserAgent = "useragent"
         };
 
         pdsDb.InsertAdminSession(adminSession);

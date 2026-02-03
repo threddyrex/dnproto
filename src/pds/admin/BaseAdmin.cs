@@ -72,4 +72,18 @@ public class BaseAdmin
         return remoteIp;
     }
 
+
+    protected string? GetCallerUserAgent()
+    {
+        try
+        {
+            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
+            return userAgent;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
 }

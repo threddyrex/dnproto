@@ -90,7 +90,8 @@ public class Admin_Login : BaseAdmin
                 {
                     SessionId = Guid.NewGuid().ToString(),
                     IpAddress = GetCallerIpAddress(),
-                    CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow)
+                    CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
+                    UserAgent = GetCallerUserAgent() ?? "unknown"
                 };
 
                 Pds.PdsDb.InsertAdminSession(adminSession);

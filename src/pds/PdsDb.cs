@@ -2146,7 +2146,8 @@ FROM LegacySession
 CREATE TABLE IF NOT EXISTS AdminSession (
 SessionId TEXT PRIMARY KEY,
 CreatedDate TEXT NOT NULL,
-IpAddress TEXT NOT NULL
+IpAddress TEXT NOT NULL,
+UserAgent TEXT NOT NULL
 );
         ";
         
@@ -2160,12 +2161,13 @@ IpAddress TEXT NOT NULL
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO AdminSession (SessionId, CreatedDate, IpAddress)
-VALUES (@SessionId, @CreatedDate, @IpAddress)
+INSERT INTO AdminSession (SessionId, CreatedDate, IpAddress, UserAgent)
+VALUES (@SessionId, @CreatedDate, @IpAddress, @UserAgent)
             ";
             command.Parameters.AddWithValue("@SessionId", session.SessionId);
             command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
             command.Parameters.AddWithValue("@IpAddress", session.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", session.UserAgent);
             command.ExecuteNonQuery();
         }
     }
@@ -2177,7 +2179,7 @@ VALUES (@SessionId, @CreatedDate, @IpAddress)
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, CreatedDate, IpAddress
+SELECT SessionId, CreatedDate, IpAddress, UserAgent
 FROM AdminSession
 WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @CutoffDate
             ";
@@ -2192,7 +2194,8 @@ WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @Cutof
                     {
                         SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
-                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent"))
                     };
                 }
                 else
@@ -2212,7 +2215,7 @@ WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @Cutof
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, CreatedDate, IpAddress
+SELECT SessionId, CreatedDate, IpAddress, UserAgent
 FROM AdminSession
             ";
             using(var reader = command.ExecuteReader())
@@ -2223,7 +2226,8 @@ FROM AdminSession
                     {
                         SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
-                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent"))
                     });
                 }
             }
