@@ -62,7 +62,16 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in oauthSessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)}</div>");
+                sb.Append($@"<div class=""session-item"">
+                    <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} 
+                    <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} 
+                    <span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} 
+                    <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)}
+                    <form method=""post"" action=""/admin/deleteoauthsession"" style=""display:inline; margin-left: 12px;"">
+                        <input type=""hidden"" name=""sessionId"" value=""{System.Net.WebUtility.HtmlEncode(s.SessionId)}"" />
+                        <button type=""submit"" class=""delete-btn"">Delete</button>
+                    </form>
+                </div>");
             }
 
             return sb.ToString();
@@ -104,6 +113,8 @@ public class Admin_Home : BaseAdmin
             .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}
             .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .logout-btn:hover {{ background-color: #d32f2f; }}
+            .delete-btn {{ background-color: #f44336; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }}
+            .delete-btn:hover {{ background-color: #d32f2f; }}
             .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }}
             .header h1 {{ margin-bottom: 0; }}
         </style>

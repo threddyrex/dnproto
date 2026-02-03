@@ -1853,6 +1853,20 @@ WHERE RefreshToken = @RefreshToken
         }
     }
 
+    public void DeleteOauthSessionBySessionId(string sessionId)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM OauthSession
+WHERE SessionId = @SessionId
+            ";
+            command.Parameters.AddWithValue("@SessionId", sessionId);
+            command.ExecuteNonQuery();
+        }
+    }
+
     /// <summary>
     /// Checks if a valid (non-expired) OAuth session exists for the given DPoP JWK thumbprint.
     /// </summary>
