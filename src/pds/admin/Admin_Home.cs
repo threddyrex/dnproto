@@ -31,6 +31,55 @@ public class Admin_Home : BaseAdmin
 
         AdminSession? adminSession = GetValidAdminSession();
 
+        //
+        // Get all sessions
+        //
+        var legacySessions = Pds.PdsDb.GetAllLegacySessions();
+        var oauthSessions = Pds.PdsDb.GetAllOauthSessions();
+        var adminSessions = Pds.PdsDb.GetAllAdminSessions();
+
+        //
+        // Build session lists HTML
+        //
+        string BuildLegacySessionsHtml()
+        {
+            if (legacySessions.Count == 0)
+                return "<div class=\"session-item\">No legacy sessions</div>";
+            
+            var sb = new System.Text.StringBuilder();
+            foreach (var s in legacySessions)
+            {
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+            }
+            return sb.ToString();
+        }
+
+        string BuildOauthSessionsHtml()
+        {
+            if (oauthSessions.Count == 0)
+                return "<div class=\"session-item\">No OAuth sessions</div>";
+            
+            var sb = new System.Text.StringBuilder();
+            foreach (var s in oauthSessions)
+            {
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+            }
+            return sb.ToString();
+        }
+
+        string BuildAdminSessionsHtml()
+        {
+            if (adminSessions.Count == 0)
+                return "<div class=\"session-item\">No admin sessions</div>";
+            
+            var sb = new System.Text.StringBuilder();
+            foreach (var s in adminSessions)
+            {
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+            }
+            return sb.ToString();
+        }
+
 
         //
         // return account info
@@ -41,11 +90,17 @@ public class Admin_Home : BaseAdmin
         <title>Admin - Home</title>
         <style>
             body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; }}
-            .container {{ max-width: 600px; margin: 0 0 0 40px; }}
+            .container {{ max-width: 800px; margin: 0 0 0 40px; }}
             h1 {{ color: #8899a6; margin-bottom: 24px; }}
+            h2 {{ color: #8899a6; margin-top: 32px; margin-bottom: 16px; font-size: 18px; }}
             .info-card {{ background-color: #2f3336; border-radius: 8px; padding: 20px; margin-bottom: 16px; }}
             .label {{ color: #8899a6; font-size: 14px; margin-bottom: 4px; }}
             .value {{ color: #1d9bf0; font-size: 16px; word-break: break-all; }}
+            .session-list {{ background-color: #2f3336; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
+            .session-item {{ padding: 8px 0; border-bottom: 1px solid #444; font-size: 14px; }}
+            .session-item:last-child {{ border-bottom: none; }}
+            .session-label {{ color: #8899a6; margin-right: 4px; }}
+            .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}
         </style>
         </head>
         <body>
@@ -74,6 +129,21 @@ public class Admin_Home : BaseAdmin
         <div class=""info-card"">
             <div class=""label"">user email</div>
             <div class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserEmail)}</div>
+        </div>
+
+        <h2>Legacy Sessions <span class=""session-count"">({legacySessions.Count})</span></h2>
+        <div class=""session-list"">
+            {BuildLegacySessionsHtml()}
+        </div>
+
+        <h2>OAuth Sessions <span class=""session-count"">({oauthSessions.Count})</span></h2>
+        <div class=""session-list"">
+            {BuildOauthSessionsHtml()}
+        </div>
+
+        <h2>Admin Sessions <span class=""session-count"">({adminSessions.Count})</span></h2>
+        <div class=""session-list"">
+            {BuildAdminSessionsHtml()}
         </div>
         </div>
         </body>

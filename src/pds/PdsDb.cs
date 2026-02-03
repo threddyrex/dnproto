@@ -2160,6 +2160,33 @@ WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @Cutof
 
 
 
+    public List<AdminSession> GetAllAdminSessions()
+    {
+        var sessions = new List<AdminSession>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT SessionId, CreatedDate, IpAddress
+FROM AdminSession
+            ";
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    sessions.Add(new AdminSession
+                    {
+                        SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
+                        CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                    });
+                }
+            }
+        }
+        return sessions;
+    }
+
+
     public void DeleteStaleAdminSessions(int timeoutMinutes = 60)
     {
         using(var sqlConnection = GetConnection())
