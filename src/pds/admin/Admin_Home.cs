@@ -49,7 +49,7 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in legacySessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">User-Agent:</span> {System.Net.WebUtility.HtmlEncode(s.UserAgent)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">User-Agent:</span> {System.Net.WebUtility.HtmlEncode(s.UserAgent)}</div>");
             }
             return sb.ToString();
         }
@@ -62,7 +62,7 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in oauthSessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">Client:</span> {System.Net.WebUtility.HtmlEncode(s.ClientId)}</div>");
             }
 
             return sb.ToString();
@@ -76,7 +76,7 @@ public class Admin_Home : BaseAdmin
             var sb = new System.Text.StringBuilder();
             foreach (var s in adminSessions)
             {
-                sb.Append($@"<div class=""session-item""><span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)}</div>");
+                sb.Append($@"<div class=""session-item""><span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(s.CreatedDate)} <span class=""session-label"">IP:</span> {System.Net.WebUtility.HtmlEncode(s.IpAddress)} <span class=""session-label"">Session:</span> {System.Net.WebUtility.HtmlEncode(s.SessionId)}</div>");
             }
             return sb.ToString();
         }
