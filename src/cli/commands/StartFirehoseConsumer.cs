@@ -75,6 +75,15 @@ public class StartFirehoseConsumer : BaseCommand
                 (header, message) =>
                 {
                     //
+                    // Filter to only our did
+                    //
+                    var did = message?.SelectString(["repo"]);
+                    if (did != actorInfo.Did)
+                    {
+                        return true;
+                    }
+
+                    //
                     // Check header and message
                     //
                     Logger.LogInfo($" -----------------------------------------------------------------------------------------------------------");
