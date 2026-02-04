@@ -158,16 +158,28 @@ public class Admin_Home : BaseAdmin
             var enc = System.Text.Encodings.Web.HtmlEncoder.Default;
 
             if (statistics.Count == 0)
-                return "<tr><td colspan=\"5\" style=\"text-align: center; color: #8899a6;\">No statistics</td></tr>";
+                return "<tr><td colspan=\"6\" style=\"text-align: center; color: #8899a6;\">No statistics</td></tr>";
             
             var sb = new System.Text.StringBuilder();
             foreach (var s in statistics)
             {
+                string minutesAgo = "N/A";
+                if (DateTimeOffset.TryParseExact(s.LastUpdatedDate, "yyyy-MM-ddTHH:mm:ss.fffZ", 
+                    System.Globalization.CultureInfo.InvariantCulture, 
+                    System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, 
+                    out var lastUpdated))
+                {
+                    var elapsed = DateTimeOffset.UtcNow - lastUpdated;
+                    minutesAgo = elapsed.TotalMinutes < 1 
+                        ? $"{Math.Max(0, elapsed.TotalSeconds):F0}s" 
+                        : $"{elapsed.TotalMinutes:F1}";
+                }
                 sb.Append($@"<tr>
                     <td>{enc.Encode(s.Name)}</td>
                     <td>{enc.Encode(s.UserKey)}</td>
                     <td style=""text-align: right;"">{enc.Encode(s.Value.ToString())}</td>
                     <td>{enc.Encode(s.LastUpdatedDate)}</td>
+                    <td style=""text-align: right;"">{enc.Encode(minutesAgo)}</td>
                     <td>
                         <form method=""post"" action=""/admin/deletestatistic"" style=""display:inline;"">
                             <input type=""hidden"" name=""name"" value=""{enc.Encode(s.Name)}"" />
@@ -277,7 +289,12 @@ public class Admin_Home : BaseAdmin
             {BuildPasskeyChallengesHtml()}
         </div>
 
-        <h2>Statistics <span class=""session-count"">({statistics.Count})</span></h2>
+        <div class=""section-header"">
+            <h2>Statistics <span class=""session-count"">({statistics.Count})</span></h2>
+            <form method=""post"" action=""/admin/deleteallstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete all statistics?');"">
+                <button type=""submit"" class=""delete-btn"">Delete All</button>
+            </form>
+        </div>
         <table class=""stats-table"" id=""statsTable"">
             <thead>
                 <tr>
@@ -285,6 +302,7 @@ public class Admin_Home : BaseAdmin
                     <th class=""sortable"" data-col=""1"" data-type=""string"">User Key</th>
                     <th class=""sortable"" data-col=""2"" data-type=""number"" style=""text-align: right;"">Value</th>
                     <th class=""sortable desc"" data-col=""3"" data-type=""string"">Last Updated</th>
+                    <th class=""sortable"" data-col=""4"" data-type=""number"" style=""text-align: right;"">Minutes Ago</th>
                     <th>Action</th>
                 </tr>
             </thead>

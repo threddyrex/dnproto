@@ -1133,10 +1133,8 @@ public abstract class BaseXrpcCommand
             }
 
 
-            Pds.PdsDb.IncrementStatistic("Connection Count", ipAddress!);
-            Pds.PdsDb.IncrementStatistic("Connection Count", userAgent!);
-            Pds.PdsDb.IncrementStatistic("Connection Count (Xrpc)", ipAddress!);
-            Pds.PdsDb.IncrementStatistic("Connection Count (Xrpc)", userAgent!);
+            Pds.PdsDb.IncrementStatistic("Connection Count", $"{ipAddress!} ({userAgent})");
+            Pds.PdsDb.IncrementStatistic("Connection Count (Xrpc)", $"{ipAddress!} ({userAgent})");
         }
         catch
         {

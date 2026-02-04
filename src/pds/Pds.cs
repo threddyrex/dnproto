@@ -246,6 +246,7 @@ public class Pds
         App.MapPost("/admin/deletepasskey", (HttpContext context) => new Admin_DeletePasskey(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deletepasskeychallenge", (HttpContext context) => new Admin_DeletePasskeyChallenge(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deletestatistic", (HttpContext context) => new Admin_DeleteStatistic(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/deleteallstatistics", (HttpContext context) => new Admin_DeleteAllStatistics(){Pds = this, HttpContext = context}.GetResponse());
         
         
 

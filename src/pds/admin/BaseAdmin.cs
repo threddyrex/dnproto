@@ -99,10 +99,8 @@ public class BaseAdmin
             }
 
 
-            Pds.PdsDb.IncrementStatistic("Connection Count", ipAddress!);
-            Pds.PdsDb.IncrementStatistic("Connection Count", userAgent!);
-            Pds.PdsDb.IncrementStatistic("Connection Count (Admin)", ipAddress!);
-            Pds.PdsDb.IncrementStatistic("Connection Count (Admin)", userAgent!);
+            Pds.PdsDb.IncrementStatistic("Connection Count", $"{ipAddress!} ({userAgent})");
+            Pds.PdsDb.IncrementStatistic("Connection Count (Admin)", $"{ipAddress!} ({userAgent})");
         }
         catch
         {
