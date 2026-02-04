@@ -235,6 +235,7 @@ public class Pds
         App.MapPost("/oauth/token", async (HttpContext context) => { var cmd = new Oauth_Token(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapGet("/xrpc/com.atproto.server.checkAccountStatus", (HttpContext context) => new ComAtprotoServer_CheckAccountStatus(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/", (HttpContext context) => new Admin_Home(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/admin/sessions", (HttpContext context) => new Admin_Sessions(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/logout", (HttpContext context) => new Admin_Logout(){Pds = this, HttpContext = context}.GetResponse());
@@ -247,6 +248,7 @@ public class Pds
         App.MapPost("/admin/deletepasskeychallenge", (HttpContext context) => new Admin_DeletePasskeyChallenge(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deletestatistic", (HttpContext context) => new Admin_DeleteStatistic(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deleteallstatistics", (HttpContext context) => new Admin_DeleteAllStatistics(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/admin/stats", (HttpContext context) => new Admin_Stats(){Pds = this, HttpContext = context}.GetResponse());
         
         
 

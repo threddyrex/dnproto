@@ -45,9 +45,9 @@ public class Admin_DeleteAdminSession : BaseAdmin
 
 
         //
-        // Redirect to home
+        // Redirect to sessions page
         //
-        HttpContext.Response.Redirect("/admin/");
+        HttpContext.Response.Redirect("/admin/sessions");
         return Results.Empty;
     }
 

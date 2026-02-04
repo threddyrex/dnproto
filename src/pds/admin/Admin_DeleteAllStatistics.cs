@@ -41,9 +41,9 @@ public class Admin_DeleteAllStatistics : BaseAdmin
 
 
         //
-        // Redirect to home
+        // Redirect to stats page
         //
-        HttpContext.Response.Redirect("/admin/");
+        HttpContext.Response.Redirect("/admin/stats");
         return Results.Empty;
     }
 }
