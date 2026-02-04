@@ -1119,6 +1119,31 @@ public abstract class BaseXrpcCommand
 
     #region LOG
 
+
+    protected void IncrementStatistics()
+    {
+        try
+        {
+            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
+            string? ipAddress = HttpContext.Request.Headers.ContainsKey("X-Forwarded-For") ? HttpContext.Request.Headers["X-Forwarded-For"].ToString() : null;
+
+            if(string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            }
+
+
+            Pds.PdsDb.IncrementStatistic("Connection Count", ipAddress!);
+            Pds.PdsDb.IncrementStatistic("Connection Count", userAgent!);
+            Pds.PdsDb.IncrementStatistic("Connection Count (Xrpc)", ipAddress!);
+            Pds.PdsDb.IncrementStatistic("Connection Count (Xrpc)", userAgent!);
+        }
+        catch
+        {
+            // don't throw on this
+        }
+    }
+
     protected string? GetCallerIpAddress()
     {
         try

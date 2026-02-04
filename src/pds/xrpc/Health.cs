@@ -8,7 +8,7 @@ public class Health : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
-        LogConnectionInfo(HttpContext);
+        IncrementStatistics();
 
         //
         // See if the code rev exists

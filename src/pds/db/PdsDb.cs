@@ -2517,4 +2517,174 @@ FROM PasskeyChallenge
 
 
     #endregion
+
+    #region STATS
+
+    public static void CreateTable_Statistic(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        logger.LogInfo("table: Statistic");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS Statistic (
+Name TEXT NOT NULL,
+UserKey TEXT NOT NULL,
+Value INTEGER NOT NULL,
+LastUpdatedDate TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS IX_Statistic_Name_UserKey
+ON Statistic (Name, UserKey);
+        ";
+
+        command.ExecuteNonQuery();
+    }
+
+
+    public void IncrementStatistic(string name, string userKey)
+    {
+        if (StatisticExists(name, userKey))
+        {
+            int current = GetStatisticValue(name, userKey);
+            UpdateStatistic(name, userKey, current + 1);
+        }
+        else
+        {
+            InsertStatistic(name, userKey, 1);
+        }
+    }
+
+
+    public int GetStatisticValue(string name, string userKey)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Value
+FROM Statistic
+WHERE Name = @Name AND UserKey = @UserKey
+            ";
+            command.Parameters.AddWithValue("@Name", name);
+            command.Parameters.AddWithValue("@UserKey", userKey);
+            var result = command.ExecuteScalar();
+            if(result != null)
+            {
+                return Convert.ToInt32(result);
+            }
+            throw new Exception($"Statistic with name '{name}' and UserKey '{userKey}' not found.");
+        }
+    }
+
+
+    public bool StatisticExists(string name, string userKey)
+    {
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT COUNT(1)
+FROM Statistic
+WHERE Name = @Name AND UserKey = @UserKey
+            ";
+            command.Parameters.AddWithValue("@Name", name);
+            command.Parameters.AddWithValue("@UserKey", userKey);
+            var result = command.ExecuteScalar();
+            if(result != null && Convert.ToInt32(result) > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private void InsertStatistic(string name, string userKey, long value)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+INSERT INTO Statistic (Name, UserKey, Value, LastUpdatedDate)
+VALUES (@Name, @UserKey, @Value, @LastUpdatedDate)
+            ";
+            command.Parameters.AddWithValue("@Name", name);
+            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@Value", value);
+            command.Parameters.AddWithValue("@LastUpdatedDate", PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private void UpdateStatistic(string name, string userKey, long value)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+UPDATE Statistic
+SET Value = @Value, LastUpdatedDate = @LastUpdatedDate
+WHERE Name = @Name AND UserKey = @UserKey
+            ";
+            command.Parameters.AddWithValue("@Value", value);
+            command.Parameters.AddWithValue("@Name", name);
+            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@LastUpdatedDate", PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow));
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteAllStatistics()
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM Statistic
+            ";
+            command.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteStatisticByKey(string name, string userKey)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM Statistic WHERE Name = @Name AND UserKey = @UserKey
+            ";
+            command.Parameters.AddWithValue("@Name", name);
+            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+    public List<Statistic> GetAllStatistics()
+    {
+        var stats = new List<Statistic>();
+        using(var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+SELECT Name, UserKey, Value, LastUpdatedDate
+FROM Statistic
+            ";
+            using(var reader = command.ExecuteReader())
+            {
+                while(reader.Read())
+                {
+                    stats.Add(new Statistic
+                    {
+                        Name = reader.GetString(reader.GetOrdinal("Name")),
+                        UserKey = reader.GetString(reader.GetOrdinal("UserKey")),
+                        Value = reader.GetInt64(reader.GetOrdinal("Value")),
+                        LastUpdatedDate = reader.GetString(reader.GetOrdinal("LastUpdatedDate"))
+                    });
+                }
+            }
+        }
+        
+        return stats;
+    }
+
+    #endregion
 }

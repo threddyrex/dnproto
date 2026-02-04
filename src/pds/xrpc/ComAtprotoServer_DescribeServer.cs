@@ -8,6 +8,8 @@ public class ComAtprotoServer_DescribeServer : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         var response = new DescribeServerResponse
         {
             InviteCodeRequired = true,

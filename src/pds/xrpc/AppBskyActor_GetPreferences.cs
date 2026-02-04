@@ -16,6 +16,8 @@ public class AppBskyActor_GetPreferences : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

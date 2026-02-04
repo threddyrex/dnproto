@@ -11,6 +11,8 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

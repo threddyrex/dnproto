@@ -13,6 +13,8 @@ public class ComAtprotoSync_GetBlob : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
     {
+        IncrementStatistics();
+        
         //
         // Get cid from query parameters
         //

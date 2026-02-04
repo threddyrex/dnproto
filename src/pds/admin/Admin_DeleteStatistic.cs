@@ -8,7 +8,7 @@ namespace dnproto.pds.admin;
 
 /// <summary>
 /// </summary>
-public class Admin_Logout : BaseAdmin
+public class Admin_DeleteStatistic : BaseAdmin
 {
     public IResult GetResponse()
     {
@@ -31,37 +31,24 @@ public class Admin_Logout : BaseAdmin
         }
 
 
-        AdminSession? adminSession = GetValidAdminSession();
-
 
         //
-        // We got this far, so log out
+        // We got this far, so delete the statistic
         //
-        if(adminSession != null)
+        string? name = HttpContext.Request.Form["name"];
+        string? userKey = HttpContext.Request.Form["userKey"];
+        if(string.IsNullOrEmpty(name) == false && string.IsNullOrEmpty(userKey) == false)
         {
-            Pds.PdsDb.DeleteAdminSession(adminSession.SessionId);
+            Pds.PdsDb.DeleteStatisticByKey(name, userKey);
         }
 
 
 
-        //
-        // Clear cookie
-        //
-        HttpContext.Response.Cookies.Append("adminSessionId", "", new CookieOptions
-        {
-            Expires = DateTimeOffset.UtcNow.AddDays(-1),
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/admin"
-        });
-
-
 
         //
-        // Redirect to login
+        // Redirect to home
         //
-        HttpContext.Response.Redirect("/admin/login");
+        HttpContext.Response.Redirect("/admin/");
         return Results.Empty;
     }
 

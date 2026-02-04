@@ -13,6 +13,8 @@ public class ComAtprotoServer_GetServiceAuth : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

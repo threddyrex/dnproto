@@ -12,6 +12,8 @@ public class Admin_Home : BaseAdmin
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         if(AdminInterfaceIsEnabled() == false)
         {
             return Results.StatusCode(404);
@@ -39,6 +41,7 @@ public class Admin_Home : BaseAdmin
         var adminSessions = Pds.PdsDb.GetAllAdminSessions();
         var passkeys = Pds.PdsDb.GetAllPasskeys();
         var passkeyChallenges = Pds.PdsDb.GetAllPasskeyChallenges();
+        var statistics = Pds.PdsDb.GetAllStatistics().OrderByDescending(s => s.LastUpdatedDate).ToList();
 
         //
         // Build session lists HTML
@@ -150,6 +153,33 @@ public class Admin_Home : BaseAdmin
             return sb.ToString();
         }
 
+        string BuildStatisticsHtml()
+        {
+            var enc = System.Text.Encodings.Web.HtmlEncoder.Default;
+
+            if (statistics.Count == 0)
+                return "<tr><td colspan=\"5\" style=\"text-align: center; color: #8899a6;\">No statistics</td></tr>";
+            
+            var sb = new System.Text.StringBuilder();
+            foreach (var s in statistics)
+            {
+                sb.Append($@"<tr>
+                    <td>{enc.Encode(s.Name)}</td>
+                    <td>{enc.Encode(s.UserKey)}</td>
+                    <td style=""text-align: right;"">{enc.Encode(s.Value.ToString())}</td>
+                    <td>{enc.Encode(s.LastUpdatedDate)}</td>
+                    <td>
+                        <form method=""post"" action=""/admin/deletestatistic"" style=""display:inline;"">
+                            <input type=""hidden"" name=""name"" value=""{enc.Encode(s.Name)}"" />
+                            <input type=""hidden"" name=""userKey"" value=""{enc.Encode(s.UserKey)}"" />
+                            <button type=""submit"" class=""delete-btn"">Delete</button>
+                        </form>
+                    </td>
+                </tr>");
+            }
+            return sb.ToString();
+        }
+
 
         //
         // return account info
@@ -180,6 +210,16 @@ public class Admin_Home : BaseAdmin
             .section-header {{ display: flex; justify-content: space-between; align-items: center; }}
             .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }}
             .header h1 {{ margin-bottom: 0; }}
+            .stats-table {{ width: 100%; border-collapse: collapse; background-color: #2f3336; border-radius: 8px; overflow: hidden; }}
+            .stats-table th {{ background-color: #1d1f23; color: #8899a6; text-align: left; padding: 12px 16px; font-size: 14px; font-weight: 500; }}
+            .stats-table th.sortable {{ cursor: pointer; user-select: none; }}
+            .stats-table th.sortable:hover {{ background-color: #2a2d31; color: #e7e9ea; }}
+            .stats-table th.sortable::after {{ content: ' \2195'; opacity: 0.3; }}
+            .stats-table th.sortable.asc::after {{ content: ' \2191'; opacity: 1; }}
+            .stats-table th.sortable.desc::after {{ content: ' \2193'; opacity: 1; }}
+            .stats-table td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
+            .stats-table tr:last-child td {{ border-bottom: none; }}
+            .stats-table tr:hover {{ background-color: #3a3d41; }}
         </style>
         </head>
         <body>
@@ -236,6 +276,22 @@ public class Admin_Home : BaseAdmin
         <div class=""session-list"">
             {BuildPasskeyChallengesHtml()}
         </div>
+
+        <h2>Statistics <span class=""session-count"">({statistics.Count})</span></h2>
+        <table class=""stats-table"" id=""statsTable"">
+            <thead>
+                <tr>
+                    <th class=""sortable"" data-col=""0"" data-type=""string"">Name</th>
+                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Key</th>
+                    <th class=""sortable"" data-col=""2"" data-type=""number"" style=""text-align: right;"">Value</th>
+                    <th class=""sortable desc"" data-col=""3"" data-type=""string"">Last Updated</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {BuildStatisticsHtml()}
+            </tbody>
+        </table>
         </div>
         <script>
         async function addPasskey() {{
@@ -322,6 +378,58 @@ public class Admin_Home : BaseAdmin
             const base64 = btoa(binary);
             return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         }}
+
+        // Table sorting
+        (function() {{
+            const table = document.getElementById('statsTable');
+            if (!table) return;
+            
+            const headers = table.querySelectorAll('th.sortable');
+            
+            headers.forEach(header => {{
+                header.addEventListener('click', function() {{
+                    const colIndex = parseInt(this.dataset.col);
+                    const type = this.dataset.type;
+                    const isDesc = this.classList.contains('desc');
+                    
+                    // Remove sort classes from all headers
+                    headers.forEach(h => h.classList.remove('asc', 'desc'));
+                    
+                    // Toggle sort direction (default to desc on first click)
+                    const newDir = isDesc ? 'asc' : 'desc';
+                    this.classList.add(newDir);
+                    
+                    sortTable(colIndex, type, newDir === 'asc');
+                }});
+            }});
+            
+            function sortTable(colIndex, type, ascending) {{
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                
+                rows.sort((a, b) => {{
+                    const aCell = a.cells[colIndex];
+                    const bCell = b.cells[colIndex];
+                    
+                    if (!aCell || !bCell) return 0;
+                    
+                    let aVal = aCell.textContent.trim();
+                    let bVal = bCell.textContent.trim();
+                    
+                    if (type === 'number') {{
+                        aVal = parseFloat(aVal) || 0;
+                        bVal = parseFloat(bVal) || 0;
+                        return ascending ? aVal - bVal : bVal - aVal;
+                    }} else {{
+                        return ascending 
+                            ? aVal.localeCompare(bVal)
+                            : bVal.localeCompare(aVal);
+                    }}
+                }});
+                
+                rows.forEach(row => tbody.appendChild(row));
+            }}
+        }})();
         </script>
         </body>
         </html>

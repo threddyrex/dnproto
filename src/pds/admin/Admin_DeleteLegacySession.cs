@@ -12,6 +12,8 @@ public class Admin_DeleteLegacySession : BaseAdmin
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         if(AdminInterfaceIsEnabled() == false)
         {
             return Results.StatusCode(404);

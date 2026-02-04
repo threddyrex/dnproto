@@ -11,6 +11,8 @@ public class ComAtprotoServer_ActivateAccount : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

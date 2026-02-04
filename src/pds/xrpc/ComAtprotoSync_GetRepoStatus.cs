@@ -9,6 +9,8 @@ public class ComAtprotoSync_GetRepoStatus : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         
         var ret = new JsonObject()
         {

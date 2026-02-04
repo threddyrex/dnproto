@@ -10,6 +10,8 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
 
         //
         // Get body input

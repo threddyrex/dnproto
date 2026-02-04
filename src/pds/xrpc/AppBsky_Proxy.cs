@@ -25,6 +25,8 @@ public class AppBsky_Proxy : BaseXrpcCommand
 {
     public async Task<IResult> ProxyToAppView(HttpContext context)
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

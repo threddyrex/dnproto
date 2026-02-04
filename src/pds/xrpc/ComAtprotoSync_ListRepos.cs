@@ -12,6 +12,8 @@ public class ComAtprotoSync_ListRepos : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Return {logs:[]}
         //

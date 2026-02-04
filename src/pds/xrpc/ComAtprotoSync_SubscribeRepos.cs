@@ -31,6 +31,8 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
     /// </summary>
     public async Task HandleWebSocketAsync()
     {
+        IncrementStatistics();
+        
         //
         // Check if this is a WebSocket request
         //

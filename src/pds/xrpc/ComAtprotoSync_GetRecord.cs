@@ -19,6 +19,8 @@ public class ComAtprotoSync_GetRecord : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
     {
+        IncrementStatistics();
+        
         //
         // Get param
         //

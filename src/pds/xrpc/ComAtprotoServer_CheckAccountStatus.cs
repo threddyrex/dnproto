@@ -13,6 +13,8 @@ public class ComAtprotoServer_CheckAccountStatus : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

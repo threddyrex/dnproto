@@ -13,6 +13,8 @@ public class ComAtprotoSync_ListBlobs : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
     {
+        IncrementStatistics();
+        
         //
         // Get limit and cursor from query parameters
         //

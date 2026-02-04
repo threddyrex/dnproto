@@ -15,6 +15,8 @@ public class Admin_PasskeyRegistrationOptions : BaseAdmin
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         if(AdminInterfaceIsEnabled() == false)
         {
             return Results.StatusCode(404);

@@ -12,6 +12,8 @@ public class Admin_DeleteAdminSession : BaseAdmin
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         if(AdminInterfaceIsEnabled() == false)
         {
             return Results.StatusCode(404);

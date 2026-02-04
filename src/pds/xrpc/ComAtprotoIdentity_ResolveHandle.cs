@@ -10,6 +10,8 @@ public class ComAtprotoIdentity_ResolveHandle : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Get param
         //

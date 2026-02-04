@@ -17,6 +17,8 @@ public class Admin_RegisterPasskey : BaseAdmin
 {
     public async Task<IResult> GetResponse()
     {
+        IncrementStatistics();
+        
         if (AdminInterfaceIsEnabled() == false)
         {
             return Results.StatusCode(404);

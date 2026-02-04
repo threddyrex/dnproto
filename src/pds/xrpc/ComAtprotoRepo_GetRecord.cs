@@ -12,6 +12,8 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Get params
         //

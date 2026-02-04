@@ -12,6 +12,8 @@ public class ComAtprotoRepo_DescribeRepo : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Get our did doc
         //

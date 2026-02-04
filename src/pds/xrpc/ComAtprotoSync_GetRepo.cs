@@ -9,6 +9,8 @@ public class ComAtprotoSync_GetRepo : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
     {
+        IncrementStatistics();
+        
         //
         // Get did
         //

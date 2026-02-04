@@ -10,6 +10,8 @@ public class ComAtprotoRepo_PutRecord : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

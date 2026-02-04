@@ -993,4 +993,34 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     
 
     #endregion
+
+
+    #region STATS
+
+    [Fact]
+    public void Stats_InsertAndRetrieve()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllStatistics();
+
+        pdsDb.IncrementStatistic("active_users", "userkey");
+        pdsDb.IncrementStatistic("active_users", "userkey");
+
+        Assert.Equal(2, pdsDb.GetStatisticValue("active_users", "userkey"));
+        Assert.True(pdsDb.StatisticExists("active_users", "userkey"));
+        pdsDb.IncrementStatistic("active_users", "userkey");
+        Assert.Equal(3, pdsDb.GetStatisticValue("active_users", "userkey"));
+
+        var stats = pdsDb.GetAllStatistics();
+
+        Assert.Single(stats);
+
+        Assert.Equal("active_users", stats[0].Name);
+        Assert.Equal("userkey", stats[0].UserKey);
+        Assert.Equal(3, stats[0].Value);
+        Assert.NotNull(stats[0].LastUpdatedDate);
+
+    }
+
+    #endregion
 }

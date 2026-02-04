@@ -11,6 +11,8 @@ public class ComAtprotoServer_DeactivateAccount : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

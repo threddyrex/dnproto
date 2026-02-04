@@ -11,6 +11,8 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

@@ -18,6 +18,8 @@ public class AppBskyActor_PutPreferences : BaseXrpcCommand
 {
     public async Task<IResult> GetResponseAsync()
     {
+        IncrementStatistics();
+        
         //
         // Require auth
         //

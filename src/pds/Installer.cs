@@ -90,6 +90,7 @@ public class Installer
             PdsDb.CreateTable_AdminSession(connection, logger);
             PdsDb.CreateTable_Passkey(connection, logger);
             PdsDb.CreateTable_PasskeyChallenge(connection, logger);
+            PdsDb.CreateTable_Statistic(connection, logger);
             connection.Close();
         }
 

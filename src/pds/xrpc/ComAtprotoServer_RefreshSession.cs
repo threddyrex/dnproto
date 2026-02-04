@@ -11,6 +11,8 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
 {
     public IResult GetResponse()
     {
+        IncrementStatistics();
+        
 
         //
         // Get the refresh jwt from the caller's Authorization header
