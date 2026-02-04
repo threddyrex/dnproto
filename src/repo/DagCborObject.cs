@@ -3,17 +3,30 @@ using System.Text;
 namespace dnproto.repo;
 
 
-
 /// <summary>
+/// 
+/// DagCborObject
+/// 
 /// Represents the data block section of a repo record (after version and cid).
 /// 
-/// Most of this code handles converting the data between formats.
-/// Below are the formats. You can move up and down the list (but cannot skip).
+/// Most of this code handles converting the data between the
+/// main three formats: Json string, DagCborObject, and byte[].
 /// 
-///     - Json
-///     - Raw Value - tree in C# types (like dictionary, list, string, int, etc.)
-///     - DagCborObject - dag-cbor object tree
-///     - byte[] - raw bytes, in dag-cbor format
+/// You can convert between the formats in either direction.
+/// 
+/// One example of this is accepting Json input for ApplyWrites
+/// and ultimately writing the byte[] to the database:
+/// 
+///     Json -> (intermediate C# JsonElement) -> DagCborObject -> byte[]
+/// 
+/// One example for the *opposite* direction is reading a byte[]
+/// from a CAR repo and ultimately outputting Json:
+/// 
+///     byte[] -> DagCborObject -> (intermediate C# objects) -> Json
+/// 
+/// The items in parentheses are intermediate C# types that are held
+/// for a short time during conversion. The app mainly knows how to
+/// "talk" in terms of Json strings, DagCborObject, and byte[].
 /// 
 /// </summary>
 public class DagCborObject
