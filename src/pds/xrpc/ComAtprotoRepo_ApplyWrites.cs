@@ -101,6 +101,13 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
             {
                 string? valueStr = JsonData.ConvertToJsonString(writeNode["value"]);
 
+                //
+                // 2/3/26
+                // added this trace logic here, because I was seeing odd behavior.
+                // An image ref would start in the json as "ref: { "$link: {}}" but after
+                // the call to FromJsonString, it would get flattened to just the ref with a string.
+                // I suspect it was in DagCborObject.FromJsonElement - see related fix in there.
+                //
                 Pds.Logger.LogTrace($"ApplyWrites Operation Value JSON:\n{valueStr}");
 
                 if(string.IsNullOrEmpty(valueStr))
@@ -111,7 +118,7 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
                 record = DagCborObject.FromJsonString(valueStr);
 
                 Pds.Logger.LogTrace($"ApplyWrites Operation Parsed DagCbor:\n{DagCborObject.GetRecursiveDebugString(record, 0)}");
-                
+
                 if(record is null)
                 {
                     return Results.Json(new { error = "InvalidRequest", message = "Error: failed to parse record value." }, statusCode: 400);

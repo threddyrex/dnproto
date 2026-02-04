@@ -698,6 +698,11 @@ public class DagCborObject
                 Dictionary<string, object> dict = new Dictionary<string, object>();
                 foreach(var prop in element.EnumerateObject())
                 {
+                    //
+                    // 2/3/26
+                    // Added call to prop.Name, so that GetRawValue could check for
+                    // a special key like "ref" when converting CIDs.
+                    //
                     var rawValue = FromJsonElement(prop.Value).GetRawValue(prop.Name);
                     if(rawValue != null)
                         dict[prop.Name] = rawValue;
