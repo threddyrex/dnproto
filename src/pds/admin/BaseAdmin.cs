@@ -86,16 +86,25 @@ public class BaseAdmin
         }
     }
 
+
     protected void IncrementStatistics()
+    {
+        IncrementStatistics(HttpContext, Pds.PdsDb);
+    }
+
+    public static void IncrementStatistics(HttpContext ctx, PdsDb db)
     {
         try
         {
-            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
-            string? ipAddress = HttpContext.Request.Headers.ContainsKey("X-Forwarded-For") ? HttpContext.Request.Headers["X-Forwarded-For"].ToString() : null;
+            //
+            // Get user agent and IP address
+            //
+            string? userAgent = ctx.Request.Headers.ContainsKey("User-Agent") ? ctx.Request.Headers["User-Agent"].ToString() : null;
+            string? ipAddress = ctx.Request.Headers.ContainsKey("X-Forwarded-For") ? ctx.Request.Headers["X-Forwarded-For"].ToString() : null;
 
             if(string.IsNullOrEmpty(ipAddress))
             {
-                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                ipAddress = ctx.Connection.RemoteIpAddress?.ToString();
             }
 
             if(string.IsNullOrEmpty(userAgent))
@@ -104,7 +113,16 @@ public class BaseAdmin
             }
 
 
-            Pds.PdsDb.IncrementStatistic(new StatisticKey { Name = "Connection Count", IpAddress = ipAddress!, UserAgent = userAgent! });
+            //
+            // uptimerobot sends from all over, so just group them all together
+            //
+            if(userAgent!.Contains("www.uptimerobot.com"))
+            {
+                ipAddress = "global";
+            }
+
+
+            db.IncrementStatistic(new StatisticKey { Name = "Connection Count", IpAddress = ipAddress!, UserAgent = userAgent! });
         }
         catch
         {

@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.log;
+using dnproto.pds.admin;
 using dnproto.repo;
 using dnproto.ws;
 using Microsoft.AspNetCore.Http;
@@ -1122,29 +1123,7 @@ public abstract class BaseXrpcCommand
 
     protected void IncrementStatistics()
     {
-        try
-        {
-            string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
-            string? ipAddress = HttpContext.Request.Headers.ContainsKey("X-Forwarded-For") ? HttpContext.Request.Headers["X-Forwarded-For"].ToString() : null;
-
-            if(string.IsNullOrEmpty(ipAddress))
-            {
-                ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            }
-
-
-            if(string.IsNullOrEmpty(userAgent))
-            {
-                userAgent = "Unknown";
-            }
-
-
-            Pds.PdsDb.IncrementStatistic(new StatisticKey { Name = "Connection Count", IpAddress = ipAddress!, UserAgent = userAgent! });
-        }
-        catch
-        {
-            // don't throw on this
-        }
+        BaseAdmin.IncrementStatistics(HttpContext, Pds.PdsDb);
     }
 
     protected string? GetCallerIpAddress()
