@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.ws;
@@ -90,7 +91,7 @@ public class Admin_Login : BaseAdmin
                 //
                 var adminSession = new AdminSession()
                 {
-                    SessionId = Guid.NewGuid().ToString(),
+                    SessionId = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),
                     IpAddress = GetCallerIpAddress(),
                     CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
                     UserAgent = GetCallerUserAgent() ?? "unknown"
