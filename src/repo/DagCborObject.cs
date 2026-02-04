@@ -396,156 +396,6 @@ public class DagCborObject
 
 
 
-    #region SELECT
-
-    /// <summary>
-    /// Finds an object at the path specified by the property names,
-    /// and returns its value.
-    /// </summary>
-    /// <param name="propertyNames"></param>
-    /// <returns></returns>
-    public object? SelectObjectValue(string[] propertyNames)
-    {
-        DagCborObject? current = this;
-
-        foreach(string propertyName in propertyNames)
-        {
-            if(current.Type.MajorType != DagCborType.TYPE_MAP) return null;
-
-            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
-
-            if(dict == null) return null;
-
-            if(dict.ContainsKey(propertyName)) current = dict[propertyName];
-            else return null;
-        }
-
-        return current != null ? current.Value : null;
-    }
-
-    public DagCborObject? SelectObject(string[] propertyNames)
-    {
-        DagCborObject? current = this;
-
-        foreach(string propertyName in propertyNames)
-        {
-            if(current.Type.MajorType != DagCborType.TYPE_MAP) return null;
-
-            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
-
-            if(dict == null) return null;
-
-            if(dict.ContainsKey(propertyName)) current = dict[propertyName];
-            else return null;
-        }
-
-        return current;
-    }
-
-    /// <summary>
-    /// Finds an object at the path specified by the property names, 
-    /// and returns as string if possible.
-    /// </summary>
-    /// <param name="propertyNames"></param>
-    /// <returns></returns>
-    public string? SelectString(string[] propertyNames)
-    {
-        object? o = SelectObjectValue(propertyNames);
-
-        if(o as string != null) return o as string;
-        if(o as int? != null) return o.ToString();
-        if(o as bool? != null) return o.ToString();
-        if(o as CidV1 != null) return ((CidV1)o).GetBase32();
-
-        return null;
-    }
-
-    /// <summary>
-    /// Finds an object at the path specified by the property names, 
-    /// and returns as int if possible.
-    /// </summary>
-    /// <param name="propertyNames"></param>
-    /// <returns></returns>
-    public int? SelectInt(string[] propertyNames)
-    {
-        object? o = SelectObjectValue(propertyNames);
-
-        if(o is int i) return i;
-
-        return null;
-    }
-
-    public long? SelectLong(string[] propertyNames)
-    {
-        object? o = SelectObjectValue(propertyNames);
-
-        if(o is long l) return l;
-        if(o is int i) return (long)i;
-
-        return null;
-    }
-
-
-    public bool SetString(string[] propertyNames, string strValue)
-    {
-        DagCborObject? current = this;
-
-        for(int i = 0; i < propertyNames.Length; i++)
-        {
-            string propertyName = propertyNames[i];
-
-            if(current.Type.MajorType != DagCborType.TYPE_MAP) return false;
-
-            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
-
-            if(dict == null) return false;
-
-            if(i == propertyNames.Length - 1)
-            {
-                // Last property, set value
-                dict[propertyName] = new DagCborObject
-                {
-                    Type = new DagCborType
-                    {
-                        MajorType = DagCborType.TYPE_TEXT,
-                        AdditionalInfo = 0,
-                        OriginalByte = 0
-                    },
-                    Value = strValue
-                };
-            }
-            else
-            {
-                // Intermediate property, navigate or create
-                if(dict.ContainsKey(propertyName))
-                {
-                    current = dict[propertyName];
-                }
-                else
-                {
-                    DagCborObject newObj = new DagCborObject
-                    {
-                        Type = new DagCborType
-                        {
-                            MajorType = DagCborType.TYPE_MAP,
-                            AdditionalInfo = 0,
-                            OriginalByte = 0
-                        },
-                        Value = new Dictionary<string,DagCborObject>()
-                    };
-                    dict[propertyName] = newObj;
-                    current = newObj;
-                }
-            }
-        }
-
-        return true;
-    }
-
-
-    #endregion
-
-
 
 
     public override string ToString()
@@ -905,6 +755,158 @@ public class DagCborObject
 
         return result;
     }
+
+
+    #region SELECT
+
+    /// <summary>
+    /// Finds an object at the path specified by the property names,
+    /// and returns its value.
+    /// </summary>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public object? SelectObjectValue(string[] propertyNames)
+    {
+        DagCborObject? current = this;
+
+        foreach(string propertyName in propertyNames)
+        {
+            if(current.Type.MajorType != DagCborType.TYPE_MAP) return null;
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null) return null;
+
+            if(dict.ContainsKey(propertyName)) current = dict[propertyName];
+            else return null;
+        }
+
+        return current != null ? current.Value : null;
+    }
+
+    public DagCborObject? SelectObject(string[] propertyNames)
+    {
+        DagCborObject? current = this;
+
+        foreach(string propertyName in propertyNames)
+        {
+            if(current.Type.MajorType != DagCborType.TYPE_MAP) return null;
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null) return null;
+
+            if(dict.ContainsKey(propertyName)) current = dict[propertyName];
+            else return null;
+        }
+
+        return current;
+    }
+
+    /// <summary>
+    /// Finds an object at the path specified by the property names, 
+    /// and returns as string if possible.
+    /// </summary>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public string? SelectString(string[] propertyNames)
+    {
+        object? o = SelectObjectValue(propertyNames);
+
+        if(o as string != null) return o as string;
+        if(o as int? != null) return o.ToString();
+        if(o as bool? != null) return o.ToString();
+        if(o as CidV1 != null) return ((CidV1)o).GetBase32();
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds an object at the path specified by the property names, 
+    /// and returns as int if possible.
+    /// </summary>
+    /// <param name="propertyNames"></param>
+    /// <returns></returns>
+    public int? SelectInt(string[] propertyNames)
+    {
+        object? o = SelectObjectValue(propertyNames);
+
+        if(o is int i) return i;
+
+        return null;
+    }
+
+    public long? SelectLong(string[] propertyNames)
+    {
+        object? o = SelectObjectValue(propertyNames);
+
+        if(o is long l) return l;
+        if(o is int i) return (long)i;
+
+        return null;
+    }
+
+
+    public bool SetString(string[] propertyNames, string strValue)
+    {
+        DagCborObject? current = this;
+
+        for(int i = 0; i < propertyNames.Length; i++)
+        {
+            string propertyName = propertyNames[i];
+
+            if(current.Type.MajorType != DagCborType.TYPE_MAP) return false;
+
+            Dictionary<string,DagCborObject>? dict = current.Value as Dictionary<string,DagCborObject>;
+
+            if(dict == null) return false;
+
+            if(i == propertyNames.Length - 1)
+            {
+                // Last property, set value
+                dict[propertyName] = new DagCborObject
+                {
+                    Type = new DagCborType
+                    {
+                        MajorType = DagCborType.TYPE_TEXT,
+                        AdditionalInfo = 0,
+                        OriginalByte = 0
+                    },
+                    Value = strValue
+                };
+            }
+            else
+            {
+                // Intermediate property, navigate or create
+                if(dict.ContainsKey(propertyName))
+                {
+                    current = dict[propertyName];
+                }
+                else
+                {
+                    DagCborObject newObj = new DagCborObject
+                    {
+                        Type = new DagCborType
+                        {
+                            MajorType = DagCborType.TYPE_MAP,
+                            AdditionalInfo = 0,
+                            OriginalByte = 0
+                        },
+                        Value = new Dictionary<string,DagCborObject>()
+                    };
+                    dict[propertyName] = newObj;
+                    current = newObj;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    #endregion
+
+
 }
 
 public class DagCborType
