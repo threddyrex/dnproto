@@ -19,10 +19,10 @@ My main account is hosted on a dnproto PDS:
 
 CAR repo encoding and decoding:
 
-- [Repo.cs](/src/repo/Repo.cs) - repo parsing entry point
 - [DagCborObject.cs](/src/repo/DagCborObject.cs) - decoding/encoding dag cbor
 - [CidV1.cs](/src/repo/CidV1.cs) - decoding/encoding cid
 - [VarInt.cs](/src/repo/VarInt.cs) - decoding/encoding varint
+- [Repo.cs](/src/repo/Repo.cs) - repo parsing entry point
 
 MST data structure:
 
