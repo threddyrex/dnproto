@@ -698,7 +698,7 @@ public class DagCborObject
                 Dictionary<string, object> dict = new Dictionary<string, object>();
                 foreach(var prop in element.EnumerateObject())
                 {
-                    var rawValue = FromJsonElement(prop.Value).GetRawValue();
+                    var rawValue = FromJsonElement(prop.Value).GetRawValue(prop.Name);
                     if(rawValue != null)
                         dict[prop.Name] = rawValue;
                 }
