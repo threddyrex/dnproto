@@ -2,6 +2,7 @@ namespace dnproto.tests.repo;
 
 using dnproto.repo;
 using System.Text;
+using System.Text.Json;
 
 public class DagCborObjectTests
 {
@@ -790,4 +791,52 @@ public class DagCborObjectTests
         Assert.Equal(DagCborType.TYPE_MAP, dagCborObject.Type.MajorType);
         Assert.Equal("world", dagCborObject.SelectString(new string[] { "hello" }));
     }
+
+
+    [Fact]
+    public void Json_ToObject_ToDagCbor()
+    {
+        var json = """
+            {
+                "$type": "app.bsky.feed.post",
+                "createdAt": "2026-02-04T02:52:51.219Z",
+                "text": "more testing in prod",
+                "embed": {
+                    "$type": "app.bsky.embed.images",
+                    "images": [
+                        {
+                            "image": {
+                                "$type": "blob",
+                                "ref": {
+                                    "$link": "bafkreibbsbcpklag3blm5kba6jclb3sqeeoodqtsb7gh7343jsvy7343dy"
+                                },
+                                "mimeType": "image/jpeg",
+                                "size": 160379
+                            },
+                            "alt": "",
+                            "aspectRatio": {
+                                "width": 871,
+                                "height": 455
+                            }
+                        }
+                    ]
+                },
+                "langs": [
+                    "en"
+                ]
+            }
+            """;
+
+        // convert to object (this produces a JsonElement)
+        object? o = JsonData.ConvertJsonStringToObject(json);
+
+        // assert object type
+        Assert.IsType<JsonElement>(o);
+        Assert.Equal("JsonElement", o.GetType().Name);
+
+        // convert to DagCborObject
+        DagCborObject dagCborObject = DagCborObject.FromRawValue(o);
+
+    }
+
 }

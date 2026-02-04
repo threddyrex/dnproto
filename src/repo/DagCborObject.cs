@@ -765,8 +765,17 @@ public class DagCborObject
     /// <returns></returns>
     public static DagCborObject FromJsonString(string jsonString)
     {
+        //
+        // First convert json string to object. The object
+        // will be of type JsonElement.
+        //
         object? o = JsonData.ConvertJsonStringToObject(jsonString);
+
+        //
+        // Second convert from JsonElement to DagCborObject.
+        //
         DagCborObject dagCborObject = DagCborObject.FromRawValue(o);
+
         return dagCborObject;
     }
 
