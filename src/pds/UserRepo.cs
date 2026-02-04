@@ -98,15 +98,6 @@ public class UserRepo
     /// <returns></returns>
     public List<ApplyWritesResult> ApplyWrites(List<ApplyWritesOperation> writes, string? ip, string? userAgent)
     {
-        //
-        // The caller probably parsed this from json request.
-        // If so, blob refs will need to be corrected.
-        // Caught this by adding trace logging to the firehose consumer,
-        // so that it prints out the types of DagCbor objects (and not just
-        // the JSON representation)
-        //
-        FixBlobRefs(writes);
-
         DateTime startTime = DateTime.UtcNow;
 
         Pds.GLOBAL_PDS_LOCK.Wait();
@@ -464,66 +455,6 @@ public class UserRepo
         finally
         {
             Pds.GLOBAL_PDS_LOCK.Release();
-        }
-    }
-
-    private void FixBlobRefs(List<ApplyWritesOperation> writes)
-    {
-        // loop through all writes and replace items that are probably cids.
-        // convert from string to cid in the dagcbor
-
-        foreach (var write in writes)
-        {
-            if (write.Record != null)
-            {
-                FixBlobRefsInDagCbor(null, write.Record);
-            }
-        }
-    }
-
-    private void FixBlobRefsInDagCbor(string? key, DagCborObject obj)
-    {
-        if (obj.Type.MajorType == DagCborType.TYPE_MAP)
-        {
-            var dict = obj.Value as Dictionary<string, DagCborObject>;
-            if (dict != null)
-            {
-                foreach (var k in dict.Keys.ToList())
-                {
-                    FixBlobRefsInDagCbor(k, dict[k]);
-                }                    
-            }
-        }
-        else if (obj.Type.MajorType == DagCborType.TYPE_ARRAY)
-        {
-            var list = obj.Value as List<DagCborObject>;
-            if (list != null)
-            {
-                for (int i = 0; i < list.Count; i++)
-                {
-                    FixBlobRefsInDagCbor(null, list[i]);
-                }
-            }
-        }
-        else if (string.Equals("ref", key) 
-            && obj.Type.MajorType == DagCborType.TYPE_TEXT 
-            && obj.Value is string strValue 
-            && strValue != "null"
-            // check length of cid
-            && strValue.Length == 59
-            )
-        {
-            try
-            {
-                _logger.LogInfo($"Converting string '{strValue}' to CidV1");
-                CidV1 cidValue = CidV1.FromBase32(strValue);
-                obj.Type = new DagCborType { MajorType = DagCborType.TYPE_TAG, AdditionalInfo = 42, OriginalByte = 0 };
-                obj.Value = cidValue;                
-            }
-            catch
-            {
-                // that's ok
-            }
         }
     }
 

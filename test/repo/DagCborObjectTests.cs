@@ -6,6 +6,12 @@ using System.Text.Json;
 
 public class DagCborObjectTests
 {
+    private readonly ITestOutputHelper _output;
+    public DagCborObjectTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void RoundTrip_UnsignedInt_Small()
     {
@@ -833,6 +839,34 @@ public class DagCborObjectTests
         // assert object type
         Assert.IsType<JsonElement>(o);
         Assert.Equal("JsonElement", o.GetType().Name);
+
+        // walk JsonElement tree and print values
+        void WalkJsonElement(JsonElement element, string indent = "")
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        _output.WriteLine($"{indent}Property: {property.Name}");
+                        WalkJsonElement(property.Value, indent + "  ");
+                    }
+                    break;
+                case JsonValueKind.Array:
+                    int index = 0;
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        _output.WriteLine($"{indent}Array Item {index}:");
+                        WalkJsonElement(item, indent + "  ");
+                        index++;
+                    }
+                    break;
+                default:
+                    _output.WriteLine($"{indent}Value: {element.ToString()}");
+                    break;
+            }
+        }
+        WalkJsonElement((JsonElement)o!);
 
         // convert to DagCborObject
         DagCborObject dagCborObject = DagCborObject.FromRawValue(o);
