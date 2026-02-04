@@ -2,18 +2,32 @@ using System.Text;
 
 namespace dnproto.repo;
 
+
+
 /// <summary>
 /// Represents the data block section of a repo record (after version and cid).
 /// You normally start by reading a repo with "ReadFromStream". See Repo.WalkRepo for an example.
 /// Then you can inspect the data with the Select* functions, which will return a value at a path.
+/// 
+/// Most of this code handles converting the data between formats.
+/// Below are the formats. You can move up and down the list (but cannot skip).
+/// 
+///     - byte[] - raw bytes, in dag-cbor format
+///     - DagCborObject - parsed dag-cbor object tree
+///     - Raw Value - tree in C# types (like dictionary, list, string, int, etc.)
+///     - Json
+/// 
 /// </summary>
+
 public class DagCborObject
 {
     public required DagCborType Type;
 
     public required object Value;
 
-    
+
+    #region BYTES
+
     /// <summary>
     /// Read a DagCbor object from a stream. Recursively reads maps and arrays.
     /// The top-level type for a record's data block is *usually* a map, containing one or more elements.
@@ -360,6 +374,30 @@ public class DagCborObject
     }
 
 
+    public byte[] ToBytes()
+    {
+        using(MemoryStream ms = new MemoryStream())
+        {
+            DagCborObject.WriteToStream(this, ms);
+            return ms.ToArray();
+        }
+    }
+
+    public static DagCborObject FromBytes(byte[] data)
+    {
+        using(MemoryStream ms = new MemoryStream(data))
+        {
+            return DagCborObject.ReadFromStream(ms);
+        }
+    }
+
+
+    #endregion
+
+
+
+    #region SELECT
+
     /// <summary>
     /// Finds an object at the path specified by the property names,
     /// and returns its value.
@@ -505,6 +543,10 @@ public class DagCborObject
     }
 
 
+    #endregion
+
+
+
 
     public override string ToString()
     {
@@ -516,6 +558,9 @@ public class DagCborObject
         string? sval = Value.ToString();
         return sval != null ? sval : "";
     }
+
+
+    #region RAW
 
     /// <summary>
     /// This extracts the data (Value) from this DagCborObject and its children.
@@ -586,69 +631,6 @@ public class DagCborObject
         }
     }
 
-    public static DagCborObject FromException(Exception e, byte[] buffer, Dictionary<string, DagCborObject> dataBlockDict)
-    {
-        string bufferString = Encoding.UTF8.GetString(buffer);
-
-        StringBuilder sb = new StringBuilder();
-        sb.AppendLine("Buffer String: " + bufferString);
-        sb.AppendLine("Exception Type: " + e.GetType().Name);
-        sb.AppendLine("Exception Message: " + e.Message);
-        sb.AppendLine("Exception StackTrace: " + e.StackTrace);
-
-        dataBlockDict["DNPROTO_EXCEPTION"] = new DagCborObject
-        {
-            Type = new DagCborType
-            {
-                MajorType = DagCborType.TYPE_TEXT,
-                AdditionalInfo = 0,
-                OriginalByte = 0
-            },
-            Value = sb.ToString()
-        };
-
-
-        return new DagCborObject
-        {
-            Type = new DagCborType
-            {
-                MajorType = DagCborType.TYPE_MAP,
-                AdditionalInfo = 0,
-                OriginalByte = 0
-            },
-            Value = dataBlockDict
-        };
-    }
-
-    public byte[] ToBytes()
-    {
-        using(MemoryStream ms = new MemoryStream())
-        {
-            DagCborObject.WriteToStream(this, ms);
-            return ms.ToArray();
-        }
-    }
-
-    public static DagCborObject FromBytes(byte[] data)
-    {
-        using(MemoryStream ms = new MemoryStream(data))
-        {
-            return DagCborObject.ReadFromStream(ms);
-        }
-    }
-
-
-    /// <summary>
-    /// Parses a JSON string into a DagCborObject.
-    /// </summary>
-    /// <param name="jsonString"></param>
-    /// <returns></returns>
-    public static DagCborObject FromJsonString(string jsonString)
-    {
-        object? o = JsonData.ConvertJsonStringToObject(jsonString);
-        DagCborObject dagCborObject = DagCborObject.FromRawValue(o);
-        return dagCborObject;
-    }
 
     /// <summary>
     /// Creates a DagCborObject from a raw value (useful for converting from JSON).
@@ -838,6 +820,65 @@ public class DagCborObject
                 throw new Exception($"Unsupported JsonValueKind: {element.ValueKind}");
         }
     }
+
+    #endregion
+
+
+
+
+
+
+    public static DagCborObject FromException(Exception e, byte[] buffer, Dictionary<string, DagCborObject> dataBlockDict)
+    {
+        string bufferString = Encoding.UTF8.GetString(buffer);
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("Buffer String: " + bufferString);
+        sb.AppendLine("Exception Type: " + e.GetType().Name);
+        sb.AppendLine("Exception Message: " + e.Message);
+        sb.AppendLine("Exception StackTrace: " + e.StackTrace);
+
+        dataBlockDict["DNPROTO_EXCEPTION"] = new DagCborObject
+        {
+            Type = new DagCborType
+            {
+                MajorType = DagCborType.TYPE_TEXT,
+                AdditionalInfo = 0,
+                OriginalByte = 0
+            },
+            Value = sb.ToString()
+        };
+
+
+        return new DagCborObject
+        {
+            Type = new DagCborType
+            {
+                MajorType = DagCborType.TYPE_MAP,
+                AdditionalInfo = 0,
+                OriginalByte = 0
+            },
+            Value = dataBlockDict
+        };
+    }
+
+
+    #region JSON
+
+    /// <summary>
+    /// Parses a JSON string into a DagCborObject.
+    /// </summary>
+    /// <param name="jsonString"></param>
+    /// <returns></returns>
+    public static DagCborObject FromJsonString(string jsonString)
+    {
+        object? o = JsonData.ConvertJsonStringToObject(jsonString);
+        DagCborObject dagCborObject = DagCborObject.FromRawValue(o);
+        return dagCborObject;
+    }
+
+    #endregion
+
 
 
     public static string GetRecursiveDebugString(DagCborObject obj, int indent = 0)
