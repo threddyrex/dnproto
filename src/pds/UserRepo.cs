@@ -132,6 +132,8 @@ public class UserRepo
 
                 _logger.LogInfo($"[REPO] ip={ip} type={write.Type} collection={write.Collection} rkey={write.Rkey} userAgent=\"{userAgent}\"");
 
+                _logger.LogTrace($"[REPO] ApplyWrites DagCbor: \n {(write.Record != null ? DagCborObject.GetRecursiveDebugString(write.Record, 0) : "null")}");
+
                 switch(write.Type)
                 {
                     //

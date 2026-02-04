@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.auth;
+using dnproto.log;
 using dnproto.repo;
 using dnproto.ws;
 using Microsoft.AspNetCore.Http;
@@ -989,6 +990,9 @@ public abstract class BaseXrpcCommand
         using(StreamReader reader = new StreamReader(HttpContext.Request.Body))
         {
             string body = reader.ReadToEndAsync().Result;
+
+            Pds.Logger.LogTrace($"[XRPC] Request Body: {body}");
+
             if(string.IsNullOrEmpty(body))
             {
                 return null;
