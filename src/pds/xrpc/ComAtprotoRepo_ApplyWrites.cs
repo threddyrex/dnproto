@@ -1,4 +1,5 @@
 
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using dnproto.repo;
 using Microsoft.AspNetCore.Http;
@@ -99,12 +100,18 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
             if(type == UserRepo.ApplyWritesType.Create || type == UserRepo.ApplyWritesType.Update)
             {
                 string? valueStr = JsonData.ConvertToJsonString(writeNode["value"]);
+
+                Pds.Logger.LogTrace($"ApplyWrites Operation Value JSON:\n{valueStr}");
+
                 if(string.IsNullOrEmpty(valueStr))
                 {
                     return Results.Json(new { error = "InvalidRequest", message = "Error: value is required for create/update operations." }, statusCode: 400);
                 }
 
                 record = DagCborObject.FromJsonString(valueStr);
+
+                Pds.Logger.LogTrace($"ApplyWrites Operation Parsed DagCbor:\n{DagCborObject.GetRecursiveDebugString(record, 0)}");
+                
                 if(record is null)
                 {
                     return Results.Json(new { error = "InvalidRequest", message = "Error: failed to parse record value." }, statusCode: 400);
