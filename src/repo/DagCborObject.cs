@@ -6,19 +6,16 @@ namespace dnproto.repo;
 
 /// <summary>
 /// Represents the data block section of a repo record (after version and cid).
-/// You normally start by reading a repo with "ReadFromStream". See Repo.WalkRepo for an example.
-/// Then you can inspect the data with the Select* functions, which will return a value at a path.
 /// 
 /// Most of this code handles converting the data between formats.
 /// Below are the formats. You can move up and down the list (but cannot skip).
 /// 
-///     - byte[] - raw bytes, in dag-cbor format
-///     - DagCborObject - parsed dag-cbor object tree
-///     - Raw Value - tree in C# types (like dictionary, list, string, int, etc.)
 ///     - Json
+///     - Raw Value - tree in C# types (like dictionary, list, string, int, etc.)
+///     - DagCborObject - dag-cbor object tree
+///     - byte[] - raw bytes, in dag-cbor format
 /// 
 /// </summary>
-
 public class DagCborObject
 {
     public required DagCborType Type;
