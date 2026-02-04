@@ -35,7 +35,7 @@ PDS implementation:
 - [/xrpc/](/src/pds/xrpc/) - the XRPC endpoints
 - [Installer.cs](/src/pds/Installer.cs) - installing the PDS
 - [Pds.cs](/src/pds/Pds.cs) - PDS entry point
-- [PdsDb.cs](/src/pds/PdsDb.cs) - the database interface, where the repo is stored
+- [PdsDb.cs](/src/pds/db/PdsDb.cs) - the database interface, where the repo is stored
 - [RepoMst.cs](/src/repo/RepoMst.cs) - converting MST into dag-cbor for use in repos
 - [UserRepo.cs](/src/pds/UserRepo.cs) - operations on the user's repo
 
