@@ -418,25 +418,25 @@ public class DagCborObject
     /// </summary>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public object? GetRawValue()
+    public object? GetRawValue(string? key = null)
     {
-        if(Type.MajorType ==DagCborType.TYPE_TEXT)
+        if(Type.MajorType == DagCborType.TYPE_TEXT)
         {
             return Value;
         }
-        else if(Type.MajorType ==DagCborType.TYPE_BYTE_STRING)
+        else if(Type.MajorType == DagCborType.TYPE_BYTE_STRING)
         {
             return Value;
         }
-        else if(Type.MajorType ==DagCborType.TYPE_UNSIGNED_INT)
+        else if(Type.MajorType == DagCborType.TYPE_UNSIGNED_INT)
         {
             return Value;
         }
-        else if(Type.MajorType ==DagCborType.TYPE_SIMPLE_VALUE)
+        else if(Type.MajorType == DagCborType.TYPE_SIMPLE_VALUE)
         {
             return Value;
         }
-        else if(Type.MajorType ==DagCborType.TYPE_ARRAY)
+        else if(Type.MajorType == DagCborType.TYPE_ARRAY)
         {
             List<object> list = new List<object>();
 
@@ -451,12 +451,12 @@ public class DagCborObject
 
             return list;
         }
-        else if(Type.MajorType ==DagCborType.TYPE_MAP)
+        else if(Type.MajorType == DagCborType.TYPE_MAP)
         {
             Dictionary<string, object> dict = new Dictionary<string, object>();
             foreach(KeyValuePair<string,DagCborObject> kvp in (Dictionary<string,DagCborObject>)Value)
             {
-                var v = kvp.Value.GetRawValue();
+                var v = kvp.Value.GetRawValue(kvp.Key);
                 if(v != null)
                 {
                     dict[kvp.Key] = v;
@@ -464,8 +464,25 @@ public class DagCborObject
             }
             return dict;
         }
-        else if(Type.MajorType ==DagCborType.TYPE_TAG)
+        else if(Type.MajorType == DagCborType.TYPE_TAG)
         {
+            //
+            // If this is a ref cid, expand it
+            //
+            if(
+                string.IsNullOrEmpty(key) == false
+                && string.Equals("ref", key)
+                && Value is CidV1)
+            {
+                return new Dictionary<string, object>
+                {
+                    ["$link"] = ((CidV1)Value).GetBase32()
+                };
+            }
+
+            //
+            // Otherwise keep going
+            //
             if(Value is CidV1)
             {
                 return ((CidV1)Value).GetBase32();
@@ -597,6 +614,30 @@ public class DagCborObject
         }
         else if(value is Dictionary<string, object> dict)
         {
+            //
+            // If this is a ref $link, collapse it
+            //
+            if(
+                dict.Count == 1 
+                && dict.ContainsKey("$link") 
+                && dict["$link"] is string linkStr)
+            {
+                CidV1 cid = CidV1.FromBase32(linkStr);
+                return new DagCborObject
+                {
+                    Type = new DagCborType
+                    {
+                        MajorType = DagCborType.TYPE_TAG,
+                        AdditionalInfo = 42,
+                        OriginalByte = 0
+                    },
+                    Value = cid
+                };
+            }
+
+            //
+            // Otherwise, convert normally
+            //
             Dictionary<string, DagCborObject> cborDict = new Dictionary<string, DagCborObject>();
             foreach(var kvp in dict)
             {
