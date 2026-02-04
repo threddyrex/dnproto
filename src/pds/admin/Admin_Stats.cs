@@ -60,8 +60,7 @@ public class Admin_Stats : BaseAdmin
                         ? $"{Math.Max(0, elapsed.TotalSeconds):F0}s" 
                         : $"{elapsed.TotalMinutes:F1}";
                 }
-                bool isUptimeRobot = s.UserAgent.Contains("UptimeRobot", StringComparison.OrdinalIgnoreCase);
-                sb.Append($@"<tr data-uptimerobot=""{(isUptimeRobot ? "true" : "false")}"">
+                sb.Append($@"<tr>
                     <td>{enc.Encode(s.Name)}</td>
                     <td>{enc.Encode(s.IpAddress)}</td>
                     <td>{enc.Encode(s.UserAgent)}</td>
@@ -131,16 +130,10 @@ public class Admin_Stats : BaseAdmin
         <h1>Statistics</h1>
 
         <div class=""section-header"">
-            <h2>Statistics <span class=""session-count"" id=""statsCount"">({statistics.Count})</span></h2>
-            <div style=""display: flex; align-items: center; gap: 16px;"">
-                <label style=""display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #8899a6;"">
-                    <input type=""checkbox"" id=""hideUptimeRobot"" checked style=""cursor: pointer;"" />
-                    Hide UptimeRobot
-                </label>
-                <form method=""post"" action=""/admin/deleteallstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete all statistics?');"">
-                    <button type=""submit"" class=""delete-all-btn"">Delete All</button>
-                </form>
-            </div>
+            <h2>Statistics <span class=""session-count"">({statistics.Count})</span></h2>
+            <form method=""post"" action=""/admin/deleteallstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete all statistics?');"">
+                <button type=""submit"" class=""delete-all-btn"">Delete All</button>
+            </form>
         </div>
         <table class=""stats-table"" id=""statsTable"">
             <thead>
@@ -210,36 +203,6 @@ public class Admin_Stats : BaseAdmin
                 
                 rows.forEach(row => tbody.appendChild(row));
             }}
-        }})();
-
-        // UptimeRobot filter
-        (function() {{
-            const checkbox = document.getElementById('hideUptimeRobot');
-            const table = document.getElementById('statsTable');
-            const countSpan = document.getElementById('statsCount');
-            if (!checkbox || !table) return;
-
-            function updateFilter() {{
-                const hideUptimeRobot = checkbox.checked;
-                const rows = table.querySelectorAll('tbody tr');
-                let visibleCount = 0;
-                rows.forEach(row => {{
-                    const isUptimeRobot = row.dataset.uptimerobot === 'true';
-                    if (hideUptimeRobot && isUptimeRobot) {{
-                        row.style.display = 'none';
-                    }} else {{
-                        row.style.display = '';
-                        visibleCount++;
-                    }}
-                }});
-                if (countSpan) {{
-                    countSpan.textContent = '(' + visibleCount + ')';
-                }}
-            }}
-
-            checkbox.addEventListener('change', updateFilter);
-            // Apply filter on page load (checkbox is checked by default)
-            updateFilter();
         }})();
         </script>
         </body>
