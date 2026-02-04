@@ -98,7 +98,7 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
             DagCborObject? record = null;
             if(type == UserRepo.ApplyWritesType.Create || type == UserRepo.ApplyWritesType.Update)
             {
-                string? valueStr = writeNode["value"]?.ToString();
+                string? valueStr = JsonData.ConvertToJsonString(writeNode["value"]);
                 if(string.IsNullOrEmpty(valueStr))
                 {
                     return Results.Json(new { error = "InvalidRequest", message = "Error: value is required for create/update operations." }, statusCode: 400);
