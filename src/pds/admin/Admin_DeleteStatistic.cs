@@ -36,10 +36,11 @@ public class Admin_DeleteStatistic : BaseAdmin
         // We got this far, so delete the statistic
         //
         string? name = HttpContext.Request.Form["name"];
-        string? userKey = HttpContext.Request.Form["userKey"];
-        if(string.IsNullOrEmpty(name) == false && string.IsNullOrEmpty(userKey) == false)
+        string? ipAddress = HttpContext.Request.Form["ipAddress"];
+        string? userAgent = HttpContext.Request.Form["userAgent"];
+        if(string.IsNullOrEmpty(name) == false && string.IsNullOrEmpty(ipAddress) == false && string.IsNullOrEmpty(userAgent) == false)
         {
-            Pds.PdsDb.DeleteStatisticByKey(name, userKey);
+            Pds.PdsDb.DeleteStatisticByKey(new StatisticKey { Name = name, IpAddress = ipAddress, UserAgent = userAgent });
         }
 
 

@@ -98,8 +98,13 @@ public class BaseAdmin
                 ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             }
 
+            if(string.IsNullOrEmpty(userAgent))
+            {
+                userAgent = "Unknown";
+            }
 
-            Pds.PdsDb.IncrementStatistic("Connection Count", $"{ipAddress!}   ({userAgent})");
+
+            Pds.PdsDb.IncrementStatistic(new StatisticKey { Name = "Connection Count", IpAddress = ipAddress!, UserAgent = userAgent! });
         }
         catch
         {

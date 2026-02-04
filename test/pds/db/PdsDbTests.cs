@@ -1003,20 +1003,21 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         var pdsDb = _fixture.PdsDb;
         pdsDb.DeleteAllStatistics();
 
-        pdsDb.IncrementStatistic("active_users", "userkey");
-        pdsDb.IncrementStatistic("active_users", "userkey");
+        pdsDb.IncrementStatistic(new StatisticKey{ Name = "active_users", IpAddress = "userip", UserAgent = "useragent" });
+        pdsDb.IncrementStatistic(new StatisticKey{ Name = "active_users", IpAddress = "userip", UserAgent = "useragent" });
 
-        Assert.Equal(2, pdsDb.GetStatisticValue("active_users", "userkey"));
-        Assert.True(pdsDb.StatisticExists("active_users", "userkey"));
-        pdsDb.IncrementStatistic("active_users", "userkey");
-        Assert.Equal(3, pdsDb.GetStatisticValue("active_users", "userkey"));
+        Assert.Equal(2, pdsDb.GetStatisticValue(new StatisticKey{ Name = "active_users", IpAddress = "userip", UserAgent = "useragent" }));
+        Assert.True(pdsDb.StatisticExists(new StatisticKey{ Name = "active_users", IpAddress = "userip", UserAgent = "useragent" }));
+        pdsDb.IncrementStatistic(new StatisticKey{ Name = "active_users", IpAddress = "userip", UserAgent = "useragent" });
+        Assert.Equal(3, pdsDb.GetStatisticValue(new StatisticKey{ Name = "active_users", IpAddress = "userip", UserAgent = "useragent" }));
 
         var stats = pdsDb.GetAllStatistics();
 
         Assert.Single(stats);
 
         Assert.Equal("active_users", stats[0].Name);
-        Assert.Equal("userkey", stats[0].UserKey);
+        Assert.Equal("userip", stats[0].IpAddress);
+        Assert.Equal("useragent", stats[0].UserAgent);
         Assert.Equal(3, stats[0].Value);
         Assert.NotNull(stats[0].LastUpdatedDate);
 

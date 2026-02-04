@@ -2527,33 +2527,34 @@ FROM PasskeyChallenge
         command.CommandText = @"
 CREATE TABLE IF NOT EXISTS Statistic (
 Name TEXT NOT NULL,
-UserKey TEXT NOT NULL,
+IpAddress TEXT NOT NULL,
+UserAgent TEXT NOT NULL,
 Value INTEGER NOT NULL,
 LastUpdatedDate TEXT NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS IX_Statistic_Name_UserKey
-ON Statistic (Name, UserKey);
+ON Statistic (Name, IpAddress, UserAgent);
         ";
 
         command.ExecuteNonQuery();
     }
 
 
-    public void IncrementStatistic(string name, string userKey)
+    public void IncrementStatistic(StatisticKey key)
     {
-        if (StatisticExists(name, userKey))
+        if (StatisticExists(key))
         {
-            int current = GetStatisticValue(name, userKey);
-            UpdateStatistic(name, userKey, current + 1);
+            long current = GetStatisticValue(key);
+            UpdateStatistic(key, current + 1);
         }
         else
         {
-            InsertStatistic(name, userKey, 1);
+            InsertStatistic(key, 1);
         }
     }
 
 
-    public int GetStatisticValue(string name, string userKey)
+    public long GetStatisticValue(StatisticKey key)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -2561,21 +2562,22 @@ ON Statistic (Name, UserKey);
             command.CommandText = @"
 SELECT Value
 FROM Statistic
-WHERE Name = @Name AND UserKey = @UserKey
+WHERE Name = @Name AND IpAddress = @IpAddress AND UserAgent = @UserAgent;
             ";
-            command.Parameters.AddWithValue("@Name", name);
-            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@Name", key.Name);
+            command.Parameters.AddWithValue("@IpAddress", key.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", key.UserAgent);
             var result = command.ExecuteScalar();
             if(result != null)
             {
                 return Convert.ToInt32(result);
             }
-            throw new Exception($"Statistic with name '{name}' and UserKey '{userKey}' not found.");
+            throw new Exception($"Statistic with name '{key.Name}'and IpAddress '{key.IpAddress}' and UserAgent '{key.UserAgent}' not found.");
         }
     }
 
 
-    public bool StatisticExists(string name, string userKey)
+    public bool StatisticExists(StatisticKey key)
     {
         using(var sqlConnection = GetConnectionReadOnly())
         {
@@ -2583,10 +2585,11 @@ WHERE Name = @Name AND UserKey = @UserKey
             command.CommandText = @"
 SELECT COUNT(1)
 FROM Statistic
-WHERE Name = @Name AND UserKey = @UserKey
+WHERE Name = @Name AND IpAddress = @IpAddress AND UserAgent = @UserAgent
             ";
-            command.Parameters.AddWithValue("@Name", name);
-            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@Name", key.Name);
+            command.Parameters.AddWithValue("@IpAddress", key.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", key.UserAgent);
             var result = command.ExecuteScalar();
             if(result != null && Convert.ToInt32(result) > 0)
             {
@@ -2596,24 +2599,25 @@ WHERE Name = @Name AND UserKey = @UserKey
         }
     }
 
-    private void InsertStatistic(string name, string userKey, long value)
+    private void InsertStatistic(StatisticKey key, long value)
     {
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Statistic (Name, UserKey, Value, LastUpdatedDate)
-VALUES (@Name, @UserKey, @Value, @LastUpdatedDate)
+INSERT INTO Statistic (Name, IpAddress, UserAgent, Value, LastUpdatedDate)
+VALUES (@Name, @IpAddress, @UserAgent, @Value, @LastUpdatedDate)
             ";
-            command.Parameters.AddWithValue("@Name", name);
-            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@Name", key.Name);
+            command.Parameters.AddWithValue("@IpAddress", key.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", key.UserAgent);
             command.Parameters.AddWithValue("@Value", value);
             command.Parameters.AddWithValue("@LastUpdatedDate", PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow));
             command.ExecuteNonQuery();
         }
     }
 
-    private void UpdateStatistic(string name, string userKey, long value)
+    private void UpdateStatistic(StatisticKey key, long value)
     {
         using(var sqlConnection = GetConnection())
         {
@@ -2621,11 +2625,12 @@ VALUES (@Name, @UserKey, @Value, @LastUpdatedDate)
             command.CommandText = @"
 UPDATE Statistic
 SET Value = @Value, LastUpdatedDate = @LastUpdatedDate
-WHERE Name = @Name AND UserKey = @UserKey
+WHERE Name = @Name AND IpAddress = @IpAddress AND UserAgent = @UserAgent
             ";
             command.Parameters.AddWithValue("@Value", value);
-            command.Parameters.AddWithValue("@Name", name);
-            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@Name", key.Name);
+            command.Parameters.AddWithValue("@IpAddress", key.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", key.UserAgent);
             command.Parameters.AddWithValue("@LastUpdatedDate", PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow));
             command.ExecuteNonQuery();
         }
@@ -2643,16 +2648,17 @@ DELETE FROM Statistic
         }
     }
 
-    public void DeleteStatisticByKey(string name, string userKey)
+    public void DeleteStatisticByKey(StatisticKey key)
     {
         using(var sqlConnection = GetConnection())
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-DELETE FROM Statistic WHERE Name = @Name AND UserKey = @UserKey
+DELETE FROM Statistic WHERE Name = @Name AND IpAddress = @IpAddress AND UserAgent = @UserAgent
             ";
-            command.Parameters.AddWithValue("@Name", name);
-            command.Parameters.AddWithValue("@UserKey", userKey);
+            command.Parameters.AddWithValue("@Name", key.Name);
+            command.Parameters.AddWithValue("@IpAddress", key.IpAddress);
+            command.Parameters.AddWithValue("@UserAgent", key.UserAgent);
             command.ExecuteNonQuery();
         }
     }
@@ -2665,7 +2671,7 @@ DELETE FROM Statistic WHERE Name = @Name AND UserKey = @UserKey
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT Name, UserKey, Value, LastUpdatedDate
+SELECT Name, IpAddress, UserAgent, Value, LastUpdatedDate
 FROM Statistic
             ";
             using(var reader = command.ExecuteReader())
@@ -2675,7 +2681,8 @@ FROM Statistic
                     stats.Add(new Statistic
                     {
                         Name = reader.GetString(reader.GetOrdinal("Name")),
-                        UserKey = reader.GetString(reader.GetOrdinal("UserKey")),
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent")),
                         Value = reader.GetInt64(reader.GetOrdinal("Value")),
                         LastUpdatedDate = reader.GetString(reader.GetOrdinal("LastUpdatedDate"))
                     });

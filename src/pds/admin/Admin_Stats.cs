@@ -44,7 +44,7 @@ public class Admin_Stats : BaseAdmin
             var enc = System.Text.Encodings.Web.HtmlEncoder.Default;
 
             if (statistics.Count == 0)
-                return "<tr><td colspan=\"6\" style=\"text-align: center; color: #8899a6;\">No statistics</td></tr>";
+                return "<tr><td colspan=\"7\" style=\"text-align: center; color: #8899a6;\">No statistics</td></tr>";
             
             var sb = new System.Text.StringBuilder();
             foreach (var s in statistics)
@@ -62,14 +62,16 @@ public class Admin_Stats : BaseAdmin
                 }
                 sb.Append($@"<tr>
                     <td>{enc.Encode(s.Name)}</td>
-                    <td>{enc.Encode(s.UserKey)}</td>
+                    <td>{enc.Encode(s.IpAddress)}</td>
+                    <td>{enc.Encode(s.UserAgent)}</td>
                     <td style=""text-align: right;"">{enc.Encode(s.Value.ToString())}</td>
                     <td>{enc.Encode(s.LastUpdatedDate)}</td>
                     <td style=""text-align: right;"">{enc.Encode(minutesAgo)}</td>
                     <td>
                         <form method=""post"" action=""/admin/deletestatistic"" style=""display:inline;"">
                             <input type=""hidden"" name=""name"" value=""{enc.Encode(s.Name)}"" />
-                            <input type=""hidden"" name=""userKey"" value=""{enc.Encode(s.UserKey)}"" />
+                            <input type=""hidden"" name=""ipAddress"" value=""{enc.Encode(s.IpAddress)}"" />
+                            <input type=""hidden"" name=""userAgent"" value=""{enc.Encode(s.UserAgent)}"" />
                             <button type=""submit"" class=""delete-btn"">Delete</button>
                         </form>
                     </td>
@@ -137,10 +139,11 @@ public class Admin_Stats : BaseAdmin
             <thead>
                 <tr>
                     <th class=""sortable"" data-col=""0"" data-type=""string"">Name</th>
-                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Key</th>
-                    <th class=""sortable"" data-col=""2"" data-type=""number"" style=""text-align: right;"">Value</th>
-                    <th class=""sortable desc"" data-col=""3"" data-type=""string"">Last Updated</th>
-                    <th class=""sortable"" data-col=""4"" data-type=""number"" style=""text-align: right;"">Minutes Ago</th>
+                    <th class=""sortable"" data-col=""1"" data-type=""string"">IP Address</th>
+                    <th class=""sortable"" data-col=""2"" data-type=""string"">User Agent</th>
+                    <th class=""sortable"" data-col=""3"" data-type=""number"" style=""text-align: right;"">Value</th>
+                    <th class=""sortable desc"" data-col=""4"" data-type=""string"">Last Updated</th>
+                    <th class=""sortable"" data-col=""5"" data-type=""number"" style=""text-align: right;"">Minutes Ago</th>
                     <th>Action</th>
                 </tr>
             </thead>

@@ -1133,7 +1133,13 @@ public abstract class BaseXrpcCommand
             }
 
 
-            Pds.PdsDb.IncrementStatistic("Connection Count", $"{ipAddress!}   ({userAgent})");
+            if(string.IsNullOrEmpty(userAgent))
+            {
+                userAgent = "Unknown";
+            }
+
+
+            Pds.PdsDb.IncrementStatistic(new StatisticKey { Name = "Connection Count", IpAddress = ipAddress!, UserAgent = userAgent! });
         }
         catch
         {
