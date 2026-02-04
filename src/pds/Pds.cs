@@ -267,6 +267,9 @@ public class Pds
             // Log unimplemented endpoints so we can track what's being called
             Logger.LogWarning($"UNIMPLEMENTED ENDPOINT: {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
 
+            // stats
+            dnproto.pds.admin.BaseAdmin.IncrementStatistics(context, PdsDb);
+
             return Results.Json(new { error = "MethodNotImplemented", message = $"Endpoint not implemented: {context.Request.Path}" }, statusCode: 501);
         });
     }
