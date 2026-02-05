@@ -16,6 +16,8 @@ public class Oauth_Jwks : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         return Results.Json(new
         {
             keys = new JsonArray(){},

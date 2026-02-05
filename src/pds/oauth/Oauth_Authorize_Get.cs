@@ -18,6 +18,8 @@ public class Oauth_Authorize_Get : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         //
         // Get client_id and request_uri from query parameters
         //

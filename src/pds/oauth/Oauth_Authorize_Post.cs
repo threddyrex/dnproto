@@ -18,6 +18,8 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         //
         // Get form data
         //

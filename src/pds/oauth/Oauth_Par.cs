@@ -18,6 +18,8 @@ public class Oauth_Par : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         
         //
         // Get dpop header and body

@@ -13,6 +13,8 @@ public class Oauth_AuthorizationServer : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         return Results.Json(new 
         {
             issuer = $"https://{Pds.Config.PdsHostname}",

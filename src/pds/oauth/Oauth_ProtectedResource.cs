@@ -16,6 +16,8 @@ public class Oauth_ProtectedResource : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         return Results.Json(new 
         {
             resource = $"https://{Pds.Config.PdsHostname}",

@@ -16,6 +16,8 @@ public class Oauth_Revoke : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
         //
         // Get the token param
         //

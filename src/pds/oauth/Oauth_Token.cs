@@ -21,6 +21,8 @@ public class Oauth_Token : BaseXrpcCommand
             return Results.Json(new{}, statusCode: 403);
         }
 
+        IncrementStatistics();
+
 
         //
         // Retrieve body params
