@@ -25,6 +25,7 @@ public class BackgroundJobs
     private System.Threading.Timer? _timerDeleteOldFirehoseEvents;
     private System.Threading.Timer? _timerDeleteOldOauthRequests;
     private System.Threading.Timer? _timerRequestCrawl;
+    private System.Threading.Timer? _timerDeleteStaleAdminSessions;
 
     public BackgroundJobs(LocalFileSystem lfs, Logger logger, PdsDb db)
     {
@@ -45,6 +46,8 @@ public class BackgroundJobs
         _timerDeleteOldOauthRequests = new System.Threading.Timer(_ => Job_DeleteOldOauthRequests(), null, TimeSpan.Zero, TimeSpan.FromHours(1));
         // request crawl every 5 minutes, but start 30 seconds after process startup
         _timerRequestCrawl = new System.Threading.Timer(_ => Job_RequestCrawlIfEnabled(), null, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5));
+        // delete stale admin sessions every hour
+        _timerDeleteStaleAdminSessions = new System.Threading.Timer(_ => Job_DeleteStaleAdminSessions(), null, TimeSpan.FromSeconds(30), TimeSpan.FromHours(1));
     }
 
 
@@ -156,6 +159,20 @@ public class BackgroundJobs
                     _logger.LogInfo($"[BACKGROUND] RequestCrawl. pdsHostname={pdsHostname} crawler={crawler} response={response?.ToJsonString()}");
                 }
             }
+        }
+        catch(Exception ex)
+        {
+            _logger.LogException(ex);
+        }
+    }
+
+
+    private void Job_DeleteStaleAdminSessions()
+    {
+        try
+        {
+            _logger.LogInfo($"[BACKGROUND] DeleteStaleAdminSessions");            
+            _db.DeleteStaleAdminSessions(timeoutMinutes: 120);
         }
         catch(Exception ex)
         {

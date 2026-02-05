@@ -23,7 +23,7 @@ public class Statistics
             // Log connection
             //
             string path = ctx.Request.Path;
-            logger.LogInfo($"[CONN]  {ipAddress}  {path}  {userAgent}");
+            logger.LogInfo($"[CONNECT]  {ipAddress}  {path}  {userAgent}");
 
 
             //
