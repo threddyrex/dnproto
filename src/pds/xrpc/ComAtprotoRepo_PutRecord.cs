@@ -11,6 +11,7 @@ public class ComAtprotoRepo_PutRecord : BaseXrpcCommand
     public IResult GetResponse()
     {
         IncrementStatistics();
+        Statistics.IncrementStatistics_ApplyWrites(HttpContext, Pds.PdsDb, Pds.Logger);
         
         //
         // Require auth

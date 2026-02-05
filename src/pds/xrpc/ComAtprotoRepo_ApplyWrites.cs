@@ -12,6 +12,7 @@ public class ComAtprotoRepo_ApplyWrites : BaseXrpcCommand
     public IResult GetResponse()
     {
         IncrementStatistics();
+        Statistics.IncrementStatistics_ApplyWrites(HttpContext, Pds.PdsDb, Pds.Logger);
         
         //
         // Require auth
