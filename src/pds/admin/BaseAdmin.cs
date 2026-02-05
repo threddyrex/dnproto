@@ -90,51 +90,7 @@ public class BaseAdmin
 
     protected void IncrementStatistics()
     {
-        IncrementStatistics(HttpContext, Pds.PdsDb, Pds.Logger);
+        Statistics.IncrementStatistics_Connect(HttpContext, Pds.PdsDb, Pds.Logger);
     }
 
-    public static void IncrementStatistics(HttpContext ctx, PdsDb db, IDnProtoLogger logger)
-    {
-        try
-        {
-            //
-            // Get user agent and IP address
-            //
-            string? userAgent = ctx.Request.Headers.ContainsKey("User-Agent") ? ctx.Request.Headers["User-Agent"].ToString() : null;
-            string? ipAddress = ctx.Request.Headers.ContainsKey("X-Forwarded-For") ? ctx.Request.Headers["X-Forwarded-For"].ToString() : null;
-
-            if(string.IsNullOrEmpty(ipAddress))
-            {
-                ipAddress = ctx.Connection.RemoteIpAddress?.ToString();
-            }
-
-            if(string.IsNullOrEmpty(userAgent))
-            {
-                userAgent = "Unknown";
-            }
-
-
-            //
-            // Log connection
-            //
-            string path = ctx.Request.Path;
-            logger.LogInfo($"[CONNECTION] {ipAddress}  {path}  {userAgent}");
-
-
-            //
-            // uptimerobot sends from all over, so just group them all together
-            //
-            if(userAgent!.Contains("www.uptimerobot.com"))
-            {
-                ipAddress = "global";
-            }
-
-
-            db.IncrementStatistic(new StatisticKey { Name = "Connection Count", IpAddress = ipAddress!, UserAgent = userAgent! });
-        }
-        catch
-        {
-            // don't throw on this
-        }
-    }
 }

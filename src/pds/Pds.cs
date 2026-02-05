@@ -268,7 +268,7 @@ public class Pds
             Logger.LogWarning($"UNIMPLEMENTED ENDPOINT: {context.Request.Method} {context.Request.Path}{context.Request.QueryString}");
 
             // stats
-            dnproto.pds.admin.BaseAdmin.IncrementStatistics(context, PdsDb, Logger);
+            Statistics.IncrementStatistics_Connect(context, PdsDb, Logger);
 
             return Results.Json(new { error = "MethodNotImplemented", message = $"Endpoint not implemented: {context.Request.Path}" }, statusCode: 501);
         });
