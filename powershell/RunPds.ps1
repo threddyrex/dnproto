@@ -2,7 +2,7 @@ param (
     [string]$dnprotoPath = $null,
     [string]$logLevel = $null,
     [string]$dataDir = $null,
-    [bool]$logToDataDir = $true
+    [bool]$logToDataDir = $false
 )
 
 . .\_Defaults.ps1

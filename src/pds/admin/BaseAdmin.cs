@@ -1,4 +1,5 @@
 
+using dnproto.log;
 using Microsoft.AspNetCore.Http;
 
 
@@ -89,10 +90,10 @@ public class BaseAdmin
 
     protected void IncrementStatistics()
     {
-        IncrementStatistics(HttpContext, Pds.PdsDb);
+        IncrementStatistics(HttpContext, Pds.PdsDb, Pds.Logger);
     }
 
-    public static void IncrementStatistics(HttpContext ctx, PdsDb db)
+    public static void IncrementStatistics(HttpContext ctx, PdsDb db, IDnProtoLogger logger)
     {
         try
         {
@@ -111,6 +112,13 @@ public class BaseAdmin
             {
                 userAgent = "Unknown";
             }
+
+
+            //
+            // Log connection
+            //
+            string path = ctx.Request.Path;
+            logger.LogInfo($"[CONNECTION] {ipAddress}  {path}  {userAgent}");
 
 
             //

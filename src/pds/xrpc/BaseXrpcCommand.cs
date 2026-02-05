@@ -1123,7 +1123,7 @@ public abstract class BaseXrpcCommand
 
     protected void IncrementStatistics()
     {
-        BaseAdmin.IncrementStatistics(HttpContext, Pds.PdsDb);
+        BaseAdmin.IncrementStatistics(HttpContext, Pds.PdsDb, Pds.Logger);
     }
 
     protected string? GetCallerIpAddress()
