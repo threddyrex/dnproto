@@ -479,6 +479,17 @@ public class DagCborObject
             //
             // If this is a ref cid, expand it
             //
+            /*
+                This is related to a bug I saw where videos would disappear 
+                from the Bluesky CDN after two days. I noticed that firehose events 
+                I was emitting would have "ref { '$link': 'cidstring' }" in the Dag Cbor, 
+                but Bluesky PDS was collapsing that to just "ref" with a cid tag. I suspect that
+                the CDN was looking for ref cid tag to ensure that the video was in use.
+                And if it wasn't in use, it would expire the video after two days.
+
+                The caller of GetRawValue is likely going from DagCborObject -> Json,
+                in which case we want to expand the "ref: cid" to "ref { '$link': 'cidstring' }".
+            */
             if(
                 string.IsNullOrEmpty(key) == false
                 && string.Equals("ref", key)
@@ -625,8 +636,20 @@ public class DagCborObject
         else if(value is Dictionary<string, object> dict)
         {
             //
-            // If this is a ref $link, collapse it
+            // If this is a ref $link, collapse it.
             //
+            /*
+                This is related to a bug I saw where videos would disappear 
+                from the Bluesky CDN after two days. I noticed that firehose events 
+                I was emitting would have "ref { '$link': 'cidstring' }" in the Dag Cbor, 
+                but Bluesky PDS was collapsing that to just "ref" with a cid tag. I suspect that
+                the CDN was looking for ref cid tag to ensure that the video was in use.
+                And if it wasn't in use, it would expire the video after two days.
+
+                The caller of FromRawValue is likely going from Json -> DagCborObject,
+                in which case we want to collapse "ref { '$link': 'cidstring' }" to 
+                just "ref: cid".
+            */
             if(
                 dict.Count == 1 
                 && dict.ContainsKey("$link") 
