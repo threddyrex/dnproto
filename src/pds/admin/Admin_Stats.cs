@@ -136,8 +136,9 @@ public class Admin_Stats : BaseAdmin
                 <button type=""submit"" class=""delete-all-btn"">Delete All</button>
             </form>
         </div>
-        <div style=""margin-bottom: 16px;"">
-            <input type=""text"" id=""filterInput"" placeholder=""Filter..."" style=""width: 100%; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#4caf50'"" onblur=""this.style.borderColor='#444'"" />
+        <div style=""margin-bottom: 16px; display: flex; gap: 12px;"">
+            <input type=""text"" id=""showFilterInput"" placeholder=""Show..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#4caf50'"" onblur=""this.style.borderColor='#444'"" />
+            <input type=""text"" id=""hideFilterInput"" placeholder=""Hide..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#f44336'"" onblur=""this.style.borderColor='#444'"" />
         </div>
         <table class=""stats-table"" id=""statsTable"">
             <thead>
@@ -211,28 +212,42 @@ public class Admin_Stats : BaseAdmin
 
         // Table filtering
         (function() {{
-            const filterInput = document.getElementById('filterInput');
+            const showFilterInput = document.getElementById('showFilterInput');
+            const hideFilterInput = document.getElementById('hideFilterInput');
             const table = document.getElementById('statsTable');
-            if (!filterInput || !table) return;
+            if (!showFilterInput || !hideFilterInput || !table) return;
             
-            filterInput.addEventListener('input', function() {{
-                const filterText = this.value.toLowerCase();
+            function applyFilters() {{
+                const showText = showFilterInput.value.toLowerCase();
+                const hideText = hideFilterInput.value.toLowerCase();
                 const tbody = table.querySelector('tbody');
                 const rows = tbody.querySelectorAll('tr');
                 
                 rows.forEach(row => {{
                     const cells = row.querySelectorAll('td');
-                    let match = false;
-                    
+                    let rowText = '';
                     cells.forEach(cell => {{
-                        if (cell.textContent.toLowerCase().includes(filterText)) {{
-                            match = true;
-                        }}
+                        rowText += cell.textContent.toLowerCase() + ' ';
                     }});
                     
-                    row.style.display = match ? '' : 'none';
+                    // Hide filter takes precedence
+                    if (hideText && rowText.includes(hideText)) {{
+                        row.style.display = 'none';
+                        return;
+                    }}
+                    
+                    // Show filter: if empty, show all; otherwise must match
+                    if (showText && !rowText.includes(showText)) {{
+                        row.style.display = 'none';
+                        return;
+                    }}
+                    
+                    row.style.display = '';
                 }});
-            }});
+            }}
+            
+            showFilterInput.addEventListener('input', applyFilters);
+            hideFilterInput.addEventListener('input', applyFilters);
         }})();
         </script>
         </body>
