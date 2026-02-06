@@ -31,8 +31,20 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
         //
         string? contentType = HttpContext.Request.ContentType;
         int contentLength = (int)(HttpContext.Request.ContentLength ?? 0);
-        byte[] blobBytes = new byte[contentLength];
-        await HttpContext.Request.Body.ReadExactlyAsync(blobBytes, 0, contentLength);
+        byte[]? blobBytes = null;
+
+        if(contentLength > 0)
+        {
+            blobBytes = new byte[contentLength];
+            await HttpContext.Request.Body.ReadExactlyAsync(blobBytes, 0, contentLength);
+        }
+        else
+        {
+            using var memoryStream = new MemoryStream();
+            await HttpContext.Request.Body.CopyToAsync(memoryStream);
+            blobBytes = memoryStream.ToArray();
+            contentLength = blobBytes.Length;
+        }
 
         //
         // Fix content type
