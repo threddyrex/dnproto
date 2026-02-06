@@ -56,9 +56,8 @@ public class Admin_Stats : BaseAdmin
                     out var lastUpdated))
                 {
                     var elapsed = DateTimeOffset.UtcNow - lastUpdated;
-                    minutesAgo = elapsed.TotalMinutes < 1 
-                        ? $"{Math.Max(0, elapsed.TotalSeconds):F0}s" 
-                        : $"{elapsed.TotalMinutes:F1}";
+                    var totalMinutes = Math.Max(0, elapsed.TotalMinutes);
+                    minutesAgo = $"{totalMinutes:F1}m";
                 }
                 sb.Append($@"<tr>
                     <td>{enc.Encode(s.Name)}</td>
