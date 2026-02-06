@@ -236,6 +236,7 @@ public class Pds
         App.MapGet("/xrpc/com.atproto.server.checkAccountStatus", (HttpContext context) => new ComAtprotoServer_CheckAccountStatus(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/", (HttpContext context) => new Admin_Home(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/sessions", (HttpContext context) => new Admin_Sessions(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/admin/passkeys", (HttpContext context) => new Admin_Passkeys(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/logout", (HttpContext context) => new Admin_Logout(){Pds = this, HttpContext = context}.GetResponse());

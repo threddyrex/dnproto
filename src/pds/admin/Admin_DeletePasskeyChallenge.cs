@@ -45,9 +45,9 @@ public class Admin_DeletePasskeyChallenge : BaseAdmin
 
 
         //
-        // Redirect to home
+        // Redirect to passkeys page
         //
-        HttpContext.Response.Redirect("/admin/");
+        HttpContext.Response.Redirect("/admin/passkeys");
         return Results.Empty;
     }
 

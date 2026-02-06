@@ -175,6 +175,7 @@ public class Admin_Sessions : BaseAdmin
         <div class=""container"">
         <div class=""navbar"">
             <a href=""/admin/"" class=""nav-btn"">Home</a>
+            <a href=""/admin/passkeys"" class=""nav-btn"">Passkeys</a>
             <a href=""/admin/sessions"" class=""nav-btn active"">Sessions</a>
             <a href=""/admin/stats"" class=""nav-btn"">Statistics</a>
             <form method=""post"" action=""/admin/logout"" style=""margin: 0;"">
