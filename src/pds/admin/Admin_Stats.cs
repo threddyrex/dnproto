@@ -136,6 +136,9 @@ public class Admin_Stats : BaseAdmin
                 <button type=""submit"" class=""delete-all-btn"">Delete All</button>
             </form>
         </div>
+        <div style=""margin-bottom: 16px;"">
+            <input type=""text"" id=""filterInput"" placeholder=""Filter..."" style=""width: 100%; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#4caf50'"" onblur=""this.style.borderColor='#444'"" />
+        </div>
         <table class=""stats-table"" id=""statsTable"">
             <thead>
                 <tr>
@@ -204,6 +207,32 @@ public class Admin_Stats : BaseAdmin
                 
                 rows.forEach(row => tbody.appendChild(row));
             }}
+        }})();
+
+        // Table filtering
+        (function() {{
+            const filterInput = document.getElementById('filterInput');
+            const table = document.getElementById('statsTable');
+            if (!filterInput || !table) return;
+            
+            filterInput.addEventListener('input', function() {{
+                const filterText = this.value.toLowerCase();
+                const tbody = table.querySelector('tbody');
+                const rows = tbody.querySelectorAll('tr');
+                
+                rows.forEach(row => {{
+                    const cells = row.querySelectorAll('td');
+                    let match = false;
+                    
+                    cells.forEach(cell => {{
+                        if (cell.textContent.toLowerCase().includes(filterText)) {{
+                            match = true;
+                        }}
+                    }});
+                    
+                    row.style.display = match ? '' : 'none';
+                }});
+            }});
         }})();
         </script>
         </body>
