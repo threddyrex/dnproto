@@ -115,7 +115,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             PdsCrawlers = new string[] { "bsky.network", "example.crawler" },
             RequestCrawlIsEnabled = true,
             LogRetentionDays = 7,
-            AdminInterfaceIsEnabled = true
+            AdminInterfaceIsEnabled = true,
+            PasskeysEnabled = true
         };
 
         // Act
@@ -145,6 +146,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.RequestCrawlIsEnabled, retrievedConfig.RequestCrawlIsEnabled);
         Assert.Equal(configToInsert.LogRetentionDays, retrievedConfig.LogRetentionDays);
         Assert.Equal(1, configCount);
+        Assert.Equal(configToInsert.AdminInterfaceIsEnabled, retrievedConfig.AdminInterfaceIsEnabled);
+        Assert.Equal(configToInsert.PasskeysEnabled, retrievedConfig.PasskeysEnabled);
     }
 
     [Fact]
@@ -890,7 +893,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             SessionId = sessionId,
             IpAddress = "ipaddr",
             CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
-            UserAgent = "useragent"
+            UserAgent = "useragent",
+            AuthType = "authType"
         };
 
         pdsDb.InsertAdminSession(adminSession);
@@ -903,7 +907,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(adminSession.IpAddress, retrievedSession.IpAddress);
         Assert.Equal(adminSession.CreatedDate, retrievedSession.CreatedDate);
         Assert.Equal(adminSession.UserAgent, retrievedSession.UserAgent);
-
+        Assert.Equal(adminSession.AuthType, retrievedSession.AuthType);
         pdsDb.DeleteAllAdminSessions();
 
 
@@ -924,7 +928,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             SessionId = sessionId,
             IpAddress = "ipaddr",
             CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddHours(-2)),
-            UserAgent = "useragent"
+            UserAgent = "useragent",
+            AuthType = "authType"
         };
 
         pdsDb.InsertAdminSession(adminSession);

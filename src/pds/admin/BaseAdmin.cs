@@ -18,6 +18,11 @@ public class BaseAdmin
         return Pds.PdsDb.GetConfig().AdminInterfaceIsEnabled;
     }
 
+    protected bool PasskeysEnabled()
+    {
+        return Pds.PdsDb.GetConfig().PasskeysEnabled;
+    }
+
     protected AdminSession? GetValidAdminSession()
     {
         string? sessionId;

@@ -145,7 +145,8 @@ public class Installer
             PdsCrawlers = new string[] { "bsky.network" },
             RequestCrawlIsEnabled = false,
             LogRetentionDays = 10,
-            AdminInterfaceIsEnabled = false
+            AdminInterfaceIsEnabled = false,
+            PasskeysEnabled = false
         };
 
 

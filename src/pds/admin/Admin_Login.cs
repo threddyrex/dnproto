@@ -44,20 +44,131 @@ public class Admin_Login : BaseAdmin
                 input:focus { outline: none; border-color: #1d9bf0; }
                 button { background-color: #1d9bf0; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
                 button:hover { background-color: #1a8cd8; }
+                .passkey-btn { background-color: #4caf50; width: 100%; margin-bottom: 16px; }
+                .passkey-btn:hover { background-color: #388e3c; }
+                .passkey-btn:disabled { background-color: #2f3336; color: #8899a6; cursor: not-allowed; }
+                .divider { display: flex; align-items: center; margin: 24px 0; color: #8899a6; }
+                .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #3d4144; }
+                .divider span { padding: 0 16px; }
+                .error-msg { color: #f44336; margin-bottom: 16px; display: none; }
             </style>
             </head>
             <body>
             <div class=""container"">
             <h1>Login Required</h1>
             <p>You must be logged in to access account information.</p>
+            
+            <div id=""passkey-section"">
+                <button type=""button"" id=""passkey-btn"" class=""passkey-btn"" onclick=""loginWithPasskey()"">Login with Passkey</button>
+                <div id=""passkey-error"" class=""error-msg""></div>
+            </div>
+            
+            <div class=""divider""><span>or</span></div>
+            
             <form method=""post"" action=""/admin/login"">
                 <label for=""username"">Username</label>
                 <input type=""text"" id=""username"" name=""username"" />
                 <label for=""password"">Password</label>
                 <input type=""password"" id=""password"" name=""password"" />
-                <button type=""submit"">Login</button>
+                <button type=""submit"">Login with Password</button>
             </form>
             </div>
+            <script>
+            async function loginWithPasskey() {
+                const btn = document.getElementById('passkey-btn');
+                const errorDiv = document.getElementById('passkey-error');
+                errorDiv.style.display = 'none';
+                btn.disabled = true;
+                btn.textContent = 'Authenticating...';
+                
+                try {
+                    // Fetch authentication options from server
+                    const optionsResponse = await fetch('/admin/passkeyauthenticationoptions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (!optionsResponse.ok) {
+                        const err = await optionsResponse.json();
+                        throw new Error(err.error || 'Failed to get authentication options');
+                    }
+                    
+                    const options = await optionsResponse.json();
+                    
+                    // Convert base64url strings to ArrayBuffers
+                    options.challenge = base64urlToBuffer(options.challenge);
+                    if (options.allowCredentials) {
+                        options.allowCredentials = options.allowCredentials.map(cred => ({
+                            ...cred,
+                            id: base64urlToBuffer(cred.id)
+                        }));
+                    }
+                    
+                    // Get credential using WebAuthn API
+                    const assertion = await navigator.credentials.get({ publicKey: options });
+                    
+                    // Prepare assertion data for server
+                    const assertionData = {
+                        id: bufferToBase64url(assertion.rawId),
+                        rawId: bufferToBase64url(assertion.rawId),
+                        type: assertion.type,
+                        response: {
+                            clientDataJSON: bufferToBase64url(assertion.response.clientDataJSON),
+                            authenticatorData: bufferToBase64url(assertion.response.authenticatorData),
+                            signature: bufferToBase64url(assertion.response.signature),
+                            userHandle: assertion.response.userHandle ? bufferToBase64url(assertion.response.userHandle) : null
+                        }
+                    };
+                    
+                    // Send assertion to server for verification
+                    const authResponse = await fetch('/admin/authenticatepasskey', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(assertionData)
+                    });
+                    
+                    if (authResponse.ok) {
+                        window.location.href = '/admin/';
+                    } else {
+                        const err = await authResponse.json();
+                        throw new Error(err.error || 'Authentication failed');
+                    }
+                } catch (err) {
+                    console.error('Passkey authentication error:', err);
+                    errorDiv.textContent = err.message || 'Passkey authentication failed';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Login with Passkey';
+                }
+            }
+            
+            function base64urlToBuffer(base64url) {
+                const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+                const padding = '='.repeat((4 - base64.length % 4) % 4);
+                const binary = atob(base64 + padding);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+            
+            function bufferToBase64url(buffer) {
+                const bytes = new Uint8Array(buffer);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                const base64 = btoa(binary);
+                return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            }
+            
+            // Check if passkeys are supported and hide button if not
+            if (!window.PublicKeyCredential) {
+                document.getElementById('passkey-section').style.display = 'none';
+                document.querySelector('.divider').style.display = 'none';
+            }
+            </script>
             </body>
             </html>"
             ;
@@ -94,7 +205,8 @@ public class Admin_Login : BaseAdmin
                     SessionId = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),
                     IpAddress = GetCallerIpAddress(),
                     CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
-                    UserAgent = GetCallerUserAgent() ?? "unknown"
+                    UserAgent = GetCallerUserAgent() ?? "unknown",
+                    AuthType = "Legacy"
                 };
 
                 Pds.PdsDb.InsertAdminSession(adminSession);

@@ -46,4 +46,6 @@ public class Config
     public required int LogRetentionDays;
 
     public required bool AdminInterfaceIsEnabled;
+
+    public required bool PasskeysEnabled;
 }

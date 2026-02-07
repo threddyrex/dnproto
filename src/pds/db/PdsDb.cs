@@ -104,7 +104,8 @@ CREATE TABLE IF NOT EXISTS Config (
     PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network',
     RequestCrawlIsEnabled INTEGER NOT NULL DEFAULT 0,
     LogRetentionDays INTEGER NOT NULL DEFAULT 10,
-    AdminInterfaceIsEnabled INTEGER NOT NULL DEFAULT 0
+    AdminInterfaceIsEnabled INTEGER NOT NULL DEFAULT 0,
+    PasskeysEnabled INTEGER NOT NULL DEFAULT 0
 )
         ";
             
@@ -123,8 +124,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays, AdminInterfaceIsEnabled)
-VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays, @AdminInterfaceIsEnabled)
+INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays, AdminInterfaceIsEnabled, PasskeysEnabled)
+VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays, @AdminInterfaceIsEnabled, @PasskeysEnabled)
             ";
             command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
             command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
@@ -146,6 +147,7 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
             command.Parameters.AddWithValue("@RequestCrawlIsEnabled", config.RequestCrawlIsEnabled ? 1 : 0);
             command.Parameters.AddWithValue("@LogRetentionDays", config.LogRetentionDays);
             command.Parameters.AddWithValue("@AdminInterfaceIsEnabled", config.AdminInterfaceIsEnabled ? 1 : 0);
+            command.Parameters.AddWithValue("@PasskeysEnabled", config.PasskeysEnabled ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
@@ -184,7 +186,8 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                         PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries),
                         RequestCrawlIsEnabled = reader.GetInt32(reader.GetOrdinal("RequestCrawlIsEnabled")) != 0,
                         LogRetentionDays = reader.GetInt32(reader.GetOrdinal("LogRetentionDays")),
-                        AdminInterfaceIsEnabled = reader.GetInt32(reader.GetOrdinal("AdminInterfaceIsEnabled")) != 0
+                        AdminInterfaceIsEnabled = reader.GetInt32(reader.GetOrdinal("AdminInterfaceIsEnabled")) != 0,
+                        PasskeysEnabled = reader.GetInt32(reader.GetOrdinal("PasskeysEnabled")) != 0
                     };
 
                     return config;
@@ -2147,7 +2150,8 @@ CREATE TABLE IF NOT EXISTS AdminSession (
 SessionId TEXT PRIMARY KEY,
 CreatedDate TEXT NOT NULL,
 IpAddress TEXT NOT NULL,
-UserAgent TEXT NOT NULL
+UserAgent TEXT NOT NULL,
+AuthType TEXT NOT NULL
 );
         ";
         
@@ -2161,13 +2165,14 @@ UserAgent TEXT NOT NULL
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO AdminSession (SessionId, CreatedDate, IpAddress, UserAgent)
-VALUES (@SessionId, @CreatedDate, @IpAddress, @UserAgent)
+INSERT INTO AdminSession (SessionId, CreatedDate, IpAddress, UserAgent, AuthType)
+VALUES (@SessionId, @CreatedDate, @IpAddress, @UserAgent, @AuthType)
             ";
             command.Parameters.AddWithValue("@SessionId", session.SessionId);
             command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
             command.Parameters.AddWithValue("@IpAddress", session.IpAddress);
             command.Parameters.AddWithValue("@UserAgent", session.UserAgent);
+            command.Parameters.AddWithValue("@AuthType", session.AuthType);
             command.ExecuteNonQuery();
         }
     }
@@ -2179,7 +2184,7 @@ VALUES (@SessionId, @CreatedDate, @IpAddress, @UserAgent)
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, CreatedDate, IpAddress, UserAgent
+SELECT SessionId, CreatedDate, IpAddress, UserAgent, AuthType
 FROM AdminSession
 WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @CutoffDate
             ";
@@ -2195,7 +2200,8 @@ WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @Cutof
                         SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
                         IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
-                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent"))
+                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent")),
+                        AuthType = reader.GetString(reader.GetOrdinal("AuthType"))
                     };
                 }
                 else
@@ -2215,7 +2221,7 @@ WHERE SessionId = @SessionId AND IpAddress = @IpAddress AND CreatedDate > @Cutof
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, CreatedDate, IpAddress, UserAgent
+SELECT SessionId, CreatedDate, IpAddress, UserAgent, AuthType
 FROM AdminSession
             ";
             using(var reader = command.ExecuteReader())
@@ -2227,7 +2233,8 @@ FROM AdminSession
                         SessionId = reader.GetString(reader.GetOrdinal("SessionId")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
                         IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
-                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent"))
+                        UserAgent = reader.GetString(reader.GetOrdinal("UserAgent")),
+                        AuthType = reader.GetString(reader.GetOrdinal("AuthType"))
                     });
                 }
             }

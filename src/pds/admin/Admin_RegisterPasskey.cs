@@ -1,11 +1,7 @@
 using System.Formats.Cbor;
-using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using dnproto.auth;
-using dnproto.ws;
 using Microsoft.AspNetCore.Http;
 
 namespace dnproto.pds.admin;
@@ -73,7 +69,7 @@ public class Admin_RegisterPasskey : BaseAdmin
         //
         // Decode and validate clientDataJSON
         //
-        byte[] clientDataJsonBytes = Base64UrlDecode(clientDataJsonB64);
+        byte[] clientDataJsonBytes = PasskeyUtils.Base64UrlDecode(clientDataJsonB64);
         string clientDataJsonStr = Encoding.UTF8.GetString(clientDataJsonBytes);
         JsonNode? clientData = JsonNode.Parse(clientDataJsonStr);
 
@@ -113,15 +109,7 @@ public class Admin_RegisterPasskey : BaseAdmin
         // Validate origin
         // In development (localhost), include the port. In production, a reverse proxy handles SSL on 443.
         //
-        string expectedOrigin;
-        if (Pds.Config.PdsHostname == "localhost")
-        {
-            expectedOrigin = $"https://{Pds.Config.PdsHostname}:{Pds.Config.ListenPort}";
-        }
-        else
-        {
-            expectedOrigin = $"https://{Pds.Config.PdsHostname}";
-        }
+        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.Config.PdsHostname, Pds.Config.ListenPort);
         if (origin != expectedOrigin)
         {
             return Results.Json(new { error = $"Invalid origin. Expected {expectedOrigin}, got {origin}" }, statusCode: 400);
@@ -131,7 +119,7 @@ public class Admin_RegisterPasskey : BaseAdmin
         //
         // Decode attestationObject and extract public key
         //
-        byte[] attestationObjectBytes = Base64UrlDecode(attestationObjectB64);
+        byte[] attestationObjectBytes = PasskeyUtils.Base64UrlDecode(attestationObjectB64);
         string? publicKeyB64;
 
         try
@@ -180,27 +168,6 @@ public class Admin_RegisterPasskey : BaseAdmin
 
 
         return Results.Redirect("/admin/");
-    }
-
-
-    private static byte[] Base64UrlDecode(string base64url)
-    {
-        string base64 = base64url.Replace("-", "+").Replace("_", "/");
-        switch (base64.Length % 4)
-        {
-            case 2: base64 += "=="; break;
-            case 3: base64 += "="; break;
-        }
-        return Convert.FromBase64String(base64);
-    }
-
-
-    private static string Base64UrlEncode(byte[] bytes)
-    {
-        return Convert.ToBase64String(bytes)
-            .Replace("+", "-")
-            .Replace("/", "_")
-            .TrimEnd('=');
     }
 
 
@@ -282,6 +249,6 @@ public class Admin_RegisterPasskey : BaseAdmin
         byte[] publicKey = new byte[publicKeyLength];
         Array.Copy(authData, offset, publicKey, 0, publicKeyLength);
 
-        return Base64UrlEncode(publicKey);
+        return PasskeyUtils.Base64UrlEncode(publicKey);
     }
 }

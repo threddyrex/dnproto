@@ -37,7 +37,7 @@ public class Admin_PasskeyRegistrationOptions : BaseAdmin
         //
         byte[] challengeBytes = new byte[32];
         RandomNumberGenerator.Fill(challengeBytes);
-        string challenge = Base64UrlEncode(challengeBytes);
+        string challenge = PasskeyUtils.Base64UrlEncode(challengeBytes);
 
         //
         // Store challenge in database
@@ -67,7 +67,7 @@ public class Admin_PasskeyRegistrationOptions : BaseAdmin
         // Build user ID from UserDid (hash it to get consistent opaque ID)
         //
         byte[] userIdBytes = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Pds.Config.UserDid));
-        string userId = Base64UrlEncode(userIdBytes);
+        string userId = PasskeyUtils.Base64UrlEncode(userIdBytes);
 
         //
         // Build registration options
@@ -102,13 +102,5 @@ public class Admin_PasskeyRegistrationOptions : BaseAdmin
         };
 
         return Results.Json(options);
-    }
-
-    private static string Base64UrlEncode(byte[] bytes)
-    {
-        return Convert.ToBase64String(bytes)
-            .Replace("+", "-")
-            .Replace("/", "_")
-            .TrimEnd('=');
     }
 }

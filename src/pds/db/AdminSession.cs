@@ -12,4 +12,6 @@ public class AdminSession
     public required string UserAgent { get; set; }
 
     public required string CreatedDate { get; set; }
+
+    public required string AuthType { get; set; }
 }
