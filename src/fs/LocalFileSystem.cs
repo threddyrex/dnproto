@@ -2,6 +2,7 @@ using System.Text;
 using dnproto.auth;
 using dnproto.log;
 using dnproto.repo;
+using dnproto.uri;
 using dnproto.ws;
 
 namespace dnproto.fs;
@@ -46,7 +47,7 @@ public class LocalFileSystem
             throw new Exception($"dataDir is null or does not exist: {dataDir}");
         }
 
-        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch", "logs" })
+        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch", "logs", "records" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -346,6 +347,13 @@ public class LocalFileSystem
     {
         string dbFilePath = Path.Combine(_dataDir, "pds", "pds.db");
         return dbFilePath;
+    }
+    
+    public string GetPath_Record(AtUri atUri)
+    {
+        string safeUri = GetSafeString(atUri.ToAtUri());
+        string recordFilePath = Path.Combine(_dataDir, "records", $"{safeUri}.json");
+        return recordFilePath;
     }
     
 

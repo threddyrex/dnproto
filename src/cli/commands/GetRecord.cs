@@ -12,7 +12,7 @@ public class GetRecord : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
-        return new HashSet<string>(new string[]{"actor", "collection", "rkey"});
+        return new HashSet<string>(new string[]{"uri"});
     }
 
     public override HashSet<string> GetOptionalArguments()
@@ -32,25 +32,54 @@ public class GetRecord : BaseCommand
         // Get arguments
         //
         string? dataDir = CommandLineInterface.GetArgumentValue(arguments, "dataDir");
-        string? actor = CommandLineInterface.GetArgumentValue(arguments, "actor");
-        string? collection = CommandLineInterface.GetArgumentValue(arguments, "collection");
-        string? rkey = CommandLineInterface.GetArgumentValue(arguments, "rkey");
+        string? uri = CommandLineInterface.GetArgumentValue(arguments, "uri");
+        Logger.LogTrace($"uri: {uri}");
+
+        //
+        // Parse to AtUri
+        //
+        AtUri? uriOriginal = AtUri.FromBskyPost(uri);
+
+        if(uriOriginal == null)
+        {
+            uriOriginal = AtUri.FromAtUri(uri);
+        }
+
+        if (uriOriginal == null)
+        {
+            Logger.LogError("Invalid URI format.");
+            return;
+        }
+
+        Logger.LogTrace("uriOriginal: " + uriOriginal.ToDebugString());
+
+        if(string.IsNullOrEmpty(uriOriginal.Authority) || string.IsNullOrEmpty(uriOriginal.Rkey))
+        {
+            Logger.LogError("Invalid URL format (missing authority or rkey).");
+            return;
+        }
 
 
         //
         // Load actor info and session
         //
         LocalFileSystem? lfs = LocalFileSystem.Initialize(dataDir, Logger);
-        var actorInfo = lfs?.ResolveActorInfo(actor);
+        var actorInfo = lfs?.ResolveActorInfo(uriOriginal.Authority);
 
 
 
         //
         // Call pds
         //
-        string url = $"https://{actorInfo!.Pds}/xrpc/com.atproto.repo.getRecord?repo={actor}&collection={collection}&rkey={rkey}";
+        string url = $"https://{actorInfo!.Pds}/xrpc/com.atproto.repo.getRecord?repo={uriOriginal.Authority}&collection={uriOriginal.Collection}&rkey={uriOriginal.Rkey}";
         JsonNode? response = BlueskyClient.SendRequest(url, HttpMethod.Get, null);
 
-        BlueskyClient.PrintJsonResponseToConsole(response);
-    }        
+        //
+        // Write to data directory
+        //
+        string filePath = lfs!.GetPath_Record(uriOriginal);
+        string jsonString = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(filePath, jsonString);
+        Logger.LogInfo($"Record saved to: {filePath}");
+    }      
 }

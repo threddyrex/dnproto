@@ -3,12 +3,11 @@ param (
     [string]$logLevel = $null,
     [bool]$logToDataDir = $false,
     [string]$dataDir = $null,
-    [string]$actor = $null,
-    [string]$collection,
-    [string]$rkey
+    [Parameter(Mandatory=$true, Position=0)]
+    [string]$uri
 )
 
 . .\_Defaults.ps1
 
 
-& $dnprotoPath /command GetRecord /actor $actor /collection $collection /rkey $rkey /logLevel $logLevel /dataDir $dataDir /logToDataDir $logToDataDir
+& $dnprotoPath /command GetRecord /uri $uri /logLevel $logLevel /dataDir $dataDir /logToDataDir $logToDataDir
