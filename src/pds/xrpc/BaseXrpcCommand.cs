@@ -344,6 +344,16 @@ public abstract class BaseXrpcCommand
 
 
     /// <summary>
+    /// Global flag that allows us to enable/disable passkeys.
+    /// </summary>
+    /// <returns></returns>
+    protected bool PasskeysEnabled()
+    {
+        return Pds.PdsDb.GetConfig().PasskeysEnabled;
+    }
+
+
+    /// <summary>
     /// Gets the OAuth access token from the Authorization header using the DPoP scheme.
     /// OAuth with DPoP uses "Authorization: DPoP {token}" instead of "Authorization: Bearer {token}".
     /// </summary>

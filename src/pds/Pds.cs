@@ -232,6 +232,8 @@ public class Pds
         App.MapPost("/oauth/par", async (HttpContext context) => { var cmd = new Oauth_Par(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapGet("/oauth/authorize", async (HttpContext context) => { var cmd = new Oauth_Authorize_Get(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapPost("/oauth/authorize", async (HttpContext context) => { var cmd = new Oauth_Authorize_Post(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
+        App.MapPost("/oauth/passkeyauthenticationoptions", async (HttpContext context) => { var cmd = new Oauth_PasskeyAuthenticationOptions(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
+        App.MapPost("/oauth/authenticatepasskey", async (HttpContext context) => { var cmd = new Oauth_AuthenticatePasskey(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapPost("/oauth/token", async (HttpContext context) => { var cmd = new Oauth_Token(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapGet("/xrpc/com.atproto.server.checkAccountStatus", (HttpContext context) => new ComAtprotoServer_CheckAccountStatus(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/", (HttpContext context) => new Admin_Home(){Pds = this, HttpContext = context}.GetResponse());
