@@ -42,8 +42,8 @@ public class Admin_Login : BaseAdmin
                 label { display: block; margin-bottom: 6px; color: #8899a6; }
                 input[type=""text""], input[type=""password""] { width: 100%; padding: 12px; margin-bottom: 16px; background-color: #2f3336; border: 1px solid #3d4144; border-radius: 6px; color: #e7e9ea; font-size: 16px; box-sizing: border-box; }
                 input:focus { outline: none; border-color: #1d9bf0; }
-                button { background-color: #1d9bf0; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-                button:hover { background-color: #1a8cd8; }
+                button { background-color: #4caf50; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+                button:hover { background-color: #388e3c; }
                 .passkey-btn { background-color: #4caf50; width: 100%; margin-bottom: 16px; }
                 .passkey-btn:hover { background-color: #388e3c; }
                 .passkey-btn:disabled { background-color: #2f3336; color: #8899a6; cursor: not-allowed; }
@@ -59,7 +59,7 @@ public class Admin_Login : BaseAdmin
             <p>You must be logged in to access account information.</p>
             
             <div id=""passkey-section"">
-                <button type=""button"" id=""passkey-btn"" class=""passkey-btn"" onclick=""loginWithPasskey()"">Login with Passkey</button>
+                <button type=""button"" id=""passkey-btn"" class=""passkey-btn"" onclick=""loginWithPasskey()"">Log in with Passkey</button>
                 <div id=""passkey-error"" class=""error-msg""></div>
             </div>
             
@@ -70,7 +70,7 @@ public class Admin_Login : BaseAdmin
                 <input type=""text"" id=""username"" name=""username"" />
                 <label for=""password"">Password</label>
                 <input type=""password"" id=""password"" name=""password"" />
-                <button type=""submit"">Login with Password</button>
+                <button type=""submit"">Log in with Password</button>
             </form>
             </div>
             <script>
@@ -138,7 +138,7 @@ public class Admin_Login : BaseAdmin
                     errorDiv.textContent = err.message || 'Passkey authentication failed';
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.textContent = 'Login with Passkey';
+                    btn.textContent = 'Log in with Passkey';
                 }
             }
             
