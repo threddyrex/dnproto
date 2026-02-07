@@ -203,6 +203,7 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
         //
         string authorizationCode = "authcode-" + Guid.NewGuid().ToString();
         oauthRequest.AuthorizationCode = authorizationCode;
+        oauthRequest.AuthType = "Passkey";
         Pds.PdsDb.UpdateOauthRequest(oauthRequest);
 
 

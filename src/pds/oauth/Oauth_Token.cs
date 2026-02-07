@@ -131,7 +131,8 @@ public class Oauth_Token : BaseXrpcCommand
                 RefreshToken = "refresh-" + Guid.NewGuid().ToString(),
                 RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddDays(90)),
                 CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
-                IpAddress = ipAddress ?? "unknown"
+                IpAddress = ipAddress ?? "unknown",
+                AuthType = oauthRequest.AuthType ?? "Unknown"
             };
 
             Pds.Logger.LogInfo($"[AUTH] [OAUTH] authorization_code. Scope from PAR: '{oauthSession.Scope}'");

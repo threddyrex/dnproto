@@ -1483,7 +1483,8 @@ RequestUri TEXT PRIMARY KEY,
 ExpiresDate TEXT NOT NULL,
 Dpop TEXT NOT NULL,
 Body TEXT NOT NULL,
-AuthorizationCode TEXT
+AuthorizationCode TEXT,
+AuthType TEXT
 );
         ";
         
@@ -1497,14 +1498,15 @@ AuthorizationCode TEXT
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO OauthRequest (RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode)
-VALUES (@RequestUri, @ExpiresDate, @Dpop, @Body, @AuthorizationCode)
+INSERT INTO OauthRequest (RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode, AuthType)
+VALUES (@RequestUri, @ExpiresDate, @Dpop, @Body, @AuthorizationCode, @AuthType)
             ";
             command.Parameters.AddWithValue("@RequestUri", request.RequestUri);
             command.Parameters.AddWithValue("@ExpiresDate", request.ExpiresDate);
             command.Parameters.AddWithValue("@Dpop", request.Dpop);
             command.Parameters.AddWithValue("@Body", request.Body);
             command.Parameters.AddWithValue("@AuthorizationCode", request.AuthorizationCode ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@AuthType", request.AuthType ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
         }
     }
@@ -1548,7 +1550,7 @@ WHERE AuthorizationCode = @AuthorizationCode AND ExpiresDate > @RightNow
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode
+SELECT RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode, AuthType
 FROM OauthRequest
 WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
             ";
@@ -1564,7 +1566,8 @@ WHERE RequestUri = @RequestUri AND ExpiresDate > @RightNow
                         ExpiresDate = reader.GetString(reader.GetOrdinal("ExpiresDate")),
                         Dpop = reader.GetString(reader.GetOrdinal("Dpop")),
                         Body = reader.GetString(reader.GetOrdinal("Body")),
-                        AuthorizationCode = reader.IsDBNull(reader.GetOrdinal("AuthorizationCode")) ? null : reader.GetString(reader.GetOrdinal("AuthorizationCode"))
+                        AuthorizationCode = reader.IsDBNull(reader.GetOrdinal("AuthorizationCode")) ? null : reader.GetString(reader.GetOrdinal("AuthorizationCode")),
+                        AuthType = reader.IsDBNull(reader.GetOrdinal("AuthType")) ? null : reader.GetString(reader.GetOrdinal("AuthType"))
                     };
                 }
             }
@@ -1623,7 +1626,8 @@ UPDATE OauthRequest
 SET ExpiresDate = @ExpiresDate,
     Dpop = @Dpop,
     Body = @Body,
-    AuthorizationCode = @AuthorizationCode
+    AuthorizationCode = @AuthorizationCode,
+    AuthType = @AuthType
 WHERE RequestUri = @RequestUri
             ";
             command.Parameters.AddWithValue("@RequestUri", request.RequestUri);
@@ -1631,6 +1635,7 @@ WHERE RequestUri = @RequestUri
             command.Parameters.AddWithValue("@Dpop", request.Dpop);
             command.Parameters.AddWithValue("@Body", request.Body);
             command.Parameters.AddWithValue("@AuthorizationCode", request.AuthorizationCode ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@AuthType", request.AuthType ?? (object)DBNull.Value);
             command.ExecuteNonQuery();
         }
     }
@@ -1641,7 +1646,7 @@ WHERE RequestUri = @RequestUri
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode
+SELECT RequestUri, ExpiresDate, Dpop, Body, AuthorizationCode, AuthType
 FROM OauthRequest
 WHERE AuthorizationCode = @AuthorizationCode AND ExpiresDate > @RightNow
             ";
@@ -1657,7 +1662,8 @@ WHERE AuthorizationCode = @AuthorizationCode AND ExpiresDate > @RightNow
                         ExpiresDate = reader.GetString(reader.GetOrdinal("ExpiresDate")),
                         Dpop = reader.GetString(reader.GetOrdinal("Dpop")),
                         Body = reader.GetString(reader.GetOrdinal("Body")),
-                        AuthorizationCode = reader.IsDBNull(reader.GetOrdinal("AuthorizationCode")) ? null : reader.GetString(reader.GetOrdinal("AuthorizationCode"))
+                        AuthorizationCode = reader.IsDBNull(reader.GetOrdinal("AuthorizationCode")) ? null : reader.GetString(reader.GetOrdinal("AuthorizationCode")),
+                        AuthType = reader.IsDBNull(reader.GetOrdinal("AuthType")) ? null : reader.GetString(reader.GetOrdinal("AuthType"))
                     };
                 }
             }
@@ -1686,7 +1692,8 @@ CREATE TABLE IF NOT EXISTS OauthSession
     RefreshToken TEXT NOT NULL,
     RefreshTokenExpiresDate TEXT NOT NULL,
     CreatedDate TEXT NOT NULL,
-    IpAddress TEXT NOT NULL
+    IpAddress TEXT NOT NULL,
+    AuthType TEXT NOT NULL
 );
             ";
             command.ExecuteNonQuery();
@@ -1709,8 +1716,8 @@ ON OauthSession(DpopJwkThumbprint);
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO OauthSession (SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress)
-VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @RefreshTokenExpiresDate, @CreatedDate, @IpAddress)
+INSERT INTO OauthSession (SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress, AuthType)
+VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @RefreshTokenExpiresDate, @CreatedDate, @IpAddress, @AuthType)
             ";
             command.Parameters.AddWithValue("@SessionId", session.SessionId);
             command.Parameters.AddWithValue("@ClientId", session.ClientId);
@@ -1720,6 +1727,7 @@ VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @Refre
             command.Parameters.AddWithValue("@RefreshTokenExpiresDate", session.RefreshTokenExpiresDate);
             command.Parameters.AddWithValue("@CreatedDate", session.CreatedDate);
             command.Parameters.AddWithValue("@IpAddress", session.IpAddress);
+            command.Parameters.AddWithValue("@AuthType", session.AuthType);
             command.ExecuteNonQuery();
         }
     }
@@ -1730,7 +1738,7 @@ VALUES (@SessionId, @ClientId, @Scope, @DpopJwkThumbprint, @RefreshToken, @Refre
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress, AuthType
 FROM OauthSession
 WHERE SessionId = @SessionId
             ";
@@ -1748,7 +1756,8 @@ WHERE SessionId = @SessionId
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
-                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        AuthType = reader.GetString(reader.GetOrdinal("AuthType"))
                     };
                 }
             }
@@ -1785,7 +1794,7 @@ WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress, AuthType
 FROM OauthSession
 WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
             ";
@@ -1804,7 +1813,8 @@ WHERE RefreshToken = @RefreshToken AND RefreshTokenExpiresDate > @RightNow
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
-                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        AuthType = reader.GetString(reader.GetOrdinal("AuthType"))
                     };
                 }
             }
@@ -1826,7 +1836,8 @@ SET ClientId = @ClientId,
     RefreshToken = @RefreshToken,
     RefreshTokenExpiresDate = @RefreshTokenExpiresDate,
     CreatedDate = @CreatedDate,
-    IpAddress = @IpAddress
+    IpAddress = @IpAddress,
+    AuthType = @AuthType
 WHERE SessionId = @SessionId
             ";
             command.Parameters.AddWithValue("@SessionId", oauthSession.SessionId);
@@ -1837,6 +1848,7 @@ WHERE SessionId = @SessionId
             command.Parameters.AddWithValue("@RefreshTokenExpiresDate", oauthSession.RefreshTokenExpiresDate);
             command.Parameters.AddWithValue("@CreatedDate", oauthSession.CreatedDate);
             command.Parameters.AddWithValue("@IpAddress", oauthSession.IpAddress);
+            command.Parameters.AddWithValue("@AuthType", oauthSession.AuthType);
             command.ExecuteNonQuery();
         }
     }
@@ -1904,7 +1916,7 @@ WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @Righ
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress, AuthType
 FROM OauthSession
 WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @RightNow
             ";
@@ -1923,7 +1935,8 @@ WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @Righ
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
-                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        AuthType = reader.GetString(reader.GetOrdinal("AuthType"))
                     };
                 }
             }
@@ -1938,7 +1951,7 @@ WHERE DpopJwkThumbprint = @DpopJwkThumbprint AND RefreshTokenExpiresDate > @Righ
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress
+SELECT SessionId, ClientId, Scope, DpopJwkThumbprint, RefreshToken, RefreshTokenExpiresDate, CreatedDate, IpAddress, AuthType
 FROM OauthSession
             ";
             var sessions = new List<OauthSession>();
@@ -1955,7 +1968,8 @@ FROM OauthSession
                         RefreshToken = reader.GetString(reader.GetOrdinal("RefreshToken")),
                         RefreshTokenExpiresDate = reader.GetString(reader.GetOrdinal("RefreshTokenExpiresDate")),
                         CreatedDate = reader.GetString(reader.GetOrdinal("CreatedDate")),
-                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress"))
+                        IpAddress = reader.GetString(reader.GetOrdinal("IpAddress")),
+                        AuthType = reader.GetString(reader.GetOrdinal("AuthType"))
                     });
                 }
             }

@@ -89,7 +89,7 @@ public class Admin_Sessions : BaseAdmin
         string BuildOauthSessionsHtml()
         {
             if (oauthSessions.Count == 0)
-                return "<tr><td colspan=\"6\" style=\"text-align: center; color: #8899a6;\">No OAuth sessions</td></tr>";
+                return "<tr><td colspan=\"7\" style=\"text-align: center; color: #8899a6;\">No OAuth sessions</td></tr>";
             
             var sb = new System.Text.StringBuilder();
             foreach (var s in oauthSessions)
@@ -100,6 +100,7 @@ public class Admin_Sessions : BaseAdmin
                     <td>{enc.Encode(s.IpAddress)}</td>
                     <td>{enc.Encode(s.SessionId)}</td>
                     <td>{enc.Encode(s.ClientId)}</td>
+                    <td>{enc.Encode(s.AuthType)}</td>
                     <td>
                         <form method=""post"" action=""/admin/deleteoauthsession"" style=""display:inline;"">
                             <input type=""hidden"" name=""sessionId"" value=""{enc.Encode(s.SessionId)}"" />
@@ -210,6 +211,7 @@ public class Admin_Sessions : BaseAdmin
                     <th class=""sortable"" data-col=""2"" data-type=""string"">IP Address</th>
                     <th class=""sortable"" data-col=""3"" data-type=""string"">Session ID</th>
                     <th class=""sortable"" data-col=""4"" data-type=""string"">Client ID</th>
+                    <th class=""sortable"" data-col=""5"" data-type=""string"">Auth Type</th>
                     <th>Action</th>
                 </tr>
             </thead>

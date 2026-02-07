@@ -712,7 +712,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             ExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
             Dpop = "dpop",
             Body = "body",
-            AuthorizationCode = "authcode"
+            AuthorizationCode = "authcode",
+            AuthType = "Legacy"
         };
 
         pdsDb.InsertOauthRequest(oauthRequest);
@@ -724,6 +725,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(oauthRequest.Dpop, retrievedRequest.Dpop);
         Assert.Equal(oauthRequest.Body, retrievedRequest.Body);
         Assert.Equal(oauthRequest.AuthorizationCode, retrievedRequest.AuthorizationCode);
+        Assert.Equal(oauthRequest.AuthType, retrievedRequest.AuthType);
     }
 
 
@@ -778,7 +780,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             RefreshToken = "refreshToken",
             RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(5)),
             CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
-            IpAddress = "ipaddr"
+            IpAddress = "ipaddr",
+            AuthType = "Passkey"
         };
 
         pdsDb.InsertOauthSession(oauthSession);
@@ -793,6 +796,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(oauthSession.RefreshTokenExpiresDate, retrievedSession.RefreshTokenExpiresDate);
         Assert.Equal(oauthSession.CreatedDate, retrievedSession.CreatedDate);
         Assert.Equal(oauthSession.IpAddress, retrievedSession.IpAddress);
+        Assert.Equal(oauthSession.AuthType, retrievedSession.AuthType);
     }
 
     [Fact]
@@ -811,7 +815,8 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             RefreshToken = "refreshToken",
             RefreshTokenExpiresDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddMinutes(-5)),
             CreatedDate = PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow),
-            IpAddress = "ipaddr"
+            IpAddress = "ipaddr",
+            AuthType = "Legacy"
         };
 
         pdsDb.InsertOauthSession(oauthSession);

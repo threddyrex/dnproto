@@ -79,6 +79,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         //
         string authorizationCode = "authcode-" + Guid.NewGuid().ToString();
         oauthRequest.AuthorizationCode = authorizationCode;
+        oauthRequest.AuthType = "Legacy";
         Pds.PdsDb.UpdateOauthRequest(oauthRequest);
 
 

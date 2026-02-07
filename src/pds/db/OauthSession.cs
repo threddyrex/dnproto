@@ -19,4 +19,6 @@ public class OauthSession
     public required string CreatedDate { get; set; }
 
     public required string IpAddress { get; set; }
+
+    public required string AuthType { get; set; }
 }

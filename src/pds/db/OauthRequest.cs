@@ -17,6 +17,8 @@ public class OauthRequest
     
     public string? AuthorizationCode { get; set; } = null;
 
+    public string? AuthType { get; set; } = null;
+
     public string? GetCodeChallenge()
     {
         return XrpcHelpers.GetRequestBodyArgumentValue(Body, "code_challenge");
