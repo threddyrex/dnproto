@@ -14,7 +14,7 @@ namespace dnproto.auth
         /// <returns>A 32-character password with uppercase, lowercase, numbers, and special characters.</returns>
         public static string CreateNewAdminPassword()
         {
-            const int passwordLength = 32;
+            const int passwordLength = 64;
             const string uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             const string lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
             const string numberChars = "0123456789";
