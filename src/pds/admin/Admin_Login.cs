@@ -186,12 +186,10 @@ public class Admin_Login : BaseAdmin
             string? userName = form["username"];
             string? password = form["password"];
 
-
-            ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(userName!);
-            bool actorExists = actorInfo != null;
-            string? storedHashedPassword = Pds.Config.UserHashedPassword;
+            bool actorCorrect = userName != null && userName == "admin";
+            string? storedHashedPassword = Pds.PdsDb.GetConfigProperty("AdminHashedPassword");
             bool passwordMatches = PasswordHasher.VerifyPassword(storedHashedPassword, password);
-            bool authSucceeded = actorExists && passwordMatches;
+            bool authSucceeded = actorCorrect && passwordMatches;
 
 
             // validate credentials

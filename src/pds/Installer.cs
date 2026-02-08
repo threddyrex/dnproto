@@ -16,13 +16,13 @@ namespace dnproto.pds;
 /// 
 /// Available methods:
 /// 
-///     1. InstallDb (creates database schema)
-///     2. InstallConfig (creates full config for PDS and user)
-///     3. InstallRepo (creates fresh repo for user)
+///     InstallDb (creates database schema)
+///     InstallAdminConfig (creates admin config - password)
+///
+///     InstallConfig (creates full config for PDS and user)
+///     InstallRepo (creates fresh repo for user)
 /// 
-/// Run the methods in order: InstallDb, InstallConfig, InstallRepo.
-/// Some of the methods can be re-run. For example, 
-/// InstallDb will re-run CreateTable commands.
+/// Run the methods in order.
 /// </summary>
 public class Installer
 {
@@ -101,6 +101,20 @@ public class Installer
     #endregion
 
 
+    #region ADMIN
+
+
+    public static void InstallAdminConfig(LocalFileSystem lfs, IDnProtoLogger logger)
+    {
+        var adminPassword = PasswordHasher.CreateNewAdminPassword();
+        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+        db.SetConfigProperty("AdminHashedPassword", PasswordHasher.HashPassword(adminPassword));
+        logger.LogInfo("username: admin");
+        logger.LogInfo($"password: {adminPassword}");
+    }
+
+
+    #endregion
 
 
     #region CONFIG
