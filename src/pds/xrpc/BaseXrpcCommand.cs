@@ -948,51 +948,6 @@ public abstract class BaseXrpcCommand
     #endregion
 
 
-    #region ADMINAUTH
-
-    /// <summary>
-    /// Returns true if the caller is the PDS admin user.
-    /// </summary>
-    /// <returns></returns>
-    private bool CheckAdminAuth()
-    {
-        if(!HttpContext.Request.Headers.ContainsKey("Authorization"))
-        {
-            return false;
-        }
-
-        string? authHeader = HttpContext.Request.Headers["Authorization"];
-
-        if(string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Basic "))
-        {
-            return false;
-        }
-
-        string encodedCredentials = authHeader.Substring("Basic ".Length).Trim();
-        string decodedCredentials = System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(encodedCredentials));
-
-        string[] parts = decodedCredentials.Split(':', 2);
-        if(parts.Length != 2)
-        {
-            return false;
-        }
-
-        string username = parts[0];
-        string password = parts[1];
-
-        bool verifyPassword = PasswordHasher.VerifyPassword(Pds.Config.AdminHashedPassword, password);
-
-        if(username != "admin" || !verifyPassword)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-
-    #endregion
-
 
     #region REQUEST
 

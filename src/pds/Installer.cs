@@ -14,10 +14,11 @@ namespace dnproto.pds;
 /// <summary>
 /// Installer class for PDS.
 /// 
-/// Available methods:
+/// Available methods (run in order):
 /// 
 ///     InstallDb (creates database schema)
-///     InstallAdminConfig (creates admin config - password)
+///     InstallAdminConfig (admin password)
+///     InstallServerConfig (scheme, host, port)
 ///
 ///     InstallConfig (creates full config for PDS and user)
 ///     InstallRepo (creates fresh repo for user)
@@ -101,7 +102,7 @@ public class Installer
     #endregion
 
 
-    #region ADMIN
+    #region ADMINCFG
 
 
     public static void InstallAdminConfig(LocalFileSystem lfs, IDnProtoLogger logger)
@@ -115,6 +116,22 @@ public class Installer
 
 
     #endregion
+
+
+
+
+    #region SERVERCFG
+
+    public static void InstallServerConfig(LocalFileSystem lfs, IDnProtoLogger logger, string listenScheme, string listenHost, int listenPort)
+    {
+        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+        db.SetConfigProperty("ServerListenScheme", listenScheme);
+        db.SetConfigProperty("ServerListenHost", listenHost);
+        db.SetConfigPropertyInt("ServerListenPort", listenPort);
+    }
+
+    #endregion
+
 
 
     #region CONFIG

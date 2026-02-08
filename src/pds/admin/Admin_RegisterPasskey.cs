@@ -109,7 +109,7 @@ public class Admin_RegisterPasskey : BaseAdmin
         // Validate origin
         // In development (localhost), include the port. In production, a reverse proxy handles SSL on 443.
         //
-        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.Config.PdsHostname, Pds.Config.ListenPort);
+        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.Config.PdsHostname, Pds.PdsDb.GetConfigPropertyInt("ServerListenPort"));
         if (origin != expectedOrigin)
         {
             return Results.Json(new { error = $"Invalid origin. Expected {expectedOrigin}, got {origin}" }, statusCode: 400);

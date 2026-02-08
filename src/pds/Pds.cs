@@ -133,7 +133,7 @@ public class Pds
             });
         });
 
-        builder.WebHost.UseUrls($"{config.ListenScheme}://{config.ListenHost}:{config.ListenPort}");
+        builder.WebHost.UseUrls($"{pdsDb.GetConfigProperty("ServerListenScheme")}://{pdsDb.GetConfigProperty("ServerListenHost")}:{pdsDb.GetConfigProperty("ServerListenPort")}");
         var app = builder.Build();
 
         // Log Kestrel timeout settings
@@ -191,7 +191,7 @@ public class Pds
         Logger.LogInfo("");
         Logger.LogInfo("!! Running PDS !!");
         Logger.LogInfo("");
-        Logger.LogInfo($"admin: {Config.ListenScheme}://{Config.ListenHost}:{Config.ListenPort}/admin/");
+        Logger.LogInfo($"admin: {PdsDb.GetConfigProperty("ServerListenScheme")}://{PdsDb.GetConfigProperty("ServerListenHost")}:{PdsDb.GetConfigProperty("ServerListenPort")}/admin/");
         Logger.LogInfo("");
         BackgroundJobs.Start();
         App.Run();

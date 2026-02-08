@@ -132,7 +132,7 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
         //
         // Validate origin
         //
-        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.Config.PdsHostname, Pds.Config.ListenPort);
+        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.Config.PdsHostname, Pds.PdsDb.GetConfigPropertyInt("ServerListenPort"));
         if (origin != expectedOrigin)
         {
             return Results.Json(new { error = $"Invalid origin. Expected {expectedOrigin}, got {origin}" }, statusCode: 400);

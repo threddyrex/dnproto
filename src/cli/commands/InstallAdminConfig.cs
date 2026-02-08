@@ -18,15 +18,6 @@ public class InstallAdminConfig : BaseCommand
     public override void DoCommand(Dictionary<string, string> arguments)
     {
         //
-        // Get Arguments
-        //
-        string? pdsHostname = CommandLineInterface.GetArgumentValue(arguments, "pdshostname");
-        string? availableUserDomain = CommandLineInterface.GetArgumentValue(arguments, "availableuserdomain");
-        string? userHandle = CommandLineInterface.GetArgumentValue(arguments, "userHandle");
-        string? userDid = CommandLineInterface.GetArgumentValue(arguments, "userDid");
-        string? userEmail = CommandLineInterface.GetArgumentValue(arguments, "userEmail");
-
-        //
         // Install config
         //
         if(LocalFileSystem is null)
@@ -35,5 +26,6 @@ public class InstallAdminConfig : BaseCommand
         }
 
         Installer.InstallAdminConfig(LocalFileSystem, Logger);
+
     }
 }
