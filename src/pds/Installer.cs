@@ -91,9 +91,9 @@ public class Installer
             PdsDb.CreateTable_Passkey(connection, logger);
             PdsDb.CreateTable_PasskeyChallenge(connection, logger);
             PdsDb.CreateTable_Statistic(connection, logger);
+            PdsDb.CreateTable_ConfigProperty(connection, logger);
             connection.Close();
         }
-
     }
 
 

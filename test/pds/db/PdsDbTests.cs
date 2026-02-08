@@ -1034,4 +1034,83 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
     }
 
     #endregion
+
+
+    #region CONFIGPROP
+
+    [Fact]
+    public void ConfigProperty_GetAndSet()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllConfigProperties();
+
+        pdsDb.SetConfigProperty("testKey", "testValue");
+        var value = pdsDb.GetConfigProperty("testKey");
+
+        Assert.Equal("testValue", value);
+    }
+
+    [Fact]
+    public void ConfigProperty_DoesntExistThrows()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllConfigProperties();
+
+        pdsDb.SetConfigProperty("testKey", "testValue");
+        var value = pdsDb.GetConfigProperty("testKey");
+
+        Assert.Throws<Exception>(() => pdsDb.GetConfigProperty("nonExistentKey"));
+    }
+
+    [Fact]
+    public void ConfigProperty_SetTwiceTakesSecond()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllConfigProperties();
+
+        pdsDb.SetConfigProperty("testKey", "testValue");
+        pdsDb.SetConfigProperty("testKey", "newValue");
+        var value = pdsDb.GetConfigProperty("testKey");
+
+        Assert.Equal("newValue", value);
+    }
+
+
+    [Fact]
+    public void ConfigProperty_GetAndSetBool()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllConfigProperties();
+
+        pdsDb.SetConfigPropertyBool("testKey", true);
+        Assert.True(pdsDb.GetConfigPropertyBool("testKey"));
+
+        pdsDb.SetConfigPropertyBool("testKey", false);
+        Assert.False(pdsDb.GetConfigPropertyBool("testKey"));
+
+        pdsDb.SetConfigPropertyBool("testKey", true);
+        Assert.True(pdsDb.GetConfigPropertyBool("testKey"));
+    }
+
+
+    [Fact]
+    public void ConfigProperty_GetAndSetInt()
+    {
+        var pdsDb = _fixture.PdsDb;
+        pdsDb.DeleteAllConfigProperties();
+    
+        pdsDb.SetConfigPropertyInt("testKey", 1);
+        Assert.Equal(1, pdsDb.GetConfigPropertyInt("testKey"));
+
+        pdsDb.SetConfigPropertyInt("testKey", 67);
+        Assert.Equal(67, pdsDb.GetConfigPropertyInt("testKey"));
+
+        pdsDb.SetConfigPropertyInt("testKey1", 68);
+        Assert.Equal(67, pdsDb.GetConfigPropertyInt("testKey"));
+        Assert.Equal(68, pdsDb.GetConfigPropertyInt("testKey1"));
+
+    }
+
+
+    #endregion
 }

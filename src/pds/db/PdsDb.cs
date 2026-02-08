@@ -323,6 +323,115 @@ DELETE FROM Config
 
     #endregion
 
+
+
+    #region CONFIGPROP
+
+
+    public static void CreateTable_ConfigProperty(SqliteConnection connection, IDnProtoLogger logger)
+    {
+        //
+        // ConfigProperty table
+        //
+        logger.LogInfo("table: ConfigProperty");
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+CREATE TABLE IF NOT EXISTS ConfigProperty (
+    Key TEXT PRIMARY KEY NOT NULL,
+    Value TEXT NOT NULL
+)
+        ";
+            
+            command.ExecuteNonQuery();        
+    }
+    
+    
+
+    public string GetConfigProperty(string key)
+    {
+        using (var connection = GetConnection())
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT Value FROM ConfigProperty WHERE Key = @key";
+            command.Parameters.AddWithValue("@key", key);
+            var result = command.ExecuteScalar();
+            connection.Close();
+
+            // throw if not exists
+            if (result == null)
+            {
+                throw new Exception($"ConfigProperty with key '{key}' does not exist.");
+            }
+
+            var val = result.ToString();
+
+            if (string.IsNullOrEmpty(val))
+            {
+                throw new Exception($"ConfigProperty with key '{key}' has a null value.");
+            }
+
+            return val;
+        }
+    }
+
+    public void SetConfigProperty(string key, string value)
+    {
+        using (var connection = GetConnection())
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "INSERT OR REPLACE INTO ConfigProperty (Key, Value) VALUES (@key, @value)";
+            command.Parameters.AddWithValue("@key", key);
+            command.Parameters.AddWithValue("@value", value);
+            command.ExecuteNonQuery();
+            connection.Close();
+        }
+    }
+
+    public void SetConfigPropertyBool(string key, bool value)
+    {
+        SetConfigProperty(key, value ? "1" : "0");
+    }
+
+    public bool GetConfigPropertyBool(string key)
+    {
+        var val = GetConfigProperty(key);
+        return val == "1";
+    }
+
+    public void SetConfigPropertyInt(string key, int value)
+    {
+        SetConfigProperty(key, value.ToString());
+    }
+
+    public int GetConfigPropertyInt(string key)
+    {
+        var val = GetConfigProperty(key);
+        if(int.TryParse(val, out var result))
+        {
+            return result;
+        }
+        
+        throw new Exception($"ConfigProperty with key '{key}' has a non-integer value.");
+    }
+
+    public void DeleteAllConfigProperties()
+    {
+        using (var connection = GetConnection())
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM ConfigProperty";
+            command.ExecuteNonQuery();
+            connection.Close();
+        }
+    }
+
+
+    #endregion
+
+
     #region BLOB
 
     public static void CreateTable_Blob(SqliteConnection connection, IDnProtoLogger logger)
