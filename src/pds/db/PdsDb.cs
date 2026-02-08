@@ -2669,6 +2669,21 @@ DELETE FROM Statistic
         }
     }
 
+    public void DeleteOldStatistics(long hoursLookback = 24)
+    {
+        using(var sqlConnection = GetConnection())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = @"
+DELETE FROM Statistic WHERE LastUpdatedDate < @CutoffDate
+            ";
+            command.Parameters.AddWithValue("@CutoffDate", PdsDb.FormatDateTimeForDb(DateTimeOffset.UtcNow.AddHours(-hoursLookback)));
+            command.ExecuteNonQuery();
+        }
+    }
+
+
+
     public void DeleteStatisticByKey(StatisticKey key)
     {
         using(var sqlConnection = GetConnection())

@@ -131,9 +131,14 @@ public class Admin_Stats : BaseAdmin
 
         <div class=""section-header"">
             <h2>Statistics <span class=""session-count"">({statistics.Count})</span></h2>
-            <form method=""post"" action=""/admin/deleteallstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete all statistics?');"">
-                <button type=""submit"" class=""delete-all-btn"">Delete All</button>
-            </form>
+            <div style=""display: flex; gap: 8px;"">
+                <form method=""post"" action=""/admin/deleteallstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete all statistics?');"">
+                    <button type=""submit"" class=""delete-all-btn"">Delete All</button>
+                </form>
+                <form method=""post"" action=""/admin/deleteoldstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete statistics older than 24 hours?');"">
+                    <button type=""submit"" class=""delete-all-btn"">Delete Old (&lt;24hr)</button>
+                </form>
+            </div>
         </div>
         <div style=""margin-bottom: 16px; display: flex; gap: 12px;"">
             <input type=""text"" id=""showFilterInput"" placeholder=""Show..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#4caf50'"" onblur=""this.style.borderColor='#444'"" />

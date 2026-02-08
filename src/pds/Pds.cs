@@ -253,6 +253,7 @@ public class Pds
         App.MapPost("/admin/deletepasskeychallenge", (HttpContext context) => new Admin_DeletePasskeyChallenge(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deletestatistic", (HttpContext context) => new Admin_DeleteStatistic(){Pds = this, HttpContext = context}.GetResponse());
         App.MapPost("/admin/deleteallstatistics", (HttpContext context) => new Admin_DeleteAllStatistics(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapPost("/admin/deleteoldstatistics", (HttpContext context) => new Admin_DeleteOldStatistics(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/stats", (HttpContext context) => new Admin_Stats(){Pds = this, HttpContext = context}.GetResponse());
         
         
