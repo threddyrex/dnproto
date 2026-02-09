@@ -115,7 +115,7 @@ public class Admin_Sessions : BaseAdmin
         string BuildAdminSessionsHtml()
         {
             if (adminSessions.Count == 0)
-                return "<tr><td colspan=\"7\" style=\"text-align: center; color: #8899a6;\">No admin sessions</td></tr>";
+                return "<tr><td colspan=\"6\" style=\"text-align: center; color: #8899a6;\">No admin sessions</td></tr>";
             
             var sb = new System.Text.StringBuilder();
             foreach (var s in adminSessions)
@@ -125,7 +125,6 @@ public class Admin_Sessions : BaseAdmin
                     <td style=""text-align: right;"">{enc.Encode(CalculateAge(s.CreatedDate))}</td>
                     <td>{enc.Encode(s.IpAddress)}</td>
                     <td>{enc.Encode(s.UserAgent)}</td>
-                    <td>{enc.Encode(s.SessionId)}</td>
                     <td>{enc.Encode(s.AuthType)}</td>
                     <td>
                         <form method=""post"" action=""/admin/deleteadminsession"" style=""display:inline;"">
@@ -226,8 +225,7 @@ public class Admin_Sessions : BaseAdmin
                     <th class=""sortable"" data-col=""1"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
                     <th class=""sortable"" data-col=""2"" data-type=""string"">IP Address</th>
                     <th class=""sortable"" data-col=""3"" data-type=""string"">User Agent</th>
-                    <th class=""sortable"" data-col=""4"" data-type=""string"">Session ID</th>
-                    <th class=""sortable"" data-col=""5"" data-type=""string"">AuthType</th>
+                    <th class=""sortable"" data-col=""4"" data-type=""string"">AuthType</th>
                     <th>Action</th>
                 </tr>
             </thead>
