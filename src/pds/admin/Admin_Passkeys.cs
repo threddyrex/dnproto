@@ -43,23 +43,26 @@ public class Admin_Passkeys : BaseAdmin
         //
         // Build passkey lists HTML
         //
+        var enc = System.Text.Encodings.Web.HtmlEncoder.Default;
+
         string BuildPasskeysHtml()
         {
             if (passkeys.Count == 0)
-                return "<div class=\"session-item\">No passkeys</div>";
+                return "<tr><td colspan=\"3\" style=\"text-align: center; color: #8899a6;\">No passkeys</td></tr>";
             
             var sb = new System.Text.StringBuilder();
             foreach (var p in passkeys)
             {
-                sb.Append($@"<div class=""session-item"">
-                    <span class=""session-label"">Name:</span> {System.Net.WebUtility.HtmlEncode(p.Name)} 
-                    <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(p.CreatedDate)} 
-                    <span class=""session-label"">Credential ID:</span> {System.Net.WebUtility.HtmlEncode(p.CredentialId)}
-                    <form method=""post"" action=""/admin/deletepasskey"" style=""display:inline; margin-left: 12px;"">
-                        <input type=""hidden"" name=""name"" value=""{System.Net.WebUtility.HtmlEncode(p.Name)}"" />
-                        <button type=""submit"" class=""delete-btn"">Delete</button>
-                    </form>
-                </div>");
+                sb.Append($@"<tr>
+                    <td>{enc.Encode(p.Name)}</td>
+                    <td>{enc.Encode(p.CreatedDate)}</td>
+                    <td>
+                        <form method=""post"" action=""/admin/deletepasskey"" style=""display:inline;"">
+                            <input type=""hidden"" name=""name"" value=""{enc.Encode(p.Name)}"" />
+                            <button type=""submit"" class=""delete-btn"">Delete</button>
+                        </form>
+                    </td>
+                </tr>");
             }
             return sb.ToString();
         }
@@ -67,19 +70,21 @@ public class Admin_Passkeys : BaseAdmin
         string BuildPasskeyChallengesHtml()
         {
             if (passkeyChallenges.Count == 0)
-                return "<div class=\"session-item\">No passkey challenges</div>";
+                return "<tr><td colspan=\"3\" style=\"text-align: center; color: #8899a6;\">No passkey challenges</td></tr>";
             
             var sb = new System.Text.StringBuilder();
             foreach (var c in passkeyChallenges)
             {
-                sb.Append($@"<div class=""session-item"">
-                    <span class=""session-label"">Challenge:</span> {System.Net.WebUtility.HtmlEncode(c.Challenge)} 
-                    <span class=""session-label"">Created:</span> {System.Net.WebUtility.HtmlEncode(c.CreatedDate)}
-                    <form method=""post"" action=""/admin/deletepasskeychallenge"" style=""display:inline; margin-left: 12px;"">
-                        <input type=""hidden"" name=""challenge"" value=""{System.Net.WebUtility.HtmlEncode(c.Challenge)}"" />
-                        <button type=""submit"" class=""delete-btn"">Delete</button>
-                    </form>
-                </div>");
+                sb.Append($@"<tr>
+                    <td>{enc.Encode(c.Challenge)}</td>
+                    <td>{enc.Encode(c.CreatedDate)}</td>
+                    <td>
+                        <form method=""post"" action=""/admin/deletepasskeychallenge"" style=""display:inline;"">
+                            <input type=""hidden"" name=""challenge"" value=""{enc.Encode(c.Challenge)}"" />
+                            <button type=""submit"" class=""delete-btn"">Delete</button>
+                        </form>
+                    </td>
+                </tr>");
             }
             return sb.ToString();
         }
@@ -108,11 +113,12 @@ public class Admin_Passkeys : BaseAdmin
             .add-btn {{ background-color: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .add-btn:hover {{ background-color: #388e3c; }}
             .section-header {{ display: flex; justify-content: space-between; align-items: center; }}
-            .session-list {{ background-color: #2f3336; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
-            .session-item {{ padding: 8px 0; border-bottom: 1px solid #444; font-size: 14px; }}
-            .session-item:last-child {{ border-bottom: none; }}
-            .session-label {{ color: #8899a6; margin-right: 4px; }}
             .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}
+            .sessions-table {{ width: 100%; border-collapse: collapse; background-color: #2f3336; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }}
+            .sessions-table th {{ background-color: #1d1f23; color: #8899a6; text-align: left; padding: 12px 16px; font-size: 14px; font-weight: 500; }}
+            .sessions-table td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
+            .sessions-table tr:last-child td {{ border-bottom: none; }}
+            .sessions-table tr:hover {{ background-color: #3a3d41; }}
         </style>
         </head>
         <body>
@@ -132,14 +138,32 @@ public class Admin_Passkeys : BaseAdmin
             <h2>Passkeys <span class=""session-count"">({passkeys.Count})</span></h2>
             <button type=""button"" class=""add-btn"" onclick=""addPasskey()"">Add Passkey</button>
         </div>
-        <div class=""session-list"">
-            {BuildPasskeysHtml()}
-        </div>
+        <table class=""sessions-table"">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {BuildPasskeysHtml()}
+            </tbody>
+        </table>
 
         <h2>Passkey Challenges <span class=""session-count"">({passkeyChallenges.Count})</span></h2>
-        <div class=""session-list"">
-            {BuildPasskeyChallengesHtml()}
-        </div>
+        <table class=""sessions-table"">
+            <thead>
+                <tr>
+                    <th>Challenge</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {BuildPasskeyChallengesHtml()}
+            </tbody>
+        </table>
         </div>
         <script>
         async function addPasskey() {{
