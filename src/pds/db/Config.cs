@@ -5,6 +5,7 @@ namespace dnproto.pds;
 
 public class Config
 {
+    // PDS
     public required string PdsDid;
 
     public required string PdsHostname;
@@ -13,6 +14,10 @@ public class Config
 
     public required string JwtSecret;
 
+    public required string[] PdsCrawlers;
+
+
+    // User
     public required string UserHandle;
 
     public required string UserDid;
@@ -27,6 +32,5 @@ public class Config
 
     public required bool UserIsActive;
 
-    public required string[] PdsCrawlers;
 
 }
