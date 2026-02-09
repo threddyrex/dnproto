@@ -113,6 +113,10 @@ public class Installer
         db.SetConfigProperty("AdminHashedPassword", PasswordHasher.HashPassword(adminPassword));
         logger.LogInfo("username: admin");
         logger.LogInfo($"password: {adminPassword}");
+
+        string jwtSecret = JwtSecret.GenerateJwtSecret();
+        db.SetConfigProperty("JwtSecret", jwtSecret);
+        logger.LogInfo($"JwtSecret: {jwtSecret}");
     }
 
 
