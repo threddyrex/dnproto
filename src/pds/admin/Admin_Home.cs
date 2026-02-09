@@ -31,9 +31,6 @@ public class Admin_Home : BaseAdmin
         }
 
 
-        AdminSession? adminSession = GetValidAdminSession();
-
-
         //
         // return account info
         //
@@ -76,24 +73,7 @@ public class Admin_Home : BaseAdmin
             </form>
         </div>
         <h1>Admin Dashboard</h1>
-        <div class=""info-card"">
-            <span class=""label"">admin session id:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.SessionId ?? "N/A")}</span>
-        </div>
-        <div class=""info-card"">
-            <span class=""label"">admin session created:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(adminSession?.CreatedDate ?? "N/A")}</span>
-        </div>
-        <div class=""info-card"">
-            <span class=""label"">pds did:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.PdsDid)}</span>
-        </div>
-        <div class=""info-card"">
-            <span class=""label"">user did:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserDid)}</span>
-        </div>
-        <div class=""info-card"">
-            <span class=""label"">user handle:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserHandle)}</span>
-        </div>
-        <div class=""info-card"">
-            <span class=""label"">user email:</span> <span class=""value"">{System.Net.WebUtility.HtmlEncode(Pds.Config.UserEmail)}</span>
-        </div>
+        <p>Welcome to the admin dashboard.</p>
         </div>
         </body>
         </html>
