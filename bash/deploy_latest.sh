@@ -1,18 +1,16 @@
 #!/bin/bash
 
-source ../data/pds/setup.env
+SYSTEMCTL_SERVICE_NAME=$(sqlite3 ../data/pds/pds.db "SELECT Value FROM ConfigProperty WHERE Key='SystemctlServiceName';")
+CADDY_ACCESS_LOG=$(sqlite3 ../data/pds/pds.db "SELECT Value FROM ConfigProperty WHERE Key='CaddyAccessLogFilePath';")
+
 
 echo ""
-echo "CONFIG FROM ../data/pds/setup.env:"
+echo "CONFIG FROM ../data/pds/pds.db:"
 echo ""
-echo "	PDS_HOST_NAME: $PDS_HOST_NAME"
-echo "	AVAILABLE_USER_DOMAIN: $AVAILABLE_USER_DOMAIN"
-echo "	USER_HANDLE: $USER_HANDLE"
-echo "	USER_DID: $USER_DID"
-echo "	USER_EMAIL: $USER_EMAIL"
 echo "	SYSTEMCTL_SERVICE_NAME: $SYSTEMCTL_SERVICE_NAME"
 echo "	CADDY_ACCESS_LOG: $CADDY_ACCESS_LOG"
 echo ""
+
 
 cd ..
 
