@@ -21,10 +21,10 @@ public class ComAtprotoSync_ListRepos : BaseXrpcCommand
         var repos = new JsonArray();
         repos.Add(new JsonObject
         {
-            ["did"] = Pds.Config.UserDid,
+            ["did"] = Pds.PdsDb.GetConfigProperty("UserDid"),
             ["head"] = repoCommit?.Cid?.Base32,
             ["rev"] = repoCommit?.Rev,
-            ["active"] = Pds.Config.UserIsActive
+            ["active"] = Pds.PdsDb.GetConfigPropertyBool("UserIsActive")
         });
 
         return Results.Json(new JsonObject

@@ -179,7 +179,7 @@ public abstract class BaseXrpcCommand
                 //
                 // authenticated
                 //
-                bool auth = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: true);
+                bool auth = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.PdsDb.GetConfigProperty("JwtSecret"), Pds.PdsDb.GetConfigProperty("UserDid"), validateExpiry: true);
                 logLine.Append($"authenticated={auth} ");
 
                 //
@@ -188,7 +188,7 @@ public abstract class BaseXrpcCommand
                 bool authButExpired = false;
                 if(!auth)
                 {
-                    authButExpired = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+                    authButExpired = JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.PdsDb.GetConfigProperty("JwtSecret"), Pds.PdsDb.GetConfigProperty("UserDid"), validateExpiry: false);
                 }
                 logLine.Append($"expired={authButExpired} ");
 
@@ -300,7 +300,7 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     public bool UserIsAuthenticatedButExpired(StringBuilder logLine)
     {
-        return JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.Config.JwtSecret, Pds.Config.UserDid, validateExpiry: false);
+        return JwtSecret.AccessJwtIsValid(logLine, GetAccessJwt(), Pds.PdsDb.GetConfigProperty("JwtSecret"), Pds.PdsDb.GetConfigProperty("UserDid"), validateExpiry: false);
     }
 
 
@@ -532,7 +532,7 @@ public abstract class BaseXrpcCommand
             }
 
             // Verify the subject matches the PDS user
-            if (tokenValidation.Subject != Pds.Config.UserDid)
+            if (tokenValidation.Subject != Pds.PdsDb.GetConfigProperty("UserDid"))
             {
                 result.Error = "Token subject does not match PDS user";
                 return result;
@@ -567,16 +567,16 @@ public abstract class BaseXrpcCommand
         try
         {
             var tokenHandler = new Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler();
-            var key = System.Text.Encoding.UTF8.GetBytes(Pds.Config.JwtSecret);
+            var key = System.Text.Encoding.UTF8.GetBytes(Pds.PdsDb.GetConfigProperty("JwtSecret"));
 
             var validationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(key),
                 ValidateIssuer = true,
-                ValidIssuer = $"https://{Pds.Config.PdsHostname}",
+                ValidIssuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}",
                 ValidateAudience = true,
-                ValidAudience = $"https://{Pds.Config.PdsHostname}",
+                ValidAudience = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}",
                 ValidateLifetime = validateExpiry,
                 ClockSkew = TimeSpan.Zero
             };
@@ -658,7 +658,7 @@ public abstract class BaseXrpcCommand
     protected OauthValidationResult OauthUserIsAuthenticated()
     {
         string httpMethod = HttpContext.Request.Method;
-        string requestUri = $"https://{Pds.Config.PdsHostname}{HttpContext.Request.Path}";
+        string requestUri = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}{HttpContext.Request.Path}";
         var result = ValidateOauthAccessToken(httpMethod, requestUri);
         return result;
     }
@@ -669,7 +669,7 @@ public abstract class BaseXrpcCommand
     protected bool OauthUserIsAuthenticatedButExpired()
     {
         string httpMethod = HttpContext.Request.Method;
-        string requestUri = $"https://{Pds.Config.PdsHostname}{HttpContext.Request.Path}";
+        string requestUri = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}{HttpContext.Request.Path}";
         var result = ValidateOauthAccessToken(httpMethod, requestUri);
         return result.IsExpired;
     }
@@ -681,7 +681,7 @@ public abstract class BaseXrpcCommand
     protected (JsonObject response, int statusCode) GetOauthAuthenticationFailureResponse()
     {
         string httpMethod = HttpContext.Request.Method;
-        string requestUri = $"https://{Pds.Config.PdsHostname}{HttpContext.Request.Path}";
+        string requestUri = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}{HttpContext.Request.Path}";
         var result = ValidateOauthAccessToken(httpMethod, requestUri);
 
         if (result.IsExpired)
@@ -847,9 +847,9 @@ public abstract class BaseXrpcCommand
             result.Lxm = lxm;
 
             // Verify audience matches this PDS's DID (not the user's DID)
-            if (audience != Pds.Config.PdsDid)
+            if (audience != Pds.PdsDb.GetConfigProperty("PdsDid"))
             {
-                result.Error = $"Token audience '{audience}' does not match PDS DID '{Pds.Config.PdsDid}'";
+                result.Error = $"Token audience '{audience}' does not match PDS DID '{Pds.PdsDb.GetConfigProperty("PdsDid")}'";
                 return result;
             }
 

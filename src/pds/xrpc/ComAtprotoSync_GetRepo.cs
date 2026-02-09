@@ -20,7 +20,7 @@ public class ComAtprotoSync_GetRepo : BaseXrpcCommand
             return Results.Json(new { error = "InvalidRequest", message = "Missing did" }, statusCode: 400);
         }
 
-        if(did.Equals(Pds.Config.UserDid, StringComparison.OrdinalIgnoreCase) == false)
+        if(did.Equals(Pds.PdsDb.GetConfigProperty("UserDid"), StringComparison.OrdinalIgnoreCase) == false)
         {
             return Results.Json(new { error = "NotFound", message = "Repo not found" }, statusCode: 404);
         }

@@ -60,7 +60,7 @@ public class BaseAdmin
         //
         // If we're not in dev, don't allow this
         //
-        if(string.Equals(Pds.Config.PdsHostname, "localhost", StringComparison.OrdinalIgnoreCase) == false)
+        if(string.Equals(Pds.PdsDb.GetConfigProperty("PdsHostname"), "localhost", StringComparison.OrdinalIgnoreCase) == false)
         {
             throw new Exception("Unable to determine caller IP address");
         }

@@ -98,7 +98,7 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
             }
         };
 
-        Pds.Logger.LogInfo($"Uploaded blob cid={cid} contentType={contentType} contentLength={contentLength} userDid={Pds.Config.UserDid}");
+        Pds.Logger.LogInfo($"Uploaded blob cid={cid} contentType={contentType} contentLength={contentLength} userDid={Pds.PdsDb.GetConfigProperty("UserDid")}");
         return Results.Json(responseObj, statusCode: 200);
     }
 

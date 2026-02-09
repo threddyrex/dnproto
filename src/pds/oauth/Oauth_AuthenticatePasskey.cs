@@ -132,7 +132,7 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
         //
         // Validate origin
         //
-        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.Config.PdsHostname, Pds.PdsDb.GetConfigPropertyInt("ServerListenPort"));
+        string expectedOrigin = PasskeyUtils.GetExpectedOrigin(Pds.PdsDb.GetConfigProperty("PdsHostname"), Pds.PdsDb.GetConfigPropertyInt("ServerListenPort"));
         if (origin != expectedOrigin)
         {
             return Results.Json(new { error = $"Invalid origin. Expected {expectedOrigin}, got {origin}" }, statusCode: 400);
@@ -163,7 +163,7 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
         //
         // Validate authenticatorData structure
         //
-        if (!PasskeyUtils.ValidateAuthenticatorData(authenticatorData, Pds.Config.PdsHostname, out string? authDataError))
+        if (!PasskeyUtils.ValidateAuthenticatorData(authenticatorData, Pds.PdsDb.GetConfigProperty("PdsHostname"), out string? authDataError))
         {
             Pds.Logger.LogWarning($"[AUTH] [OAUTH] [PASSKEY] {authDataError} for credential {credentialId}");
             return Results.Json(new { error = authDataError }, statusCode: 400);
@@ -212,7 +212,7 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
         //
         string redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
         string state = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "state");
-        string issuer = $"https://{Pds.Config.PdsHostname}";
+        string issuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}";
 
         string redirectUrl = $"{redirectUri}?code={Uri.EscapeDataString(authorizationCode)}&state={Uri.EscapeDataString(state)}&iss={Uri.EscapeDataString(issuer)}";
 

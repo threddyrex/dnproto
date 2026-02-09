@@ -57,8 +57,12 @@ public class UserRepoTestsFixture : IDisposable
         //
         // Install config
         //
-        Installer.InstallConfig(Lfs, Logger, "example.com", "availabledomain", "userhandle", "userdid", "useremail");
-
+        PdsDb.SetConfigProperty("UserDid", "did:example:testuser");
+        PdsDb.SetConfigProperty("UserHandle", "testuser");
+        PdsDb.SetConfigProperty("UserEmail", "testuser@example.com");
+        PdsDb.SetConfigProperty("PdsAvailableUserDomain", "availabledomain");
+        PdsDb.SetConfigProperty("JwtSecret", "supersecretjwtkey");
+        PdsDb.SetConfigProperty("PdsDid", "did:example:pds");
 
         //
         // Install repo

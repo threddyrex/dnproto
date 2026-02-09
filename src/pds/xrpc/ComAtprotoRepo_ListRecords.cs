@@ -57,7 +57,7 @@ public class ComAtprotoRepo_ListRecords : BaseXrpcCommand
         {
             returnRecords.Add(new JsonObject
             {
-                ["uri"] = $"at://{Pds.Config.UserDid}/{collection}/{r.rkey}",
+                ["uri"] = $"at://{Pds.PdsDb.GetConfigProperty("UserDid")}/{collection}/{r.rkey}",
                 ["cid"] = r.Item2.Cid.Base32,
                 ["value"] = r.Item2.JsonString != null ? JsonNode.Parse(r.Item2.JsonString)! : null
             });

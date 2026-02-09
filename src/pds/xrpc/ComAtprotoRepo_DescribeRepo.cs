@@ -17,8 +17,8 @@ public class ComAtprotoRepo_DescribeRepo : BaseXrpcCommand
         //
         // Get our did doc
         //
-        string userDid = Pds.Config.UserDid;
-        string userHandle = Pds.Config.UserHandle;
+        string userDid = Pds.PdsDb.GetConfigProperty("UserDid");
+        string userHandle = Pds.PdsDb.GetConfigProperty("UserHandle");
         ActorInfo? actorInfo = Pds.LocalFileSystem.ResolveActorInfo(userDid);
         string didDocString = actorInfo?.DidDoc ?? "{}";
 

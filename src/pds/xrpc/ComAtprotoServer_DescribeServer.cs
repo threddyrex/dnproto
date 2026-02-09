@@ -14,8 +14,8 @@ public class ComAtprotoServer_DescribeServer : BaseXrpcCommand
         {
             InviteCodeRequired = true,
             PhoneVerificationRequired = true,
-            AvailableUserDomains = new [] { Pds.Config.AvailableUserDomain }.ToList(),
-            Did = Pds.Config.PdsDid
+            AvailableUserDomains = new [] { Pds.PdsDb.GetConfigProperty("PdsAvailableUserDomain") }.ToList(),
+            Did = Pds.PdsDb.GetConfigProperty("PdsDid")
         };
 
         

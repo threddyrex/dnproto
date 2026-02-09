@@ -14,7 +14,7 @@ public class ComAtprotoSync_GetRepoStatus : BaseXrpcCommand
         
         var ret = new JsonObject()
         {
-            ["did"] = Pds.Config.PdsDid,
+            ["did"] = Pds.PdsDb.GetConfigProperty("PdsDid"),
             ["active"] = true
         };
         // add response header of "application/json"

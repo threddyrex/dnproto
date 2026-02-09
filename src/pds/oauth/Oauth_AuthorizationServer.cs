@@ -17,7 +17,7 @@ public class Oauth_AuthorizationServer : BaseXrpcCommand
 
         return Results.Json(new 
         {
-            issuer = $"https://{Pds.Config.PdsHostname}",
+            issuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}",
             request_parameter_supported = true,
             request_uri_parameter_supported = true,
             require_request_uri_registration = true,
@@ -33,16 +33,16 @@ public class Oauth_AuthorizationServer : BaseXrpcCommand
             authorization_response_iss_parameter_supported = true,
             request_object_encryption_alg_values_supported = new JsonArray(){},
             request_object_encryption_enc_values_supported = new JsonArray(){},
-            jwks_uri = $"https://{Pds.Config.PdsHostname}/oauth/jwks",
-            authorization_endpoint = $"https://{Pds.Config.PdsHostname}/oauth/authorize",
-            token_endpoint = $"https://{Pds.Config.PdsHostname}/oauth/token",
+            jwks_uri = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/jwks",
+            authorization_endpoint = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/authorize",
+            token_endpoint = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/token",
             token_endpoint_auth_methods_supported = new JsonArray(){"none","private_key_jwt"},
             token_endpoint_auth_signing_alg_values_supported = new JsonArray(){ "RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"},
-            revocation_endpoint = $"https://{Pds.Config.PdsHostname}/oauth/revoke",
-            pushed_authorization_request_endpoint = $"https://{Pds.Config.PdsHostname}/oauth/par",
+            revocation_endpoint = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/revoke",
+            pushed_authorization_request_endpoint = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/par",
             require_pushed_authorization_requests = true,
             dpop_signing_alg_values_supported = new JsonArray(){"RS256","RS384","RS512","PS256","PS384","PS512","ES256","ES256K","ES384","ES512"},
-            protected_resources = new JsonArray(){$"https://{Pds.Config.PdsHostname}"},
+            protected_resources = new JsonArray(){$"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}"},
             client_id_metadata_document_supported = true,
             prompt_values_supported = new JsonArray(){"none","login","consent","select_account","create"}
         },

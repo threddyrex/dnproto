@@ -67,7 +67,7 @@ public class Oauth_Token : BaseXrpcCommand
             var dpopResult = JwtSecret.ValidateDpop(
                 dpopHeader, 
                 "POST", 
-                $"https://{Pds.Config.PdsHostname}/oauth/token");
+                $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/token");
 
             if(!dpopResult.IsValid || string.IsNullOrEmpty(dpopResult.JwkThumbprint))
             {
@@ -149,15 +149,15 @@ public class Oauth_Token : BaseXrpcCommand
             //
             // Generate access token
             //
-            string issuer = $"https://{Pds.Config.PdsHostname}";
+            string issuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}";
             int expiresInSeconds = 3600; // 1 hour
 
             string? accessToken = JwtSecret.GenerateOAuthAccessToken(
-                Pds.Config.UserDid,
+                Pds.PdsDb.GetConfigProperty("UserDid"),
                 issuer,
                 oauthSession.Scope,
                 oauthSession.DpopJwkThumbprint,
-                Pds.Config.JwtSecret,
+                Pds.PdsDb.GetConfigProperty("JwtSecret"),
                 clientId,
                 expiresInSeconds);
 
@@ -176,7 +176,7 @@ public class Oauth_Token : BaseXrpcCommand
                 expires_in = expiresInSeconds,
                 refresh_token = oauthSession.RefreshToken,
                 scope = oauthSession.Scope,
-                sub = Pds.Config.UserDid
+                sub = Pds.PdsDb.GetConfigProperty("UserDid")
             }, statusCode: 200);
         }
         //
@@ -206,7 +206,7 @@ public class Oauth_Token : BaseXrpcCommand
             var dpopResult = JwtSecret.ValidateDpop(
                 dpopHeader, 
                 "POST", 
-                $"https://{Pds.Config.PdsHostname}/oauth/token");
+                $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/token");
 
             if(!dpopResult.IsValid || string.IsNullOrEmpty(dpopResult.JwkThumbprint))
             {
@@ -247,15 +247,15 @@ public class Oauth_Token : BaseXrpcCommand
             //
             // Generate access token
             //
-            string issuer = $"https://{Pds.Config.PdsHostname}";
+            string issuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}";
             int expiresInSeconds = 3600; // 1 hour
 
             string? accessToken = JwtSecret.GenerateOAuthAccessToken(
-                Pds.Config.UserDid,
+                Pds.PdsDb.GetConfigProperty("UserDid"),
                 issuer,
                 oauthSession.Scope,
                 oauthSession.DpopJwkThumbprint,
-                Pds.Config.JwtSecret,
+                Pds.PdsDb.GetConfigProperty("JwtSecret"),
                 oauthSession.ClientId,
                 expiresInSeconds);
 
@@ -278,7 +278,7 @@ public class Oauth_Token : BaseXrpcCommand
                 expires_in = expiresInSeconds,
                 refresh_token = oauthSession.RefreshToken,
                 scope = oauthSession.Scope,
-                sub = Pds.Config.UserDid
+                sub = Pds.PdsDb.GetConfigProperty("UserDid")
             },
             statusCode: 200);
 

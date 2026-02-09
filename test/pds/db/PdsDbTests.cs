@@ -34,6 +34,7 @@ public class PdsDbTestsFixture : IDisposable
         Lfs = LocalFileSystem.Initialize(tempDir, Logger);
 
 
+
         //
         // Install db
         //
@@ -48,10 +49,16 @@ public class PdsDbTestsFixture : IDisposable
         PdsDb = PdsDb.ConnectPdsDb(Lfs, Logger);
 
 
-        //
-        // Install config
-        //
-        Installer.InstallConfig(Lfs, Logger, "example.com", "availabledomain", "userhandle", "userdid", "useremail");
+        PdsDb.SetConfigProperty("UserDid", "did:example:testuser");
+        PdsDb.SetConfigProperty("UserHandle", "testuser");
+        PdsDb.SetConfigProperty("UserEmail", "testuser@example.com");
+        PdsDb.SetConfigProperty("PdsAvailableUserDomain", "availabledomain");
+        PdsDb.SetConfigProperty("JwtSecret", "supersecretjwtkey");
+        PdsDb.SetConfigProperty("PdsDid", "did:example:pds");
+
+
+
+
     }
 
     public void Dispose()
@@ -84,63 +91,6 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.NotNull(pdsDb);
         Assert.True(dbFileExists);
     }
-
-    #region CONFIG
-
-    [Fact]
-    public void Config_InsertAndRetrieve()
-    {
-        // Arrange
-        var pdsDb = _fixture.PdsDb;
-        pdsDb.DeleteConfig();
-
-        var configToInsert = new Config
-        {
-            PdsDid = "did:example:123456789abcdefghi",
-            PdsHostname = "example.com",
-            AvailableUserDomain = "users.example.com",
-            JwtSecret = "super_secret_jwt_key",
-            UserHandle = "testuser",
-            UserDid = "did:example:user123",
-            UserHashedPassword = "hashed_user_password",
-            UserEmail = "user@example.com",
-            UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
-            UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample",
-            UserIsActive = true
-        };
-
-        // Act
-        pdsDb!.InsertConfig(configToInsert);
-        var retrievedConfig = pdsDb.GetConfig();
-        int configCount = pdsDb.GetConfigCount();
-
-        // Assert
-        Assert.NotNull(retrievedConfig);
-        Assert.Equal(configToInsert.PdsDid, retrievedConfig.PdsDid);
-        Assert.Equal(configToInsert.PdsHostname, retrievedConfig.PdsHostname);
-        Assert.Equal(configToInsert.AvailableUserDomain, retrievedConfig.AvailableUserDomain);
-        Assert.Equal(configToInsert.JwtSecret, retrievedConfig.JwtSecret);
-        Assert.Equal(configToInsert.UserHandle, retrievedConfig.UserHandle);
-        Assert.Equal(configToInsert.UserDid, retrievedConfig.UserDid);
-        Assert.Equal(configToInsert.UserHashedPassword, retrievedConfig.UserHashedPassword);
-        Assert.Equal(configToInsert.UserEmail, retrievedConfig.UserEmail);
-        Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
-        Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
-        Assert.Equal(configToInsert.UserIsActive, retrievedConfig.UserIsActive);
-        Assert.Equal(1, configCount);
-    }
-
-    [Fact]
-    public void Config_SetUserActive()
-    {
-        var pdsDb = _fixture.PdsDb;
-        pdsDb.SetUserActive(false);
-        Assert.False(pdsDb.IsUserActive());
-        pdsDb.SetUserActive(true);
-        Assert.True(pdsDb.IsUserActive());
-    }
-
-    #endregion
 
 
     #region REPOHDR

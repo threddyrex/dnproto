@@ -33,7 +33,7 @@ public class ComAtprotoServer_CheckAccountStatus : BaseXrpcCommand
         var repoCommit = Pds.PdsDb.GetRepoCommit();
         return Results.Json(new 
         {
-            activated = Pds.Config.UserIsActive,
+            activated = Pds.PdsDb.GetConfigPropertyBool("UserIsActive"),
             validDid = true,
             repoCommit = repoCommit.Cid?.Base32,
             repoRev = repoCommit.Rev

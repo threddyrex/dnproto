@@ -29,8 +29,6 @@ namespace dnproto.pds;
 /// </summary>
 public class Pds
 {
-    public required Config Config;
-
     public required dnproto.log.IDnProtoLogger Logger;
 
     public required LocalFileSystem LocalFileSystem;
@@ -85,19 +83,14 @@ public class Pds
         IBlobDb blobDb = BlobDb.Create(lfs, logger);
 
         //
-        // Get PDS config from db
-        //
-        Config config = pdsDb.GetConfig();
-
-        //
         // Create commit signing function
         //
-        Func<byte[], byte[]> commitSigningFunction = dnproto.auth.Signer.CreateCommitSigningFunction(config.UserPrivateKeyMultibase, config.UserPublicKeyMultibase);
+        Func<byte[], byte[]> commitSigningFunction = dnproto.auth.Signer.CreateCommitSigningFunction(pdsDb.GetConfigProperty("UserPrivateKeyMultibase"), pdsDb.GetConfigProperty("UserPublicKeyMultibase"));
 
         //
         // Load repo
         //
-        UserRepo repo = UserRepo.ConnectUserRepo(lfs, logger, pdsDb, commitSigningFunction, config.UserDid);
+        UserRepo repo = UserRepo.ConnectUserRepo(lfs, logger, pdsDb, commitSigningFunction, pdsDb.GetConfigProperty("UserDid"));
 
         //
         // Configure to listen
@@ -161,7 +154,6 @@ public class Pds
         //
         var pds = new Pds()
         {
-            Config = config,
             Logger = logger,
             LocalFileSystem = lfs,
             PdsDb = pdsDb,
@@ -298,14 +290,7 @@ public class Pds
             //
             // Set db
             //
-            PdsDb.SetUserActive(true);
-
-
-            //
-            // Update in-memory config
-            //
-            Config.UserIsActive = true;
-
+            PdsDb.SetConfigPropertyBool("UserIsActive", true);
 
 
             //
@@ -316,7 +301,7 @@ public class Pds
                 header_op: 1, 
                 object2Json: new JsonObject()
                 {
-                    ["did"] = Config.UserDid,
+                    ["did"] = PdsDb.GetConfigProperty("UserDid"),
                     ["active"] = true
                 });
 
@@ -330,8 +315,8 @@ public class Pds
                 header_op: 1, 
                 object2Json: new JsonObject()
                 {
-                    ["did"] = Config.UserDid,
-                    ["handle"] = Config.UserHandle
+                    ["did"] = PdsDb.GetConfigProperty("UserDid"),
+                    ["handle"] = PdsDb.GetConfigProperty("UserHandle")
                 });
 
 
@@ -345,7 +330,7 @@ public class Pds
                 header_op: 1, 
                 object2Json: new JsonObject()
                 {
-                    ["did"] = Config.UserDid,
+                    ["did"] = PdsDb.GetConfigProperty("UserDid"),
                     ["rev"] = repoCommit.Rev,
                 },
                 repoHeader: repoHeader,
@@ -373,13 +358,7 @@ public class Pds
             //
             // Set db
             //
-            PdsDb.SetUserActive(false);
-
-
-            //
-            // Update in-memory config
-            //
-            Config.UserIsActive = true;
+            PdsDb.SetConfigPropertyBool("UserIsActive", false);
 
 
 
@@ -391,12 +370,10 @@ public class Pds
                 header_op: 1, 
                 object2Json: new JsonObject()
                 {
-                    ["did"] = Config.UserDid,
+                    ["did"] = PdsDb.GetConfigProperty("UserDid"),
                     ["active"] = false,
                     ["status"] = "deactivated"
                 });
-
-
 
 
 

@@ -39,7 +39,7 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         //
         // Get account hashed password
         //
-        string? storedHashedPassword = Pds.Config.UserHashedPassword;
+        string? storedHashedPassword = Pds.PdsDb.GetConfigProperty("UserHashedPassword");
         bool passwordMatches = PasswordHasher.VerifyPassword(storedHashedPassword, password);
 
 
@@ -51,8 +51,8 @@ public class ComAtprotoServer_CreateSession : BaseXrpcCommand
         if(actorExists && passwordMatches)
         {
             Pds.Logger.LogInfo($"[AUTH] [LEGACY] Successful login. ip={GetCallerIpAddress()} userAgent={GetCallerUserAgent()}");
-            accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
-            refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+            accessJwt = JwtSecret.GenerateAccessJwt(actorInfo?.Did, Pds.PdsDb.GetConfigProperty("PdsDid"), Pds.PdsDb.GetConfigProperty("JwtSecret"));
+            refreshJwt = JwtSecret.GenerateRefreshJwt(actorInfo?.Did, Pds.PdsDb.GetConfigProperty("PdsDid"), Pds.PdsDb.GetConfigProperty("JwtSecret"));
 
             //
             // Insert into db

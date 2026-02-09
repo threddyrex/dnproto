@@ -35,7 +35,7 @@ namespace dnproto.cli.commands
             var pdsDb = pds.PdsDb;
             var func = pds.CommitSigningFunction;
 
-            if(pds.Config.UserDid == null)
+            if(pdsDb.GetConfigProperty("UserDid") == null)
             {
                 Logger.LogError("Cannot install MST: User DID is null.");
                 return;

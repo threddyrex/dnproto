@@ -55,7 +55,7 @@ public class Oauth_Par : BaseXrpcCommand
         var dpopResult = JwtSecret.ValidateDpop(
             dpopHeader, 
             "POST", 
-            $"https://{Pds.Config.PdsHostname}/oauth/par");
+            $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}/oauth/par");
 
         if (!dpopResult.IsValid)
         {

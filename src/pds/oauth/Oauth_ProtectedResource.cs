@@ -20,8 +20,8 @@ public class Oauth_ProtectedResource : BaseXrpcCommand
 
         return Results.Json(new 
         {
-            resource = $"https://{Pds.Config.PdsHostname}",
-            authorization_servers = new JsonArray() {$"https://{Pds.Config.PdsHostname}"},
+            resource = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}",
+            authorization_servers = new JsonArray() {$"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}"},
             scopes_supported = new JsonArray(){},
             bearer_methods_supported = new JsonArray() {"header"},
             resource_documentation = "https://atproto.com"

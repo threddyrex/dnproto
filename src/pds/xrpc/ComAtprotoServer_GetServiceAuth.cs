@@ -70,8 +70,8 @@ public class ComAtprotoServer_GetServiceAuth : BaseXrpcCommand
         //
         // Get signing keys from config
         //
-        var signingKeyPrivateMultibase = Pds.Config.UserPrivateKeyMultibase;
-        var signingKeyPublicMultibase = Pds.Config.UserPublicKeyMultibase;
+        var signingKeyPrivateMultibase = Pds.PdsDb.GetConfigProperty("UserPrivateKeyMultibase");
+        var signingKeyPublicMultibase = Pds.PdsDb.GetConfigProperty("UserPublicKeyMultibase");
 
         // Convert from multibase to hex for Signer.SignToken
         var privateKeyWithPrefix = Base58BtcEncoding.DecodeMultibase(signingKeyPrivateMultibase);
@@ -102,7 +102,7 @@ public class ComAtprotoServer_GetServiceAuth : BaseXrpcCommand
         string token = Signer.SignToken(
             publicKeyHex,
             privateKeyHex,
-            Pds.Config.UserDid,  // iss: the requesting user's DID
+            Pds.PdsDb.GetConfigProperty("UserDid"),  // iss: the requesting user's DID
             aud,                 // aud: the service DID that will validate this token
             claims,
             expiresInSeconds,

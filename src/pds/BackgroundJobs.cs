@@ -144,7 +144,7 @@ public class BackgroundJobs
 
             if(requestCrawlEnabled)
             {
-                string pdsHostname = _db.GetConfig().PdsHostname;
+                string pdsHostname = _db.GetConfigProperty("PdsHostname");
 
                 string[] crawlers = _db.GetConfigProperty("PdsCrawlers").Split(',', StringSplitOptions.RemoveEmptyEntries);
 

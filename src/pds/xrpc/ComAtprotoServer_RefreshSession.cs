@@ -32,7 +32,7 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         //
         // Verify refresh jwt
         //
-        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(originalRefreshJwt, Pds.Config.JwtSecret);        
+        ClaimsPrincipal? claimsPrincipal = JwtSecret.VerifyRefreshJwt(originalRefreshJwt, Pds.PdsDb.GetConfigProperty("JwtSecret"));
         if (claimsPrincipal == null)
         {
             return Results.Json(new 
@@ -47,7 +47,7 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         // Check did
         //
         string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);        
-        if (userDid != Pds.Config.UserDid)
+        if (userDid != Pds.PdsDb.GetConfigProperty("UserDid"))
         {
             return Results.Json(new 
             {
@@ -75,9 +75,9 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         //
         // Generate new tokens
         //
-        string? handle = Pds.Config.UserHandle;
-        string? accessJwt = JwtSecret.GenerateAccessJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
-        string? newRefreshJwt = JwtSecret.GenerateRefreshJwt(userDid, Pds.Config.PdsDid, Pds.Config.JwtSecret);
+        string? handle = Pds.PdsDb.GetConfigProperty("UserHandle");
+        string? accessJwt = JwtSecret.GenerateAccessJwt(userDid, Pds.PdsDb.GetConfigProperty("PdsDid"), Pds.PdsDb.GetConfigProperty("JwtSecret"));
+        string? newRefreshJwt = JwtSecret.GenerateRefreshJwt(userDid, Pds.PdsDb.GetConfigProperty("PdsDid"), Pds.PdsDb.GetConfigProperty("JwtSecret"));
 
         if(string.IsNullOrEmpty(accessJwt) || string.IsNullOrEmpty(newRefreshJwt))
         {

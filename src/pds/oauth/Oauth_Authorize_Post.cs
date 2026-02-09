@@ -59,7 +59,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         //
         ActorInfo? actorInfo = BlueskyClient.ResolveActorInfo(userName!);
         bool actorExists = actorInfo != null;
-        string? storedHashedPassword = Pds.Config.UserHashedPassword;
+        string? storedHashedPassword = Pds.PdsDb.GetConfigProperty("UserHashedPassword");
         bool passwordMatches = PasswordHasher.VerifyPassword(storedHashedPassword, password);
         bool authSucceeded = actorExists && passwordMatches;
 
@@ -89,7 +89,7 @@ public class Oauth_Authorize_Post : BaseXrpcCommand
         //
         string redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
         string state = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "state");
-        string issuer = $"https://{Pds.Config.PdsHostname}";
+        string issuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}";
 
         string redirectUrl = $"{redirectUri}?code={Uri.EscapeDataString(authorizationCode)}&state={Uri.EscapeDataString(state)}&iss={Uri.EscapeDataString(issuer)}";
 

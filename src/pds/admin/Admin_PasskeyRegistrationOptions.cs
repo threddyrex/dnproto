@@ -66,7 +66,7 @@ public class Admin_PasskeyRegistrationOptions : BaseAdmin
         //
         // Build user ID from UserDid (hash it to get consistent opaque ID)
         //
-        byte[] userIdBytes = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Pds.Config.UserDid));
+        byte[] userIdBytes = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Pds.PdsDb.GetConfigProperty("UserDid")));
         string userId = PasskeyUtils.Base64UrlEncode(userIdBytes);
 
         //
@@ -77,14 +77,14 @@ public class Admin_PasskeyRegistrationOptions : BaseAdmin
             ["challenge"] = challenge,
             ["rp"] = new JsonObject
             {
-                ["name"] = Pds.Config.PdsHostname,
-                ["id"] = Pds.Config.PdsHostname
+                ["name"] = Pds.PdsDb.GetConfigProperty("PdsHostname"),
+                ["id"] = Pds.PdsDb.GetConfigProperty("PdsHostname")
             },
             ["user"] = new JsonObject
             {
                 ["id"] = userId,
-                ["name"] = Pds.Config.UserHandle,
-                ["displayName"] = Pds.Config.UserHandle
+                ["name"] = Pds.PdsDb.GetConfigProperty("UserHandle"),
+                ["displayName"] = Pds.PdsDb.GetConfigProperty("UserHandle")
             },
             ["pubKeyCredParams"] = new JsonArray
             {

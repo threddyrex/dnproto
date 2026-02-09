@@ -78,7 +78,6 @@ public class Installer
         using (var connection = SqliteDb.GetConnectionCreate(lfs.GetPath_PdsDb()))
         {
             connection.Open();
-            PdsDb.CreateTable_Config(connection, logger);
             PdsDb.CreateTable_Blob(connection, logger);
             PdsDb.CreateTable_Preferences(connection, logger);
             PdsDb.CreateTable_RepoHeader(connection, logger);
@@ -153,76 +152,6 @@ public class Installer
 
 
 
-    #region CONFIG
-
-    /// <summary>
-    /// Install the config into the database.
-    /// This is not re-runnable.
-    /// </summary>
-    /// <param name="logger"></param>
-    /// <param name="dataDir"></param>
-    /// <param name="pdsHostname"></param>
-    /// <param name="availableUserDomain"></param>
-    /// <param name="userHandle"></param>
-    /// <param name="userDid"></param>
-    /// <param name="userEmail"></param>
-    public static void InstallConfig(LocalFileSystem lfs, IDnProtoLogger logger, string? pdsHostname, string? availableUserDomain, string? userHandle, string? userDid, string? userEmail)
-    {
-        //
-        // Create fresh config
-        //
-        var userKeyPair = dnproto.auth.KeyPair.Generate(dnproto.auth.KeyTypes.P256);
-        var adminPassword = PasswordHasher.CreateNewAdminPassword();
-        var userPassword = PasswordHasher.CreateNewAdminPassword();
-        var config = new Config()
-        {
-            PdsHostname = pdsHostname!,
-            PdsDid = "did:web:" + pdsHostname!,
-            AvailableUserDomain = availableUserDomain!,
-            JwtSecret = JwtSecret.GenerateJwtSecret(),
-            UserHandle = userHandle!,
-            UserDid = userDid!,
-            UserHashedPassword = PasswordHasher.HashPassword(userPassword),
-            UserEmail = userEmail!,
-            UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
-            UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
-            UserIsActive = true
-        };
-
-
-        //
-        // Insert config into db
-        //
-        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
-
-        bool insertResult = db.InsertConfig(config);
-        if (insertResult == false)
-        {
-            throw new Exception("Failed to insert config into database.");
-        }
-
-
-        //
-        // Print out stuff that the user will need.
-        //
-        logger.LogInfo("PDS installed successfully.");
-        logger.LogInfo("");
-        logger.LogInfo("Important stuff to remember:");
-        logger.LogInfo("");
-        logger.LogInfo($"   Admin password: {adminPassword}");
-        logger.LogInfo($"   User password: {userPassword}");
-        logger.LogInfo("");
-        logger.LogInfo("    User signing keypair (for DID document and commit signing):");
-        logger.LogInfo($"       Public key (multibase):  {userKeyPair.PublicKeyMultibase}");
-        logger.LogInfo($"       Private key (multibase): {userKeyPair.PrivateKeyMultibase}");
-        logger.LogInfo($"       DID Key:                 {userKeyPair.DidKey}");
-        logger.LogInfo("");
-        logger.LogInfo($"Copy this powershell:\n\n$adminPassword = '{adminPassword}';\n$userHandle = '{userHandle}';\n$userPassword = '{userPassword}';\n\n to set the admin and user passwords in your environment for use with powershell.\n");
-
-    }
-
-    #endregion
-
 
 
     #region REPO
@@ -257,12 +186,6 @@ public class Installer
 
 
         //
-        // Get config
-        //
-        Config config = db.GetConfig();
-        
-
-        //
         // Delete everything
         //
         logger.LogInfo("Deleting existing repo data (if any).");
@@ -293,7 +216,7 @@ public class Installer
         //
         var repoCommit = new RepoCommit()
         {
-            Did = config.UserDid,
+            Did = db.GetConfigProperty("UserDid"),
             Version = 3,
             RootMstNodeCid = rootCid,
             Rev = RecordKey.GenerateTid()
@@ -360,10 +283,10 @@ public class Installer
         // Add a Bluesky profile record.
         //
         logger.LogInfo("Creating initial Bluesky profile record in the repo.");
-        var userRepo = UserRepo.ConnectUserRepo(lfs, logger, db, commitSigningFunction, config.UserDid);
+        var userRepo = UserRepo.ConnectUserRepo(lfs, logger, db, commitSigningFunction, db.GetConfigProperty("UserDid"));
         var profileJsonObject = new JsonObject()
         {
-            ["displayName"] = config.UserHandle,
+            ["displayName"] = db.GetConfigProperty("UserHandle"),
             ["description"] = "This is my Bluesky profile."
         };
 

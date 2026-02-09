@@ -119,12 +119,12 @@ public class AppBsky_Proxy : BaseXrpcCommand
         // Get signing keys for the authenticated user
         // Note: In a multi-user system, you would look up the user's signing key from a database
         // For now, we use the PDS user's keys from config
-        string signingKeyPublicMultibase = Pds.Config.UserPublicKeyMultibase;
-        string signingKeyPrivateMultibase = Pds.Config.UserPrivateKeyMultibase;
+        string signingKeyPublicMultibase = Pds.PdsDb.GetConfigProperty("UserPublicKeyMultibase");
+        string signingKeyPrivateMultibase = Pds.PdsDb.GetConfigProperty("UserPrivateKeyMultibase");
 
         if (string.IsNullOrEmpty(signingKeyPrivateMultibase) || string.IsNullOrEmpty(signingKeyPublicMultibase))
         {
-            Pds.Logger.LogError($"Signing key not found for DID: {Pds.Config.UserDid}");
+            Pds.Logger.LogError($"Signing key not found for DID: {Pds.PdsDb.GetConfigProperty("UserDid")}");
             return Results.Problem("Signing key not found", statusCode: 500);
         }
 
@@ -139,7 +139,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
         string privateKeyHex = Convert.ToHexString(privateKeyBytes).ToLowerInvariant();
         string publicKeyHex = Convert.ToHexString(publicKeyBytes).ToLowerInvariant();
 
-        Pds.Logger.LogTrace($"Service auth - authedDid: {Pds.Config.UserDid}, serviceDid: {serviceDid}");
+        Pds.Logger.LogTrace($"Service auth - authedDid: {Pds.PdsDb.GetConfigProperty("UserDid")}, serviceDid: {serviceDid}");
         Pds.Logger.LogTrace($"Service auth - publicKeyHex: {publicKeyHex}");
         Pds.Logger.LogTrace($"Service auth - publicKeyMultibase: {signingKeyPublicMultibase}");
 
@@ -152,7 +152,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
         string serviceAuthJwt = Signer.SignToken(
             publicKeyHex,
             privateKeyHex,
-            Pds.Config.UserDid,      // iss: issuer is the authenticated user
+            Pds.PdsDb.GetConfigProperty("UserDid"),      // iss: issuer is the authenticated user
             serviceDid,     // aud: audience is the service DID
             claims,
             300,            // exp: 5 minutes (300 seconds)
@@ -162,7 +162,7 @@ public class AppBsky_Proxy : BaseXrpcCommand
         Pds.Logger.LogTrace($"Service auth JWT created: {serviceAuthJwt}");
 
         // Verify the signature we just created (for debugging)
-        var verifyResult = Signer.ValidateToken(serviceAuthJwt, signingKeyPublicMultibase, Pds.Config.UserDid, serviceDid, Pds.Logger);
+        var verifyResult = Signer.ValidateToken(serviceAuthJwt, signingKeyPublicMultibase, Pds.PdsDb.GetConfigProperty("UserDid"), serviceDid, Pds.Logger);
         if (verifyResult == null)
         {
             Pds.Logger.LogError("Self-verification of service auth JWT failed!");

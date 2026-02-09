@@ -73,7 +73,7 @@ public class Admin_PasskeyAuthenticationOptions : BaseAdmin
         var options = new JsonObject
         {
             ["challenge"] = challenge,
-            ["rpId"] = Pds.Config.PdsHostname,
+            ["rpId"] = Pds.PdsDb.GetConfigProperty("PdsHostname"),
             ["timeout"] = 60000,
             ["userVerification"] = "preferred",
             ["allowCredentials"] = allowCredentials

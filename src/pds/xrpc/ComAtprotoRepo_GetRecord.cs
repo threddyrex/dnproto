@@ -29,13 +29,13 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
         // Default to local user if repo not specified
         if (string.IsNullOrEmpty(repo))
         {
-            repo = Pds.Config.UserDid;
+            repo = Pds.PdsDb.GetConfigProperty("UserDid");
         }
 
         //
         // Check if this is a request for a different repo - if so, proxy it
         //
-        bool isLocalRepo = repo == Pds.Config.UserDid || repo == Pds.Config.UserHandle;
+        bool isLocalRepo = repo == Pds.PdsDb.GetConfigProperty("UserDid") || repo == Pds.PdsDb.GetConfigProperty("UserHandle");
         
         if (!isLocalRepo)
         {
@@ -81,7 +81,7 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
             return Results.Json(new { error = "NotFound", message = "Error: Record not found." }, statusCode: 404);
         }
 
-        string uri = $"at://{Pds.Config.UserDid}/{collection}/{rkey}";
+        string uri = $"at://{Pds.PdsDb.GetConfigProperty("UserDid")}/{collection}/{rkey}";
 
         RepoRecord repoRecord = Pds.PdsDb.GetRepoRecord(collection!, rkey!);
 
