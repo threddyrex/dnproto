@@ -29,15 +29,6 @@ public class Config
 
     public required bool UserIsActive;
 
-    public required bool OauthIsEnabled;
-
     public required string[] PdsCrawlers;
 
-    public required bool RequestCrawlIsEnabled;
-
-    public required int LogRetentionDays;
-
-    public required bool AdminInterfaceIsEnabled;
-
-    public required bool PasskeysEnabled;
 }

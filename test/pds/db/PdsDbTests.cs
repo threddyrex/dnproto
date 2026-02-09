@@ -107,12 +107,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
             UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample",
             UserIsActive = true,
-            OauthIsEnabled = true,
             PdsCrawlers = new string[] { "bsky.network", "example.crawler" },
-            RequestCrawlIsEnabled = true,
-            LogRetentionDays = 7,
-            AdminInterfaceIsEnabled = true,
-            PasskeysEnabled = true
         };
 
         // Act
@@ -129,17 +124,12 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.UserHandle, retrievedConfig.UserHandle);
         Assert.Equal(configToInsert.UserDid, retrievedConfig.UserDid);
         Assert.Equal(configToInsert.UserHashedPassword, retrievedConfig.UserHashedPassword);
-        Assert.Equal(configToInsert.OauthIsEnabled, retrievedConfig.OauthIsEnabled);
         Assert.Equal(configToInsert.UserEmail, retrievedConfig.UserEmail);
         Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
         Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
         Assert.Equal(configToInsert.UserIsActive, retrievedConfig.UserIsActive);
         Assert.Equal(configToInsert.PdsCrawlers, retrievedConfig.PdsCrawlers);
-        Assert.Equal(configToInsert.RequestCrawlIsEnabled, retrievedConfig.RequestCrawlIsEnabled);
-        Assert.Equal(configToInsert.LogRetentionDays, retrievedConfig.LogRetentionDays);
         Assert.Equal(1, configCount);
-        Assert.Equal(configToInsert.AdminInterfaceIsEnabled, retrievedConfig.AdminInterfaceIsEnabled);
-        Assert.Equal(configToInsert.PasskeysEnabled, retrievedConfig.PasskeysEnabled);
     }
 
     [Fact]
@@ -150,16 +140,6 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.False(pdsDb.IsUserActive());
         pdsDb.SetUserActive(true);
         Assert.True(pdsDb.IsUserActive());
-    }
-
-    [Fact]
-    public void Config_SetOauthEnabled()
-    {
-        var pdsDb = _fixture.PdsDb;
-        pdsDb.SetOauthEnabled(false);
-        Assert.False(pdsDb.GetConfig().OauthIsEnabled);
-        pdsDb.SetOauthEnabled(true);
-        Assert.True(pdsDb.GetConfig().OauthIsEnabled);
     }
 
     #endregion

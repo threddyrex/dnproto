@@ -74,7 +74,7 @@ public class BackgroundJobs
     {
         try
         {
-            int logRetentionDays = _db.GetConfig().LogRetentionDays;
+            int logRetentionDays = _db.GetConfigPropertyInt("LogRetentionDays");
             foreach(string logFile in Directory.GetFiles(Path.Combine(_lfs.GetDataDir(), "logs")))
             {
                 if(File.GetLastWriteTime(logFile) < DateTime.Now.AddDays(0 - logRetentionDays)
@@ -140,7 +140,7 @@ public class BackgroundJobs
     {
         try
         {
-            bool requestCrawlEnabled = _db.IsRequestCrawlEnabled();
+            bool requestCrawlEnabled = _db.GetConfigPropertyBool("FeatureEnabled_RequestCrawl");
 
             if(requestCrawlEnabled)
             {

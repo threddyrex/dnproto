@@ -337,9 +337,7 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     protected bool IsOauthEnabled()
     {
-        // refresh value from db
-        Pds.Config.OauthIsEnabled = Pds.PdsDb.IsOauthEnabled();
-        return Pds.Config.OauthIsEnabled;
+        return Pds.PdsDb.GetConfigPropertyBool("FeatureEnabled_Oauth");
     }
 
 
@@ -349,7 +347,7 @@ public abstract class BaseXrpcCommand
     /// <returns></returns>
     protected bool PasskeysEnabled()
     {
-        return Pds.PdsDb.GetConfig().PasskeysEnabled;
+        return Pds.PdsDb.GetConfigPropertyBool("FeatureEnabled_Passkeys");
     }
 
 

@@ -33,8 +33,8 @@ namespace dnproto.cli.commands
 
             PdsDb pdsDb = PdsDb.ConnectPdsDb(LocalFileSystem!, Logger);
             Logger.LogInfo($"Setting OAuth enabled to {enable}");
-            pdsDb.SetOauthEnabled(enable);
-            Logger.LogInfo($"OAuth enabled: {pdsDb.GetConfig().OauthIsEnabled}");
+            pdsDb.SetConfigPropertyBool("FeatureEnabled_Oauth", enable);
+            Logger.LogInfo($"OAuth enabled: {pdsDb.GetConfigPropertyBool("FeatureEnabled_Oauth")}");
         }
     }
 }

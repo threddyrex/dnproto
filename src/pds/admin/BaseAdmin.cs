@@ -15,12 +15,12 @@ public class BaseAdmin
 
     protected bool AdminInterfaceIsEnabled()
     {
-        return Pds.PdsDb.GetConfig().AdminInterfaceIsEnabled;
+        return Pds.PdsDb.GetConfigPropertyBool("FeatureEnabled_AdminDashboard");
     }
 
     protected bool PasskeysEnabled()
     {
-        return Pds.PdsDb.GetConfig().PasskeysEnabled;
+        return Pds.PdsDb.GetConfigPropertyBool("FeatureEnabled_Passkeys");
     }
 
     protected AdminSession? GetValidAdminSession()

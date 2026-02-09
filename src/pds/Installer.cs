@@ -19,6 +19,7 @@ namespace dnproto.pds;
 ///     InstallDb (creates database schema)
 ///     InstallAdminConfig (admin password)
 ///     InstallServerConfig (scheme, host, port)
+///     InstallFeatureConfig
 ///
 ///     InstallConfig (creates full config for PDS and user)
 ///     InstallRepo (creates fresh repo for user)
@@ -133,6 +134,21 @@ public class Installer
     #endregion
 
 
+    #region FEATURECFG
+
+    public static void InstallFeatureConfig(LocalFileSystem lfs, IDnProtoLogger logger)
+    {
+        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+        db.SetConfigPropertyBool("FeatureEnabled_AdminDashboard", true);
+        db.SetConfigPropertyBool("FeatureEnabled_Oauth", true);
+        db.SetConfigPropertyBool("FeatureEnabled_RequestCrawl", true);
+        db.SetConfigPropertyBool("FeatureEnabled_Passkeys", true);
+        db.SetConfigPropertyInt("LogRetentionDays", 10);
+    }
+
+    #endregion
+
+
 
     #region CONFIG
 
@@ -168,12 +184,7 @@ public class Installer
             UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
             UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
             UserIsActive = true,
-            OauthIsEnabled = false,
-            PdsCrawlers = new string[] { "bsky.network" },
-            RequestCrawlIsEnabled = false,
-            LogRetentionDays = 10,
-            AdminInterfaceIsEnabled = false,
-            PasskeysEnabled = false
+            PdsCrawlers = new string[] { "bsky.network" }
         };
 
 

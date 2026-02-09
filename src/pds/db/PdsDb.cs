@@ -96,12 +96,7 @@ CREATE TABLE IF NOT EXISTS Config (
     UserPublicKeyMultibase TEXT NOT NULL,
     UserPrivateKeyMultibase TEXT NOT NULL,
     UserIsActive INTEGER NOT NULL,
-    OauthIsEnabled INTEGER NOT NULL DEFAULT 0,
-    PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network',
-    RequestCrawlIsEnabled INTEGER NOT NULL DEFAULT 0,
-    LogRetentionDays INTEGER NOT NULL DEFAULT 10,
-    AdminInterfaceIsEnabled INTEGER NOT NULL DEFAULT 0,
-    PasskeysEnabled INTEGER NOT NULL DEFAULT 0
+    PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network'
 )
         ";
             
@@ -120,8 +115,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (PdsDid, PdsHostname, AvailableUserDomain, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays, AdminInterfaceIsEnabled, PasskeysEnabled)
-VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays, @AdminInterfaceIsEnabled, @PasskeysEnabled)
+INSERT INTO Config (PdsDid, PdsHostname, AvailableUserDomain, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, PdsCrawlers)
+VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @PdsCrawlers)
             ";
             command.Parameters.AddWithValue("@PdsDid", config.PdsDid);
             command.Parameters.AddWithValue("@PdsHostname", config.PdsHostname);
@@ -134,12 +129,7 @@ VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @U
             command.Parameters.AddWithValue("@UserPublicKeyMultibase", config.UserPublicKeyMultibase);
             command.Parameters.AddWithValue("@UserPrivateKeyMultibase", config.UserPrivateKeyMultibase);
             command.Parameters.AddWithValue("@UserIsActive", config.UserIsActive ? 1 : 0);
-            command.Parameters.AddWithValue("@OauthIsEnabled", config.OauthIsEnabled ? 1 : 0);
             command.Parameters.AddWithValue("@PdsCrawlers", string.Join(",", config.PdsCrawlers));
-            command.Parameters.AddWithValue("@RequestCrawlIsEnabled", config.RequestCrawlIsEnabled ? 1 : 0);
-            command.Parameters.AddWithValue("@LogRetentionDays", config.LogRetentionDays);
-            command.Parameters.AddWithValue("@AdminInterfaceIsEnabled", config.AdminInterfaceIsEnabled ? 1 : 0);
-            command.Parameters.AddWithValue("@PasskeysEnabled", config.PasskeysEnabled ? 1 : 0);
             command.ExecuteNonQuery();
         }
 
@@ -170,12 +160,7 @@ VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @U
                         UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase")),
                         UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase")),
                         UserIsActive = reader.GetInt32(reader.GetOrdinal("UserIsActive")) != 0,
-                        OauthIsEnabled = reader.GetInt32(reader.GetOrdinal("OauthIsEnabled")) != 0,
-                        PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries),
-                        RequestCrawlIsEnabled = reader.GetInt32(reader.GetOrdinal("RequestCrawlIsEnabled")) != 0,
-                        LogRetentionDays = reader.GetInt32(reader.GetOrdinal("LogRetentionDays")),
-                        AdminInterfaceIsEnabled = reader.GetInt32(reader.GetOrdinal("AdminInterfaceIsEnabled")) != 0,
-                        PasskeysEnabled = reader.GetInt32(reader.GetOrdinal("PasskeysEnabled")) != 0
+                        PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries)
                     };
 
                     return config;
@@ -245,50 +230,6 @@ DELETE FROM Config
 
 
 
-    public void SetOauthEnabled(bool isEnabled)
-    {
-        using(var sqlConnection = GetConnection())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "UPDATE Config SET OauthIsEnabled = @OauthIsEnabled";
-            command.Parameters.AddWithValue("@OauthIsEnabled", isEnabled ? 1 : 0);
-            command.ExecuteNonQuery();
-        }
-    }
-
-    public bool IsOauthEnabled()
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT OauthIsEnabled FROM Config LIMIT 1";
-            
-            var result = command.ExecuteScalar();
-            if(result is null)
-            {
-                throw new Exception("No config found in database.");
-            }
-
-            return Convert.ToInt32(result) != 0;
-        }
-    }
-
-    public bool IsRequestCrawlEnabled()
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT RequestCrawlIsEnabled FROM Config LIMIT 1";
-            
-            var result = command.ExecuteScalar();
-            if(result is null)
-            {
-                throw new Exception("No config found in database.");
-            }
-
-            return Convert.ToInt32(result) != 0;
-        }
-    }
 
     public string[] GetPdsCrawlers()
     {
