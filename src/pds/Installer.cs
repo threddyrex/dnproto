@@ -140,11 +140,10 @@ public class Installer
     {
         PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
         db.SetConfigPropertyBool("FeatureEnabled_AdminDashboard", true);
-        db.SetConfigPropertyBool("FeatureEnabled_Oauth", true);
-        db.SetConfigPropertyBool("FeatureEnabled_RequestCrawl", true);
-        db.SetConfigPropertyBool("FeatureEnabled_Passkeys", true);
-        db.SetConfigPropertyInt("LogRetentionDays", 10);
-        
+        db.SetConfigPropertyBool("FeatureEnabled_Oauth", false);
+        db.SetConfigPropertyBool("FeatureEnabled_RequestCrawl", false);
+        db.SetConfigPropertyBool("FeatureEnabled_Passkeys", false);
+        db.SetConfigPropertyInt("LogRetentionDays", 10);        
         db.SetConfigProperty("PdsCrawlers", "bsky.network");
     }
 
