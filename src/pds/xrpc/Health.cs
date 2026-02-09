@@ -30,7 +30,7 @@ public class Health : BaseXrpcCommand
         //
         var health = new HealthResponse
         {
-            Version = Config.Version
+            Version = "dnproto 0.0.005"
         };
         
         return Results.Json(health, contentType: "application/json");
