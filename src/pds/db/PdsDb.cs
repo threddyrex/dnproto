@@ -95,8 +95,7 @@ CREATE TABLE IF NOT EXISTS Config (
     UserEmail TEXT NOT NULL,
     UserPublicKeyMultibase TEXT NOT NULL,
     UserPrivateKeyMultibase TEXT NOT NULL,
-    UserIsActive INTEGER NOT NULL,
-    PdsCrawlers TEXT NOT NULL DEFAULT 'bsky.network'
+    UserIsActive INTEGER NOT NULL
 )
         ";
             
@@ -115,8 +114,8 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (PdsDid, PdsHostname, AvailableUserDomain, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, PdsCrawlers)
-VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @PdsCrawlers)
+INSERT INTO Config (PdsDid, PdsHostname, AvailableUserDomain, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive)
+VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive)
             ";
             command.Parameters.AddWithValue("@PdsDid", config.PdsDid);
             command.Parameters.AddWithValue("@PdsHostname", config.PdsHostname);
@@ -129,7 +128,6 @@ VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @U
             command.Parameters.AddWithValue("@UserPublicKeyMultibase", config.UserPublicKeyMultibase);
             command.Parameters.AddWithValue("@UserPrivateKeyMultibase", config.UserPrivateKeyMultibase);
             command.Parameters.AddWithValue("@UserIsActive", config.UserIsActive ? 1 : 0);
-            command.Parameters.AddWithValue("@PdsCrawlers", string.Join(",", config.PdsCrawlers));
             command.ExecuteNonQuery();
         }
 
@@ -159,8 +157,7 @@ VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @U
                         UserEmail = reader.GetString(reader.GetOrdinal("UserEmail")),
                         UserPublicKeyMultibase = reader.GetString(reader.GetOrdinal("UserPublicKeyMultibase")),
                         UserPrivateKeyMultibase = reader.GetString(reader.GetOrdinal("UserPrivateKeyMultibase")),
-                        UserIsActive = reader.GetInt32(reader.GetOrdinal("UserIsActive")) != 0,
-                        PdsCrawlers = reader.GetString(reader.GetOrdinal("PdsCrawlers")).Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        UserIsActive = reader.GetInt32(reader.GetOrdinal("UserIsActive")) != 0
                     };
 
                     return config;
@@ -229,25 +226,6 @@ DELETE FROM Config
     }
 
 
-
-
-    public string[] GetPdsCrawlers()
-    {
-        using(var sqlConnection = GetConnectionReadOnly())
-        {
-            var command = sqlConnection.CreateCommand();
-            command.CommandText = "SELECT PdsCrawlers FROM Config LIMIT 1";
-            
-            var result = command.ExecuteScalar();
-            if(result is null)
-            {
-                throw new Exception("No config found in database.");
-            }
-
-            string crawlersStr = Convert.ToString(result) ?? "";
-            return crawlersStr.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        }
-    }
 
 
     #endregion

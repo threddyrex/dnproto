@@ -146,7 +146,10 @@ public class BackgroundJobs
             {
                 string pdsHostname = _db.GetConfig().PdsHostname;
 
-                foreach(string crawler in _db.GetPdsCrawlers())
+                string[] crawlers = _db.GetConfigProperty("PdsCrawlers").Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+
+                foreach(string crawler in crawlers)
                 {
                     string url = $"https://{crawler}/xrpc/com.atproto.sync.requestCrawl";
                     JsonObject jsonObject = new JsonObject

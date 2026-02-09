@@ -14,7 +14,6 @@ public class Config
 
     public required string JwtSecret;
 
-    public required string[] PdsCrawlers;
 
 
     // User

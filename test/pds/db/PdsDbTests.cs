@@ -106,8 +106,7 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
             UserEmail = "user@example.com",
             UserPublicKeyMultibase = "zPublicKeyMultibaseExample",
             UserPrivateKeyMultibase = "zPrivateKeyMultibaseExample",
-            UserIsActive = true,
-            PdsCrawlers = new string[] { "bsky.network", "example.crawler" },
+            UserIsActive = true
         };
 
         // Act
@@ -128,7 +127,6 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.Equal(configToInsert.UserPublicKeyMultibase, retrievedConfig.UserPublicKeyMultibase);
         Assert.Equal(configToInsert.UserPrivateKeyMultibase, retrievedConfig.UserPrivateKeyMultibase);
         Assert.Equal(configToInsert.UserIsActive, retrievedConfig.UserIsActive);
-        Assert.Equal(configToInsert.PdsCrawlers, retrievedConfig.PdsCrawlers);
         Assert.Equal(1, configCount);
     }
 

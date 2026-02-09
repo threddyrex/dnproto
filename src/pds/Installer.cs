@@ -7,6 +7,7 @@ using dnproto.log;
 using dnproto.mst;
 using dnproto.pds;
 using dnproto.repo;
+using Microsoft.AspNetCore.Routing.Internal;
 
 
 namespace dnproto.pds;
@@ -144,6 +145,8 @@ public class Installer
         db.SetConfigPropertyBool("FeatureEnabled_RequestCrawl", true);
         db.SetConfigPropertyBool("FeatureEnabled_Passkeys", true);
         db.SetConfigPropertyInt("LogRetentionDays", 10);
+        
+        db.SetConfigProperty("PdsCrawlers", "bsky.network");
     }
 
     #endregion
@@ -183,8 +186,7 @@ public class Installer
             UserEmail = userEmail!,
             UserPublicKeyMultibase = userKeyPair.PublicKeyMultibase,
             UserPrivateKeyMultibase = userKeyPair.PrivateKeyMultibase,
-            UserIsActive = true,
-            PdsCrawlers = new string[] { "bsky.network" }
+            UserIsActive = true
         };
 
 
