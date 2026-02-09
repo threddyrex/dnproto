@@ -157,13 +157,9 @@ public class Installer
         var userPassword = PasswordHasher.CreateNewAdminPassword();
         var config = new Config()
         {
-            ListenHost = "localhost",
-            ListenPort = 5001,
-            ListenScheme = "http",
             PdsHostname = pdsHostname!,
             PdsDid = "did:web:" + pdsHostname!,
             AvailableUserDomain = availableUserDomain!,
-            AdminHashedPassword = PasswordHasher.HashPassword(adminPassword),
             JwtSecret = JwtSecret.GenerateJwtSecret(),
             UserHandle = userHandle!,
             UserDid = userDid!,

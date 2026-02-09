@@ -85,13 +85,9 @@ public class PdsDb
         var command = connection.CreateCommand();
         command.CommandText = @"
 CREATE TABLE IF NOT EXISTS Config (
-    ListenScheme TEXT NOT NULL,
-    ListenHost TEXT NOT NULL,
-    ListenPort INTEGER NOT NULL,
     PdsDid TEXT NOT NULL,
     PdsHostname TEXT NOT NULL,
     AvailableUserDomain TEXT NOT NULL,
-    AdminHashedPassword TEXT NOT NULL,
     JwtSecret TEXT NOT NULL,
     UserHandle TEXT NOT NULL,
     UserDid TEXT NOT NULL,
@@ -124,16 +120,12 @@ CREATE TABLE IF NOT EXISTS Config (
         {
             var command = sqlConnection.CreateCommand();
             command.CommandText = @"
-INSERT INTO Config (ListenScheme, ListenHost, ListenPort, PdsDid, PdsHostname, AvailableUserDomain, AdminHashedPassword, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays, AdminInterfaceIsEnabled, PasskeysEnabled)
-VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @AvailableUserDomain, @AdminHashedPassword, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays, @AdminInterfaceIsEnabled, @PasskeysEnabled)
+INSERT INTO Config (PdsDid, PdsHostname, AvailableUserDomain, JwtSecret, UserHandle, UserDid, UserHashedPassword, UserEmail, UserPublicKeyMultibase, UserPrivateKeyMultibase, UserIsActive, OauthIsEnabled, PdsCrawlers, RequestCrawlIsEnabled, LogRetentionDays, AdminInterfaceIsEnabled, PasskeysEnabled)
+VALUES (@PdsDid, @PdsHostname, @AvailableUserDomain, @JwtSecret, @UserHandle, @UserDid, @UserHashedPassword, @UserEmail, @UserPublicKeyMultibase, @UserPrivateKeyMultibase, @UserIsActive, @OauthIsEnabled, @PdsCrawlers, @RequestCrawlIsEnabled, @LogRetentionDays, @AdminInterfaceIsEnabled, @PasskeysEnabled)
             ";
-            command.Parameters.AddWithValue("@ListenScheme", config.ListenScheme);
-            command.Parameters.AddWithValue("@ListenHost", config.ListenHost);
-            command.Parameters.AddWithValue("@ListenPort", config.ListenPort);
             command.Parameters.AddWithValue("@PdsDid", config.PdsDid);
             command.Parameters.AddWithValue("@PdsHostname", config.PdsHostname);
             command.Parameters.AddWithValue("@AvailableUserDomain", config.AvailableUserDomain);
-            command.Parameters.AddWithValue("@AdminHashedPassword", config.AdminHashedPassword);
             command.Parameters.AddWithValue("@JwtSecret", config.JwtSecret);
             command.Parameters.AddWithValue("@UserHandle", config.UserHandle);
             command.Parameters.AddWithValue("@UserDid", config.UserDid);
@@ -167,13 +159,9 @@ VALUES (@ListenScheme, @ListenHost, @ListenPort, @PdsDid, @PdsHostname, @Availab
                 {
                     var config = new Config()
                     {
-                        ListenScheme = reader.GetString(reader.GetOrdinal("ListenScheme")),
-                        ListenHost = reader.GetString(reader.GetOrdinal("ListenHost")),
-                        ListenPort = reader.GetInt32(reader.GetOrdinal("ListenPort")),
                         PdsDid = reader.GetString(reader.GetOrdinal("PdsDid")),
                         PdsHostname = reader.GetString(reader.GetOrdinal("PdsHostname")),
                         AvailableUserDomain = reader.GetString(reader.GetOrdinal("AvailableUserDomain")),
-                        AdminHashedPassword = reader.GetString(reader.GetOrdinal("AdminHashedPassword")),
                         JwtSecret = reader.GetString(reader.GetOrdinal("JwtSecret")),
                         UserHandle = reader.GetString(reader.GetOrdinal("UserHandle")),
                         UserDid = reader.GetString(reader.GetOrdinal("UserDid")),

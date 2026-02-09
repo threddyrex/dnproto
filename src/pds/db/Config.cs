@@ -7,19 +7,11 @@ public class Config
 {
     public static string Version = "dnproto 0.0.004";    
     
-    public required string ListenScheme;
-
-    public required string ListenHost;
-
-    public required int ListenPort;
-    
     public required string PdsDid;
 
     public required string PdsHostname;
 
     public required string AvailableUserDomain;
-
-    public required string AdminHashedPassword;
 
     public required string JwtSecret;
 
