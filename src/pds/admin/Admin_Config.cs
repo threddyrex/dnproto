@@ -175,6 +175,21 @@ public class Admin_Config : BaseAdmin
                 <td>{GetBoolConfigValue("UserIsActive")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('UserIsActive', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('UserIsActive', '0')"">Disable</button></td>
             </tr>
+            <tr>
+                <td>LogRetentionDays</td>
+                <td>{GetConfigValue("LogRetentionDays")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('LogRetentionDays', '{GetConfigValueRaw("LogRetentionDays")}')"">Set</button></td>
+            </tr>
+            <tr>
+                <td>SystemctlServiceName</td>
+                <td>{GetConfigValue("SystemctlServiceName")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('SystemctlServiceName', '{GetConfigValueRaw("SystemctlServiceName")}')"">Set</button></td>
+            </tr>
+            <tr>
+                <td>CaddyAccessLogFilePath</td>
+                <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueRaw("CaddyAccessLogFilePath")}')"">Set</button></td>
+            </tr>
         </table>
         <script>
         function setConfig(key, currentValue) {{
