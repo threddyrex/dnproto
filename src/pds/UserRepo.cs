@@ -58,24 +58,55 @@ public class UserRepo
 
     private PdsDb _db;
 
-    private string _userDid;
+    private string? _did = null;
 
-    private Func<byte[], byte[]> _commitSigningFunction;
+    private Func<byte[], byte[]>? _signer = null;
     
-    private UserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db, Func<byte[], byte[]> commitSigningFunction, string userDid)
+    private UserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db)
     {
         _lfs = lfs;
         _logger = logger;
         _db = db;
-        _commitSigningFunction = commitSigningFunction;
-        _userDid = userDid;
     }
 
-    public static UserRepo ConnectUserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db, Func<byte[], byte[]> commitSigningFunction, string userDid)
+    public static UserRepo ConnectUserRepo(LocalFileSystem lfs, IDnProtoLogger logger, PdsDb db)
     {
-        return new UserRepo(lfs, logger, db, commitSigningFunction, userDid);
+        return new UserRepo(lfs, logger, db);
     }
 
+
+    #region SIGNER
+
+    /// <summary>
+    /// Lazily load signer func.
+    /// </summary>
+    /// <returns></returns>
+    private Func<byte[], byte[]> GetSigniningFunc()
+    {
+        if(_signer == null)
+        {
+            _signer = dnproto.auth.Signer.CreateCommitSigningFunction(_db.GetConfigProperty("UserPrivateKeyMultibase"), _db.GetConfigProperty("UserPublicKeyMultibase"));            
+        }
+
+        return _signer;
+    }
+
+    #endregion
+
+
+    #region DID
+
+    private string GetUserDid()
+    {
+        if(string.IsNullOrEmpty(_did))
+        {
+            _did = _db.GetConfigProperty("UserDid");
+        }
+
+        return _did;
+    }
+
+    #endregion
 
 
 
@@ -118,7 +149,7 @@ public class UserRepo
             //
             foreach(var write in writes)
             {
-                string uri = $"at://{_userDid}/{write.Collection}/{write.Rkey}";
+                string uri = $"at://{GetUserDid()}/{write.Collection}/{write.Rkey}";
                 string fullKey = $"{write.Collection}/{write.Rkey}";
 
                 _logger.LogInfo($"[REPO] ip={ip} type={write.Type} collection={write.Collection} rkey={write.Rkey} userAgent=\"{userAgent}\"");
@@ -253,7 +284,7 @@ public class UserRepo
             //
             CidV1 newRootMstNodeCid = mstNodeCache[mst.Root].Item1;
             var repoCommit = _db.GetRepoCommit()!;
-            repoCommit.SignAndRecomputeCid(newRootMstNodeCid, _commitSigningFunction!);
+            repoCommit.SignAndRecomputeCid(newRootMstNodeCid, GetSigniningFunc());
             _db.InsertUpdateRepoCommit(repoCommit);
 
 
@@ -327,7 +358,7 @@ public class UserRepo
                 ["ops"] = firehoseState_Ops,
                 ["rev"] = firehoseFinal_RepoCommit.Rev,
                 ["seq"] = sequenceNumber,
-                ["repo"] = _userDid,
+                ["repo"] = GetUserDid(),
                 ["time"] = createdDate,
                 ["blobs"] = new JsonArray(),
                 ["since"] = before_repoCommit.Rev,

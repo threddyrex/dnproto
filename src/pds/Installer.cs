@@ -18,11 +18,8 @@ namespace dnproto.pds;
 /// Available methods (run in order):
 /// 
 ///     InstallDb (creates database schema)
-///     InstallAdminConfig (admin password)
-///     InstallServerConfig (scheme, host, port)
-///     InstallFeatureConfig
+///     InstallConfig (scheme, host, port is input - the rest is defaults)
 ///
-///     InstallConfig (creates full config for PDS and user)
 ///     InstallRepo (creates fresh repo for user)
 /// 
 /// Run the methods in order.
@@ -108,41 +105,37 @@ public class Installer
 
     public static void InstallAdminConfig(LocalFileSystem lfs, IDnProtoLogger logger)
     {
-        var adminPassword = PasswordHasher.CreateNewAdminPassword();
-        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
-        db.SetConfigProperty("AdminHashedPassword", PasswordHasher.HashPassword(adminPassword));
-        logger.LogInfo("username: admin");
-        logger.LogInfo($"password: {adminPassword}");
+    }
 
+
+    #endregion
+
+
+
+
+    #region CFG
+
+    public static void InstallConfig(LocalFileSystem lfs, IDnProtoLogger logger, string listenScheme, string listenHost, int listenPort)
+    {
+        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+
+        // admin password
+        var adminPassword = PasswordHasher.CreateNewAdminPassword();
+        db.SetConfigProperty("AdminHashedPassword", PasswordHasher.HashPassword(adminPassword));
+        logger.LogInfo("admin username: admin");
+        logger.LogInfo($"admin password: {adminPassword}");
+
+        // jwt secret
         string jwtSecret = JwtSecret.GenerateJwtSecret();
         db.SetConfigProperty("JwtSecret", jwtSecret);
         logger.LogInfo($"JwtSecret: {jwtSecret}");
-    }
 
-
-    #endregion
-
-
-
-
-    #region SERVERCFG
-
-    public static void InstallServerConfig(LocalFileSystem lfs, IDnProtoLogger logger, string listenScheme, string listenHost, int listenPort)
-    {
-        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+        // server listen config
         db.SetConfigProperty("ServerListenScheme", listenScheme);
         db.SetConfigProperty("ServerListenHost", listenHost);
         db.SetConfigPropertyInt("ServerListenPort", listenPort);
-    }
 
-    #endregion
-
-
-    #region FEATURECFG
-
-    public static void InstallFeatureConfig(LocalFileSystem lfs, IDnProtoLogger logger)
-    {
-        PdsDb db = PdsDb.ConnectPdsDb(lfs, logger);
+        // feature flags
         db.SetConfigPropertyBool("FeatureEnabled_AdminDashboard", true);
         db.SetConfigPropertyBool("FeatureEnabled_Oauth", false);
         db.SetConfigPropertyBool("FeatureEnabled_RequestCrawl", false);
@@ -152,7 +145,6 @@ public class Installer
     }
 
     #endregion
-
 
 
 
@@ -286,7 +278,7 @@ public class Installer
         // Add a Bluesky profile record.
         //
         logger.LogInfo("Creating initial Bluesky profile record in the repo.");
-        var userRepo = UserRepo.ConnectUserRepo(lfs, logger, db, commitSigningFunction, db.GetConfigProperty("UserDid"));
+        var userRepo = UserRepo.ConnectUserRepo(lfs, logger, db);
         var profileJsonObject = new JsonObject()
         {
             ["displayName"] = db.GetConfigProperty("UserHandle"),

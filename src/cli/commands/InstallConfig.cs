@@ -8,7 +8,7 @@ namespace dnproto.cli.commands;
 /// <summary>
 /// Install config
 /// </summary>
-public class InstallServerConfig : BaseCommand
+public class InstallConfig : BaseCommand
 {
     public override HashSet<string> GetRequiredArguments()
     {
@@ -33,7 +33,7 @@ public class InstallServerConfig : BaseCommand
             throw new Exception("LocalFileSystem is null");
         }
 
-        Installer.InstallServerConfig(LocalFileSystem, Logger, listenScheme!, listenHost!, listenPortInt);
+        Installer.InstallConfig(LocalFileSystem, Logger, listenScheme!, listenHost!, listenPortInt);
 
         //
         // Log

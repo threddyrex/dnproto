@@ -39,8 +39,6 @@ public class Pds
 
     public required WebApplication App;
 
-    public required Func<byte[], byte[]> CommitSigningFunction;
-
     public required UserRepo UserRepo;
 
     public required FirehoseEventGenerator FirehoseEventGenerator;
@@ -83,14 +81,9 @@ public class Pds
         IBlobDb blobDb = BlobDb.Create(lfs, logger);
 
         //
-        // Create commit signing function
-        //
-        Func<byte[], byte[]> commitSigningFunction = dnproto.auth.Signer.CreateCommitSigningFunction(pdsDb.GetConfigProperty("UserPrivateKeyMultibase"), pdsDb.GetConfigProperty("UserPublicKeyMultibase"));
-
-        //
         // Load repo
         //
-        UserRepo repo = UserRepo.ConnectUserRepo(lfs, logger, pdsDb, commitSigningFunction, pdsDb.GetConfigProperty("UserDid"));
+        UserRepo repo = UserRepo.ConnectUserRepo(lfs, logger, pdsDb);
 
         //
         // Configure to listen
@@ -159,7 +152,6 @@ public class Pds
             PdsDb = pdsDb,
             blobDb = blobDb,
             App = app,
-            CommitSigningFunction = commitSigningFunction,
             UserRepo = repo,
             FirehoseEventGenerator = new FirehoseEventGenerator(pdsDb),
             BackgroundJobs = new BackgroundJobs(lfs, (dnproto.log.Logger)logger, pdsDb)
@@ -229,6 +221,7 @@ public class Pds
         App.MapPost("/oauth/token", async (HttpContext context) => { var cmd = new Oauth_Token(){Pds = this, HttpContext = context}; return await cmd.GetResponse(); });
         App.MapGet("/xrpc/com.atproto.server.checkAccountStatus", (HttpContext context) => new ComAtprotoServer_CheckAccountStatus(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/", (HttpContext context) => new Admin_Home(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/admin/config", (HttpContext context) => new Admin_Config(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/sessions", (HttpContext context) => new Admin_Sessions(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/passkeys", (HttpContext context) => new Admin_Passkeys(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/admin/login", (HttpContext context) => new Admin_Login(){Pds = this, HttpContext = context}.GetResponse());

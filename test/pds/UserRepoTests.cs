@@ -2,6 +2,7 @@
 namespace dnproto.tests.pds;
 
 using System.Text.Json.Nodes;
+using dnproto.auth;
 using dnproto.fs;
 using dnproto.log;
 using dnproto.pds;
@@ -64,6 +65,16 @@ public class UserRepoTestsFixture : IDisposable
         PdsDb.SetConfigProperty("JwtSecret", "supersecretjwtkey");
         PdsDb.SetConfigProperty("PdsDid", "did:example:pds");
 
+
+        //
+        // Generate some user info
+        //
+        KeyPair generatedKey = KeyPair.Generate(KeyTypes.P256);
+        PdsDb.SetConfigProperty("UserPrivateKeyMultibase", generatedKey.PrivateKeyMultibase);
+        PdsDb.SetConfigProperty("UserPublicKeyMultibase", generatedKey.PublicKeyMultibase);
+        PdsDb.SetConfigProperty("UserDid", $"did:example:{generatedKey.DidKey.Substring(8)}");
+
+
         //
         // Install repo
         //
@@ -108,7 +119,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create record
@@ -150,7 +161,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create record
@@ -200,7 +211,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create record
@@ -259,7 +270,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create record
@@ -330,7 +341,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create two records
@@ -390,7 +401,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create two records
@@ -455,7 +466,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
 
         //
         // Create two records
@@ -530,7 +541,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         // Start with fresh repo
         //
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, "did:example:testuser");
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
         long mostRecentlyUsedSequenceNumber = _fixture.PdsDb.GetMostRecentlyUsedSequenceNumber();
 
         //
@@ -612,9 +623,8 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         //
         // Start with fresh repo
         //
-        string userDid = "did:example:testuser";
         Installer.InstallRepo(_fixture.Lfs, _fixture.Logger, UserRepoTestsFixture.TestCommitSigner);
-        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb, UserRepoTestsFixture.TestCommitSigner, userDid);
+        var userRepo = UserRepo.ConnectUserRepo(_fixture.Lfs, _fixture.Logger, _fixture.PdsDb);
         long mostRecentlyUsedSequenceNumber = _fixture.PdsDb.GetMostRecentlyUsedSequenceNumber();
 
         //
@@ -691,7 +701,7 @@ public class UserRepoTests : IClassFixture<UserRepoTestsFixture>
         Assert.Equal(1, dagCborHeader.SelectInt(["op"]));
         Assert.Equal((mostRecentlyUsedSequenceNumber+1), dagCborBody.SelectLong(["seq"]));
         Assert.Equal(_fixture.PdsDb.GetRepoCommit()!.Cid!.Base32, dagCborBody.SelectString(["commit"]));
-        Assert.Equal(userDid, dagCborBody.SelectString(["repo"]));
+        Assert.Equal(_fixture.PdsDb.GetConfigProperty("UserDid"), dagCborBody.SelectString(["repo"]));
     }
 
 }

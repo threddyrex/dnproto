@@ -58,14 +58,6 @@ public class BaseAdmin
         }
 
         //
-        // If we're not in dev, don't allow this
-        //
-        if(string.Equals(Pds.PdsDb.GetConfigProperty("PdsHostname"), "localhost", StringComparison.OrdinalIgnoreCase) == false)
-        {
-            throw new Exception("Unable to determine caller IP address");
-        }
-
-        //
         // Fallback for development without a reverse proxy
         //
         var remoteIp = HttpContext.Connection.RemoteIpAddress?.ToString();

@@ -120,6 +120,7 @@ public class Admin_Stats : BaseAdmin
         <div class=""container"">
         <div class=""navbar"">
             <a href=""/admin/"" class=""nav-btn"">Home</a>
+            <a href=""/admin/config"" class=""nav-btn"">Config</a>
             <a href=""/admin/passkeys"" class=""nav-btn"">Passkeys</a>
             <a href=""/admin/sessions"" class=""nav-btn"">Sessions</a>
             <a href=""/admin/stats"" class=""nav-btn active"">Statistics</a>

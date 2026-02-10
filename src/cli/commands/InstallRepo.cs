@@ -33,7 +33,7 @@ namespace dnproto.cli.commands
             //
             var pds = Pds.InitializePdsForRun(dataDir, Logger);
             var pdsDb = pds.PdsDb;
-            var func = pds.CommitSigningFunction;
+            var func = dnproto.auth.Signer.CreateCommitSigningFunction(pdsDb.GetConfigProperty("UserPrivateKeyMultibase"), pdsDb.GetConfigProperty("UserPublicKeyMultibase"));
 
             if(pdsDb.GetConfigProperty("UserDid") == null)
             {
