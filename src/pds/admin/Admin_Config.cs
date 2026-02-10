@@ -156,6 +156,8 @@ public class Admin_Config : BaseAdmin
             </form>
         </div>
         <h1>Config</h1>
+
+        <h2>Server</h2>
         <table>
             <tr>
                 <th>Key</th>
@@ -181,6 +183,16 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""set-btn"" onclick=""setConfig('ServerListenPort', '{GetConfigValueForJs("ServerListenPort")}')"">Set</button></td>
                 <td>port that server should listen on. If you are reverse proxying, can be miscellaneous (5000+, etc.).</td>
             </tr>
+        </table>
+
+        <h2>Features</h2>
+        <table>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Action</th>
+                <th>Description</th>
+            </tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_AdminDashboard</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_AdminDashboard")}</td>
@@ -198,6 +210,22 @@ public class Admin_Config : BaseAdmin
                 <td>{GetBoolConfigValue("FeatureEnabled_Passkeys")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_Passkeys', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_Passkeys', '0')"">Disable</button></td>
                 <td>are passkeys enabled?</td>
+            </tr>
+            <tr>
+                <td class=""key-name"">FeatureEnabled_RequestCrawl</td>
+                <td>{GetBoolConfigValue("FeatureEnabled_RequestCrawl")}</td>
+                <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '0')"">Disable</button></td>
+                <td>if enabled, will periodically request a crawl from the crawlers. Enable this last - things need to be configured correctly before connecting with the larger network.</td>
+            </tr>
+        </table>
+
+        <h2>PDS</h2>
+        <table>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Action</th>
+                <th>Description</th>
             </tr>
             <tr>
                 <td class=""key-name"">PdsCrawlers</td>
@@ -223,6 +251,16 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""set-btn"" onclick=""setConfig('PdsAvailableUserDomain', '{GetConfigValueForJs("PdsAvailableUserDomain")}')"">Set</button></td>
                 <td>a single domain that is the available user domains, prefixed with .</td>
             </tr>
+        </table>
+
+        <h2>User</h2>
+        <table>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Action</th>
+                <th>Description</th>
+            </tr>
             <tr>
                 <td class=""key-name"">UserHandle</td>
                 <td>{GetConfigValue("UserHandle")}</td>
@@ -247,6 +285,16 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('UserIsActive', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('UserIsActive', '0')"">Disable</button></td>
                 <td>is the user active?</td>
             </tr>
+        </table>
+
+        <h2>Deployment</h2>
+        <table>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Action</th>
+                <th>Description</th>
+            </tr>
             <tr>
                 <td class=""key-name"">LogRetentionDays</td>
                 <td>{GetConfigValue("LogRetentionDays")}</td>
@@ -264,12 +312,6 @@ public class Admin_Config : BaseAdmin
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueForJs("CaddyAccessLogFilePath")}')"">Set</button></td>
                 <td>access log for caddy.</td>
-            </tr>
-            <tr>
-                <td class=""key-name"">FeatureEnabled_RequestCrawl</td>
-                <td>{GetBoolConfigValue("FeatureEnabled_RequestCrawl")}</td>
-                <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '0')"">Disable</button></td>
-                <td>if enabled, will periodically request a crawl from the crawlers. Enable this last - things need to be configured correctly before connecting with the larger network.</td>
             </tr>
         </table>
         <script>
