@@ -155,6 +155,26 @@ public class Admin_Config : BaseAdmin
                 <td>{GetConfigValue("PdsAvailableUserDomain")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('PdsAvailableUserDomain', '{GetConfigValueRaw("PdsAvailableUserDomain")}')"">Set</button></td>
             </tr>
+            <tr>
+                <td>UserHandle</td>
+                <td>{GetConfigValue("UserHandle")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('UserHandle', '{GetConfigValueRaw("UserHandle")}')"">Set</button></td>
+            </tr>
+            <tr>
+                <td>UserDid</td>
+                <td>{GetConfigValue("UserDid")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('UserDid', '{GetConfigValueRaw("UserDid")}')"">Set</button></td>
+            </tr>
+            <tr>
+                <td>UserEmail</td>
+                <td>{GetConfigValue("UserEmail")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('UserEmail', '{GetConfigValueRaw("UserEmail")}')"">Set</button></td>
+            </tr>
+            <tr>
+                <td>UserIsActive</td>
+                <td>{GetBoolConfigValue("UserIsActive")}</td>
+                <td><button class=""enable-btn"" onclick=""setBoolConfig('UserIsActive', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('UserIsActive', '0')"">Disable</button></td>
+            </tr>
         </table>
         <script>
         function setConfig(key, currentValue) {{
