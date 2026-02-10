@@ -98,117 +98,117 @@ public class Admin_Config : BaseAdmin
         <table>
             <tr>
                 <th>Key</th>
-                <th>Description</th>
                 <th>Value</th>
                 <th>Action</th>
+                <th>Description</th>
             </tr>
             <tr>
                 <td class=""key-name"">ServerListenScheme</td>
-                <td>http or https?</td>
                 <td>{GetConfigValue("ServerListenScheme")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('ServerListenScheme', '{GetConfigValueRaw("ServerListenScheme")}')"">Set</button></td>
+                <td>http or https?</td>
             </tr>
             <tr>
                 <td class=""key-name"">ServerListenHost</td>
-                <td>hostname that server should bind to. If you are reverse proxying, can be localhost.</td>
                 <td>{GetConfigValue("ServerListenHost")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('ServerListenHost', '{GetConfigValueRaw("ServerListenHost")}')"">Set</button></td>
+                <td>hostname that server should bind to. If you are reverse proxying, can be localhost.</td>
             </tr>
             <tr>
                 <td class=""key-name"">ServerListenPort</td>
-                <td>port that server should listen on. If you are reverse proxying, can be miscellaneous (5000+, etc.).</td>
                 <td>{GetConfigValue("ServerListenPort")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('ServerListenPort', '{GetConfigValueRaw("ServerListenPort")}')"">Set</button></td>
+                <td>port that server should listen on. If you are reverse proxying, can be miscellaneous (5000+, etc.).</td>
             </tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_AdminDashboard</td>
-                <td>is the admin dashboard enabled?</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_AdminDashboard")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_AdminDashboard', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_AdminDashboard', '0')"">Disable</button></td>
+                <td>is the admin dashboard enabled?</td>
             </tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_Oauth</td>
-                <td>is oauth enabled? This is a global flag that turns it off/on.</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_Oauth")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_Oauth', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_Oauth', '0')"">Disable</button></td>
+                <td>is oauth enabled? This is a global flag that turns it off/on.</td>
             </tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_Passkeys</td>
-                <td>are passkeys enabled?</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_Passkeys")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_Passkeys', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_Passkeys', '0')"">Disable</button></td>
+                <td>are passkeys enabled?</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsCrawlers</td>
-                <td>comma-separated list of relays to request crawl from. (ex: bsky.network)</td>
                 <td>{GetConfigValue("PdsCrawlers")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('PdsCrawlers', '{GetConfigValueRaw("PdsCrawlers")}')"">Set</button></td>
+                <td>comma-separated list of relays to request crawl from. (ex: bsky.network)</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsDid</td>
-                <td>did for the PDS (ex: did:web:thisisyourpdshost.com)</td>
                 <td>{GetConfigValue("PdsDid")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('PdsDid', '{GetConfigValueRaw("PdsDid")}')"">Set</button></td>
+                <td>did for the PDS (ex: did:web:thisisyourpdshost.com)</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsHostname</td>
-                <td>hostname for the PDS. What goes in your did doc.</td>
                 <td>{GetConfigValue("PdsHostname")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('PdsHostname', '{GetConfigValueRaw("PdsHostname")}')"">Set</button></td>
+                <td>hostname for the PDS. What goes in your did doc.</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsAvailableUserDomain</td>
-                <td>a single domain that is the available user domains, prefixed with .</td>
                 <td>{GetConfigValue("PdsAvailableUserDomain")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('PdsAvailableUserDomain', '{GetConfigValueRaw("PdsAvailableUserDomain")}')"">Set</button></td>
+                <td>a single domain that is the available user domains, prefixed with .</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserHandle</td>
-                <td>handle for the user (this is a single-user PDS)</td>
                 <td>{GetConfigValue("UserHandle")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('UserHandle', '{GetConfigValueRaw("UserHandle")}')"">Set</button></td>
+                <td>handle for the user (this is a single-user PDS)</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserDid</td>
-                <td>did for the user (ex: did:web:______)</td>
                 <td>{GetConfigValue("UserDid")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('UserDid', '{GetConfigValueRaw("UserDid")}')"">Set</button></td>
+                <td>did for the user (ex: did:web:______)</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserEmail</td>
-                <td>user's email address</td>
                 <td>{GetConfigValue("UserEmail")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('UserEmail', '{GetConfigValueRaw("UserEmail")}')"">Set</button></td>
+                <td>user's email address</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserIsActive</td>
-                <td>is the user active?</td>
                 <td>{GetBoolConfigValue("UserIsActive")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('UserIsActive', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('UserIsActive', '0')"">Disable</button></td>
+                <td>is the user active?</td>
             </tr>
             <tr>
                 <td class=""key-name"">LogRetentionDays</td>
-                <td>number of days to keep logs before deleting.</td>
                 <td>{GetConfigValue("LogRetentionDays")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('LogRetentionDays', '{GetConfigValueRaw("LogRetentionDays")}')"">Set</button></td>
+                <td>number of days to keep logs before deleting.</td>
             </tr>
             <tr>
                 <td class=""key-name"">SystemctlServiceName</td>
-                <td>systemctl service name. Gets used during deployment/restart.</td>
                 <td>{GetConfigValue("SystemctlServiceName")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('SystemctlServiceName', '{GetConfigValueRaw("SystemctlServiceName")}')"">Set</button></td>
+                <td>systemctl service name. Gets used during deployment/restart.</td>
             </tr>
             <tr>
                 <td class=""key-name"">CaddyAccessLogFilePath</td>
-                <td>access log for caddy.</td>
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueRaw("CaddyAccessLogFilePath")}')"">Set</button></td>
+                <td>access log for caddy.</td>
             </tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_RequestCrawl</td>
-                <td>if enabled, will periodically request a crawl from the crawlers. Enable this last - things need to be configured correctly before connecting with the larger network.</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_RequestCrawl")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '0')"">Disable</button></td>
+                <td>if enabled, will periodically request a crawl from the crawlers. Enable this last - things need to be configured correctly before connecting with the larger network.</td>
             </tr>
         </table>
         <script>
