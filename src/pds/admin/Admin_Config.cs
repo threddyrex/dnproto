@@ -126,11 +126,6 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_Oauth', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_Oauth', '0')"">Disable</button></td>
             </tr>
             <tr>
-                <td>FeatureEnabled_RequestCrawl</td>
-                <td>{GetBoolConfigValue("FeatureEnabled_RequestCrawl")}</td>
-                <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '0')"">Disable</button></td>
-            </tr>
-            <tr>
                 <td>FeatureEnabled_Passkeys</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_Passkeys")}</td>
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_Passkeys', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_Passkeys', '0')"">Disable</button></td>
@@ -189,6 +184,11 @@ public class Admin_Config : BaseAdmin
                 <td>CaddyAccessLogFilePath</td>
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueRaw("CaddyAccessLogFilePath")}')"">Set</button></td>
+            </tr>
+            <tr>
+                <td>FeatureEnabled_RequestCrawl</td>
+                <td>{GetBoolConfigValue("FeatureEnabled_RequestCrawl")}</td>
+                <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '0')"">Disable</button></td>
             </tr>
         </table>
         <script>
