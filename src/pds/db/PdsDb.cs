@@ -178,6 +178,24 @@ CREATE TABLE IF NOT EXISTS ConfigProperty (
         }
     }
 
+    public bool ConfigPropertyExists(string key)
+    {
+        using (var connection = GetConnection())
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM ConfigProperty WHERE Key = @key";
+            command.Parameters.AddWithValue("@key", key);
+            var result = command.ExecuteScalar();
+            connection.Close();
+
+            if (result != null && Convert.ToInt32(result) > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+    }
 
     #endregion
 
