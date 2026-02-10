@@ -1,4 +1,6 @@
+using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.ws;
@@ -11,6 +13,29 @@ namespace dnproto.pds.admin;
 /// </summary>
 public class Admin_Config : BaseAdmin
 {
+    // Whitelist of allowed config keys
+    private static readonly HashSet<string> AllowedConfigKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ServerListenScheme",
+        "ServerListenHost",
+        "ServerListenPort",
+        "FeatureEnabled_AdminDashboard",
+        "FeatureEnabled_Oauth",
+        "FeatureEnabled_Passkeys",
+        "PdsCrawlers",
+        "PdsDid",
+        "PdsHostname",
+        "PdsAvailableUserDomain",
+        "UserHandle",
+        "UserDid",
+        "UserEmail",
+        "UserIsActive",
+        "LogRetentionDays",
+        "SystemctlServiceName",
+        "CaddyAccessLogFilePath",
+        "FeatureEnabled_RequestCrawl"
+    };
+
     public IResult GetResponse()
     {
         IncrementStatistics();
@@ -37,20 +62,56 @@ public class Admin_Config : BaseAdmin
         //
         if(HttpContext.Request.Method == "POST")
         {
+            // Validate CSRF token
+            string? submittedCsrfToken = HttpContext.Request.Form["csrf_token"];
+            string? csrfCookie = null;
+            HttpContext.Request.Cookies.TryGetValue("csrf_token", out csrfCookie);
+            
+            if(string.IsNullOrEmpty(submittedCsrfToken) || string.IsNullOrEmpty(csrfCookie) || 
+               !CryptographicOperations.FixedTimeEquals(
+                   System.Text.Encoding.UTF8.GetBytes(submittedCsrfToken),
+                   System.Text.Encoding.UTF8.GetBytes(csrfCookie)))
+            {
+                return Results.StatusCode(403); // CSRF validation failed
+            }
+
             string? key = HttpContext.Request.Form["key"];
             string? value = HttpContext.Request.Form["value"];
-            if(!string.IsNullOrEmpty(key) && value != null)
+            
+            // Only allow whitelisted keys
+            if(!string.IsNullOrEmpty(key) && value != null && AllowedConfigKeys.Contains(key))
             {
                 Pds.PdsDb.SetConfigProperty(key, value);
             }
+            
+            // POST-Redirect-GET pattern to prevent form resubmission
+            HttpContext.Response.Redirect("/admin/config");
+            return Results.Empty;
         }
 
 
         //
+        // Generate CSRF token and set as cookie
+        //
+        string csrfToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        HttpContext.Response.Cookies.Append("csrf_token", csrfToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            MaxAge = TimeSpan.FromHours(1)
+        });
+
+        //
         // return config page
         //
+        // HTML-encode values for safe display, JS-escape for onclick handlers
+        string HtmlEncode(string value) => WebUtility.HtmlEncode(value);
+        string JsEscape(string value) => value.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\n", "\\n").Replace("\r", "\\r");
+        
         string GetConfigValueRaw(string key) => Pds.PdsDb.ConfigPropertyExists(key) ? Pds.PdsDb.GetConfigProperty(key) : "";
-        string GetConfigValue(string key) => Pds.PdsDb.ConfigPropertyExists(key) ? Pds.PdsDb.GetConfigProperty(key) : "<span class=\"dimmed\">empty</span>";
+        string GetConfigValue(string key) => Pds.PdsDb.ConfigPropertyExists(key) ? HtmlEncode(Pds.PdsDb.GetConfigProperty(key)) : "<span class=\"dimmed\">empty</span>";
+        string GetConfigValueForJs(string key) => JsEscape(GetConfigValueRaw(key));
         string GetBoolConfigValue(string key) => !Pds.PdsDb.ConfigPropertyExists(key) ? "<span class=\"dimmed\">empty</span>" : (Pds.PdsDb.GetConfigPropertyBool(key) ? "enabled" : "<span class=\"dimmed\">disabled</span>");
 
         string html = $@"
@@ -105,25 +166,25 @@ public class Admin_Config : BaseAdmin
             <tr>
                 <td class=""key-name"">ServerListenScheme</td>
                 <td>{GetConfigValue("ServerListenScheme")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('ServerListenScheme', '{GetConfigValueRaw("ServerListenScheme")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('ServerListenScheme', '{GetConfigValueForJs("ServerListenScheme")}')"">Set</button></td>
                 <td>http or https?</td>
             </tr>
             <tr>
                 <td class=""key-name"">ServerListenHost</td>
                 <td>{GetConfigValue("ServerListenHost")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('ServerListenHost', '{GetConfigValueRaw("ServerListenHost")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('ServerListenHost', '{GetConfigValueForJs("ServerListenHost")}')"">Set</button></td>
                 <td>hostname that server should bind to. If you are reverse proxying, can be localhost.</td>
             </tr>
             <tr>
                 <td class=""key-name"">ServerListenPort</td>
                 <td>{GetConfigValue("ServerListenPort")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('ServerListenPort', '{GetConfigValueRaw("ServerListenPort")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('ServerListenPort', '{GetConfigValueForJs("ServerListenPort")}')"">Set</button></td>
                 <td>port that server should listen on. If you are reverse proxying, can be miscellaneous (5000+, etc.).</td>
             </tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_AdminDashboard</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_AdminDashboard")}</td>
-                <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_AdminDashboard', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_AdminDashboard', '0')"">Disable</button></td>
+                <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_AdminDashboard', '1')"">Enable</button><button class=""disable-btn"" onclick=""if(confirm('WARNING: Disabling the admin dashboard will lock you out immediately. Are you sure?')) setBoolConfig('FeatureEnabled_AdminDashboard', '0')"">Disable</button></td>
                 <td>is the admin dashboard enabled?</td>
             </tr>
             <tr>
@@ -141,43 +202,43 @@ public class Admin_Config : BaseAdmin
             <tr>
                 <td class=""key-name"">PdsCrawlers</td>
                 <td>{GetConfigValue("PdsCrawlers")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('PdsCrawlers', '{GetConfigValueRaw("PdsCrawlers")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('PdsCrawlers', '{GetConfigValueForJs("PdsCrawlers")}')"">Set</button></td>
                 <td>comma-separated list of relays to request crawl from. (ex: bsky.network)</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsDid</td>
                 <td>{GetConfigValue("PdsDid")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('PdsDid', '{GetConfigValueRaw("PdsDid")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('PdsDid', '{GetConfigValueForJs("PdsDid")}')"">Set</button></td>
                 <td>did for the PDS (ex: did:web:thisisyourpdshost.com)</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsHostname</td>
                 <td>{GetConfigValue("PdsHostname")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('PdsHostname', '{GetConfigValueRaw("PdsHostname")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('PdsHostname', '{GetConfigValueForJs("PdsHostname")}')"">Set</button></td>
                 <td>hostname for the PDS. What goes in your did doc.</td>
             </tr>
             <tr>
                 <td class=""key-name"">PdsAvailableUserDomain</td>
                 <td>{GetConfigValue("PdsAvailableUserDomain")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('PdsAvailableUserDomain', '{GetConfigValueRaw("PdsAvailableUserDomain")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('PdsAvailableUserDomain', '{GetConfigValueForJs("PdsAvailableUserDomain")}')"">Set</button></td>
                 <td>a single domain that is the available user domains, prefixed with .</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserHandle</td>
                 <td>{GetConfigValue("UserHandle")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('UserHandle', '{GetConfigValueRaw("UserHandle")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('UserHandle', '{GetConfigValueForJs("UserHandle")}')"">Set</button></td>
                 <td>handle for the user (this is a single-user PDS)</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserDid</td>
                 <td>{GetConfigValue("UserDid")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('UserDid', '{GetConfigValueRaw("UserDid")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('UserDid', '{GetConfigValueForJs("UserDid")}')"">Set</button></td>
                 <td>did for the user (ex: did:web:______)</td>
             </tr>
             <tr>
                 <td class=""key-name"">UserEmail</td>
                 <td>{GetConfigValue("UserEmail")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('UserEmail', '{GetConfigValueRaw("UserEmail")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('UserEmail', '{GetConfigValueForJs("UserEmail")}')"">Set</button></td>
                 <td>user's email address</td>
             </tr>
             <tr>
@@ -189,19 +250,19 @@ public class Admin_Config : BaseAdmin
             <tr>
                 <td class=""key-name"">LogRetentionDays</td>
                 <td>{GetConfigValue("LogRetentionDays")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('LogRetentionDays', '{GetConfigValueRaw("LogRetentionDays")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('LogRetentionDays', '{GetConfigValueForJs("LogRetentionDays")}')"">Set</button></td>
                 <td>number of days to keep logs before deleting.</td>
             </tr>
             <tr>
                 <td class=""key-name"">SystemctlServiceName</td>
                 <td>{GetConfigValue("SystemctlServiceName")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('SystemctlServiceName', '{GetConfigValueRaw("SystemctlServiceName")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('SystemctlServiceName', '{GetConfigValueForJs("SystemctlServiceName")}')"">Set</button></td>
                 <td>systemctl service name. Gets used during deployment/restart.</td>
             </tr>
             <tr>
                 <td class=""key-name"">CaddyAccessLogFilePath</td>
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
-                <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueRaw("CaddyAccessLogFilePath")}')"">Set</button></td>
+                <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueForJs("CaddyAccessLogFilePath")}')"">Set</button></td>
                 <td>access log for caddy.</td>
             </tr>
             <tr>
@@ -212,12 +273,19 @@ public class Admin_Config : BaseAdmin
             </tr>
         </table>
         <script>
+        function getCsrfToken() {{
+            return '{csrfToken}';
+        }}
         function setConfig(key, currentValue) {{
             var newValue = prompt('Enter new value for ' + key + ':', currentValue);
             if (newValue !== null) {{
                 var form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/admin/config';
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = getCsrfToken();
                 var keyInput = document.createElement('input');
                 keyInput.type = 'hidden';
                 keyInput.name = 'key';
@@ -226,6 +294,7 @@ public class Admin_Config : BaseAdmin
                 valueInput.type = 'hidden';
                 valueInput.name = 'value';
                 valueInput.value = newValue;
+                form.appendChild(csrfInput);
                 form.appendChild(keyInput);
                 form.appendChild(valueInput);
                 document.body.appendChild(form);
@@ -236,6 +305,10 @@ public class Admin_Config : BaseAdmin
             var form = document.createElement('form');
             form.method = 'POST';
             form.action = '/admin/config';
+            var csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = getCsrfToken();
             var keyInput = document.createElement('input');
             keyInput.type = 'hidden';
             keyInput.name = 'key';
@@ -244,6 +317,7 @@ public class Admin_Config : BaseAdmin
             valueInput.type = 'hidden';
             valueInput.name = 'value';
             valueInput.value = value;
+            form.appendChild(csrfInput);
             form.appendChild(keyInput);
             form.appendChild(valueInput);
             document.body.appendChild(form);
