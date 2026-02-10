@@ -129,12 +129,13 @@ public class Admin_Config : BaseAdmin
             .nav-btn.active {{ background-color: #388e3c; }}
             .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .logout-btn:hover {{ background-color: #d32f2f; }}
-            table {{ border-collapse: collapse; width: 100%; margin-top: 16px; }}
-            th, td {{ border: 1px solid #2f3336; padding: 12px; text-align: left; }}
-            th {{ background-color: #22303c; color: #8899a6; }}
-            td {{ background-color: #192734; }}
-            .set-btn {{ background-color: #1d9bf0; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
-            .set-btn:hover {{ background-color: #1a8cd8; }}
+            table {{ width: 100%; border-collapse: collapse; background-color: #2f3336; border-radius: 8px; overflow: hidden; margin-top: 16px; }}
+            th {{ background-color: #1d1f23; color: #8899a6; text-align: left; padding: 12px 16px; font-size: 14px; font-weight: 500; }}
+            td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
+            tr:last-child td {{ border-bottom: none; }}
+            tr:hover {{ background-color: #3a3d41; }}
+            .set-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
+            .set-btn:hover {{ background-color: #388e3c; }}
             .enable-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 6px; }}
             .enable-btn:hover {{ background-color: #388e3c; }}
             .disable-btn {{ background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
