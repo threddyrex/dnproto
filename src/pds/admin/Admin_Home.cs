@@ -59,18 +59,7 @@ public class Admin_Home : BaseAdmin
             .session-item:last-child {{ border-bottom: none; }}
             .session-label {{ color: #8899a6; margin-right: 4px; }}
             .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}
-            .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
-            .logout-btn:hover {{ background-color: #d32f2f; }}
-            .navbar {{ display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }}
-            .nav-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }}
-            .nav-btn:hover {{ background-color: #388e3c; }}
-            .nav-btn.active {{ background-color: #388e3c; }}
-            .nav-btn-destructive {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }}
-            .nav-btn-destructive:hover {{ background-color: #d32f2f; }}
-            .nav-btn-destructive.active {{ background-color: #d32f2f; }}
-            .nav-spacer {{ flex-grow: 1; }}
-            .logout-btn {{ background-color: #1d9bf0; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
-            .logout-btn:hover {{ background-color: #1a8cd8; }}
+            {GetNavbarCss()}
             table {{ width: 100%; border-collapse: collapse; background-color: #2f3336; border-radius: 8px; overflow: hidden; margin-top: 16px; }}
             th {{ background-color: #1d1f23; color: #8899a6; text-align: left; padding: 12px 16px; font-size: 14px; font-weight: 500; }}
             td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
@@ -83,18 +72,7 @@ public class Admin_Home : BaseAdmin
         </head>
         <body>
         <div class=""container"">
-        <div class=""navbar"">
-            <a href=""/admin/"" class=""nav-btn active"">Home</a>
-            <a href=""/admin/passkeys"" class=""nav-btn"">Passkeys</a>
-            <a href=""/admin/sessions"" class=""nav-btn"">Sessions</a>
-            <a href=""/admin/stats"" class=""nav-btn"">Statistics</a>
-            <form method=""post"" action=""/admin/logout"" style=""margin: 0;"">
-                <button type=""submit"" class=""logout-btn"">Logout</button>
-            </form>
-            <div class=""nav-spacer""></div>
-            <a href=""/admin/config"" class=""nav-btn-destructive"">Config</a>
-            <a href=""/admin/actions"" class=""nav-btn-destructive"">Actions</a>
-        </div>
+        {GetNavbarHtml("home")}
         <h1>Admin Dashboard</h1>
         <p>
         Welcome to the dnproto PDS Admin Dashboard.
