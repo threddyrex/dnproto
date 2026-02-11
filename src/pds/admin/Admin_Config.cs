@@ -137,6 +137,7 @@ public class Admin_Config : BaseAdmin
             .disable-btn:hover {{ background-color: #d32f2f; }}
             .dimmed {{ color: #657786; }}
             .key-name {{ font-weight: bold; color: #1d9bf0; }}
+            .section-header td {{ background-color: #1d1f23; color: #8899a6; font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }}
         </style>
         </head>
         <body>
@@ -144,7 +145,6 @@ public class Admin_Config : BaseAdmin
         {GetNavbarHtml("config")}
         <h1>Config</h1>
 
-        <h2>Server</h2>
         <table>
             <tr>
                 <th>Key</th>
@@ -152,6 +152,7 @@ public class Admin_Config : BaseAdmin
                 <th>Action</th>
                 <th>Description</th>
             </tr>
+            <tr class=""section-header""><td colspan=""4"">Server</td></tr>
             <tr>
                 <td class=""key-name"">ServerListenScheme</td>
                 <td>{GetConfigValue("ServerListenScheme")}</td>
@@ -170,16 +171,7 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""set-btn"" onclick=""setConfig('ServerListenPort', '{GetConfigValueForJs("ServerListenPort")}')"">Set</button></td>
                 <td>Port that server listens on.</td>
             </tr>
-        </table>
-
-        <h2>Features</h2>
-        <table>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Action</th>
-                <th>Description</th>
-            </tr>
+            <tr class=""section-header""><td colspan=""4"">Features</td></tr>
             <tr>
                 <td class=""key-name"">FeatureEnabled_AdminDashboard</td>
                 <td>{GetBoolConfigValue("FeatureEnabled_AdminDashboard")}</td>
@@ -204,16 +196,7 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""enable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('FeatureEnabled_RequestCrawl', '0')"">Disable</button></td>
                 <td>If enabled, will periodically request a crawl from the crawlers. Enable this last - things need to be configured correctly before connecting with the larger network.</td>
             </tr>
-        </table>
-
-        <h2>PDS</h2>
-        <table>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Action</th>
-                <th>Description</th>
-            </tr>
+            <tr class=""section-header""><td colspan=""4"">PDS</td></tr>
             <tr>
                 <td class=""key-name"">PdsCrawlers</td>
                 <td>{GetConfigValue("PdsCrawlers")}</td>
@@ -238,16 +221,7 @@ public class Admin_Config : BaseAdmin
                 <td><button class=""set-btn"" onclick=""setConfig('PdsAvailableUserDomain', '{GetConfigValueForJs("PdsAvailableUserDomain")}')"">Set</button></td>
                 <td>A single domain that is the available user domains, prefixed with .</td>
             </tr>
-        </table>
-
-        <h2>User</h2>
-        <table>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Action</th>
-                <th>Description</th>
-            </tr>
+            <tr class=""section-header""><td colspan=""4"">User</td></tr>
             <tr>
                 <td class=""key-name"">UserHandle</td>
                 <td>{GetConfigValue("UserHandle")}</td>
@@ -269,19 +243,10 @@ public class Admin_Config : BaseAdmin
             <tr>
                 <td class=""key-name"">UserIsActive</td>
                 <td>{GetBoolConfigValue("UserIsActive")}</td>
-                <td><button class=""enable-btn"" onclick=""setBoolConfig('UserIsActive', '1')"">Enable</button><button class=""disable-btn"" onclick=""setBoolConfig('UserIsActive', '0')"">Disable</button></td>
-                <td>Is the user active?</td>
+                <td></td>
+                <td>Is the user active? You can change this on the Actions page with 'Activate' and 'Deactivate' buttons.</td>
             </tr>
-        </table>
-
-        <h2>Deployment</h2>
-        <table>
-            <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Action</th>
-                <th>Description</th>
-            </tr>
+            <tr class=""section-header""><td colspan=""4"">Deployment</td></tr>
             <tr>
                 <td class=""key-name"">LogRetentionDays</td>
                 <td>{GetConfigValue("LogRetentionDays")}</td>
