@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.admin;
 
 /// <summary>
+/// Actions page for admin interface
 /// </summary>
-public class Admin_Home : BaseAdmin
+public class Admin_Actions : BaseAdmin
 {
     public IResult GetResponse()
     {
@@ -32,12 +33,12 @@ public class Admin_Home : BaseAdmin
 
 
         //
-        // return account info
+        // return actions page
         //
         string html = $@"
         <html>
         <head>
-        <title>Admin - Home</title>
+        <title>Admin - Actions</title>
         <style>
             body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; }}
             .container {{ max-width: 800px; margin: 0 0 0 40px; }}
@@ -46,13 +47,6 @@ public class Admin_Home : BaseAdmin
             .info-card {{ background-color: #2f3336; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }}
             .label {{ color: #8899a6; font-size: 14px; }}
             .value {{ color: #1d9bf0; font-size: 14px; word-break: break-all; }}
-            .session-list {{ background-color: #2f3336; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
-            .session-item {{ padding: 8px 0; border-bottom: 1px solid #444; font-size: 14px; }}
-            .session-item:last-child {{ border-bottom: none; }}
-            .session-label {{ color: #8899a6; margin-right: 4px; }}
-            .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}
-            .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
-            .logout-btn:hover {{ background-color: #d32f2f; }}
             .navbar {{ display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }}
             .nav-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }}
             .nav-btn:hover {{ background-color: #388e3c; }}
@@ -64,9 +58,9 @@ public class Admin_Home : BaseAdmin
         <body>
         <div class=""container"">
         <div class=""navbar"">
-            <a href=""/admin/"" class=""nav-btn active"">Home</a>
+            <a href=""/admin/"" class=""nav-btn"">Home</a>
             <a href=""/admin/config"" class=""nav-btn"">Config</a>
-            <a href=""/admin/actions"" class=""nav-btn"">Actions</a>
+            <a href=""/admin/actions"" class=""nav-btn active"">Actions</a>
             <a href=""/admin/passkeys"" class=""nav-btn"">Passkeys</a>
             <a href=""/admin/sessions"" class=""nav-btn"">Sessions</a>
             <a href=""/admin/stats"" class=""nav-btn"">Statistics</a>
@@ -74,17 +68,12 @@ public class Admin_Home : BaseAdmin
                 <button type=""submit"" class=""logout-btn"">Logout</button>
             </form>
         </div>
-        <h1>Admin Dashboard</h1>
-        <p>Welcome to the admin dashboard.</p>
+        <h1>Actions</h1>
+        <p>this is the actions page</p>
         </div>
         </body>
         </html>
         ";
         return Results.Content(html, "text/html", statusCode: 200);
     }
-
-
-
-
-
 }

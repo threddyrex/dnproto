@@ -149,6 +149,7 @@ public class Admin_Config : BaseAdmin
         <div class=""navbar"">
             <a href=""/admin/"" class=""nav-btn"">Home</a>
             <a href=""/admin/config"" class=""nav-btn active"">Config</a>
+            <a href=""/admin/actions"" class=""nav-btn"">Actions</a>
             <a href=""/admin/passkeys"" class=""nav-btn"">Passkeys</a>
             <a href=""/admin/sessions"" class=""nav-btn"">Sessions</a>
             <a href=""/admin/stats"" class=""nav-btn"">Statistics</a>
