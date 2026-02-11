@@ -61,6 +61,22 @@ public class Admin_Actions : BaseAdmin
                 Pds.PdsDb.SetConfigProperty("UserPublicKeyMultibase", generatedKey.PublicKeyMultibase);
                 Pds.PdsDb.SetConfigProperty("UserPrivateKeyMultibase", generatedKey.PrivateKeyMultibase);
             }
+            else if(action == "generateuserpassword")
+            {
+                // Generate a new user password
+                string newPassword = PasswordHasher.CreateNewAdminPassword();
+                string hashedPassword = PasswordHasher.HashPassword(newPassword);
+                Pds.PdsDb.SetConfigProperty("UserHashedPassword", hashedPassword);
+                
+                // Set a short-lived cookie with the cleartext password to display after redirect
+                HttpContext.Response.Cookies.Append("generated_user_password", newPassword, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    MaxAge = TimeSpan.FromMinutes(1)
+                });
+            }
             
             // POST-Redirect-GET pattern to prevent form resubmission
             HttpContext.Response.Redirect("/admin/actions");
@@ -82,12 +98,27 @@ public class Admin_Actions : BaseAdmin
 
 
         //
+        // Check for generated password cookie and clear it
+        //
+        string? generatedPassword = null;
+        if(HttpContext.Request.Cookies.TryGetValue("generated_user_password", out generatedPassword))
+        {
+            // Delete the cookie immediately after reading
+            HttpContext.Response.Cookies.Delete("generated_user_password");
+        }
+
+
+        //
         // Get current public key value
         //
         string HtmlEncode(string value) => WebUtility.HtmlEncode(value);
         string userPublicKeyValue = Pds.PdsDb.ConfigPropertyExists("UserPublicKeyMultibase") 
             ? HtmlEncode(Pds.PdsDb.GetConfigProperty("UserPublicKeyMultibase")) 
             : "<span class=\"dimmed\">empty</span>";
+        
+        string userPasswordStatus = Pds.PdsDb.ConfigPropertyExists("UserHashedPassword")
+            ? "<span style=\"color: #4caf50;\">configured</span>"
+            : "<span class=\"dimmed\">not configured</span>";
 
 
         //
@@ -114,6 +145,10 @@ public class Admin_Actions : BaseAdmin
             .action-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .action-btn:hover {{ background-color: #388e3c; }}
             .dimmed {{ color: #657786; }}
+            .password-display {{ background-color: #1a2634; border: 2px solid #1d9bf0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
+            .password-display .label {{ color: #1d9bf0; font-weight: 500; margin-bottom: 8px; }}
+            .password-display .value {{ font-family: monospace; font-size: 14px; color: #e7e9ea; word-break: break-all; user-select: all; }}
+            .password-warning {{ color: #f0a81d; font-size: 13px; margin-top: 8px; }}
         </style>
         </head>
         <body>
@@ -140,6 +175,24 @@ public class Admin_Actions : BaseAdmin
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generatekeypair"" />
             <button type=""submit"" class=""action-btn"">Generate Key Pair</button>
+        </form>
+
+        <h2>User Password</h2>
+        {(generatedPassword != null ? $@"
+        <div class=""password-display"">
+            <div class=""label"">New Password Generated - Copy Now!</div>
+            <div class=""value"">{HtmlEncode(generatedPassword)}</div>
+            <div class=""password-warning"">This password will not be shown again. Copy it now and store it securely.</div>
+        </div>
+        " : "")}
+        <div class=""info-card"">
+            <div class=""label"">UserHashedPassword</div>
+            <div class=""value"">{userPasswordStatus}</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new password? This will invalidate the existing password.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
+            <button type=""submit"" class=""action-btn"">Generate User Password</button>
         </form>
 
         </div>
