@@ -1,4 +1,6 @@
+using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using dnproto.auth;
 using dnproto.ws;
@@ -33,6 +35,62 @@ public class Admin_Actions : BaseAdmin
 
 
         //
+        // Handle POST to generate key pair
+        //
+        if(HttpContext.Request.Method == "POST")
+        {
+            // Validate CSRF token
+            string? submittedCsrfToken = HttpContext.Request.Form["csrf_token"];
+            string? csrfCookie = null;
+            HttpContext.Request.Cookies.TryGetValue("csrf_token", out csrfCookie);
+            
+            if(string.IsNullOrEmpty(submittedCsrfToken) || string.IsNullOrEmpty(csrfCookie) || 
+               !CryptographicOperations.FixedTimeEquals(
+                   System.Text.Encoding.UTF8.GetBytes(submittedCsrfToken),
+                   System.Text.Encoding.UTF8.GetBytes(csrfCookie)))
+            {
+                return Results.StatusCode(403); // CSRF validation failed
+            }
+
+            string? action = HttpContext.Request.Form["action"];
+            
+            if(action == "generatekeypair")
+            {
+                // Generate a new P-256 key pair
+                KeyPair generatedKey = KeyPair.Generate(KeyTypes.P256);
+                Pds.PdsDb.SetConfigProperty("UserPublicKeyMultibase", generatedKey.PublicKeyMultibase);
+                Pds.PdsDb.SetConfigProperty("UserPrivateKeyMultibase", generatedKey.PrivateKeyMultibase);
+            }
+            
+            // POST-Redirect-GET pattern to prevent form resubmission
+            HttpContext.Response.Redirect("/admin/actions");
+            return Results.Empty;
+        }
+
+
+        //
+        // Generate CSRF token and set as cookie
+        //
+        string csrfToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        HttpContext.Response.Cookies.Append("csrf_token", csrfToken, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            MaxAge = TimeSpan.FromHours(1)
+        });
+
+
+        //
+        // Get current public key value
+        //
+        string HtmlEncode(string value) => WebUtility.HtmlEncode(value);
+        string userPublicKeyValue = Pds.PdsDb.ConfigPropertyExists("UserPublicKeyMultibase") 
+            ? HtmlEncode(Pds.PdsDb.GetConfigProperty("UserPublicKeyMultibase")) 
+            : "<span class=\"dimmed\">empty</span>";
+
+
+        //
         // return actions page
         //
         string html = $@"
@@ -53,6 +111,9 @@ public class Admin_Actions : BaseAdmin
             .nav-btn.active {{ background-color: #388e3c; }}
             .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .logout-btn:hover {{ background-color: #d32f2f; }}
+            .action-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .action-btn:hover {{ background-color: #388e3c; }}
+            .dimmed {{ color: #657786; }}
         </style>
         </head>
         <body>
@@ -69,7 +130,18 @@ public class Admin_Actions : BaseAdmin
             </form>
         </div>
         <h1>Actions</h1>
-        <p>this is the actions page</p>
+
+        <h2>User Key Pair</h2>
+        <div class=""info-card"">
+            <div class=""label"">UserPublicKeyMultibase</div>
+            <div class=""value"">{userPublicKeyValue}</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new key pair? This will overwrite the existing keys.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""generatekeypair"" />
+            <button type=""submit"" class=""action-btn"">Generate Key Pair</button>
+        </form>
+
         </div>
         </body>
         </html>
