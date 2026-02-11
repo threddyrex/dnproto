@@ -92,12 +92,16 @@ public class Admin_Stats : BaseAdmin
             .container {{ max-width: 800px; margin: 0 0 0 40px; }}
             h1 {{ color: #8899a6; margin-bottom: 24px; }}
             h2 {{ color: #8899a6; margin-top: 32px; margin-bottom: 16px; font-size: 18px; }}
-            .navbar {{ display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }}
+            .navbar {{ display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }}
             .nav-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }}
             .nav-btn:hover {{ background-color: #388e3c; }}
             .nav-btn.active {{ background-color: #388e3c; }}
-            .logout-btn {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
-            .logout-btn:hover {{ background-color: #d32f2f; }}
+            .nav-btn-destructive {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }}
+            .nav-btn-destructive:hover {{ background-color: #d32f2f; }}
+            .nav-btn-destructive.active {{ background-color: #d32f2f; }}
+            .nav-spacer {{ flex-grow: 1; }}
+            .logout-btn {{ background-color: #1d9bf0; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .logout-btn:hover {{ background-color: #1a8cd8; }}
             .delete-btn {{ background-color: #f44336; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }}
             .delete-btn:hover {{ background-color: #d32f2f; }}
             .delete-all-btn {{ background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
@@ -120,14 +124,15 @@ public class Admin_Stats : BaseAdmin
         <div class=""container"">
         <div class=""navbar"">
             <a href=""/admin/"" class=""nav-btn"">Home</a>
-            <a href=""/admin/config"" class=""nav-btn"">Config</a>
-            <a href=""/admin/actions"" class=""nav-btn"">Actions</a>
             <a href=""/admin/passkeys"" class=""nav-btn"">Passkeys</a>
             <a href=""/admin/sessions"" class=""nav-btn"">Sessions</a>
             <a href=""/admin/stats"" class=""nav-btn active"">Statistics</a>
             <form method=""post"" action=""/admin/logout"" style=""margin: 0;"">
                 <button type=""submit"" class=""logout-btn"">Logout</button>
             </form>
+            <div class=""nav-spacer""></div>
+            <a href=""/admin/config"" class=""nav-btn-destructive"">Config</a>
+            <a href=""/admin/actions"" class=""nav-btn-destructive"">Actions</a>
         </div>
         <h1>Statistics</h1>
 
