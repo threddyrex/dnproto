@@ -326,7 +326,7 @@ public class Admin_Actions : BaseAdmin
         <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new password? This will invalidate the existing password.');"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
-            <button type=""submit"" class=""action-btn"">Generate User Password</button>
+            <button type=""submit"" class=""action-btn-destructive"">Generate User Password</button>
         </form>
 
         <h2>Activate Account</h2>
@@ -336,7 +336,7 @@ public class Admin_Actions : BaseAdmin
         <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to activate the account?');"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""activateaccount"" />
-            <button type=""submit"" class=""action-btn"">Activate Account</button>
+            <button type=""submit"" class=""action-btn-destructive"">Activate Account</button>
         </form>
 
         <h2>Admin Password</h2>
@@ -354,7 +354,7 @@ public class Admin_Actions : BaseAdmin
         <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new admin password? This will invalidate the existing admin password.');"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generateadminpassword"" />
-            <button type=""submit"" class=""action-btn"">Generate Admin Password</button>
+            <button type=""submit"" class=""action-btn-destructive"">Generate Admin Password</button>
         </form>
 
         </div>

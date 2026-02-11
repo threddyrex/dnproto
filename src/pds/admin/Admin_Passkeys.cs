@@ -112,8 +112,8 @@ public class Admin_Passkeys : BaseAdmin
             .nav-spacer {{ flex-grow: 1; }}
             .logout-btn {{ background-color: #1d9bf0; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .logout-btn:hover {{ background-color: #1a8cd8; }}
-            .delete-btn {{ background-color: #f44336; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }}
-            .delete-btn:hover {{ background-color: #d32f2f; }}
+            .delete-btn {{ background-color: #4caf50; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }}
+            .delete-btn:hover {{ background-color: #388e3c; }}
             .add-btn {{ background-color: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .add-btn:hover {{ background-color: #388e3c; }}
             .section-header {{ display: flex; justify-content: space-between; align-items: center; }}

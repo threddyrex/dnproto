@@ -138,10 +138,10 @@ public class Admin_Config : BaseAdmin
             td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
             tr:last-child td {{ border-bottom: none; }}
             tr:hover {{ background-color: #3a3d41; }}
-            .set-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
-            .set-btn:hover {{ background-color: #388e3c; }}
-            .enable-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-bottom: 8px; display: block; }}
-            .enable-btn:hover {{ background-color: #388e3c; }}
+            .set-btn {{ background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
+            .set-btn:hover {{ background-color: #d32f2f; }}
+            .enable-btn {{ background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-bottom: 8px; display: block; }}
+            .enable-btn:hover {{ background-color: #d32f2f; }}
             .disable-btn {{ background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
             .disable-btn:hover {{ background-color: #d32f2f; }}
             .dimmed {{ color: #657786; }}
