@@ -144,7 +144,7 @@ public class Admin_Sessions : BaseAdmin
         string html = $@"
         <html>
         <head>
-        <title>Admin - Sessions</title>
+        <title>Admin - Sessions - {TryGetPdsHostname()}</title>
         <style>
             body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; }}
             .container {{ max-width: 800px; margin: 0 0 0 40px; }}

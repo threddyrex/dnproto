@@ -84,6 +84,18 @@ public class BaseAdmin
         }
     }
 
+    protected string TryGetPdsHostname()
+    {
+        if(Pds.PdsDb.ConfigPropertyExists("PdsHostname"))
+        {
+            return Pds.PdsDb.GetConfigProperty("PdsHostname")!;
+        }
+        else
+        {
+            return "(PdsHostname not set)";
+        }
+    }
+
 
     protected void IncrementStatistics()
     {
