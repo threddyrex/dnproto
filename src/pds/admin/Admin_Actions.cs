@@ -77,6 +77,22 @@ public class Admin_Actions : BaseAdmin
                     MaxAge = TimeSpan.FromMinutes(1)
                 });
             }
+            else if(action == "generateadminpassword")
+            {
+                // Generate a new admin password
+                string newPassword = PasswordHasher.CreateNewAdminPassword();
+                string hashedPassword = PasswordHasher.HashPassword(newPassword);
+                Pds.PdsDb.SetConfigProperty("AdminHashedPassword", hashedPassword);
+                
+                // Set a short-lived cookie with the cleartext password to display after redirect
+                HttpContext.Response.Cookies.Append("generated_admin_password", newPassword, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    MaxAge = TimeSpan.FromMinutes(1)
+                });
+            }
             
             // POST-Redirect-GET pattern to prevent form resubmission
             HttpContext.Response.Redirect("/admin/actions");
@@ -107,6 +123,13 @@ public class Admin_Actions : BaseAdmin
             HttpContext.Response.Cookies.Delete("generated_user_password");
         }
 
+        string? generatedAdminPassword = null;
+        if(HttpContext.Request.Cookies.TryGetValue("generated_admin_password", out generatedAdminPassword))
+        {
+            // Delete the cookie immediately after reading
+            HttpContext.Response.Cookies.Delete("generated_admin_password");
+        }
+
 
         //
         // Get current public key value
@@ -117,6 +140,10 @@ public class Admin_Actions : BaseAdmin
             : "<span class=\"dimmed\">empty</span>";
         
         string userPasswordStatus = Pds.PdsDb.ConfigPropertyExists("UserHashedPassword")
+            ? "<span style=\"color: #4caf50;\">configured</span>"
+            : "<span class=\"dimmed\">not configured</span>";
+        
+        string adminPasswordStatus = Pds.PdsDb.ConfigPropertyExists("AdminHashedPassword")
             ? "<span style=\"color: #4caf50;\">configured</span>"
             : "<span class=\"dimmed\">not configured</span>";
 
@@ -193,6 +220,24 @@ public class Admin_Actions : BaseAdmin
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
             <button type=""submit"" class=""action-btn"">Generate User Password</button>
+        </form>
+
+        <h2>Admin Password</h2>
+        {(generatedAdminPassword != null ? $@"
+        <div class=""password-display"">
+            <div class=""label"">New Password Generated - Copy Now!</div>
+            <div class=""value"">{HtmlEncode(generatedAdminPassword)}</div>
+            <div class=""password-warning"">This password will not be shown again. Copy it now and store it securely.</div>
+        </div>
+        " : "")}
+        <div class=""info-card"">
+            <div class=""label"">AdminHashedPassword</div>
+            <div class=""value"">{adminPasswordStatus}</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new admin password? This will invalidate the existing admin password.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""generateadminpassword"" />
+            <button type=""submit"" class=""action-btn"">Generate Admin Password</button>
         </form>
 
         </div>
