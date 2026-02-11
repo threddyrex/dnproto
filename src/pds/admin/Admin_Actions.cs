@@ -95,6 +95,22 @@ public class Admin_Actions : BaseAdmin
             }
             else if(action == "installuserrepo")
             {
+                // Validate confirmation text
+                string? confirmText = HttpContext.Request.Form["confirm_text"];
+                if(string.IsNullOrEmpty(confirmText) || !confirmText.Equals("agree", StringComparison.OrdinalIgnoreCase))
+                {
+                    HttpContext.Response.Cookies.Append("install_repo_error", "You must type 'agree' to confirm this action.", new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        MaxAge = TimeSpan.FromMinutes(1)
+                    });
+                    
+                    HttpContext.Response.Redirect("/admin/actions");
+                    return Results.Empty;
+                }
+                
                 // Install user repo using keypair from config
                 bool hasPrivateKey = Pds.PdsDb.ConfigPropertyExists("UserPrivateKeyMultibase");
                 bool hasPublicKey = Pds.PdsDb.ConfigPropertyExists("UserPublicKeyMultibase");
@@ -283,9 +299,13 @@ public class Admin_Actions : BaseAdmin
         <div class=""info-card"">
             <div class=""label"">Install a fresh user repository using the configured key pair</div>
         </div>
-        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to install a new user repo? This will delete any existing repo data.');"">
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""installuserrepo"" />
+            <div style=""margin-bottom: 12px;"">
+                <label for=""confirm_text"" style=""color: #f0a81d; font-size: 14px;"">Type &quot;agree&quot; to confirm (this will delete any existing repo data):</label>
+                <input type=""text"" id=""confirm_text"" name=""confirm_text"" autocomplete=""off"" style=""display: block; margin-top: 8px; padding: 8px 12px; border-radius: 4px; border: 1px solid #2f3336; background-color: #16181c; color: #e7e9ea; font-size: 14px; width: 200px;"" />
+            </div>
             <button type=""submit"" class=""action-btn"">Install User Repo</button>
         </form>
 
