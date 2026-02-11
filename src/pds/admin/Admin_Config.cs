@@ -136,7 +136,7 @@ public class Admin_Config : BaseAdmin
             tr:hover {{ background-color: #3a3d41; }}
             .set-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
             .set-btn:hover {{ background-color: #388e3c; }}
-            .enable-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 6px; }}
+            .enable-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-bottom: 8px; display: block; }}
             .enable-btn:hover {{ background-color: #388e3c; }}
             .disable-btn {{ background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }}
             .disable-btn:hover {{ background-color: #d32f2f; }}
