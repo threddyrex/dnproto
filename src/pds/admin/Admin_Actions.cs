@@ -127,6 +127,10 @@ public class Admin_Actions : BaseAdmin
                     });
                 }
             }
+            else if(action == "activateaccount")
+            {
+                Pds.ActivateAccount();
+            }
             
             // POST-Redirect-GET pattern to prevent form resubmission
             HttpContext.Response.Redirect("/admin/actions");
@@ -296,6 +300,16 @@ public class Admin_Actions : BaseAdmin
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
             <button type=""submit"" class=""action-btn"">Generate User Password</button>
+        </form>
+
+        <h2>Activate Account</h2>
+        <div class=""info-card"">
+            <div class=""label"">Activate account. This sets the config property UserIsActive, and generates firehose events for #identity and #account.</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to activate the account?');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""activateaccount"" />
+            <button type=""submit"" class=""action-btn"">Activate Account</button>
         </form>
 
         <h2>Admin Password</h2>
