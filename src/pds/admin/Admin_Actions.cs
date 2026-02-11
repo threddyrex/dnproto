@@ -243,6 +243,8 @@ public class Admin_Actions : BaseAdmin
             .logout-btn:hover {{ background-color: #1a8cd8; }}
             .action-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
             .action-btn:hover {{ background-color: #388e3c; }}
+            .action-btn-destructive {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .action-btn-destructive:hover {{ background-color: #d32f2f; }}
             .dimmed {{ color: #657786; }}
             .password-display {{ background-color: #1a2634; border: 2px solid #1d9bf0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
             .password-display .label {{ color: #1d9bf0; font-weight: 500; margin-bottom: 8px; }}
@@ -280,7 +282,7 @@ public class Admin_Actions : BaseAdmin
         <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new key pair? This will overwrite the existing keys.');"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generatekeypair"" />
-            <button type=""submit"" class=""action-btn"">Generate Key Pair</button>
+            <button type=""submit"" class=""action-btn-destructive"">Generate Key Pair</button>
         </form>
 
         <h2>Install User Repo</h2>
@@ -306,7 +308,7 @@ public class Admin_Actions : BaseAdmin
                 <label for=""confirm_text"" style=""color: #f0a81d; font-size: 14px;"">Type &quot;agree&quot; to confirm (this will delete any existing repo data):</label>
                 <input type=""text"" id=""confirm_text"" name=""confirm_text"" autocomplete=""off"" style=""display: block; margin-top: 8px; padding: 8px 12px; border-radius: 4px; border: 1px solid #2f3336; background-color: #16181c; color: #e7e9ea; font-size: 14px; width: 200px;"" />
             </div>
-            <button type=""submit"" class=""action-btn"">Install User Repo</button>
+            <button type=""submit"" class=""action-btn-destructive"">Install User Repo</button>
         </form>
 
         <h2>User Password</h2>
