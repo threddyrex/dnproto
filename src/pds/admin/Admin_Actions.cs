@@ -93,6 +93,40 @@ public class Admin_Actions : BaseAdmin
                     MaxAge = TimeSpan.FromMinutes(1)
                 });
             }
+            else if(action == "installuserrepo")
+            {
+                // Install user repo using keypair from config
+                bool hasPrivateKey = Pds.PdsDb.ConfigPropertyExists("UserPrivateKeyMultibase");
+                bool hasPublicKey = Pds.PdsDb.ConfigPropertyExists("UserPublicKeyMultibase");
+                
+                if(!hasPrivateKey || !hasPublicKey)
+                {
+                    // Set error cookie to show after redirect
+                    HttpContext.Response.Cookies.Append("install_repo_error", "User key pair not configured. Please generate a key pair first.", new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        MaxAge = TimeSpan.FromMinutes(1)
+                    });
+                }
+                else
+                {
+                    var signingFunc = auth.Signer.CreateCommitSigningFunction(
+                        Pds.PdsDb.GetConfigProperty("UserPrivateKeyMultibase"),
+                        Pds.PdsDb.GetConfigProperty("UserPublicKeyMultibase"));
+                    Installer.InstallRepo(Pds.LocalFileSystem, Pds.Logger, signingFunc);
+                    
+                    // Set success cookie to show after redirect
+                    HttpContext.Response.Cookies.Append("install_repo_success", "User repo installed successfully.", new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        MaxAge = TimeSpan.FromMinutes(1)
+                    });
+                }
+            }
             
             // POST-Redirect-GET pattern to prevent form resubmission
             HttpContext.Response.Redirect("/admin/actions");
@@ -128,6 +162,20 @@ public class Admin_Actions : BaseAdmin
         {
             // Delete the cookie immediately after reading
             HttpContext.Response.Cookies.Delete("generated_admin_password");
+        }
+
+        string? installRepoError = null;
+        if(HttpContext.Request.Cookies.TryGetValue("install_repo_error", out installRepoError))
+        {
+            // Delete the cookie immediately after reading
+            HttpContext.Response.Cookies.Delete("install_repo_error");
+        }
+
+        string? installRepoSuccess = null;
+        if(HttpContext.Request.Cookies.TryGetValue("install_repo_success", out installRepoSuccess))
+        {
+            // Delete the cookie immediately after reading
+            HttpContext.Response.Cookies.Delete("install_repo_success");
         }
 
 
@@ -176,6 +224,12 @@ public class Admin_Actions : BaseAdmin
             .password-display .label {{ color: #1d9bf0; font-weight: 500; margin-bottom: 8px; }}
             .password-display .value {{ font-family: monospace; font-size: 14px; color: #e7e9ea; word-break: break-all; user-select: all; }}
             .password-warning {{ color: #f0a81d; font-size: 13px; margin-top: 8px; }}
+            .error-display {{ background-color: #2a1a1a; border: 2px solid #f44336; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
+            .error-display .label {{ color: #f44336; font-weight: 500; margin-bottom: 8px; }}
+            .error-display .value {{ font-size: 14px; color: #e7e9ea; }}
+            .success-display {{ background-color: #1a2a1a; border: 2px solid #4caf50; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}
+            .success-display .label {{ color: #4caf50; font-weight: 500; margin-bottom: 8px; }}
+            .success-display .value {{ font-size: 14px; color: #e7e9ea; }}
         </style>
         </head>
         <body>
@@ -202,6 +256,28 @@ public class Admin_Actions : BaseAdmin
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generatekeypair"" />
             <button type=""submit"" class=""action-btn"">Generate Key Pair</button>
+        </form>
+
+        <h2>Install User Repo</h2>
+        {(installRepoError != null ? $@"
+        <div class=""error-display"">
+            <div class=""label"">Error</div>
+            <div class=""value"">{HtmlEncode(installRepoError)}</div>
+        </div>
+        " : "")}
+        {(installRepoSuccess != null ? $@"
+        <div class=""success-display"">
+            <div class=""label"">Success</div>
+            <div class=""value"">{HtmlEncode(installRepoSuccess)}</div>
+        </div>
+        " : "")}
+        <div class=""info-card"">
+            <div class=""label"">Install a fresh user repository using the configured key pair</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to install a new user repo? This will delete any existing repo data.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""installuserrepo"" />
+            <button type=""submit"" class=""action-btn"">Install User Repo</button>
         </form>
 
         <h2>User Password</h2>
