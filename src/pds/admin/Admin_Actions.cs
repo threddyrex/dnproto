@@ -232,9 +232,9 @@ public class Admin_Actions : BaseAdmin
             .label {{ color: #8899a6; font-size: 14px; }}
             .value {{ color: #1d9bf0; font-size: 14px; word-break: break-all; }}
             {GetNavbarCss()}
-            .action-btn {{ background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .action-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; }}
             .action-btn:hover {{ background-color: #388e3c; }}
-            .action-btn-destructive {{ background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .action-btn-destructive {{ background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; }}
             .action-btn-destructive:hover {{ background-color: #d32f2f; }}
             .dimmed {{ color: #657786; }}
             .password-display {{ background-color: #1a2634; border: 2px solid #1d9bf0; border-radius: 8px; padding: 16px; margin-bottom: 16px; }}

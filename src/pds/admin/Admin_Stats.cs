@@ -95,7 +95,7 @@ public class Admin_Stats : BaseAdmin
             {GetNavbarCss()}
             .delete-btn {{ background-color: #4caf50; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; }}
             .delete-btn:hover {{ background-color: #388e3c; }}
-            .delete-all-btn {{ background-color: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }}
+            .delete-all-btn {{ background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; }}
             .delete-all-btn:hover {{ background-color: #388e3c; }}
             .section-header {{ display: flex; justify-content: space-between; align-items: center; }}
             .session-count {{ color: #8899a6; font-size: 14px; margin-left: 8px; }}

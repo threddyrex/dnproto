@@ -105,15 +105,15 @@ public class BaseAdmin
     protected string GetNavbarCss()
     {
         return @"
-            .navbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }
-            .nav-btn { background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }
+            .navbar { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #2f3336; }
+            .nav-btn { background-color: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none; }
             .nav-btn:hover { background-color: #388e3c; }
             .nav-btn.active { background-color: #388e3c; }
-            .nav-btn-destructive { background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; }
+            .nav-btn-destructive { background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none; }
             .nav-btn-destructive:hover { background-color: #d32f2f; }
             .nav-btn-destructive.active { background-color: #d32f2f; }
             .nav-spacer { flex-grow: 1; }
-            .logout-btn { background-color: #1d9bf0; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+            .logout-btn { background-color: #1d9bf0; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; }
             .logout-btn:hover { background-color: #1a8cd8; }
         ";
     }
