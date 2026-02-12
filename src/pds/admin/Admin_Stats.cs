@@ -123,7 +123,7 @@ public class Admin_Stats : BaseAdmin
                     <button type=""submit"" class=""delete-all-btn"">Delete All</button>
                 </form>
                 <form method=""post"" action=""/admin/deleteoldstatistics"" style=""display:inline;"" onsubmit=""return confirm('Are you sure you want to delete statistics older than 24 hours?');"">
-                    <button type=""submit"" class=""delete-all-btn"">Delete Old (&lt;24hr)</button>
+                    <button type=""submit"" class=""delete-all-btn"">Delete Old (&gt;24hr)</button>
                 </form>
             </div>
         </div>
