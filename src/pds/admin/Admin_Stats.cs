@@ -38,16 +38,18 @@ public class Admin_Stats : BaseAdmin
         // Get all statistics
         //
         var statistics = Pds.PdsDb.GetAllStatistics().OrderByDescending(s => s.LastUpdatedDate).ToList();
+        var applyWritesStats = statistics.Where(s => s.Name.Contains("ApplyWrites", StringComparison.OrdinalIgnoreCase)).ToList();
 
-        string BuildStatisticsHtml()
+        string BuildStatisticsHtml(IEnumerable<Statistic> stats)
         {
             var enc = System.Text.Encodings.Web.HtmlEncoder.Default;
+            var statsList = stats.ToList();
 
-            if (statistics.Count == 0)
+            if (statsList.Count == 0)
                 return "<tr><td colspan=\"7\" style=\"text-align: center; color: #8899a6;\">No statistics</td></tr>";
             
             var sb = new System.Text.StringBuilder();
-            foreach (var s in statistics)
+            foreach (var s in statsList)
             {
                 string minutesAgo = "N/A";
                 if (DateTimeOffset.TryParseExact(s.LastUpdatedDate, "yyyy-MM-ddTHH:mm:ss.fffZ", 
@@ -132,7 +134,9 @@ public class Admin_Stats : BaseAdmin
             <input type=""text"" id=""showFilterInput"" placeholder=""Show..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#4caf50'"" onblur=""this.style.borderColor='#444'"" />
             <input type=""text"" id=""hideFilterInput"" placeholder=""Hide..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#f44336'"" onblur=""this.style.borderColor='#444'"" />
         </div>
-        <table class=""stats-table"" id=""statsTable"">
+
+        <h2 style=""margin-top: 24px;"">ApplyWrites <span class=""session-count"">({applyWritesStats.Count})</span></h2>
+        <table class=""stats-table filterable-table"" id=""applyWritesTable"">
             <thead>
                 <tr>
                     <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
@@ -145,36 +149,55 @@ public class Admin_Stats : BaseAdmin
                 </tr>
             </thead>
             <tbody>
-                {BuildStatisticsHtml()}
+                {BuildStatisticsHtml(applyWritesStats)}
+            </tbody>
+        </table>
+
+        <h2 style=""margin-top: 32px;"">All Statistics <span class=""session-count"">({statistics.Count})</span></h2>
+        <table class=""stats-table filterable-table"" id=""statsTable"">
+            <thead>
+                <tr>
+                    <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
+                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Agent</th>
+                    <th class=""sortable"" data-col=""2"" data-type=""string"">Name</th>
+                    <th class=""sortable"" data-col=""3"" data-type=""number"" style=""text-align: right;"">Value</th>
+                    <th class=""sortable desc"" data-col=""4"" data-type=""string"">Last Updated</th>
+                    <th class=""sortable"" data-col=""5"" data-type=""number"" style=""text-align: right;"">Minutes Ago</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {BuildStatisticsHtml(statistics)}
             </tbody>
         </table>
         </div>
         <script>
-        // Table sorting
+        // Table sorting for multiple tables
         (function() {{
-            const table = document.getElementById('statsTable');
-            if (!table) return;
+            const tables = document.querySelectorAll('.stats-table');
             
-            const headers = table.querySelectorAll('th.sortable');
-            
-            headers.forEach(header => {{
-                header.addEventListener('click', function() {{
-                    const colIndex = parseInt(this.dataset.col);
-                    const type = this.dataset.type;
-                    const isDesc = this.classList.contains('desc');
-                    
-                    // Remove sort classes from all headers
-                    headers.forEach(h => h.classList.remove('asc', 'desc'));
-                    
-                    // Toggle sort direction (default to desc on first click)
-                    const newDir = isDesc ? 'asc' : 'desc';
-                    this.classList.add(newDir);
-                    
-                    sortTable(colIndex, type, newDir === 'asc');
+            tables.forEach(table => {{
+                const headers = table.querySelectorAll('th.sortable');
+                
+                headers.forEach(header => {{
+                    header.addEventListener('click', function() {{
+                        const colIndex = parseInt(this.dataset.col);
+                        const type = this.dataset.type;
+                        const isDesc = this.classList.contains('desc');
+                        
+                        // Remove sort classes from all headers in this table
+                        headers.forEach(h => h.classList.remove('asc', 'desc'));
+                        
+                        // Toggle sort direction (default to desc on first click)
+                        const newDir = isDesc ? 'asc' : 'desc';
+                        this.classList.add(newDir);
+                        
+                        sortTable(table, colIndex, type, newDir === 'asc');
+                    }});
                 }});
             }});
             
-            function sortTable(colIndex, type, ascending) {{
+            function sortTable(table, colIndex, type, ascending) {{
                 const tbody = table.querySelector('tbody');
                 const rows = Array.from(tbody.querySelectorAll('tr'));
                 
@@ -202,39 +225,42 @@ public class Admin_Stats : BaseAdmin
             }}
         }})();
 
-        // Table filtering
+        // Table filtering for all filterable tables
         (function() {{
             const showFilterInput = document.getElementById('showFilterInput');
             const hideFilterInput = document.getElementById('hideFilterInput');
-            const table = document.getElementById('statsTable');
-            if (!showFilterInput || !hideFilterInput || !table) return;
+            const tables = document.querySelectorAll('.filterable-table');
+            if (!showFilterInput || !hideFilterInput || tables.length === 0) return;
             
             function applyFilters() {{
                 const showText = showFilterInput.value.toLowerCase();
                 const hideText = hideFilterInput.value.toLowerCase();
-                const tbody = table.querySelector('tbody');
-                const rows = tbody.querySelectorAll('tr');
                 
-                rows.forEach(row => {{
-                    const cells = row.querySelectorAll('td');
-                    let rowText = '';
-                    cells.forEach(cell => {{
-                        rowText += cell.textContent.toLowerCase() + ' ';
+                tables.forEach(table => {{
+                    const tbody = table.querySelector('tbody');
+                    const rows = tbody.querySelectorAll('tr');
+                    
+                    rows.forEach(row => {{
+                        const cells = row.querySelectorAll('td');
+                        let rowText = '';
+                        cells.forEach(cell => {{
+                            rowText += cell.textContent.toLowerCase() + ' ';
+                        }});
+                        
+                        // Hide filter takes precedence
+                        if (hideText && rowText.includes(hideText)) {{
+                            row.style.display = 'none';
+                            return;
+                        }}
+                        
+                        // Show filter: if empty, show all; otherwise must match
+                        if (showText && !rowText.includes(showText)) {{
+                            row.style.display = 'none';
+                            return;
+                        }}
+                        
+                        row.style.display = '';
                     }});
-                    
-                    // Hide filter takes precedence
-                    if (hideText && rowText.includes(hideText)) {{
-                        row.style.display = 'none';
-                        return;
-                    }}
-                    
-                    // Show filter: if empty, show all; otherwise must match
-                    if (showText && !rowText.includes(showText)) {{
-                        row.style.display = 'none';
-                        return;
-                    }}
-                    
-                    row.style.display = '';
                 }});
             }}
             
