@@ -127,13 +127,13 @@ public class BaseAdmin
             <a href=""/admin/"" class=""nav-btn{ActiveClass("home")}"">Home</a>
             <a href=""/admin/sessions"" class=""nav-btn{ActiveClass("sessions")}"">Sessions</a>
             <a href=""/admin/stats"" class=""nav-btn{ActiveClass("stats")}"">Statistics</a>
-            <form method=""post"" action=""/admin/logout"" style=""margin: 0;"">
-                <button type=""submit"" class=""logout-btn"">Log out</button>
-            </form>
             <div class=""nav-spacer""></div>
             <a href=""/admin/config"" class=""nav-btn-destructive{ActiveClass("config")}"">Config</a>
             <a href=""/admin/actions"" class=""nav-btn-destructive{ActiveClass("actions")}"">Actions</a>
             <a href=""/admin/passkeys"" class=""nav-btn-destructive{ActiveClass("passkeys")}"">Passkeys</a>
+            <form method=""post"" action=""/admin/logout"" style=""margin: 0;"">
+                <button type=""submit"" class=""logout-btn"">Log out</button>
+            </form>
         </div>";
     }
 
