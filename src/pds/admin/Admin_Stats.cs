@@ -60,9 +60,9 @@ public class Admin_Stats : BaseAdmin
                     minutesAgo = $"{totalMinutes:F1}m";
                 }
                 sb.Append($@"<tr>
-                    <td>{enc.Encode(s.Name)}</td>
-                    <td>{enc.Encode(s.IpAddress)}</td>
+                    <td class=""ip-address"">{enc.Encode(s.IpAddress)}</td>
                     <td>{enc.Encode(s.UserAgent)}</td>
+                    <td>{enc.Encode(s.Name)}</td>
                     <td style=""text-align: right;"">{enc.Encode(s.Value.ToString())}</td>
                     <td>{enc.Encode(s.LastUpdatedDate)}</td>
                     <td style=""text-align: right;"">{enc.Encode(minutesAgo)}</td>
@@ -107,6 +107,7 @@ public class Admin_Stats : BaseAdmin
             .stats-table th.sortable.asc::after {{ content: ' \2191'; opacity: 1; }}
             .stats-table th.sortable.desc::after {{ content: ' \2193'; opacity: 1; }}
             .stats-table td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
+            .ip-address {{ font-weight: bold; color: #1d9bf0; }}
             .stats-table tr:last-child td {{ border-bottom: none; }}
             .stats-table tr:hover {{ background-color: #3a3d41; }}
         </style>
@@ -134,9 +135,9 @@ public class Admin_Stats : BaseAdmin
         <table class=""stats-table"" id=""statsTable"">
             <thead>
                 <tr>
-                    <th class=""sortable"" data-col=""0"" data-type=""string"">Name</th>
-                    <th class=""sortable"" data-col=""1"" data-type=""string"">IP Address</th>
-                    <th class=""sortable"" data-col=""2"" data-type=""string"">User Agent</th>
+                    <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
+                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Agent</th>
+                    <th class=""sortable"" data-col=""2"" data-type=""string"">Name</th>
                     <th class=""sortable"" data-col=""3"" data-type=""number"" style=""text-align: right;"">Value</th>
                     <th class=""sortable desc"" data-col=""4"" data-type=""string"">Last Updated</th>
                     <th class=""sortable"" data-col=""5"" data-type=""number"" style=""text-align: right;"">Minutes Ago</th>
