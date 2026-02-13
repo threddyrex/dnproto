@@ -71,10 +71,10 @@ public class Admin_Sessions : BaseAdmin
             foreach (var s in legacySessions)
             {
                 sb.Append($@"<tr>
+                    <td class=""ip-address"">{enc.Encode(s.IpAddress)}</td>
+                    <td>{enc.Encode(s.UserAgent)}</td>
                     <td>{enc.Encode(s.CreatedDate)}</td>
                     <td style=""text-align: right;"">{enc.Encode(CalculateAge(s.CreatedDate))}</td>
-                    <td>{enc.Encode(s.IpAddress)}</td>
-                    <td>{enc.Encode(s.UserAgent)}</td>
                     <td>
                         <form method=""post"" action=""/admin/deletelegacysession"" style=""display:inline;"">
                             <input type=""hidden"" name=""refreshJwt"" value=""{enc.Encode(s.RefreshJwt)}"" />
@@ -95,9 +95,9 @@ public class Admin_Sessions : BaseAdmin
             foreach (var s in oauthSessions)
             {
                 sb.Append($@"<tr>
+                    <td class=""ip-address"">{enc.Encode(s.IpAddress)}</td>
                     <td>{enc.Encode(s.CreatedDate)}</td>
                     <td style=""text-align: right;"">{enc.Encode(CalculateAge(s.CreatedDate))}</td>
-                    <td>{enc.Encode(s.IpAddress)}</td>
                     <td>{enc.Encode(s.ClientId)}</td>
                     <td>{enc.Encode(s.AuthType)}</td>
                     <td>
@@ -121,10 +121,10 @@ public class Admin_Sessions : BaseAdmin
             foreach (var s in adminSessions)
             {
                 sb.Append($@"<tr>
+                    <td class=""ip-address"">{enc.Encode(s.IpAddress)}</td>
+                    <td>{enc.Encode(s.UserAgent)}</td>
                     <td>{enc.Encode(s.CreatedDate)}</td>
                     <td style=""text-align: right;"">{enc.Encode(CalculateAge(s.CreatedDate))}</td>
-                    <td>{enc.Encode(s.IpAddress)}</td>
-                    <td>{enc.Encode(s.UserAgent)}</td>
                     <td>{enc.Encode(s.AuthType)}</td>
                     <td>
                         <form method=""post"" action=""/admin/deleteadminsession"" style=""display:inline;"">
@@ -162,6 +162,7 @@ public class Admin_Sessions : BaseAdmin
             .sessions-table th.sortable.asc::after {{ content: ' \2191'; opacity: 1; }}
             .sessions-table th.sortable.desc::after {{ content: ' \2193'; opacity: 1; }}
             .sessions-table td {{ padding: 10px 16px; border-bottom: 1px solid #444; font-size: 14px; }}
+            .ip-address {{ font-weight: bold; color: #1d9bf0; }}
             .sessions-table tr:last-child td {{ border-bottom: none; }}
             .sessions-table tr:hover {{ background-color: #3a3d41; }}
         </style>
@@ -175,10 +176,10 @@ public class Admin_Sessions : BaseAdmin
         <table class=""sessions-table"" id=""legacySessionsTable"">
             <thead>
                 <tr>
-                    <th class=""sortable desc"" data-col=""0"" data-type=""string"">Created</th>
-                    <th class=""sortable"" data-col=""1"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
-                    <th class=""sortable"" data-col=""2"" data-type=""string"">IP Address</th>
-                    <th class=""sortable"" data-col=""3"" data-type=""string"">User Agent</th>
+                    <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
+                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Agent</th>
+                    <th class=""sortable desc"" data-col=""2"" data-type=""string"">Created</th>
+                    <th class=""sortable"" data-col=""3"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -191,9 +192,9 @@ public class Admin_Sessions : BaseAdmin
         <table class=""sessions-table"" id=""oauthSessionsTable"">
             <thead>
                 <tr>
-                    <th class=""sortable desc"" data-col=""0"" data-type=""string"">Created</th>
-                    <th class=""sortable"" data-col=""1"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
-                    <th class=""sortable"" data-col=""2"" data-type=""string"">IP Address</th>
+                    <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
+                    <th class=""sortable desc"" data-col=""1"" data-type=""string"">Created</th>
+                    <th class=""sortable"" data-col=""2"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
                     <th class=""sortable"" data-col=""3"" data-type=""string"">Client ID</th>
                     <th class=""sortable"" data-col=""4"" data-type=""string"">Auth Type</th>
                     <th>Action</th>
@@ -208,10 +209,10 @@ public class Admin_Sessions : BaseAdmin
         <table class=""sessions-table"" id=""adminSessionsTable"">
             <thead>
                 <tr>
-                    <th class=""sortable desc"" data-col=""0"" data-type=""string"">Created</th>
-                    <th class=""sortable"" data-col=""1"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
-                    <th class=""sortable"" data-col=""2"" data-type=""string"">IP Address</th>
-                    <th class=""sortable"" data-col=""3"" data-type=""string"">User Agent</th>
+                    <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
+                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Agent</th>
+                    <th class=""sortable desc"" data-col=""2"" data-type=""string"">Created</th>
+                    <th class=""sortable"" data-col=""3"" data-type=""number"" style=""text-align: right;"">Age (min)</th>
                     <th class=""sortable"" data-col=""4"" data-type=""string"">AuthType</th>
                     <th>Action</th>
                 </tr>
