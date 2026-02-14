@@ -97,9 +97,9 @@ public class Admin_Actions : BaseAdmin
             {
                 // Validate confirmation text
                 string? confirmText = HttpContext.Request.Form["confirm_text"];
-                if(string.IsNullOrEmpty(confirmText) || !confirmText.Equals("agree", StringComparison.OrdinalIgnoreCase))
+                if(string.IsNullOrEmpty(confirmText) || !confirmText.Equals("this will delete my repo", StringComparison.OrdinalIgnoreCase))
                 {
-                    HttpContext.Response.Cookies.Append("install_repo_error", "You must type 'agree' to confirm this action.", new CookieOptions
+                    HttpContext.Response.Cookies.Append("install_repo_error", "You must type 'this will delete my repo' to confirm this action.", new CookieOptions
                     {
                         HttpOnly = true,
                         Secure = true,
@@ -322,11 +322,11 @@ public class Admin_Actions : BaseAdmin
             <div class=""label"">Install a fresh user repository using the configured key pair</div>
             <div class=""value"">Repo commit exists: {(!Pds.PdsDb.RepoCommitExists() ? "<span style=\"color: #4caf50;\">true</span>" : "<span style=\"color: #f44336;\">false</span>")}</div>
         </div>
-        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"">
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to install the user repo? This will delete any existing repo data.');"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""installuserrepo"" />
             <div style=""margin-bottom: 12px;"">
-                <label for=""confirm_text"" style=""color: #f0a81d; font-size: 14px;"">Type &quot;agree&quot; to confirm (this will delete any existing repo data):</label>
+                <label for=""confirm_text"" style=""color: #f0a81d; font-size: 14px;"">Type &quot;this will delete my repo&quot; to confirm:</label>
                 <input type=""text"" id=""confirm_text"" name=""confirm_text"" autocomplete=""off"" style=""display: block; margin-top: 8px; padding: 8px 12px; border-radius: 4px; border: 1px solid #2f3336; background-color: #16181c; color: #e7e9ea; font-size: 14px; width: 200px;"" />
             </div>
             <button type=""submit"" class=""action-btn-destructive"">Install User Repo</button>
