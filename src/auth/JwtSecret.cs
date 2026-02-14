@@ -40,6 +40,7 @@ public class JwtSecret
         
         var now = DateTimeOffset.UtcNow;
         var expiry = now.AddHours(2); // Access tokens expire in 2 hours
+        var jti = Guid.NewGuid().ToString();
         
         var claims = new List<Claim>
         {
@@ -47,7 +48,8 @@ public class JwtSecret
             new Claim(JwtRegisteredClaimNames.Aud, pdsDid),
             new Claim(JwtRegisteredClaimNames.Sub, userDid),
             new Claim(JwtRegisteredClaimNames.Iat, now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
-            new Claim(JwtRegisteredClaimNames.Exp, expiry.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+            new Claim(JwtRegisteredClaimNames.Exp, expiry.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+            new Claim(JwtRegisteredClaimNames.Jti, jti)
         };
         
         var signingCredentials = new SigningCredentials(
