@@ -9,6 +9,8 @@ namespace dnproto.pds.xrpc;
 
 public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
 {
+    private static object _refreshLock = new object();
+
     public IResult GetResponse()
     {
         IncrementStatistics();
@@ -46,7 +48,7 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
         //
         // Check did
         //
-        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);        
+        string? userDid = JwtSecret.GetDidFromClaimsPrincipal(claimsPrincipal);
         if (userDid != Pds.PdsDb.GetConfigProperty("UserDid"))
         {
             return Results.Json(new 
@@ -57,10 +59,17 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
             statusCode: 401);
         }
 
+
         //
-        // Check that refreshJwt exists in db
+        // Check that refreshJwt exists in db.
         //
-        bool refreshJwtExists = Pds.PdsDb.LegacySessionExistsForRefreshJwt(originalRefreshJwt!);
+        bool refreshJwtExists = false;
+        lock(_refreshLock)
+        {
+            refreshJwtExists = Pds.PdsDb.LegacySessionExistsForRefreshJwt(originalRefreshJwt!);
+            Pds.PdsDb.DeleteLegacySessionForRefreshJwt(originalRefreshJwt!);
+        }
+
         if (!refreshJwtExists)
         {
             return Results.Json(new 
@@ -104,11 +113,6 @@ public class ComAtprotoServer_RefreshSession : BaseXrpcCommand
 
         Pds.PdsDb.CreateLegacySession(session);
 
-
-        //
-        // Delete old refresh token from db
-        //
-        Pds.PdsDb.DeleteLegacySessionForRefreshJwt(originalRefreshJwt!);
 
 
         //
