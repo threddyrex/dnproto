@@ -147,6 +147,10 @@ public class Admin_Actions : BaseAdmin
             {
                 Pds.ActivateAccount();
             }
+            else if(action == "deactivateaccount")
+            {
+                Pds.DeactivateAccount();
+            }
             
             // POST-Redirect-GET pattern to prevent form resubmission
             HttpContext.Response.Redirect("/admin/actions");
@@ -254,6 +258,42 @@ public class Admin_Actions : BaseAdmin
         {GetNavbarHtml("actions")}
         <h1>Actions</h1>
 
+        <h2>Admin Password</h2>
+        {(generatedAdminPassword != null ? $@"
+        <div class=""password-display"">
+            <div class=""label"">New Password Generated - Copy Now!</div>
+            <div class=""value"">{HtmlEncode(generatedAdminPassword)}</div>
+            <div class=""password-warning"">This password will not be shown again. Copy it now and store it securely.</div>
+        </div>
+        " : "")}
+        <div class=""info-card"">
+            <div class=""label"">AdminHashedPassword</div>
+            <div class=""value"">{adminPasswordStatus}</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new admin password? This will invalidate the existing admin password.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""generateadminpassword"" />
+            <button type=""submit"" class=""action-btn-destructive"">Generate Admin Password</button>
+        </form>
+
+        <h2>User Password</h2>
+        {(generatedPassword != null ? $@"
+        <div class=""password-display"">
+            <div class=""label"">New Password Generated - Copy Now!</div>
+            <div class=""value"">{HtmlEncode(generatedPassword)}</div>
+            <div class=""password-warning"">This password will not be shown again. Copy it now and store it securely.</div>
+        </div>
+        " : "")}
+        <div class=""info-card"">
+            <div class=""label"">UserHashedPassword</div>
+            <div class=""value"">{userPasswordStatus}</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new password? This will invalidate the existing password.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
+            <button type=""submit"" class=""action-btn-destructive"">Generate User Password</button>
+        </form>
+
         <h2>User Key Pair</h2>
         <div class=""info-card"">
             <div class=""label"">UserPublicKeyMultibase</div>
@@ -280,6 +320,7 @@ public class Admin_Actions : BaseAdmin
         " : "")}
         <div class=""info-card"">
             <div class=""label"">Install a fresh user repository using the configured key pair</div>
+            <div class=""value"">Repo commit exists: {(!Pds.PdsDb.RepoCommitExists() ? "<span style=\"color: #4caf50;\">true</span>" : "<span style=\"color: #f44336;\">false</span>")}</div>
         </div>
         <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"">
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
@@ -291,51 +332,23 @@ public class Admin_Actions : BaseAdmin
             <button type=""submit"" class=""action-btn-destructive"">Install User Repo</button>
         </form>
 
-        <h2>User Password</h2>
-        {(generatedPassword != null ? $@"
-        <div class=""password-display"">
-            <div class=""label"">New Password Generated - Copy Now!</div>
-            <div class=""value"">{HtmlEncode(generatedPassword)}</div>
-            <div class=""password-warning"">This password will not be shown again. Copy it now and store it securely.</div>
-        </div>
-        " : "")}
-        <div class=""info-card"">
-            <div class=""label"">UserHashedPassword</div>
-            <div class=""value"">{userPasswordStatus}</div>
-        </div>
-        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new password? This will invalidate the existing password.');"">
-            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
-            <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
-            <button type=""submit"" class=""action-btn-destructive"">Generate User Password</button>
-        </form>
-
         <h2>Activate Account</h2>
         <div class=""info-card"">
             <div class=""label"">Activate account. This sets the config property UserIsActive, and generates firehose events for #identity and #account.</div>
+            <div class=""value"">UserIsActive current value: {(Pds.PdsDb.ConfigPropertyExists("UserIsActive") ? (Pds.PdsDb.GetConfigPropertyBool("UserIsActive") ? "<span style=\"color: #4caf50;\">true</span>" : "<span style=\"color: #f44336;\">false</span>") : "<span class=\"dimmed\">not set</span>")}</div>
         </div>
-        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to activate the account?');"">
-            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
-            <input type=""hidden"" name=""action"" value=""activateaccount"" />
-            <button type=""submit"" class=""action-btn-destructive"">Activate Account</button>
-        </form>
-
-        <h2>Admin Password</h2>
-        {(generatedAdminPassword != null ? $@"
-        <div class=""password-display"">
-            <div class=""label"">New Password Generated - Copy Now!</div>
-            <div class=""value"">{HtmlEncode(generatedAdminPassword)}</div>
-            <div class=""password-warning"">This password will not be shown again. Copy it now and store it securely.</div>
+        <div style=""margin-top: 16px; display: flex; gap: 12px;"">
+            <form method=""post"" action=""/admin/actions"" style=""margin: 0;"" onsubmit=""return confirm('Are you sure you want to activate the account?');"">
+                <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+                <input type=""hidden"" name=""action"" value=""activateaccount"" />
+                <button type=""submit"" class=""action-btn-destructive"">Activate Account</button>
+            </form>
+            <form method=""post"" action=""/admin/actions"" style=""margin: 0;"" onsubmit=""return confirm('Are you sure you want to deactivate the account?');"">
+                <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+                <input type=""hidden"" name=""action"" value=""deactivateaccount"" />
+                <button type=""submit"" class=""action-btn-destructive"">Deactivate Account</button>
+            </form>
         </div>
-        " : "")}
-        <div class=""info-card"">
-            <div class=""label"">AdminHashedPassword</div>
-            <div class=""value"">{adminPasswordStatus}</div>
-        </div>
-        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to generate a new admin password? This will invalidate the existing admin password.');"">
-            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
-            <input type=""hidden"" name=""action"" value=""generateadminpassword"" />
-            <button type=""submit"" class=""action-btn-destructive"">Generate Admin Password</button>
-        </form>
 
         </div>
         </body>
