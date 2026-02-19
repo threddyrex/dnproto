@@ -56,6 +56,17 @@ public class AppBsky_Proxy : BaseXrpcCommand
 
 
         //
+        // Check against allow list.
+        //
+        HashSet<string> atprotoProxyAllowList = Pds.PdsDb.GetConfigPropertyHashSet("AtprotoProxyAllowedDids");
+        if(atprotoProxyAllowList.Contains(atprotoProxy.Did) == false)
+        {
+            Pds.Logger.LogError($"Atproto proxy DID not in allow list: {atprotoProxy.Did}");
+            return Results.Problem("Unauthorized", statusCode: 403);
+        }
+
+
+        //
         // Resolve did doc for atproto proxy DID.
         // Use longer expiry because we don't expect these proxy values to change.
         //

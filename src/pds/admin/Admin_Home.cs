@@ -181,6 +181,12 @@ public class Admin_Home : BaseAdmin
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td>Access log for caddy.</td>
             </tr>
+            <tr class=""section-header""><td colspan=""3"">Security</td></tr>
+            <tr>
+                <td class=""key-name"">AtprotoProxyAllowedDids</td>
+                <td>{GetConfigValue("AtprotoProxyAllowedDids")}</td>
+                <td>Comma-separated list of DIDs allowed for Atproto-Proxy header.</td>
+            </tr>
         </table>
         </div>
         </body>

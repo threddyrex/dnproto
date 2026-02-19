@@ -142,6 +142,9 @@ public class Installer
         db.SetConfigPropertyBool("FeatureEnabled_Passkeys", false);
         db.SetConfigPropertyInt("LogRetentionDays", 10);        
         db.SetConfigProperty("PdsCrawlers", "bsky.network");
+
+        // security
+        db.SetConfigProperty("AtprotoProxyAllowedDids", "did:web:api.bsky.app,did:web:api.bsky.chat");
     }
 
     #endregion

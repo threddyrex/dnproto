@@ -33,7 +33,8 @@ public class Admin_Config : BaseAdmin
         "LogRetentionDays",
         "SystemctlServiceName",
         "CaddyAccessLogFilePath",
-        "FeatureEnabled_RequestCrawl"
+        "FeatureEnabled_RequestCrawl",
+        "AtprotoProxyAllowedDids"
     };
 
     public IResult GetResponse()
@@ -264,6 +265,13 @@ public class Admin_Config : BaseAdmin
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueForJs("CaddyAccessLogFilePath")}')"">Set</button></td>
                 <td>Access log for caddy.</td>
+            </tr>
+            <tr class=""section-header""><td colspan=""4"">Security</td></tr>
+            <tr>
+                <td class=""key-name"">AtprotoProxyAllowedDids</td>
+                <td>{GetConfigValue("AtprotoProxyAllowedDids")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('AtprotoProxyAllowedDids', '{GetConfigValueForJs("AtprotoProxyAllowedDids")}')"">Set</button></td>
+                <td>Comma-separated list of DIDs allowed for Atproto-Proxy header (SSRF protection).</td>
             </tr>
         </table>
         <script>
