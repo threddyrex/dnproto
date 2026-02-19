@@ -50,6 +50,13 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
                 return Results.Json(new { error = "NotFound", message = "Unable to resolve repository" }, statusCode: 404);
             }
 
+            // Validate PDS hostname (SSRF protection)
+            if (!IsValidOutboundHost(actorInfo.Pds))
+            {
+                Pds.Logger.LogError($"[SECURITY] Blocked invalid or internal PDS hostname: {actorInfo.Pds}");
+                return Results.Json(new { error = "InvalidRequest", message = "Invalid PDS hostname" }, statusCode: 400);
+            }
+
             // Proxy the request to the target PDS
             string targetUrl = $"https://{actorInfo.Pds}/xrpc/com.atproto.repo.getRecord?repo={actorInfo.Did}&collection={collection}&rkey={rkey}";
             Pds.Logger.LogInfo($"Proxying to: {targetUrl}");

@@ -107,6 +107,16 @@ public class AppBsky_Proxy : BaseXrpcCommand
         }
 
 
+        //
+        // Validate service endpoint URL (SSRF protection)
+        //
+        if (!IsValidOutboundUrl(serviceEndpoint))
+        {
+            Pds.Logger.LogError($"[SECURITY] Blocked invalid or internal service endpoint: {serviceEndpoint}");
+            return Results.Problem("Invalid service endpoint", statusCode: 400);
+        }
+
+
         string appViewUrl = serviceEndpoint;
         var path = context.Request.Path.Value;
         var queryString = context.Request.QueryString.Value;

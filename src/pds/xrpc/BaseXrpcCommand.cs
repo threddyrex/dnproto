@@ -1143,4 +1143,104 @@ public abstract class BaseXrpcCommand
 
     #endregion
 
+
+    #region SECURITY
+
+    /// <summary>
+    /// Validates that a URL is safe for outbound requests (SSRF protection).
+    /// Blocks localhost, private IPs, cloud metadata endpoints, and non-HTTPS schemes.
+    /// </summary>
+    /// <param name="url">The full URL to validate (e.g., https://api.bsky.app/xrpc/...)</param>
+    /// <returns>True if the URL is safe for outbound requests</returns>
+    protected static bool IsValidOutboundUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+            return false;
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+
+        return IsValidOutboundHost(uri.Host, uri.Scheme);
+    }
+
+    /// <summary>
+    /// Validates that a hostname is safe for outbound requests (SSRF protection).
+    /// Blocks localhost, private IPs, cloud metadata endpoints, and internal domains.
+    /// </summary>
+    /// <param name="hostname">The hostname to validate (e.g., api.bsky.app)</param>
+    /// <param name="scheme">The URL scheme (must be https for safety)</param>
+    /// <returns>True if the hostname is safe for outbound requests</returns>
+    protected static bool IsValidOutboundHost(string? hostname, string scheme = "https")
+    {
+        if (string.IsNullOrEmpty(hostname))
+            return false;
+
+        // Only allow HTTPS
+        if (!scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // Block URL injection characters - valid hostnames cannot contain these
+        // ? - query string injection
+        // # - fragment injection  
+        // / - path injection
+        // @ - userinfo injection
+        // : - port injection (except for IPv6, handled separately)
+        // \ - path injection on some systems
+        // Control characters and whitespace
+        if (hostname.IndexOfAny(new[] { '?', '#', '/', '@', '\\', ' ', '\t', '\r', '\n' }) >= 0)
+            return false;
+
+        // Block colon except in IPv6 addresses (which are enclosed in brackets when used in URLs)
+        // A bare hostname with : that isn't an IPv6 address is suspicious
+        if (hostname.Contains(':') && !hostname.StartsWith('['))
+            return false;
+
+        // Block localhost variants
+        if (hostname.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // Block internal domain suffixes
+        if (hostname.EndsWith(".local", StringComparison.OrdinalIgnoreCase) ||
+            hostname.EndsWith(".internal", StringComparison.OrdinalIgnoreCase) ||
+            hostname.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // Block IP addresses that are private/internal
+        if (System.Net.IPAddress.TryParse(hostname, out var ip))
+        {
+            // Loopback (127.x.x.x, ::1)
+            if (System.Net.IPAddress.IsLoopback(ip))
+                return false;
+
+            // Cloud metadata endpoint
+            if (ip.ToString() == "169.254.169.254")
+                return false;
+
+            // Check IPv4 private ranges
+            byte[] bytes = ip.GetAddressBytes();
+            if (bytes.Length == 4)
+            {
+                // 10.0.0.0/8
+                if (bytes[0] == 10)
+                    return false;
+
+                // 172.16.0.0/12
+                if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+                    return false;
+
+                // 192.168.0.0/16
+                if (bytes[0] == 192 && bytes[1] == 168)
+                    return false;
+
+                // Link-local 169.254.0.0/16
+                if (bytes[0] == 169 && bytes[1] == 254)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    #endregion
+
 }
