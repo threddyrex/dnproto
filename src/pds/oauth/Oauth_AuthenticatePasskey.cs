@@ -199,6 +199,18 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
 
 
         //
+        // Validate redirect_uri against allowlist
+        //
+        string redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
+        HashSet<string> allowedRedirectUris = Pds.PdsDb.GetConfigPropertyHashSet("OauthAllowedRedirectUris");
+        if (!allowedRedirectUris.Contains(redirectUri))
+        {
+            Pds.Logger.LogWarning($"[OAUTH] [PASSKEY] [SECURITY] redirect_uri not in allowlist. redirect_uri={redirectUri}");
+            return Results.Json(new { error = "Invalid redirect_uri" }, statusCode: 400);
+        }
+
+
+        //
         // Generate authorization code and update the oauth request
         //
         string authorizationCode = "authcode-" + Guid.NewGuid().ToString();
@@ -210,7 +222,6 @@ public class Oauth_AuthenticatePasskey : BaseXrpcCommand
         //
         // Build redirect URL
         //
-        string redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "redirect_uri");
         string state = XrpcHelpers.GetRequestBodyArgumentValue(oauthRequest.Body, "state");
         string issuer = $"https://{Pds.PdsDb.GetConfigProperty("PdsHostname")}";
 

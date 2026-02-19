@@ -34,7 +34,8 @@ public class Admin_Config : BaseAdmin
         "SystemctlServiceName",
         "CaddyAccessLogFilePath",
         "FeatureEnabled_RequestCrawl",
-        "AtprotoProxyAllowedDids"
+        "AtprotoProxyAllowedDids",
+        "OauthAllowedRedirectUris"
     };
 
     public IResult GetResponse()
@@ -272,6 +273,12 @@ public class Admin_Config : BaseAdmin
                 <td>{GetConfigValue("AtprotoProxyAllowedDids")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('AtprotoProxyAllowedDids', '{GetConfigValueForJs("AtprotoProxyAllowedDids")}')"">Set</button></td>
                 <td>Comma-separated list of DIDs allowed for Atproto-Proxy header (SSRF protection).</td>
+            </tr>
+            <tr>
+                <td class=""key-name"">OauthAllowedRedirectUris</td>
+                <td>{GetConfigValue("OauthAllowedRedirectUris")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('OauthAllowedRedirectUris', '{GetConfigValueForJs("OauthAllowedRedirectUris")}')"">Set</button></td>
+                <td>Comma-separated list of allowed OAuth redirect URIs.</td>
             </tr>
         </table>
         <script>

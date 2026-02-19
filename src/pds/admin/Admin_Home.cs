@@ -187,6 +187,11 @@ public class Admin_Home : BaseAdmin
                 <td>{GetConfigValue("AtprotoProxyAllowedDids")}</td>
                 <td>Comma-separated list of DIDs allowed for Atproto-Proxy header.</td>
             </tr>
+            <tr>
+                <td class=""key-name"">OauthAllowedRedirectUris</td>
+                <td>{GetConfigValue("OauthAllowedRedirectUris")}</td>
+                <td>Comma-separated list of allowed OAuth redirect URIs.</td>
+            </tr>
         </table>
         </div>
         </body>

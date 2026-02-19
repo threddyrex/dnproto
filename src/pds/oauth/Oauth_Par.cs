@@ -65,6 +65,17 @@ public class Oauth_Par : BaseXrpcCommand
         }
 
 
+        //
+        // Validate redirect_uri against allowlist
+        //
+        string? redirectUri = XrpcHelpers.GetRequestBodyArgumentValue(body, "redirect_uri");
+        HashSet<string> allowedRedirectUris = Pds.PdsDb.GetConfigPropertyHashSet("OauthAllowedRedirectUris");
+        if (!allowedRedirectUris.Contains(redirectUri ?? ""))
+        {
+            Pds.Logger.LogWarning($"[OAUTH] [SECURITY] PAR redirect_uri not in allowlist. redirect_uri={redirectUri}");
+            return Results.Json(new { error = "invalid_redirect_uri" }, statusCode: 400);
+        }
+
 
         //
         // Insert into db
