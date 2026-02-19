@@ -200,7 +200,7 @@ CREATE TABLE IF NOT EXISTS ConfigProperty (
     public HashSet<string> GetConfigPropertyHashSet(string key)
     {
         var val = GetConfigProperty(key);
-        var items = val.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        var items = val.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return new HashSet<string>(items);
     }
 
