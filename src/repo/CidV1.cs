@@ -40,6 +40,12 @@ public class CidV1
 
     #region READ
 
+    /// <summary>
+    /// Reads a CidV1 from a stream (for example, an atproto repo stream).
+    /// </summary>
+    /// <param name="s"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static CidV1 ReadCid(Stream s)
     {
         // https://github.com/multiformats/cid
@@ -87,6 +93,12 @@ public class CidV1
         };
     } 
 
+    /// <summary>
+    /// Reads a CidV1 from a base32 string.
+    /// </summary>
+    /// <param name="base32"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public static CidV1 FromBase32(string base32)
     {
         if (!base32.StartsWith("b"))
@@ -111,6 +123,11 @@ public class CidV1
 
     #region WRITE
 
+    /// <summary>
+    /// Writes a CidV1 to a stream.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="cid"></param>
     public static void WriteCid(Stream s, CidV1 cid)
     {
         VarInt.WriteVarInt(s, cid.Version);
@@ -120,6 +137,12 @@ public class CidV1
         s.Write(cid.DigestBytes, 0, cid.DigestBytes.Length);
     }
 
+    /// <summary>
+    /// Writes a CidV1 to a stream.
+    /// </summary>
+    /// <param name="s"></param>
+    /// <param name="cid"></param>
+    /// <returns></returns>
     public static async Task WriteCidAsync(Stream s, CidV1 cid)
     {
         await VarInt.WriteVarIntAsync(s, cid.Version);
