@@ -5,6 +5,11 @@ namespace dnproto.repo;
 
 /// <summary>
 /// Represents a cid in atproto. Only cid version 1 is supported.
+/// 
+/// Two types of cids are used:
+///     dag-cbor (for records)
+///     raw (for blobs)
+/// 
 /// https://github.com/multiformats/cid
 /// https://github.com/multiformats/multicodec/blob/master/table.csv
 /// </summary>
@@ -31,6 +36,9 @@ public class CidV1
     // base32 representation of the CID
     public required string Base32 { get; set; }
 
+
+
+    #region READ
 
     public static CidV1 ReadCid(Stream s)
     {
@@ -79,6 +87,30 @@ public class CidV1
         };
     } 
 
+    public static CidV1 FromBase32(string base32)
+    {
+        if (!base32.StartsWith("b"))
+        {
+            throw new Exception("CID base32 string must start with 'b'");
+        }
+
+        byte[] originalBytes = Base32Encoding.Base32ToBytes(base32.Substring(1));
+        using var ms = new MemoryStream(originalBytes);
+        var cid = ReadCid(ms);
+        
+        // Use the original bytes instead of reconstructed ones to preserve exact encoding
+        cid.AllBytes = originalBytes;
+        cid.Base32 = base32;
+        
+        return cid;
+    }
+
+
+    #endregion
+
+
+    #region WRITE
+
     public static void WriteCid(Stream s, CidV1 cid)
     {
         VarInt.WriteVarInt(s, cid.Version);
@@ -97,22 +129,52 @@ public class CidV1
         await s.WriteAsync(cid.DigestBytes, 0, cid.DigestBytes.Length);
     }
 
-    public byte[] GetBytes()
+    #endregion
+
+
+
+
+
+    #region COMPUTE
+
+    /// <summary>
+    /// Computes a CIDv1 for a dag-cbor object.
+    /// </summary>
+    /// <param name="dagCborObject"></param>
+    /// <returns></returns>
+    public static CidV1 ComputeCidForDagCbor(DagCborObject dagCborObject)
     {
-        return AllBytes;
+        var bytes = dagCborObject.ToBytes();
+        var hash = SHA256.HashData(bytes);
+
+        // Create CIDv1 with dag-cbor multicodec (0x71) and sha256 (0x12)
+        var cid = new CidV1
+        {
+            Version = new VarInt { Value = 1 },
+            Multicodec = new VarInt { Value = 0x71 },
+            HashFunction = new VarInt { Value = 0x12 },
+            DigestSize = new VarInt { Value = 32 },
+            DigestBytes = hash,
+            AllBytes = Array.Empty<byte>(), // Will be set below
+            Base32 = ""
+        };
+
+        using var ms = new MemoryStream();
+        CidV1.WriteCid(ms, cid);
+        cid.AllBytes = ms.ToArray();
+        cid.Base32 = "b" + Base32Encoding.BytesToBase32(cid.AllBytes);
+
+        return cid;
     }
 
-    public string GetBase32()
-    {
-        return Base32;
-    }
 
-    public override string ToString()
-    {
-        return Base32;
-    }
 
-    public static CidV1 GenerateForBlobBytes(byte[] blobBytes)
+    /// <summary>
+    /// Computes a CIDv1 for blob bytes.
+    /// </summary>
+    /// <param name="blobBytes"></param>
+    /// <returns></returns>
+    public static CidV1 ComputeCidForBlobBytes(byte[] blobBytes)
     {
         //
         // Compute SHA-256 hash
@@ -144,48 +206,19 @@ public class CidV1
         return cid;
     }
 
-    public static CidV1 FromBase32(string base32)
-    {
-        if (!base32.StartsWith("b"))
-        {
-            throw new Exception("CID base32 string must start with 'b'");
-        }
 
-        byte[] originalBytes = Base32Encoding.Base32ToBytes(base32.Substring(1));
-        using var ms = new MemoryStream(originalBytes);
-        var cid = ReadCid(ms);
-        
-        // Use the original bytes instead of reconstructed ones to preserve exact encoding
-        cid.AllBytes = originalBytes;
-        cid.Base32 = base32;
-        
-        return cid;
+    #endregion
+
+    public string GetBase32()
+    {
+        return Base32;
     }
 
-    public static CidV1 ComputeCidForDagCbor(DagCborObject dagCborObject)
+    public override string ToString()
     {
-        var bytes = dagCborObject.ToBytes();
-        var hash = SHA256.HashData(bytes);
-
-        // Create CIDv1 with dag-cbor multicodec (0x71) and sha256 (0x12)
-        var cid = new CidV1
-        {
-            Version = new VarInt { Value = 1 },
-            Multicodec = new VarInt { Value = 0x71 },
-            HashFunction = new VarInt { Value = 0x12 },
-            DigestSize = new VarInt { Value = 32 },
-            DigestBytes = hash,
-            AllBytes = Array.Empty<byte>(), // Will be set below
-            Base32 = ""
-        };
-
-        using var ms = new MemoryStream();
-        CidV1.WriteCid(ms, cid);
-        cid.AllBytes = ms.ToArray();
-        cid.Base32 = "b" + Base32Encoding.BytesToBase32(cid.AllBytes);
-
-        return cid;
+        return Base32;
     }
+
 
     public override bool Equals(object? obj)
     {

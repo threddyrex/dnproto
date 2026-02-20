@@ -57,7 +57,7 @@ public class ComAtprotoRepo_UploadBlob : BaseXrpcCommand
         //
         // Generate cid
         //
-        string cid = CidV1.GenerateForBlobBytes(blobBytes).Base32;
+        string cid = CidV1.ComputeCidForBlobBytes(blobBytes).Base32;
 
         //
         // Update or insert

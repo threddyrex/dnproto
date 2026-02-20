@@ -57,7 +57,7 @@ public class GenerateBlobCid : BaseCommand
         //
         // Compute SHA-256 hash
         //
-        CidV1 cid = CidV1.GenerateForBlobBytes(blobBytes);
+        CidV1 cid = CidV1.ComputeCidForBlobBytes(blobBytes);
 
         //
         // Output the result

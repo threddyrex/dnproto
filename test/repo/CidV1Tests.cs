@@ -325,4 +325,27 @@ public class CidV1Tests
         byte[] bytesAgain = record.ToBytes();
         Assert.Equal(storedBytes, bytesAgain);
     }
+
+
+    [Fact]
+    public void ComputeCidForBlobBytes_Deterministic()
+    {
+        // Arrange - Create some blob bytes
+        byte[] blobBytes = new byte[256];
+        for (int i = 0; i < blobBytes.Length; i++)
+        {
+            blobBytes[i] = (byte)(i % 256);
+        }
+
+        // Act - Compute CID multiple times
+        var cid1 = CidV1.ComputeCidForBlobBytes(blobBytes);
+        var cid2 = CidV1.ComputeCidForBlobBytes(blobBytes);
+
+        // Assert - CIDs should be identical
+        Assert.Equal(cid1.Base32, cid2.Base32);
+
+        // Verify CID matches hash of blob bytes
+        var hash = System.Security.Cryptography.SHA256.HashData(blobBytes);
+        Assert.Equal(hash, cid1.DigestBytes);
+    }
 }
