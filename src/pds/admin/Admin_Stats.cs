@@ -38,7 +38,6 @@ public class Admin_Stats : BaseAdmin
         // Get all statistics
         //
         var statistics = Pds.PdsDb.GetAllStatistics().OrderByDescending(s => s.LastUpdatedDate).ToList();
-        var applyWritesStats = statistics.Where(s => s.Name.Contains("ApplyWrites", StringComparison.OrdinalIgnoreCase)).ToList();
 
         string BuildStatisticsHtml(IEnumerable<Statistic> stats)
         {
@@ -134,26 +133,6 @@ public class Admin_Stats : BaseAdmin
             <input type=""text"" id=""showFilterInput"" placeholder=""Show..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#4caf50'"" onblur=""this.style.borderColor='#444'"" />
             <input type=""text"" id=""hideFilterInput"" placeholder=""Hide..."" style=""flex: 1; padding: 10px 14px; font-size: 14px; background-color: #2f3336; color: #e7e9ea; border: 1px solid #444; border-radius: 6px; outline: none;"" onfocus=""this.style.borderColor='#f44336'"" onblur=""this.style.borderColor='#444'"" />
         </div>
-
-        <h2 style=""margin-top: 24px;"">ApplyWrites <span class=""session-count"">({applyWritesStats.Count})</span></h2>
-        <table class=""stats-table filterable-table"" id=""applyWritesTable"">
-            <thead>
-                <tr>
-                    <th class=""sortable"" data-col=""0"" data-type=""string"">IP Address</th>
-                    <th class=""sortable"" data-col=""1"" data-type=""string"">User Agent</th>
-                    <th class=""sortable"" data-col=""2"" data-type=""string"">Name</th>
-                    <th class=""sortable"" data-col=""3"" data-type=""number"" style=""text-align: right;"">Value</th>
-                    <th class=""sortable desc"" data-col=""4"" data-type=""string"">Last Updated</th>
-                    <th class=""sortable"" data-col=""5"" data-type=""number"" style=""text-align: right;"">Minutes Ago</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {BuildStatisticsHtml(applyWritesStats)}
-            </tbody>
-        </table>
-
-        <h2 style=""margin-top: 32px;"">All Statistics <span class=""session-count"">({statistics.Count})</span></h2>
         <table class=""stats-table filterable-table"" id=""statsTable"">
             <thead>
                 <tr>
