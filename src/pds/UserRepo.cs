@@ -10,7 +10,7 @@ namespace dnproto.pds;
 
 /*
     Structure of repo and MST.
-    The three Repo* classes are here in the "dnproto.repo" namespace. 
+    The three Repo* classes are in the "dnproto.repo" namespace. 
     The two MST classes are in the "dnproto.mst" namespace. 
     The "dnproto.mst" namespace is somewhat generic, so RepoMst.cs exists to bridge that gap.
 
