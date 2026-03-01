@@ -77,8 +77,9 @@ public class StartFirehoseConsumer : BaseCommand
                     //
                     // Filter to only our did
                     //
-                    var did = message?.SelectString(["repo"]);
-                    if (did != actorInfo.Did)
+                    var repoStr = message?.SelectString(["repo"]);
+                    var didStr = message?.SelectString(["did"]);
+                    if (repoStr != actorInfo.Did && didStr != actorInfo.Did )
                     {
                         return true;
                     }
