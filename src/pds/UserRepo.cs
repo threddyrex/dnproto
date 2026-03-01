@@ -9,38 +9,42 @@ namespace dnproto.pds;
 
 
 /*
-    Structure of repo and MST.
+    Structure of user repo.
     The three Repo* classes are in the "dnproto.repo" namespace. 
-    The two MST classes are in the "dnproto.mst" namespace. 
+    The two Mst* classes are in the "dnproto.mst" namespace. 
     The "dnproto.mst" namespace is somewhat generic, so RepoMst.cs exists to bridge that gap.
 
-    A repo will have:
+    A repo will have the following structure. 
+    Items in quotes are the field names in the dag-cbor objects.
 
         RepoHeader.cs (only one)
-            CidV1 RepoCommitCid (points to RepoCommit.cs)
-            Int Version
+            "roots" -> CidV1 RepoCommitCid (points to RepoCommit.cs)
+            "version" -> Int Version
 
         RepoCommit.cs (only one)
-            int Version (always 3)
             CidV1 Cid;
-            CidV1 RootMstNodeCid (points to root MST node cid);
-            string Rev (increases monotonically, typically timestamp)
-            CidV1? PrevMstNodeCid (usually null)
-            string Signature
+            "did" -> string Did (user's did)
+            "rev" -> string Rev (increases monotonically, typically timestamp)
+            "sig" -> string Signature (computed each time repo changes, from the private key)
+            "data" -> CidV1 RootMstNodeCid (points to root MstNode cid)
+            "prev" -> CidV1? PrevMstNodeCid (usually null)
+            "version" -> int Version (always 3)
 
-        MstNode (0 or more)
+        MstNode (many)
             CidV1 Cid
-            "l" - CidV1? LeftMstNodeCid (optional to a sub-tree node)
+            int KeyDepth (depth of this node in the tree)
+            "e" -> List<MstEntry> Entries
+            "l" -> MstNode? LeftTree (optional to a sub-tree MstNode)
 
-        MstEntry (0 or more)
-            CidV1 MstNodeCid
-            int EntryIndex (0-based index within parent MstNode)
-            "k" - string KeySuffix
-            "p" - int PrefixLength
-            "t" - CidV1? TreeMstNodeCid
-            "v" - CidV1 RecordCid (cid of atproto record)
+        MstEntry (many)
+            string Key (the full key, built from the collection, suffix, and prefix length)
+            string Value (the cid of the repo record, in base32)
+            "k" -> (key suffix)
+            "p" -> (prefix length)
+            "t" -> MstNode? RightTree (optional to a sub-tree MstNode)
+            "v" -> (cid of repo record, see "Value" above)
 
-        RepoRecord (0 or more)
+        RepoRecord (many)
             CidV1 Cid
             DagCborObject Data (the actual atproto record)
 */
