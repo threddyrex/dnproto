@@ -3,14 +3,54 @@ namespace dnproto.repo;
 
 public class Repo
 {
-    ///
-    /// A repo has the following structure.
+    /// ----------------------------------------------------------------------------------------------------
+    /// CAR format
+    /// ----------------------------------------------------------------------------------------------------
     /// 
-    ///     RepoHeader.cs (only one (1))
+    /// Let's start by describing CAR.
+    /// 
+    /// CAR Specs:
+    ///     https://ipld.io/specs/transport/car/carv1/
+    ///     https://ipld.io/specs/codecs/dag-cbor/spec/
+    ///
+    /// A CAR contains one header, followed by a set of data items:
+    /// 
+    ///     [---  header  -------- ]   [----------------- data ---------------------------------]
+    ///     [varint | header block ]   [varint | cid | data block]....[varint | cid | data block] 
+    ///
+    /// We represent this in dnproto this using the VarInt, CidV1, and DagCborObject classes:
+    /// 
+    ///     [---  header  -------- ]   [----------------- data -------------------------------------------]
+    ///     [VarInt | DagCborObject]   [VarInt | CidV1 | DagCborObject]....[VarInt | CidV1 | DagCborObject] 
+    /// 
+    /// and then wrap them up in RepoHeader and RepoRecord classes:
+    /// 
+    ///     [---  header  -------- ]   [----------------- data -------------------------------------------]
+    ///     [RepoHeader]               [RepoRecord]....[RepoRecord][RepoRecord][RepoRecord][RepoRecord] 
+    /// 
+    /// The "WalkRepo" function returns those RepoHeader and RepoRecord classes.
+    /// 
+    /// ----------------------------------------------------------------------------------------------------
+
+
+    /// ----------------------------------------------------------------------------------------------------
+    /// atproto repo format
+    /// ----------------------------------------------------------------------------------------------------
+    /// 
+    /// atproto uses CAR. atproto repo spec:
+    ///     https://atproto.com/specs/repository
+    /// 
+    /// Each RepoRecord data item is either a RepoCommmit, MstNode,
+    /// or atproto record (RepoRecord). Look for the IsRepoCommit()
+    /// IsAtProtoRecord(), and IsMstNode() functions.
+    /// 
+    /// An atproto repo has the following format:
+    /// 
+    ///     RepoHeader.cs (only 1 in the repo)
     ///         "roots" -> CidV1 RepoCommitCid (points to RepoCommit.cs)
     ///         "version" -> Int Version
     ///
-    ///     RepoCommit.cs (only one (1))
+    ///     RepoCommit.cs (only 1 in the repo)
     ///         CidV1 Cid;
     ///         "did" -> string Did (user's did)
     ///         "rev" -> string Rev (increases monotonically, typically timestamp)
@@ -19,13 +59,13 @@ public class Repo
     ///         "prev" -> CidV1? PrevMstNodeCid (usually null)
     ///         "version" -> int Version (always 3)
     ///
-    ///     MstNode.cs (many (n))
+    ///     MstNode.cs (1 or more)
     ///         CidV1 Cid
     ///         int KeyDepth (depth of this node in the tree)
     ///         "e" -> List<MstEntry> Entries
     ///         "l" -> MstNode? LeftTree (optional to a sub-tree MstNode)
     ///
-    ///     MstEntry.cs (many (n))
+    ///     MstEntry.cs (1 or more)
     ///         string Key (the full key, built from the collection, suffix, and prefix length)
     ///         string Value (the cid of the repo record, in base32)
     ///         "k" -> (key suffix)
@@ -33,7 +73,7 @@ public class Repo
     ///         "t" -> MstNode? RightTree (optional to a sub-tree MstNode)
     ///         "v" -> (cid of repo record, see "Value" above)
     ///
-    ///     RepoRecord.cs (many (n))
+    ///     RepoRecord.cs (1 or more)
     ///         CidV1 Cid
     ///         DagCborObject Data (the actual atproto record)
     /// 
@@ -44,6 +84,7 @@ public class Repo
     ///     The "dnproto.mst" namespace is somewhat generic, so RepoMst.cs exists to bridge that gap.
     ///     Items in quotes are the field names in the dag-cbor objects.
     /// 
+    /// ----------------------------------------------------------------------------------------------------
 
 
 
@@ -56,23 +97,6 @@ public class Repo
     /// Use callbacks to let caller know when we find things.
     /// This is just the top-level algorithm. Most of the heavy lifting
     /// is done in VarInt, CidV1, and DagCborObject.
-    /// 
-    /// https://ipld.io/specs/transport/car/carv1/
-    /// https://atproto.com/specs/repository
-    /// https://ipld.io/specs/codecs/dag-cbor/spec/
-    /// 
-    ///
-    /// Format from spec:
-    /// 
-    ///    [---  header  -------- ]   [----------------- data ---------------------------------]
-    ///    [varint | header block ]   [varint | cid | data block]....[varint | cid | data block] 
-    ///
-    /// 
-    /// Represented using the data types we have:
-    /// 
-    ///    [---  header  -------- ]   [----------------- data -------------------------------------------]
-    ///    [VarInt | DagCborObject]   [VarInt | CidV1 | DagCborObject]....[VarInt | CidV1 | DagCborObject] 
-    ///
     ///
     /// </summary>
     /// <param name="s"></param>
