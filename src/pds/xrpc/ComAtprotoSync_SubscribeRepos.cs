@@ -64,6 +64,10 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         //
         // Stream events
         //
+        // Create a linked cancellation token that we can cancel when the client disconnects
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var linkedToken = linkedCts.Token;
+
         try
         {
             string? userAgent = HttpContext.Request.Headers.ContainsKey("User-Agent") ? HttpContext.Request.Headers["User-Agent"].ToString() : null;
@@ -76,13 +80,16 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                 Pds.Logger.LogInfo($"[FIREHOSE] [START] subCount={subscriberCount} cursorParam={cursorParam} cursor={cursor} ip={forwardedFor} userAgent={userAgent}");
             }
 
+            // Start a background task to handle incoming WebSocket messages (ping/pong/close)
+            // This is critical for keeping the connection alive - relays send pings and expect pongs
+            var receiveTask = HandleIncomingMessagesAsync(webSocket, linkedCts, forwardedFor);
 
-            while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+            while (webSocket.State == WebSocketState.Open && !linkedToken.IsCancellationRequested)
             {
                 List<FirehoseEvent> events = Pds.PdsDb.GetFirehoseEventsForSubscribeRepos(cursor);
                 foreach (FirehoseEvent ev in events)
                 {
-                    if (cancellationToken.IsCancellationRequested) break;
+                    if (linkedToken.IsCancellationRequested) break;
 
                     TimeSpan connectionLifetime = DateTime.UtcNow - startTime;
                     Pds.Logger.LogInfo($"[FIREHOSE] [SEND] subCount:{subscriberCount} seq={ev.SequenceNumber} cursor={cursor} lifetime={connectionLifetime.TotalMinutes:F1}min ip={forwardedFor} userAgent={userAgent}");
@@ -94,15 +101,18 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
                     Buffer.BlockCopy(header, 0, combined, 0, header.Length);
                     Buffer.BlockCopy(body, 0, combined, header.Length, body.Length);
 
-                    await webSocket.SendAsync(new ArraySegment<byte>(combined), WebSocketMessageType.Binary, true, cancellationToken);
+                    await webSocket.SendAsync(new ArraySegment<byte>(combined), WebSocketMessageType.Binary, true, linkedToken);
                     cursor = ev.SequenceNumber;
                 }
 
-                await Task.Delay(1000, cancellationToken);
+                await Task.Delay(1000, linkedToken);
             }
 
+            // Wait for the receive task to complete
+            await receiveTask;
+
             // Log why we exited the loop
-            Pds.Logger.LogInfo($"[FIREHOSE] Exited main loop. WebSocket.State={webSocket.State}, CancellationRequested={cancellationToken.IsCancellationRequested}");
+            Pds.Logger.LogInfo($"[FIREHOSE] Exited main loop. WebSocket.State={webSocket.State}, CancellationRequested={linkedToken.IsCancellationRequested}");
         }
         catch (OperationCanceledException ex)
         {
@@ -137,6 +147,56 @@ public class ComAtprotoSync_SubscribeRepos : BaseXrpcCommand
         }
 
         Pds.Logger.LogTrace("[FIREHOSE] WebSocket client disconnected or process is shutting down.");
+    }
+
+    /// <summary>
+    /// Handles incoming WebSocket messages (ping/pong/close).
+    /// This is critical for keeping connections alive - relays send pings and expect pongs.
+    /// Without this, connections time out after ~3 minutes.
+    /// </summary>
+    private async Task HandleIncomingMessagesAsync(WebSocket webSocket, CancellationTokenSource linkedCts, string? forwardedFor)
+    {
+        var buffer = new byte[1024];
+        try
+        {
+            while (webSocket.State == WebSocketState.Open && !linkedCts.Token.IsCancellationRequested)
+            {
+                WebSocketReceiveResult result;
+                try
+                {
+                    result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), linkedCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    Pds.Logger.LogInfo($"[FIREHOSE] [CLOSE] Client requested close. ip={forwardedFor}");
+                    linkedCts.Cancel();
+                    break;
+                }
+                else if (result.MessageType == WebSocketMessageType.Binary || result.MessageType == WebSocketMessageType.Text)
+                {
+                    // Clients shouldn't send data on this endpoint, but log it if they do
+                    Pds.Logger.LogTrace($"[FIREHOSE] Received unexpected {result.MessageType} message ({result.Count} bytes). ip={forwardedFor}");
+                }
+                // Note: Ping/Pong frames are handled automatically by the WebSocket implementation in ASP.NET Core.
+                // The ReceiveAsync method doesn't return ping frames - they're handled at the protocol level.
+                // However, we still need to be reading from the socket for this to work.
+            }
+        }
+        catch (WebSocketException ex)
+        {
+            Pds.Logger.LogTrace($"[FIREHOSE] WebSocketException in receive loop: {ex.Message} ip={forwardedFor}");
+            linkedCts.Cancel();
+        }
+        catch (Exception ex)
+        {
+            Pds.Logger.LogError($"[FIREHOSE] Unexpected exception in receive loop: {ex.Message} ip={forwardedFor}");
+            linkedCts.Cancel();
+        }
     }
 
 }
