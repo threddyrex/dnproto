@@ -7,7 +7,7 @@ resolving handles, downloading repos, parsing repos, etc.
 
 More recently it's become a PDS implementation.
 
-
+As of 3/10/26, I'll be adding all new features to the Rust version of this library -> [rustproto](https://github.com/threddyrex/rustproto).
 
 
 &nbsp;
