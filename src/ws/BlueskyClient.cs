@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -63,29 +64,43 @@ public class BlueskyClient
             //
             // 1. Resolve handle to did. Call all three methods (bluesky api, dns, http).
             //
-            if(actor.StartsWith("did:"))
+            if(actor.StartsWith("did:", StringComparison.Ordinal))
             {
+                if (!IsValidDid(actor))
+                {
+                    Logger.LogWarning($"[SECURITY] Rejected invalid DID during actor resolution: {actor}");
+                    return ret;
+                }
+
                 ret.Did = actor;
                 Logger.LogTrace("Actor is already a did.");
             }
             else
             {
-                ret.Handle = actor;
+                string normalizedHandle = actor.ToLowerInvariant();
+
+                if (!IsValidHandle(normalizedHandle))
+                {
+                    Logger.LogWarning($"[SECURITY] Rejected invalid handle during actor resolution: {actor}");
+                    return ret;
+                }
+
+                ret.Handle = normalizedHandle;
                 Logger.LogTrace("Actor is not a did, resolving to did.");
 
                 if (queryOptions.All || queryOptions.ResolveHandleViaBluesky)
                 {
-                    ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(actor);
+                    ret.Did_Bsky = ResolveHandleToDid_ViaBlueskyApi(normalizedHandle);
                 }
 
                 if (queryOptions.All || queryOptions.ResolveHandleViaDns)
                 {                
-                    ret.Did_Dns = ResolveHandleToDid_ViaDns(actor);
+                    ret.Did_Dns = ResolveHandleToDid_ViaDns(normalizedHandle);
                 }
                 
                 if (queryOptions.All || queryOptions.ResolveHandleViaHttp)
                 {
-                    ret.Did_Http = ResolveHandleToDid_ViaHttp(actor);
+                    ret.Did_Http = ResolveHandleToDid_ViaHttp(normalizedHandle);
                 }
 
                 ret.Did = ret.Did_Bsky ?? ret.Did_Dns ?? ret.Did_Http;
@@ -94,6 +109,19 @@ public class BlueskyClient
             }
 
             if (string.IsNullOrEmpty(ret.Did) || !ret.Did.StartsWith("did:")) return ret;
+
+            if (!IsValidDid(ret.Did))
+            {
+                Logger.LogWarning($"[SECURITY] Rejected invalid DID syntax during actor resolution: actor={actor} did={ret.Did}");
+                return ret;
+            }
+
+            if (!ret.Did.StartsWith("did:plc:", StringComparison.Ordinal)
+                && !ret.Did.StartsWith("did:web:", StringComparison.Ordinal))
+            {
+                Logger.LogWarning($"[SECURITY] Rejected unsupported DID method during actor resolution: actor={actor} did={ret.Did}");
+                return ret;
+            }
 
 
             //
@@ -133,7 +161,18 @@ public class BlueskyClient
                 {
                     string? handleFromDidDoc = null;
                     handleFromDidDoc = didDocJson?["alsoKnownAs"]?.AsArray()?.FirstOrDefault()?.ToString()?.Replace("at://", "")?.Split('/')?[0];
-                    ret.Handle = handleFromDidDoc;
+                    if (!string.IsNullOrEmpty(handleFromDidDoc))
+                    {
+                        string normalizedHandle = handleFromDidDoc.ToLowerInvariant();
+                        if (IsValidHandle(normalizedHandle))
+                        {
+                            ret.Handle = normalizedHandle;
+                        }
+                        else
+                        {
+                            Logger.LogWarning($"[SECURITY] Ignored invalid handle extracted from DID document: actor={actor} did={ret.Did} handle={handleFromDidDoc}");
+                        }
+                    }
                 }
 
 
@@ -183,11 +222,11 @@ public class BlueskyClient
         if(did == null) return null;
 
         string? didDoc = null;
-        if (did.StartsWith("did:plc"))
+        if (did.StartsWith("did:plc:", StringComparison.Ordinal))
         {
             didDoc = BlueskyClient.ResolveDidToDidDoc_DidPlc(did);
         }
-        else if (did.StartsWith("did:web"))
+        else if (did.StartsWith("did:web:", StringComparison.Ordinal))
         {
             didDoc = BlueskyClient.ResolveDidToDidDoc_DidWeb(did);
         }
@@ -361,14 +400,19 @@ public class BlueskyClient
     {
         Logger.LogTrace($"ResolveDidToDidDoc_DidWeb: did: {did}");
 
-        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:web:"))
+        if (string.IsNullOrEmpty(did) || !did.StartsWith("did:web:", StringComparison.Ordinal))
         {
             Logger.LogError($"ResolveDidToDidDoc_DidWeb: invalid did, exiting.");
             return null;
         }
 
-        string hostname = did.Replace("did:web:", "");
-        string url = $"https://{hostname}/.well-known/did.json";
+        string? url = BuildDidWebDocUrl(did);
+        if (string.IsNullOrEmpty(url))
+        {
+            Logger.LogWarning($"[SECURITY] Rejected invalid did:web during resolution: {did}");
+            return null;
+        }
+
         Logger.LogTrace($"ResolveDidToDidDoc_DidWeb: url: {url}");
 
         var response = BlueskyClient.SendRequest(url, HttpMethod.Get);
@@ -406,12 +450,268 @@ public class BlueskyClient
                 var pds = service["serviceEndpoint"]?.ToString();
                 if (!string.IsNullOrEmpty(pds))
                 {
-                    return pds.Replace("https://", "").Replace("http://", "");
+                    string? host = ExtractPdsHostFromEndpoint(pds);
+                    if (!string.IsNullOrEmpty(host))
+                    {
+                        return host;
+                    }
+
+                    Logger.LogWarning($"[SECURITY] Ignored invalid PDS serviceEndpoint in DID document: {pds}");
                 }
             }
         }
         
         return null;
+    }
+
+    public static bool IsValidHandle(string? handle)
+    {
+        if (string.IsNullOrEmpty(handle)) return false;
+        if (handle.Length > 253) return false;
+        if (!handle.All(static c => c <= 127)) return false;
+        if (handle.StartsWith('.') || handle.EndsWith('.')) return false;
+
+        string[] labels = handle.Split('.');
+        if (labels.Length < 2) return false;
+
+        foreach (string label in labels)
+        {
+            if (string.IsNullOrEmpty(label) || label.Length > 63) return false;
+            if (label.StartsWith('-') || label.EndsWith('-')) return false;
+
+            foreach (char ch in label)
+            {
+                if (!(char.IsAsciiLetterOrDigit(ch) || ch == '-')) return false;
+            }
+        }
+
+        char tldFirstChar = labels[^1][0];
+        if (char.IsDigit(tldFirstChar)) return false;
+
+        return true;
+    }
+
+    public static bool IsValidDid(string? did)
+    {
+        if (string.IsNullOrEmpty(did)) return false;
+        if (did.Length > 2048) return false;
+        if (!did.All(static c => c <= 127)) return false;
+        if (!did.StartsWith("did:", StringComparison.Ordinal)) return false;
+
+        string rest = did.Substring(4);
+        int methodSeparatorIndex = rest.IndexOf(':');
+        if (methodSeparatorIndex <= 0) return false;
+
+        string method = rest.Substring(0, methodSeparatorIndex);
+        string identifier = rest.Substring(methodSeparatorIndex + 1);
+
+        if (!method.All(static c => c is >= 'a' and <= 'z')) return false;
+        if (string.IsNullOrEmpty(identifier)) return false;
+        if (identifier.EndsWith(':') || identifier.EndsWith('%')) return false;
+
+        foreach (char ch in identifier)
+        {
+            bool isAllowed = char.IsAsciiLetterOrDigit(ch)
+                || ch == '.'
+                || ch == '_'
+                || ch == ':'
+                || ch == '%'
+                || ch == '-';
+
+            if (!isAllowed) return false;
+        }
+
+        return true;
+    }
+
+    public static string? BuildDidWebDocUrl(string? did)
+    {
+        if (string.IsNullOrEmpty(did)) return null;
+
+        const string prefix = "did:web:";
+        if (!did.StartsWith(prefix, StringComparison.Ordinal)) return null;
+
+        string identifier = did.Substring(prefix.Length);
+        string[] parts = identifier.Split(':');
+        if (parts.Length == 0 || string.IsNullOrEmpty(parts[0])) return null;
+
+        string authority = parts[0];
+        if (!IsValidDidWebAuthority(authority)) return null;
+
+        var pathSegments = new List<string>();
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string segment = parts[i];
+            if (!IsValidDidWebPathSegment(segment)) return null;
+            pathSegments.Add(segment);
+        }
+
+        string path = pathSegments.Count == 0
+            ? "/.well-known/did.json"
+            : $"/{string.Join("/", pathSegments)}/did.json";
+
+        string url = $"https://{authority}{path}";
+        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)) return null;
+        if (parsed.Scheme != Uri.UriSchemeHttps) return null;
+        if (string.IsNullOrEmpty(parsed.Host)) return null;
+
+        return url;
+    }
+
+    public static bool IsValidDidWebAuthority(string authority)
+    {
+        if (string.IsNullOrEmpty(authority)) return false;
+        if (!authority.All(static c => c <= 127)) return false;
+
+        foreach (char ch in authority)
+        {
+            if (ch is '/' or '\\' or '?' or '#' or '@' or '%' or '[' or ']')
+            {
+                return false;
+            }
+        }
+
+        string host = authority;
+        string? portText = null;
+        int colonCount = authority.Count(static c => c == ':');
+        if (colonCount > 1)
+        {
+            return false;
+        }
+
+        int colonIndex = authority.LastIndexOf(':');
+        if (colonIndex > 0)
+        {
+            host = authority.Substring(0, colonIndex);
+            portText = authority.Substring(colonIndex + 1);
+            if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(portText)) return false;
+            if (!int.TryParse(portText, out int port) || port < 1 || port > 65535) return false;
+        }
+
+        string hostLower = host.ToLowerInvariant();
+        if (hostLower == "localhost" || hostLower.EndsWith(".localhost", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (IPAddress.TryParse(hostLower, out IPAddress? ipAddress))
+        {
+            return IsPublicIp(ipAddress);
+        }
+
+        return IsValidHandle(hostLower);
+    }
+
+    public static bool IsValidDidWebPathSegment(string segment)
+    {
+        if (string.IsNullOrEmpty(segment)) return false;
+        if (segment == "." || segment == "..") return false;
+        if (!segment.All(static c => c <= 127)) return false;
+
+        for (int i = 0; i < segment.Length; i++)
+        {
+            char ch = segment[i];
+
+            if (ch == '%')
+            {
+                if (i + 2 >= segment.Length) return false;
+                if (!Uri.IsHexDigit(segment[i + 1]) || !Uri.IsHexDigit(segment[i + 2])) return false;
+                i += 2;
+                continue;
+            }
+
+            bool isAllowed = char.IsAsciiLetterOrDigit(ch)
+                || ch == '-'
+                || ch == '_'
+                || ch == '.'
+                || ch == '~';
+
+            if (!isAllowed) return false;
+        }
+
+        return true;
+    }
+
+    public static string? ExtractPdsHostFromEndpoint(string endpoint)
+    {
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? parsed)) return null;
+
+        if (parsed.Scheme != Uri.UriSchemeHttp && parsed.Scheme != Uri.UriSchemeHttps)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(parsed.UserInfo)) return null;
+        if (!string.IsNullOrEmpty(parsed.Query)) return null;
+        if (!string.IsNullOrEmpty(parsed.Fragment)) return null;
+        if (parsed.AbsolutePath != "/") return null;
+        if (string.IsNullOrEmpty(parsed.Host)) return null;
+
+        string host = parsed.Host.ToLowerInvariant();
+        if (host == "localhost" || host.EndsWith(".localhost", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        if (IPAddress.TryParse(host, out IPAddress? ipAddress))
+        {
+            if (!IsPublicIp(ipAddress)) return null;
+        }
+        else if (!IsValidHandle(host))
+        {
+            return null;
+        }
+
+        if (!parsed.IsDefaultPort)
+        {
+            return $"{host}:{parsed.Port}";
+        }
+
+        return host;
+    }
+
+    public static bool IsPublicIp(IPAddress ipAddress)
+    {
+        if (ipAddress.AddressFamily == AddressFamily.InterNetwork)
+        {
+            byte[] bytes = ipAddress.GetAddressBytes();
+
+            // 10.0.0.0/8
+            if (bytes[0] == 10) return false;
+
+            // 172.16.0.0/12
+            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) return false;
+
+            // 192.168.0.0/16
+            if (bytes[0] == 192 && bytes[1] == 168) return false;
+
+            // 169.254.0.0/16 (link-local)
+            if (bytes[0] == 169 && bytes[1] == 254) return false;
+
+            // 127.0.0.0/8 (loopback)
+            if (bytes[0] == 127) return false;
+
+            // 0.0.0.0/8 (unspecified)
+            if (bytes[0] == 0) return false;
+
+            return true;
+        }
+
+        if (ipAddress.AddressFamily == AddressFamily.InterNetworkV6)
+        {
+            if (IPAddress.IsLoopback(ipAddress)) return false;
+            if (ipAddress.Equals(IPAddress.IPv6None)) return false;
+            if (ipAddress.Equals(IPAddress.IPv6Any)) return false;
+            if (ipAddress.IsIPv6LinkLocal) return false;
+
+            byte[] bytes = ipAddress.GetAddressBytes();
+            // fc00::/7 unique local
+            if ((bytes[0] & 0xFE) == 0xFC) return false;
+
+            return true;
+        }
+
+        return false;
     }
     #endregion
 
