@@ -58,7 +58,7 @@ public class ComAtprotoRepo_GetRecord : BaseXrpcCommand
             }
 
             // Proxy the request to the target PDS
-            string targetUrl = $"https://{actorInfo.Pds}/xrpc/com.atproto.repo.getRecord?repo={actorInfo.Did}&collection={collection}&rkey={rkey}";
+            string targetUrl = $"https://{actorInfo.Pds}/xrpc/com.atproto.repo.getRecord?repo={Uri.EscapeDataString(actorInfo.Did)}&collection={Uri.EscapeDataString(collection)}&rkey={Uri.EscapeDataString(rkey)}";
             Pds.Logger.LogInfo($"Proxying to: {targetUrl}");
 
             try
