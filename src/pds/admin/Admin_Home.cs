@@ -47,7 +47,8 @@ public class Admin_Home : BaseAdmin
         <head>
         <title>Admin - Home - {TryGetPdsHostname()}</title>
         <style>
-            body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; }}
+            body {{ background-color: #16181c; color: #e7e9ea; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px 40px 220px; }}
+            @media (max-width: 700px) {{ body {{ padding: 40px 20px; }} }}
             .container {{ max-width: 800px; margin: 0 0 0 40px; }}
             h1 {{ color: #8899a6; margin-bottom: 24px; }}
             h2 {{ color: #8899a6; margin-top: 32px; margin-bottom: 16px; font-size: 18px; }}
