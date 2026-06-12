@@ -21,7 +21,7 @@ namespace dnproto.cli.commands
 
         /// <summary>
         /// Activate an account.
-        /// https://docs.bsky.app/docs/api/com-atproto-server-activate-account
+        /// https://endpoints.bsky.app/#bluesky-app/tag/comatprotoserver/POST/xrpc/com.atproto.server.activateAccount
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>

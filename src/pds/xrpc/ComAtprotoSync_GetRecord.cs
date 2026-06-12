@@ -12,7 +12,7 @@ namespace dnproto.pds.xrpc;
 /// This includes a RepoHeader, RepoCommit, RepoRecord, and all MstNodes
 /// in the path from the root of the tree all the way to the record.
 /// 
-/// see: https://docs.bsky.app/docs/api/com-atproto-sync-get-record
+/// see: https://endpoints.bsky.app/#bluesky-app/tag/comatprotosync/GET/xrpc/com.atproto.sync.getRecord
 /// 
 /// </summary>
 public class ComAtprotoSync_GetRecord : BaseXrpcCommand

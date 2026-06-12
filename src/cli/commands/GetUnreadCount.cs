@@ -21,7 +21,7 @@ namespace dnproto.cli.commands
 
         /// <summary>
         /// Get unread notification count.
-        /// https://docs.bsky.app/docs/api/app-bsky-notification-get-unread-count
+        /// https://endpoints.bsky.app/#bluesky-app/tag/appbskynotification/GET/xrpc/app.bsky.notification.getUnreadCount
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>

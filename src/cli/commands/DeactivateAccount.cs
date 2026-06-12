@@ -21,7 +21,7 @@ namespace dnproto.cli.commands
 
         /// <summary>
         /// Deactivate an account.
-        /// https://docs.bsky.app/docs/api/com-atproto-server-deactivate-account
+        /// https://endpoints.bsky.app/#bluesky-app/tag/comatprotoserver/POST/xrpc/com.atproto.server.deactivateAccount
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>

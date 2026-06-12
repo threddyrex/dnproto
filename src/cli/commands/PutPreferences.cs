@@ -23,7 +23,7 @@ namespace dnproto.cli.commands
         /// <summary>
         /// Put preferences for the current session.
         /// Contains things like muted words, saved feeds, etc. 
-        /// https://docs.bsky.app/docs/api/app-bsky-actor-get-preferences
+        /// https://endpoints.bsky.app/#bluesky-app/tag/appbskyactor/POST/xrpc/app.bsky.actor.putPreferences
         /// </summary>
         /// <param name="arguments"></param>
         /// <exception cref="ArgumentException"></exception>

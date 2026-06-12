@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 namespace dnproto.pds.xrpc;
 
 /// <summary>
-/// https://docs.bsky.app/docs/api/com-atproto-server-check-account-status
+/// https://endpoints.bsky.app/#bluesky-app/tag/comatprotoserver/GET/xrpc/com.atproto.server.checkAccountStatus
 /// </summary>
 public class ComAtprotoServer_CheckAccountStatus : BaseXrpcCommand
 {

@@ -1134,7 +1134,7 @@ public class BlueskyClient
 
     /// <summary>
     /// Gets the profile of an actor.
-    /// https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
+    /// https://endpoints.bsky.app/#bluesky-app/tag/appbskyactor/GET/xrpc/app.bsky.actor.getProfile
     /// </summary>
     /// <param name="actor">The actor to get the profile for.</param>
     public static JsonNode? GetProfile(string? actor, string? accessJwt = null, string? hostname = null, string? labelers = null)
@@ -1167,7 +1167,7 @@ public class BlueskyClient
 
     /// <summary>
     /// Get repo for did.
-    /// https://docs.bsky.app/docs/api/com-atproto-sync-get-repo
+    /// https://endpoints.bsky.app/#bluesky-app/tag/comatprotosync/GET/xrpc/com.atproto.sync.getRepo
     /// </summary>
     /// <param name="pds"></param>
     /// <param name="did"></param>
@@ -1265,7 +1265,7 @@ public class BlueskyClient
 
     /// <summary>
     /// List repos.
-    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-repos
+    /// https://endpoints.bsky.app/#bluesky-app/tag/comatprotosync/GET/xrpc/com.atproto.sync.listRepos
     /// </summary>
     /// <param name="pds"></param>
     /// <param name="limit"></param>
@@ -1376,7 +1376,7 @@ public class BlueskyClient
 
     /// <summary>
     /// List blobs for did.
-    /// https://docs.bsky.app/docs/api/com-atproto-sync-list-blobs
+    /// https://endpoints.bsky.app/#bluesky-app/tag/comatprotosync/GET/xrpc/com.atproto.sync.listBlobs
     /// </summary>
     /// <param name="pds"></param>
     /// <param name="did"></param>

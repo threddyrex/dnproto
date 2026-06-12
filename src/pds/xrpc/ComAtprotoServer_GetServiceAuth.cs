@@ -7,7 +7,7 @@ namespace dnproto.pds.xrpc;
 
 /// <summary>
 /// Get a signed token on behalf of the requesting DID for the requested service.
-/// https://docs.bsky.app/docs/api/com-atproto-server-get-service-auth
+/// https://endpoints.bsky.app/#bluesky-app/tag/comatprotoserver/GET/xrpc/com.atproto.server.getServiceAuth
 /// </summary>
 public class ComAtprotoServer_GetServiceAuth : BaseXrpcCommand
 {
