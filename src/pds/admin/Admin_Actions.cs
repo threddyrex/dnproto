@@ -143,6 +143,35 @@ public class Admin_Actions : BaseAdmin
                     });
                 }
             }
+            else if(action == "rotatejwtsecret")
+            {
+                // Highly destructive: invalidates every existing user JWT and OAuth access token.
+                // Require typed confirmation, matching the installuserrepo pattern.
+                string? confirmText = HttpContext.Request.Form["confirm_text"];
+                if(string.IsNullOrEmpty(confirmText) || !confirmText.Equals("rotate jwt secret", StringComparison.OrdinalIgnoreCase))
+                {
+                    HttpContext.Response.Cookies.Append("rotate_jwt_secret_error", "You must type 'rotate jwt secret' to confirm this action.", new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        MaxAge = TimeSpan.FromMinutes(1)
+                    });
+                }
+                else
+                {
+                    string newSecret = JwtSecret.GenerateJwtSecret();
+                    Pds.PdsDb.SetConfigProperty("JwtSecret", newSecret);
+
+                    HttpContext.Response.Cookies.Append("rotate_jwt_secret_success", "JWT secret rotated. All existing user sessions and OAuth access tokens are now invalid; users must sign in again.", new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        MaxAge = TimeSpan.FromMinutes(1)
+                    });
+                }
+            }
             else if(action == "activateaccount")
             {
                 Pds.ActivateAccount();
@@ -202,6 +231,20 @@ public class Admin_Actions : BaseAdmin
             HttpContext.Response.Cookies.Delete("install_repo_success");
         }
 
+        string? rotateJwtSecretError = null;
+        if(HttpContext.Request.Cookies.TryGetValue("rotate_jwt_secret_error", out rotateJwtSecretError))
+        {
+            // Delete the cookie immediately after reading
+            HttpContext.Response.Cookies.Delete("rotate_jwt_secret_error");
+        }
+
+        string? rotateJwtSecretSuccess = null;
+        if(HttpContext.Request.Cookies.TryGetValue("rotate_jwt_secret_success", out rotateJwtSecretSuccess))
+        {
+            // Delete the cookie immediately after reading
+            HttpContext.Response.Cookies.Delete("rotate_jwt_secret_success");
+        }
+
 
         //
         // Get current public key value
@@ -216,6 +259,10 @@ public class Admin_Actions : BaseAdmin
             : "<span class=\"dimmed\">not configured</span>";
         
         string adminPasswordStatus = Pds.PdsDb.ConfigPropertyExists("AdminHashedPassword")
+            ? "<span style=\"color: #4caf50;\">configured</span>"
+            : "<span class=\"dimmed\">not configured</span>";
+
+        string jwtSecretStatus = Pds.PdsDb.ConfigPropertyExists("JwtSecret")
             ? "<span style=\"color: #4caf50;\">configured</span>"
             : "<span class=\"dimmed\">not configured</span>";
 
@@ -293,6 +340,33 @@ public class Admin_Actions : BaseAdmin
             <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
             <input type=""hidden"" name=""action"" value=""generateuserpassword"" />
             <button type=""submit"" class=""action-btn-destructive"">Generate User Password</button>
+        </form>
+
+        <h2>JWT Secret</h2>
+        {(rotateJwtSecretError != null ? $@"
+        <div class=""error-display"">
+            <div class=""label"">Error</div>
+            <div class=""value"">{HtmlEncode(rotateJwtSecretError)}</div>
+        </div>
+        " : "")}
+        {(rotateJwtSecretSuccess != null ? $@"
+        <div class=""success-display"">
+            <div class=""label"">Success</div>
+            <div class=""value"">{HtmlEncode(rotateJwtSecretSuccess)}</div>
+        </div>
+        " : "")}
+        <div class=""info-card"">
+            <div class=""label"">JwtSecret (used to sign user access and refresh JWTs)</div>
+            <div class=""value"">{jwtSecretStatus}</div>
+        </div>
+        <form method=""post"" action=""/admin/actions"" style=""margin-top: 16px;"" onsubmit=""return confirm('Are you sure you want to rotate the JWT secret? Every existing user session and OAuth access token will be invalidated and users will have to sign in again.');"">
+            <input type=""hidden"" name=""csrf_token"" value=""{csrfToken}"" />
+            <input type=""hidden"" name=""action"" value=""rotatejwtsecret"" />
+            <div style=""margin-bottom: 12px;"">
+                <label for=""confirm_text_jwt"" style=""color: #f0a81d; font-size: 14px;"">Type &quot;rotate jwt secret&quot; to confirm:</label>
+                <input type=""text"" id=""confirm_text_jwt"" name=""confirm_text"" autocomplete=""off"" style=""display: block; margin-top: 8px; padding: 8px 12px; border-radius: 4px; border: 1px solid #2f3336; background-color: #16181c; color: #e7e9ea; font-size: 14px; width: 200px;"" />
+            </div>
+            <button type=""submit"" class=""action-btn-destructive"">Rotate JWT Secret</button>
         </form>
 
         <h2>User Key Pair</h2>
