@@ -183,6 +183,8 @@ public class Pds
 
     private void MapEndpoints()
     {
+        App.MapGet("/", (HttpContext context) => new Home(){Pds = this, HttpContext = context}.GetResponse());
+        App.MapGet("/favicon.ico", (HttpContext context) => new Favicon(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/hello", (HttpContext context) => new Hello(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/_health", (HttpContext context) => new Health(){Pds = this, HttpContext = context}.GetResponse());
         App.MapGet("/xrpc/com.atproto.server.describeServer", (HttpContext context) => new ComAtprotoServer_DescribeServer(){Pds = this, HttpContext = context}.GetResponse());

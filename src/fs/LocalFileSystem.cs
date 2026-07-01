@@ -47,7 +47,7 @@ public class LocalFileSystem
             throw new Exception($"dataDir is null or does not exist: {dataDir}");
         }
 
-        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch", "logs", "records" })
+        foreach (string subDir in new string[] { "actors", "backups", "repos", "preferences", "sessions", "pds", "scratch", "logs", "records", "static" })
         {
             string fullSubDir = Path.Combine(dataDir, subDir);
             if (Directory.Exists(fullSubDir) == false)
@@ -256,6 +256,16 @@ public class LocalFileSystem
     {
         string scratchDir = Path.Combine(_dataDir, "scratch");
         return scratchDir;
+    }
+
+    /// <summary>
+    /// Get the path to the static directory (used to serve files like index.html).
+    /// </summary>
+    /// <returns></returns>
+    public string GetPath_StaticDir()
+    {
+        string staticDir = Path.Combine(_dataDir, "static");
+        return staticDir;
     }
 
     /// <summary>
