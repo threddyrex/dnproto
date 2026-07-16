@@ -1,13 +1,15 @@
 
 
-# dnproto - software for ATProto and Bluesky
+# dnproto
 
-This project started as a toolset for debugging and working with ATProto. Things like
+This project started as a toolset for debugging and working with atproto. Things like
 resolving handles, downloading repos, parsing repos, etc.
 
 More recently it's become a PDS implementation.
 
 There is a Rust port here -> [rustproto](https://github.com/threddyrex/rustproto).
+
+*(Note: dnproto is an independent, community-driven project and is not affiliated with, sponsored by, or endorsed by Bluesky Social, PBC.)*
 
 
 &nbsp;
