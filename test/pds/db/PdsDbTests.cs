@@ -92,6 +92,40 @@ public class PdsDbTests : IClassFixture<PdsDbTestsFixture>
         Assert.True(dbFileExists);
     }
 
+    [Fact]
+    public void PdsDb_GetConfigPropertyOptional_ReturnsMissingAndEmptyValues()
+    {
+        var pdsDb = _fixture.PdsDb;
+        string key = $"optional-{Guid.NewGuid():N}";
+
+        Assert.Null(pdsDb.GetConfigPropertyOptional(key));
+
+        pdsDb.SetConfigProperty(key, "");
+
+        Assert.Equal("", pdsDb.GetConfigPropertyOptional(key));
+    }
+
+    [Fact]
+    public void PdsDb_GetAllBlobs_ReturnsBlobMetadata()
+    {
+        var pdsDb = _fixture.PdsDb;
+        string cid = $"test-{Guid.NewGuid():N}";
+        var blob = new Blob
+        {
+            Cid = cid,
+            ContentType = "image/png",
+            ContentLength = 123
+        };
+
+        pdsDb.InsertBlob(blob);
+
+        Blob? retrieved = pdsDb.GetAllBlobs().SingleOrDefault(item => item.Cid == cid);
+
+        Assert.NotNull(retrieved);
+        Assert.Equal(blob.ContentType, retrieved.ContentType);
+        Assert.Equal(blob.ContentLength, retrieved.ContentLength);
+    }
+
 
     #region REPOHDR
 

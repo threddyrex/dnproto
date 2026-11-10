@@ -35,7 +35,9 @@ public class Admin_Config : BaseAdmin
         "CaddyAccessLogFilePath",
         "FeatureEnabled_RequestCrawl",
         "AtprotoProxyAllowedDids",
-        "OauthAllowedRedirectUris"
+        "OauthAllowedRedirectUris",
+        "AzureStorageSASURL",
+        "AzureStorageSASURL_Blobs"
     };
 
     public IResult GetResponse()
@@ -267,6 +269,19 @@ public class Admin_Config : BaseAdmin
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td><button class=""set-btn"" onclick=""setConfig('CaddyAccessLogFilePath', '{GetConfigValueForJs("CaddyAccessLogFilePath")}')"">Set</button></td>
                 <td>Access log for caddy.</td>
+            </tr>
+            <tr class=""section-header""><td colspan=""4"">Backups</td></tr>
+            <tr>
+                <td class=""key-name"">AzureStorageSASURL</td>
+                <td>{GetMaskedConfigProperty("AzureStorageSASURL")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('AzureStorageSASURL', '')"">Set</button></td>
+                <td>Azure Storage SAS URL used to back up rotated log files before deletion (secret - masked).</td>
+            </tr>
+            <tr>
+                <td class=""key-name"">AzureStorageSASURL_Blobs</td>
+                <td>{GetMaskedConfigProperty("AzureStorageSASURL_Blobs")}</td>
+                <td><button class=""set-btn"" onclick=""setConfig('AzureStorageSASURL_Blobs', '')"">Set</button></td>
+                <td>Azure Storage SAS URL used to back up PDS blobs (secret - masked).</td>
             </tr>
             <tr class=""section-header""><td colspan=""4"">Security</td></tr>
             <tr>

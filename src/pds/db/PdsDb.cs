@@ -125,6 +125,20 @@ CREATE TABLE IF NOT EXISTS ConfigProperty (
         }
     }
 
+    public string? GetConfigPropertyOptional(string key)
+    {
+        using (var connection = GetConnection())
+        {
+            connection.Open();
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT Value FROM ConfigProperty WHERE Key = @key";
+            command.Parameters.AddWithValue("@key", key);
+            var result = command.ExecuteScalar();
+            connection.Close();
+            return result?.ToString();
+        }
+    }
+
     public void SetConfigProperty(string key, string value)
     {
         using (var connection = GetConnection())
@@ -329,6 +343,32 @@ WHERE Cid = @Cid
             }
         }
         
+        return blobs;
+    }
+
+    public List<Blob> GetAllBlobs()
+    {
+        var blobs = new List<Blob>();
+
+        using (var sqlConnection = GetConnectionReadOnly())
+        {
+            var command = sqlConnection.CreateCommand();
+            command.CommandText = "SELECT Cid, ContentType, ContentLength FROM Blob ORDER BY Cid ASC";
+
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    blobs.Add(new Blob
+                    {
+                        Cid = reader.GetString(reader.GetOrdinal("Cid")),
+                        ContentType = reader.GetString(reader.GetOrdinal("ContentType")),
+                        ContentLength = reader.GetInt32(reader.GetOrdinal("ContentLength"))
+                    });
+                }
+            }
+        }
+
         return blobs;
     }
 

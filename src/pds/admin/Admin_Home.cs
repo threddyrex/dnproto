@@ -182,6 +182,17 @@ public class Admin_Home : BaseAdmin
                 <td>{GetConfigValue("CaddyAccessLogFilePath")}</td>
                 <td>Access log for caddy.</td>
             </tr>
+            <tr class=""section-header""><td colspan=""3"">Backups</td></tr>
+            <tr>
+                <td class=""key-name"">AzureStorageSASURL</td>
+                <td>{GetMaskedConfigProperty("AzureStorageSASURL")}</td>
+                <td>Azure Storage SAS URL used to back up rotated log files before deletion (secret - masked). Set it on the Config page.</td>
+            </tr>
+            <tr>
+                <td class=""key-name"">AzureStorageSASURL_Blobs</td>
+                <td>{GetMaskedConfigProperty("AzureStorageSASURL_Blobs")}</td>
+                <td>Azure Storage SAS URL used to back up PDS blobs (secret - masked). Set it on the Config page.</td>
+            </tr>
             <tr class=""section-header""><td colspan=""3"">Security</td></tr>
             <tr>
                 <td class=""key-name"">AtprotoProxyAllowedDids</td>

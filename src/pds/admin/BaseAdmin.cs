@@ -96,6 +96,20 @@ public class BaseAdmin
         }
     }
 
+    protected string GetMaskedConfigProperty(string key)
+    {
+        string? value = Pds.PdsDb.GetConfigPropertyOptional(key);
+        if (string.IsNullOrEmpty(value))
+        {
+            return "<span class=\"dimmed\">empty</span>";
+        }
+
+        string suffix = value.Length > 4
+            ? System.Net.WebUtility.HtmlEncode(value[^4..])
+            : "";
+        return $"<span class=\"dimmed\">••••••{suffix} (set)</span>";
+    }
+
 
     protected void IncrementStatistics()
     {
